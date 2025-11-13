@@ -14,6 +14,10 @@ Route::get('/drawing', function () {
     return Inertia::render('drawing');
 })->name('drawing');
 
+Route::get('/calendar', function () {
+    return Inertia::render('calendar');
+})->name('calendar');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
