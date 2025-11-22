@@ -10,6 +10,13 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+// ------ PRUEBAS DE LANDING --------------------
+Route::get('/landing', function () {
+    return Inertia::render('landing');
+})->name('landing');
+
+
+
 Route::get('/drawing', function () {
     return Inertia::render('drawing');
 })->name('drawing');

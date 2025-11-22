@@ -1,0 +1,101 @@
+.sectionTag {
+  background: #013147;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.sectionTitle {
+  margin-top: 10px;
+  font-size: 2.8rem;
+  line-height: 1.2;
+}
+
+.sectionTitle span {
+  color: red;
+}
+
+/* ABOUT */
+.aboutText {
+  color: #555;
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.aboutBenefit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin: 10px 0;
+}
+
+.aboutBenefitItem {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+}
+
+.aboutBenefitItem span {
+  color: green;
+  margin-right: 10px;
+}
+
+.aboutVideoThumb {
+  position: relative;
+  width: 360px;
+
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 30px 0;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.aboutVideoThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.aboutVideoThumb:hover .aboutPlayButton {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.aboutPlayButton {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70px;
+  height: 70px;
+  background: red;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: white;
+  transition: all 0.3s;
+}
+
+.aboutStats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.aboutStats h3 {
+  font-size: 3.2rem;
+  color: #013147;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+.aboutStats p {
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* SERVICES */
