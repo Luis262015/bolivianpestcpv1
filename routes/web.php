@@ -1,5 +1,26 @@
 <?php
 
+use App\Http\Controllers\CategoriasController;
+use App\Http\Controllers\ComprasController;
+use App\Http\Controllers\ConfigsController;
+use App\Http\Controllers\ContratoController;
+use App\Http\Controllers\CotizacionController;
+use App\Http\Controllers\CronogramaController;
+use App\Http\Controllers\CuentasPorCobrarController;
+use App\Http\Controllers\CuentasPorPagarController;
+use App\Http\Controllers\DocumentosController;
+use App\Http\Controllers\EmpresaController;
+use App\Http\Controllers\EtiquetasController;
+use App\Http\Controllers\GastosController;
+use App\Http\Controllers\IngresosController;
+use App\Http\Controllers\MapaController;
+use App\Http\Controllers\MarcasController;
+use App\Http\Controllers\ProductosController;
+use App\Http\Controllers\ProveedoresController;
+use App\Http\Controllers\RetirosController;
+use App\Http\Controllers\SeguimientoController;
+use App\Http\Controllers\SubcategoriasController;
+use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -30,6 +51,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+
+    /// ********** EMPRESAS *****************
+    Route::resource('empresas', EmpresaController::class);
+    Route::resource('contratos', ContratoController::class);
+    Route::resource('cotizaciones', CotizacionController::class);
+    Route::resource('cronogramas', CronogramaController::class);
+    Route::resource('mapas', MapaController::class);
+    Route::resource('seguimientos', SeguimientoController::class);
+
+    /// ********** CONTABILIDAD *****************    
+    Route::resource('cuentasporcobrar', CuentasPorCobrarController::class);
+    Route::resource('cuentasporpagar', CuentasPorPagarController::class);
+    Route::resource('compras', ComprasController::class);
+    Route::resource('ingresos', IngresosController::class);
+    Route::resource('retiros', RetirosController::class);
+    Route::resource('gastos', GastosController::class);
+
+    Route::resource('categorias', CategoriasController::class);
+    Route::resource('subcategorias', SubcategoriasController::class);
+    Route::resource('marcas', MarcasController::class);
+    Route::resource('etiquetas', EtiquetasController::class);
+    Route::resource('productos', ProductosController::class);
+    Route::resource('proveedores', ProveedoresController::class);
+
+    /// ********** USUARIO ************************
+    Route::resource('usuarios', UsersController::class);
+    Route::resource('documentos', DocumentosController::class);
+    Route::resource('configs', ConfigsController::class);
 });
 
 require __DIR__ . '/settings.php';

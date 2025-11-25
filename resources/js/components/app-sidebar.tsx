@@ -52,33 +52,33 @@ const mainNavItems2: MainNavItem[] = [
     subItems: [
       {
         title: 'Lista',
-        href: '/ventas',
+        href: '/empresas',
       },
       {
         title: 'Cotizaciones',
-        href: '/ventas/create',
+        href: '/cotizaciones',
       },
       {
         title: 'Contratos',
-        href: '/ventas/create',
+        href: '/contratos',
       },
     ],
   },
   {
     title: 'Cronogramas',
     icon: CalendarDays,
-    href: '/cuentascobrar',
+    href: '/cronogramas',
   },
 
   {
     title: 'Mapas',
     icon: Locate,
-    href: '/cuentascobrar',
+    href: '/mapas',
   },
   {
     title: 'Seguimientos',
     icon: NotebookPen,
-    href: '/cuentascobrar',
+    href: '/seguimientos',
   },
 ];
 
@@ -88,17 +88,12 @@ const mainNavItems3: MainNavItem[] = [
   {
     title: 'Cuentas por Cobrar',
     icon: TrendingUp,
-    href: '/cuentascobrar',
+    href: '/cuentasporcobrar',
   },
   {
     title: 'Cuentas por Pagar',
     icon: TrendingDown,
-    subItems: [
-      {
-        title: 'Lista',
-        href: '/cuentaspagar',
-      },
-    ],
+    href: '/cuentasporpagar',
   },
   {
     title: 'Compras',
@@ -183,7 +178,7 @@ const mainNavItems4: MainNavItem[] = [
   {
     title: 'Documentos',
     icon: Files,
-    href: '/cuentascobrar',
+    href: '/documentos',
   },
 
   {
