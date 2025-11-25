@@ -48,6 +48,12 @@ export interface SharedData {
   [key: string]: unknown;
 }
 
+export interface PaginationLink {
+  url: string | null;
+  label: string;
+  active: boolean;
+}
+
 export interface User {
   id: number;
   name: string;

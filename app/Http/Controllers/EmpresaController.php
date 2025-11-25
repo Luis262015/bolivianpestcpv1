@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Empresa;
 use Illuminate\Http\Request;
 
 class EmpresaController extends Controller
@@ -12,7 +13,8 @@ class EmpresaController extends Controller
     public function index()
     {
         //
-        return inertia('admin/empresas/lista');
+        $empresas = Empresa::paginate(10);
+        return inertia('admin/empresas/lista', ['empresas' => $empresas]);
     }
 
     /**
@@ -21,6 +23,7 @@ class EmpresaController extends Controller
     public function create()
     {
         //
+        return inertia('admin/empresas/crear');
     }
 
     /**
@@ -29,6 +32,17 @@ class EmpresaController extends Controller
     public function store(Request $request)
     {
         //
+        $validated = $request->validate([
+            'nombre' => 'required',
+            'direccion' => 'required',
+            'telefono' => 'nullable',
+            'email' => 'required|email',
+            'ciudad' => 'required',
+            'activo' => 'boolean',
+        ]);
+
+        Empresa::create($validated);
+        return redirect()->route('empresas.index');
     }
 
     /**
@@ -42,17 +56,30 @@ class EmpresaController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Empresa $empresa)
     {
         //
+        // dd("LLEGO INFORMACION " . $id);
+        return inertia('admin/empresas/editar', ['empresa' => $empresa]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Empresa $empresa)
     {
         //
+        $validated = $request->validate([
+            'nombre' => 'required',
+            'direccion' => 'required',
+            'telefono' => 'nullable',
+            'email' => 'required|email',
+            'ciudad' => 'required',
+            'activo' => 'boolean',
+        ]);
+
+        $empresa->update($validated);
+        return redirect()->route('empresas.index');
     }
 
     /**
@@ -61,5 +88,7 @@ class EmpresaController extends Controller
     public function destroy(string $id)
     {
         //
+        Empresa::find($id)->delete();
+        return redirect()->route('empresas.index');
     }
 }
