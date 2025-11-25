@@ -15,15 +15,16 @@ Route::get('/landing', function () {
     return Inertia::render('landing');
 })->name('landing');
 
-
-
+// ------ PRUEBAS DE MAPA --------------------
 Route::get('/drawing', function () {
     return Inertia::render('drawing');
 })->name('drawing');
 
+// ------ PRUEBAS DE CALENDARIO --------------------
 Route::get('/calendar', function () {
     return Inertia::render('calendar');
 })->name('calendar');
+
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
