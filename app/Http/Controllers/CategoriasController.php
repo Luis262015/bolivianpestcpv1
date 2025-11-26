@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Categoria;
 use Illuminate\Http\Request;
 
 class CategoriasController extends Controller
@@ -12,7 +13,8 @@ class CategoriasController extends Controller
     public function index()
     {
         //
-        return inertia('admin/categorias/lista');
+        $categorias = Categoria::paginate(10);
+        return inertia('admin/categorias/lista', ['categorias' => $categorias]);
     }
 
     /**
@@ -21,6 +23,7 @@ class CategoriasController extends Controller
     public function create()
     {
         //
+        return inertia('admin/categorias/crear');
     }
 
     /**
@@ -29,6 +32,14 @@ class CategoriasController extends Controller
     public function store(Request $request)
     {
         //
+        $validated = $request->validate([
+            'nombre' => 'required',
+            'orden' => 'nullable',
+            'imagen' => 'nullable',
+        ]);
+
+        Categoria::create($validated);
+        return redirect()->route('categorias.index');
     }
 
     /**
@@ -42,17 +53,25 @@ class CategoriasController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Categoria $categoria)
     {
         //
+        return inertia('admin/categorias/editar', ['categoria' => $categoria]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Categoria $categoria)
     {
         //
+        $validated = $request->validate([
+            'nombre' => 'required',
+            'orden' => 'nullable',
+            'imagen' => 'nullable',
+        ]);
+        $categoria->update($validated);
+        return redirect()->route('categorias.index');
     }
 
     /**
@@ -61,5 +80,7 @@ class CategoriasController extends Controller
     public function destroy(string $id)
     {
         //
+        Categoria::find($id)->delete();
+        return redirect()->route('categorias.index');
     }
 }

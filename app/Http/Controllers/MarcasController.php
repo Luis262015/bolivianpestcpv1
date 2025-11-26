@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Marca;
 use Illuminate\Http\Request;
 
 class MarcasController extends Controller
@@ -12,7 +13,8 @@ class MarcasController extends Controller
     public function index()
     {
         //
-        return inertia('admin/marcas/lista');
+        $marcas = Marca::paginate(10);
+        return inertia('admin/marcas/lista', ['marcas' => $marcas]);
     }
 
     /**
@@ -21,6 +23,7 @@ class MarcasController extends Controller
     public function create()
     {
         //
+        return inertia('admin/marcas/crear');
     }
 
     /**
@@ -29,6 +32,15 @@ class MarcasController extends Controller
     public function store(Request $request)
     {
         //
+        $validated = $request->validated([
+            'nombre' => ['required', 'string', 'max:255'],
+            'orden' => ['required', 'integer', 'min:0'],
+            'imagen' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        Marca::create($validated);
+
+        return redirect()->route('marcas.index');
     }
 
     /**
@@ -42,9 +54,10 @@ class MarcasController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Marca $marca)
     {
         //
+        return inertia('admin/marcas/edit', ['marca' => $marca]);
     }
 
     /**
@@ -53,6 +66,15 @@ class MarcasController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        $validated = $request->validated([
+            'nombre' => ['required', 'string', 'max:255'],
+            'orden' => ['required', 'integer', 'min:0'],
+            'imagen' => ['nullable', 'string', 'max:255'],
+        ]);
+        $marca = Marca::find($id);
+        $marca->update($validated);
+
+        return redirect()->route('marcas.index');
     }
 
     /**
@@ -61,5 +83,9 @@ class MarcasController extends Controller
     public function destroy(string $id)
     {
         //
+        $marca = Marca::find($id);
+        $marca->delete();
+
+        return redirect()->route('marcas.index');
     }
 }

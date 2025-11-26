@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class MapaPunto extends Model
 {
     //
+    protected $guarded = [];
 }

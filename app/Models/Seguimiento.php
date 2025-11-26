@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class Seguimiento extends Model
 {
     //
+    protected $guarded = [];
 }

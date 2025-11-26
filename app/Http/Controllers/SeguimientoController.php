@@ -21,6 +21,7 @@ class SeguimientoController extends Controller
     public function create()
     {
         //
+        return inertia('admin/seguimientos/crear');
     }
 
     /**

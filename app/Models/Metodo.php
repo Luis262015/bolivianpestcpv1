@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class Metodo extends Model
 {
     //
+    protected $guarded = [];
 }

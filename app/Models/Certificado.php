@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class Certificado extends Model
 {
     //
+    protected $guarded = [];
 }

@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class Contrato extends Model
 {
     //
+    protected $guarded = [];
 }

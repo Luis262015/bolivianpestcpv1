@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class Epp extends Model
 {
     //
+    protected $guarded = [];
 }

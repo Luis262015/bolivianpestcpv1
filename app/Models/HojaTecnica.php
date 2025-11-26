@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class HojaTecnica extends Model
 {
     //
+    protected $guarded = [];
 }

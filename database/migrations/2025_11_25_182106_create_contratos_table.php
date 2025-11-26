@@ -13,7 +13,14 @@ return new class extends Migration
     {
         Schema::create('contratos', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->string('nombre');
+            $table->string('direccion');
+            $table->string('telefono');
+            $table->string('email');
+            $table->string('ciudad');
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent();
+            // $table->timestamps();
         });
     }
 
