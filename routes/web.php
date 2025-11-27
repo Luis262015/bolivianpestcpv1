@@ -18,6 +18,7 @@ use App\Http\Controllers\MarcasController;
 use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\ProveedoresController;
 use App\Http\Controllers\RetirosController;
+use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\SeguimientoController;
 use App\Http\Controllers\SubcategoriasController;
 use App\Http\Controllers\UsersController;
@@ -81,6 +82,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/documentos/{documento}/download', [DocumentosController::class, 'download'])
         ->name('documentos.download');
     Route::resource('configs', ConfigsController::class);
+    Route::resource('roles', RolePermissionController::class);
 });
 
 require __DIR__ . '/settings.php';
