@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CuentaCobrar;
 use Illuminate\Http\Request;
 
 class CuentasPorCobrarController extends Controller
@@ -12,7 +13,13 @@ class CuentasPorCobrarController extends Controller
     public function index()
     {
         //
-        return inertia('admin/cuentasporcobrar/lista');
+        $cuentascobrar = CuentaCobrar::select('id', 'venta_id', 'cliente_id', 'total', 'a_cuenta', 'saldo', 'estado', 'fecha_pago')
+            ->with(['cliente' => function ($query) {
+                $query->select('id', 'nombre');
+            }])
+            ->paginate(20);
+        return inertia('admin/cuentasporcobrar/lista', ['cuentascobrar' =>  $cuentascobrar]);
+        // return inertia('admin/cuentasporcobrar/lista');
     }
 
     /**

@@ -11,16 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('aplicacions', function (Blueprint $table) {
+        Schema::create('retiros', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('seguimiento_id')->constrained('seguimientos');
-            $table->string('oficinas');
-            $table->string('pisos');
-            $table->string('banos');
-            $table->string('cocinas');
-            $table->string('almacenes');
-            $table->string('porteria');
-            $table->string('policial');
+
+            $table->foreignId('user_id')->constrained('users');
+
+            $table->double('monto');
+            $table->string('concepto');
+            $table->enum('tipo', ['Retiro', 'Retiro dueño']);
+
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();
@@ -32,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('aplicacions');
+        Schema::dropIfExists('retiros');
     }
 };

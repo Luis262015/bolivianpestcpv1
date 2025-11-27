@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Almacen;
+use App\Models\Empresa;
+use App\Models\Seguimiento;
 use Illuminate\Http\Request;
 
 class SeguimientoController extends Controller
@@ -9,10 +12,26 @@ class SeguimientoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         //
-        return inertia('admin/seguimientos/lista');
+        $empresaId = $request->query('empresa_id');
+
+        $query = Seguimiento::with(['empresa', 'user']);
+
+        if ($empresaId) {
+            $query->where('empresa_id', $empresaId);
+        }
+
+        $seguimientos = $query->latest()->get();
+        $empresas = Empresa::select('id', 'nombre')->orderBy('nombre')->get();
+
+        return inertia('admin/seguimientos/lista', [
+            'seguimientos' => $seguimientos,
+            'empresas' => $empresas,
+            'empresaSeleccionado' => $empresaId
+        ]);
+        // return inertia('admin/seguimientos/lista');
     }
 
     /**
@@ -21,7 +40,15 @@ class SeguimientoController extends Controller
     public function create()
     {
         //
-        return inertia('admin/seguimientos/crear');
+        $empresas = Empresa::select('id', 'nombre')->get();
+        $almacenes = Almacen::select('id', 'nombre')->get();
+
+        return inertia('admin/seguimientos/crear', [
+            'empresas' => $empresas,
+            'almacenes' => $almacenes,
+        ]);
+
+        // return inertia('admin/seguimientos/crear');
     }
 
     /**

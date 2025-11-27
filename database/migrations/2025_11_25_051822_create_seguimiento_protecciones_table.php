@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('proteccions', function (Blueprint $table) {
+        Schema::create('seguimiento_protecciones', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre');
+            $table->foreignId('seguimiento_id')->constrained('seguimientos');
+            $table->foreignId('proteccion_id')->constrained('proteccions');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('proteccions');
+        Schema::dropIfExists('seguimiento_protecciones');
     }
 };

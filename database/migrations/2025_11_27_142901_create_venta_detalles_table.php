@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('proveedores', function (Blueprint $table) {
+        Schema::create('venta_detalles', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre');
-            $table->string('direccion')->nullable();
-            $table->string('telefono')->nullable();
-            $table->string('email')->nullable();
-            $table->string('contacto')->nullable();
+            $table->foreignId('venta_id')->constrained('ventas');
+            $table->foreignId('producto_id')->nullable()->constrained('productos');
+
+            $table->double('precio_venta');
+            $table->integer('cantidad');
+            $table->double('total');
+
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();
@@ -29,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('proveedores');
+        Schema::dropIfExists('venta_detalles');
     }
 };

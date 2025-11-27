@@ -3,9 +3,71 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Seguimiento extends Model
 {
     //
     protected $guarded = [];
+
+    public function empresa()
+    {
+        return $this->belongsTo(Empresa::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function almacen(): BelongsTo
+    {
+        return $this->belongsTo(Almacen::class);
+    }
+
+    public function biologicos()
+    {
+        return $this->belongsToMany(
+            Biologico::class,
+            'seguimiento_biologicos', // ← AQUÍ ESPECIFICAMOS TU TABLA
+            'seguimiento_id',
+            'biologico_id'
+        );
+    }
+    public function epps()
+    {
+        return $this->belongsToMany(
+            Epp::class,
+            'seguimiento_epps', // ← AQUÍ ESPECIFICAMOS TU TABLA
+            'seguimiento_id',
+            'epp_id'
+        );
+    }
+    public function metodos()
+    {
+        return $this->belongsToMany(
+            Metodo::class,
+            'seguimiento_metodos', // ← AQUÍ ESPECIFICAMOS TU TABLA
+            'seguimiento_id',
+            'metodo_id'
+        );
+    }
+    public function proteccions()
+    {
+        return $this->belongsToMany(
+            Proteccion::class,
+            'seguimiento_proteccions', // ← AQUÍ ESPECIFICAMOS TU TABLA
+            'seguimiento_id',
+            'proteccion_id'
+        );
+    }
+    public function signos()
+    {
+        return $this->belongsToMany(
+            Signo::class,
+            'seguimiento_signos', // ← AQUÍ ESPECIFICAMOS TU TABLA
+            'seguimiento_id',
+            'signo_id'
+        );
+    }
 }

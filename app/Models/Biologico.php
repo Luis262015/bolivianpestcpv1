@@ -8,4 +8,14 @@ class Biologico extends Model
 {
     //
     protected $guarded = [];
+
+    public function seguimientos()
+    {
+        return $this->belongsToMany(
+            Seguimiento::class,
+            'seguimiento_biologicos',
+            'biologico_id',
+            'seguimiento_id'
+        );
+    }
 }

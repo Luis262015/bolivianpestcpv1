@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('contrato_detalles', function (Blueprint $table) {
             $table->id();
             $table->string('descripcion');
-            $table->string('area');
+            $table->decimal('area');
             $table->decimal('precio_unitario', 10, 2);
             $table->decimal('total', 10, 2);
             $table->foreignId('contrato_id')->constrained('contratos');

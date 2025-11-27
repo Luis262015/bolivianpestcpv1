@@ -78,6 +78,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     /// ********** USUARIO ************************
     Route::resource('usuarios', UsersController::class);
     Route::resource('documentos', DocumentosController::class);
+    Route::get('/documentos/{documento}/download', [DocumentosController::class, 'download'])
+        ->name('documentos.download');
     Route::resource('configs', ConfigsController::class);
 });
 

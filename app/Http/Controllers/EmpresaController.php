@@ -59,7 +59,7 @@ class EmpresaController extends Controller
     public function edit(Empresa $empresa)
     {
         //
-        // dd("LLEGO INFORMACION " . $id);
+        dd("LLEGO INFORMACION " . $empresa);
         return inertia('admin/empresas/editar', ['empresa' => $empresa]);
     }
 
