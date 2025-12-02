@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ingreso;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class IngresosController extends Controller
 {
@@ -12,7 +15,10 @@ class IngresosController extends Controller
     public function index()
     {
         //
-        return inertia('admin/ingresos/lista');
+        $ingresos = [];
+        $ingresos = Ingreso::select('id', 'concepto', 'monto')->paginate(20);
+        return inertia('admin/ingresos/lista', ['ingresos' => $ingresos]);
+        // return inertia('admin/ingresos/lista');
     }
 
     /**
@@ -21,6 +27,7 @@ class IngresosController extends Controller
     public function create()
     {
         //
+        return inertia('admin/ingresos/crear', ['ingreso' => new Ingreso()]);
     }
 
     /**
@@ -29,6 +36,18 @@ class IngresosController extends Controller
     public function store(Request $request)
     {
         //
+        $validated = $request->validate([
+            'monto' => ['required', 'numeric', 'min:0'],
+            'concepto' => ['required', 'string', 'max:255'],
+        ]);
+        $ingreso = new Ingreso();
+        // $ingreso->tienda_id = session('tienda_id');
+        $ingreso->user_id = Auth::id();
+        $ingreso->concepto = $validated['concepto'];
+        $ingreso->monto = $validated['monto'];
+        $ingreso->save();
+
+        return redirect()->route('ingresos.index');
     }
 
     /**
@@ -45,6 +64,8 @@ class IngresosController extends Controller
     public function edit(string $id)
     {
         //
+        $ingreso = Ingreso::find($id);
+        return inertia('admin/ingresos/editar', ['ingreso' => $ingreso]);
     }
 
     /**
@@ -53,6 +74,18 @@ class IngresosController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        $validated = $request->validate([
+            'monto' => ['required', 'numeric', 'min:0'],
+            'concepto' => ['required', 'string', 'max:255'],
+        ]);
+        $ingreso = Ingreso::find($id);
+        $user = Auth::user();
+        Log::info("@@@--- Actualizacion de Ingreso ---@@@");
+        Log::info("Ingreso Anterior: ID: " . $ingreso->id . ", Concepto: " . $ingreso->concepto . ", Total: " . $ingreso->monto . ", USER_ID: " . $ingreso->user_id . ", TIENDA_ID: " . $ingreso->tienda_id . ", USER_AUTH: " . $user->id . " " . $user->name . " " . $user->email);
+        // NUEVOS DATOS
+        Log::info("Ingreso Nuevo: ID: " . $ingreso->id . ", Concepto: " . $validated['concepto'] . ", Total: " . $validated['monto'] . ", USER_ID: " . $ingreso->user_id . ", TIENDA_ID: " . $ingreso->tienda_id . ", USER_AUTH: " . $user->id . " " . $user->name . " " . $user->email);
+        $ingreso->update($validated);
+        return redirect()->route('ingresos.index');
     }
 
     /**
@@ -61,5 +94,11 @@ class IngresosController extends Controller
     public function destroy(string $id)
     {
         //
+        $ingreso = Ingreso::find($id);
+        $user = Auth::user();
+        Log::info("@@@--- Eliminado de Ingreso ---@@@");
+        Log::info("Ingreso Anterior: ID: " . $ingreso->id . ", Concepto: " . $ingreso->concepto . ", Total: " . $ingreso->monto . ", USER_ID: " . $ingreso->user_id . ", TIENDA_ID: " . $ingreso->tienda_id . ", USER_AUTH: " . $user->id . " " . $user->name . " " . $user->email);
+        $ingreso->delete();
+        return redirect()->route('ingresos.index');
     }
 }

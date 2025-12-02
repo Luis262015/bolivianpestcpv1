@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class Retiro extends Model
 {
     //
+    protected $guarded = [];
 }

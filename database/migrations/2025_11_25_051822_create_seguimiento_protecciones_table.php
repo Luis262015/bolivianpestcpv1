@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('seguimiento_protecciones', function (Blueprint $table) {
             $table->id();
             $table->foreignId('seguimiento_id')->constrained('seguimientos');
-            $table->foreignId('proteccion_id')->constrained('proteccions');
+            $table->foreignId('proteccion_id')->constrained('protecciones');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();
