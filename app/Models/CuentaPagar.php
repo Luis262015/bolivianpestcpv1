@@ -8,4 +8,11 @@ class CuentaPagar extends Model
 {
     //
     protected $table = 'cuentas_pagar';
+
+    protected $guarded = [];
+
+    public function proveedor()
+    {
+        return $this->belongsTo(Proveedor::class);
+    }
 }

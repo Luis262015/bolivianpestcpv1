@@ -73,14 +73,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('subcategorias', SubcategoriasController::class);
     Route::resource('marcas', MarcasController::class);
     Route::resource('etiquetas', EtiquetasController::class);
+
+    Route::get('/productos/test', [ProductosController::class, 'test'])->name('productos.test');
+    Route::get('/productos/subcategorias/{categoria}', [ProductosController::class, 'getSubcategorias'])->name('productos.subcategorias');
+    Route::get('/productos/search', [ProductosController::class, 'search'])->name('productos.search');
     Route::resource('productos', ProductosController::class);
+
     Route::resource('proveedores', ProveedoresController::class);
 
     /// ********** USUARIO ************************
     Route::resource('usuarios', UsersController::class);
+    Route::get('/documentos/{documento}/download', [DocumentosController::class, 'download'])->name('documentos.download');
     Route::resource('documentos', DocumentosController::class);
-    Route::get('/documentos/{documento}/download', [DocumentosController::class, 'download'])
-        ->name('documentos.download');
     Route::resource('configs', ConfigsController::class);
     Route::resource('roles', RolePermissionController::class);
 });

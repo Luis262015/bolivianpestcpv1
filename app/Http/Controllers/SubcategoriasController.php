@@ -36,7 +36,7 @@ class SubcategoriasController extends Controller
     public function store(Request $request)
     {
         //
-        $validated = $request->validated([
+        $validated = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
             'orden' => ['required', 'integer', 'min:0'],
             'imagen' => ['nullable', 'string', 'max:255'],
@@ -62,7 +62,7 @@ class SubcategoriasController extends Controller
         //
         $categorias = Categoria::all('id', 'nombre');
         $subcategoria = Subcategoria::find($id);
-        return inertia('admin/subcategorias/edit', ['subcategoria' => $subcategoria, 'categorias' => $categorias]);
+        return inertia('admin/subcategorias/editar', ['subcategoria' => $subcategoria, 'categorias' => $categorias]);
     }
 
     /**
@@ -71,7 +71,7 @@ class SubcategoriasController extends Controller
     public function update(Request $request, string $id)
     {
         //
-        $validated = $request->validated([
+        $validated = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
             'orden' => ['required', 'integer', 'min:0'],
             'imagen' => ['nullable', 'string', 'max:255'],

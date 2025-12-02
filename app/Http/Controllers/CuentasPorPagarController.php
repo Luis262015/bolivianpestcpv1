@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CuentaPagar;
 use Illuminate\Http\Request;
 
 class CuentasPorPagarController extends Controller
@@ -12,7 +13,11 @@ class CuentasPorPagarController extends Controller
     public function index()
     {
         //
-        return inertia('admin/cuentasporpagar/lista');
+        $cuentaspagar = CuentaPagar::select()->with(['proveedor' => function ($query) {
+            $query->select('id', 'nombre');
+        }])->paginate(20);
+        return inertia('admin/cuentasporpagar/lista', ['cuentaspagar' => $cuentaspagar]);
+        // return inertia('admin/cuentasporpagar/lista');
     }
 
     /**

@@ -32,7 +32,7 @@ class MarcasController extends Controller
     public function store(Request $request)
     {
         //
-        $validated = $request->validated([
+        $validated = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
             'orden' => ['required', 'integer', 'min:0'],
             'imagen' => ['nullable', 'string', 'max:255'],
@@ -57,7 +57,7 @@ class MarcasController extends Controller
     public function edit(Marca $marca)
     {
         //
-        return inertia('admin/marcas/edit', ['marca' => $marca]);
+        return inertia('admin/marcas/editar', ['marca' => $marca]);
     }
 
     /**
@@ -66,7 +66,7 @@ class MarcasController extends Controller
     public function update(Request $request, string $id)
     {
         //
-        $validated = $request->validated([
+        $validated = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
             'orden' => ['required', 'integer', 'min:0'],
             'imagen' => ['nullable', 'string', 'max:255'],

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Etiqueta;
 use Illuminate\Http\Request;
 
 class EtiquetasController extends Controller
@@ -12,7 +13,9 @@ class EtiquetasController extends Controller
     public function index()
     {
         //
-        return inertia('admin/etiquetas/lista');
+        $etiquetas = Etiqueta::select('id', 'nombre')->paginate(20);
+        return inertia('admin/etiquetas/lista', ['etiquetas' => $etiquetas]);
+        // return inertia('admin/etiquetas/lista');
     }
 
     /**
@@ -21,6 +24,7 @@ class EtiquetasController extends Controller
     public function create()
     {
         //
+        return inertia('admin/etiquetas/crear', ['cliente' => new Etiqueta()]);
     }
 
     /**
@@ -29,6 +33,11 @@ class EtiquetasController extends Controller
     public function store(Request $request)
     {
         //
+        $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
+
+        Etiqueta::create($validated);
+
+        return redirect()->route('etiquetas.index');
     }
 
     /**
@@ -45,6 +54,8 @@ class EtiquetasController extends Controller
     public function edit(string $id)
     {
         //
+        $etiqueta = Etiqueta::find($id);
+        return inertia('admin/etiquetas/editar', ['etiqueta' => $etiqueta]);
     }
 
     /**
@@ -53,6 +64,12 @@ class EtiquetasController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
+
+        $etiqueta = Etiqueta::find($id);
+        $etiqueta->update($validated);
+
+        return redirect()->route('etiquetas.index');
     }
 
     /**
@@ -61,5 +78,9 @@ class EtiquetasController extends Controller
     public function destroy(string $id)
     {
         //
+        $etiqueta = Etiqueta::find($id);
+        $etiqueta->delete();
+
+        return redirect()->route('etiquetas.index');
     }
 }

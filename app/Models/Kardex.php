@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Compra extends Model
+class Kardex extends Model
 {
     //
     protected $guarded = [];
