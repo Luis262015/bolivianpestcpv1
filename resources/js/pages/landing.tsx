@@ -11,7 +11,13 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 
 import styles from './landing.module.css';
 
-import { BugOff, Check, Play } from 'lucide-react';
+import { BugOff, Check, Play, CheckCircle2, Phone, Mail,Clock, 
+  Settings, 
+  ShieldCheck, 
+  Zap, 
+  Award, 
+  Users,
+ Instagram, Facebook, Siren, BadgeCheck  } from 'lucide-react';
 import 'swiper/css';
 import 'swiper/css/autoplay';
 import 'swiper/css/effect-fade';
@@ -32,7 +38,7 @@ export default function Landing() {
 
       <Navbar logo="/images/LogoHFCWhite.png" />
 
-      <div className="relative h-[500px] w-full md:h-[800px]">
+      <div className="relative ">
         <Swiper
           spaceBetween={30}
           effect={'fade'}
@@ -43,27 +49,38 @@ export default function Landing() {
           loop={true}
           autoplay={{ delay: 9000, disableOnInteraction: false }}
           modules={[Autoplay, EffectFade, Navigation, Pagination]}
-          className="mySwiper h-[800px]"
+          className="mySwiper h-full w-full"
         >
           <SwiperSlide>
             <img
-              src="/images/slider/slider1.webp"
+              src="/images/slider/sli1.webp"
               className="h-full w-full object-cover"
               alt="Slide 1"
+              loading='lazy'
             />
           </SwiperSlide>
           <SwiperSlide>
             <img
-              src="/images/slider/hero-bg.webp"
+              src="/images/slider/sli2.webp"
               className="h-full w-full object-cover"
               alt="Slide 2"
+              loading='lazy'
             />
           </SwiperSlide>
           <SwiperSlide>
             <img
-              src="/images/slider/hero-bg-2.webp"
+              src="/images/slider/sli3.webp"
               className="h-full w-full object-cover"
               alt="Slide 3"
+              loading='lazy'
+            />
+          </SwiperSlide>
+          <SwiperSlide>
+            <img
+              src="/images/slider/sli4.webp"
+              className="h-full w-full object-cover"
+              alt="Slide 4"
+              loading='lazy'
             />
           </SwiperSlide>
         </Swiper>
@@ -224,7 +241,7 @@ export default function Landing() {
             </div>
 
             {/* <!-- Columna Derecha - Texto y Estadísticas --> */}
-            <div className="about-content">
+            <div className="mt-8 md:mt-12 lg:mt-20 about-content">
               <span className={`section-tag ${styles.sectionTag}`}>
                 Acerca de Nosotros
               </span>
@@ -325,10 +342,10 @@ export default function Landing() {
       </section>
 
       {/* <!-- Services --> */}
-      <section className="services flex justify-center" id="services">
+      <section className="mt-8 md:mt-12 lg:mt-20 services flex justify-center" id="services">
         <div className="container w-[1300px]">
           {/* <!-- Tag y título --> */}
-          <div className="section-header text-center">
+          <div className=" section-header text-center">
             <span className={`section-tag ${styles.sectionTag}`}>
               Servicios
             </span>
@@ -346,7 +363,7 @@ export default function Landing() {
             navigation={true}
             autoplay={{ delay: 9000, disableOnInteraction: false }}
             modules={[Autoplay, Pagination, Navigation]}
-            className="mySwiper"
+            className="mt-2 md:mt-6 lg:mt-10 mySwiper"
             slidesPerView={3}
             spaceBetween={30}
             loop={true}
@@ -461,7 +478,7 @@ export default function Landing() {
 
       {/* <!-- our features --> */}
       <section
-        className={`our-features flex justify-center ${styles.ourFeatures}`}
+        className={`mt-2 md:mt-6 lg:mt-10 our-features flex justify-center ${styles.ourFeatures}`}
         id="our-features"
       >
         <div className="container w-[1300px]">
@@ -473,7 +490,7 @@ export default function Landing() {
               </span>
               <h2 className={`section-title ${styles.sectionTitle}`}>
                 Su socio de confianza en
-                <span className="text-green">control de plagas</span>
+                <span className="text-green"> control de plagas</span>
               </h2>
 
               <p className={`features-text ${styles.featuresText}`}>
@@ -484,65 +501,70 @@ export default function Landing() {
                 inigualable.
               </p>
 
-              <div className={`features-grid ${styles.featuresGrid}`}>
-                {/* <!-- Feature 1 --> */}
-                <div className={`features-item ${styles.featuresItem}`}>
-                  <div className={`features-icon ${styles.featuresIcon}`}>
-                    <i className="fas fa-clock"></i>
+              <div className={`mt-12 md:mt-16 lg:mt-24 features-grid ${styles.featuresGrid}`}>
+  
+                  {/* Feature 1 - Servicios de emergencia */}
+                  <div className={`features-item ${styles.featuresItem} group transition-all duration-300 hover:scale-105 hover:shadow-xl hover:-translate-y-2`}>
+                    <div className={`features-icon ${styles.featuresIcon} text-red-600 group-hover:text-red-500`}>
+                      <Siren className="h-12 w-12" strokeWidth={2.2} />
+                    </div>
+                    <div className={`features-text ${styles.featuresText}`}>
+                      <h4 className="text-xl md:text-2xl font-bold text-white-900 mb-2 group-hover:text-red-700 transition-colors">
+                        Servicios de emergencia
+                      </h4>
+                      <p className="text-gray-500 leading-relaxed">
+                        Estamos disponibles las 24 horas para atender su emergencia, incluso feriados.
+                      </p>
+                    </div>
                   </div>
-                  <div className={`features-text ${styles.featuresText}`}>
-                    <h4>Servicios de emergencia</h4>
-                    <p>
-                      Estamos disponibles las 24 horas para atender su
-                      emergencia.
-                    </p>
-                  </div>
-                </div>
 
-                {/* <!-- Feature 2 --> */}
-                <div className={`features-item ${styles.featuresItem}`}>
-                  <div className={`features-icon ${styles.featuresIcon}`}>
-                    <i className="fas fa-cogs"></i>
+                  {/* Feature 2 - Tratamientos personalizados */}
+                  <div className={`features-item ${styles.featuresItem} group transition-all duration-300 hover:scale-105 hover:shadow-xl hover:-translate-y-2`}>
+                    <div className={`features-icon ${styles.featuresIcon} text-blue-600 group-hover:text-blue-500`}>
+                      <Settings className="h-12 w-12" strokeWidth={2.2} />
+                    </div>
+                    <div className={`features-text ${styles.featuresText}`}>
+                      <h4 className="text-xl md:text-2xl font-bold text-white-900 mb-2 group-hover:text-blue-700 transition-colors">
+                        Tratamientos personalizados
+                      </h4>
+                      <p className="text-gray-500 leading-relaxed">
+                        Cada propiedad es única, por lo que diseñamos soluciones específicas para su caso.
+                      </p>
+                    </div>
                   </div>
-                  <div className={`features-text ${styles.featuresText}`}>
-                    <h4>Tratamientos personalizados</h4>
-                    <p>
-                      Cada propiedad es única, por lo que ofrecemos tratamientos
-                      personalizados contra plagas.
-                    </p>
-                  </div>
-                </div>
 
-                {/* <!-- Feature 3 --> */}
-                <div className={`features-item ${styles.featuresItem}`}>
-                  <div className={`features-icon ${styles.featuresIcon}`}>
-                    <i className="fas fa-user-shield"></i>
+                  {/* Feature 3 - Profesionales certificados */}
+                  <div className={`features-item ${styles.featuresItem} group transition-all duration-300 hover:scale-105 hover:shadow-xl hover:-translate-y-2`}>
+                    <div className={`features-icon ${styles.featuresIcon} text-green-600 group-hover:text-green-500`}>
+                      <ShieldCheck className="h-12 w-12" strokeWidth={2.2} />
+                    </div>
+                    <div className={`features-text ${styles.featuresText}`}>
+                      <h4 className="text-xl md:text-2xl font-bold text-white-900 mb-2 group-hover:text-green-700 transition-colors">
+                        <strong>Profesionales certificados</strong>
+                      </h4>
+                      <p className="text-gray-500 leading-relaxed">
+                        Nuestro equipo está altamente capacitado, certificado y con años de experiencia comprobada.
+                      </p>
+                    </div>
                   </div>
-                  <div className={`features-text ${styles.featuresText}`}>
-                    <h4>Profesionales certificados</h4>
-                    <p>
-                      Nuestro equipo está altamente capacitado, certificado y
-                      cuenta con amplia experiencia.
-                    </p>
-                  </div>
-                </div>
 
-                {/* <!-- Feature 4 --> */}
-                <div className={`features-item ${styles.featuresItem}`}>
-                  <div className={`features-icon ${styles.featuresIcon}`}>
-                    <i className="fas fa-check-circle"></i>
+                  {/* Feature 4 - Resultados garantizados */}
+                  <div className={`features-item ${styles.featuresItem} group transition-all duration-300 hover:scale-105 hover:shadow-xl hover:-translate-y-2`}>
+                    <div className={`features-icon ${styles.featuresIcon} text-emerald-600 group-hover:text-emerald-500`}>
+                      <BadgeCheck className="h-12 w-12" strokeWidth={2.2} />
+                    </div>
+                    <div className={`features-text ${styles.featuresText}`}>
+                      <h4 className="text-xl md:text-2xl font-bold text-white-900 mb-2 group-hover:text-emerald-700 transition-colors">
+                        Resultados garantizados
+                      </h4>
+                      <p className="text-gray-500 leading-relaxed">
+                        Respaldamos nuestro trabajo con garantía por escrito. Si vuelven, ¡volvemos gratis!
+                      </p>
+                    </div>
                   </div>
-                  <div className={`features-text ${styles.featuresText}`}>
-                    <h4>Resultados garantizados</h4>
-                    <p>
-                      Respaldamos nuestro servicio con una garantia de
-                      satisfaccion
-                    </p>
-                  </div>
+
                 </div>
-              </div>
             </div>
-
             {/* <!-- Columna Derecha - Imagen + Botón flotante --> */}
             <div className={`features-image ${styles.featuresImage}`}>
               <img
@@ -564,7 +586,7 @@ export default function Landing() {
       </section>
 
       {/* <!-- our portafolio  --> */}
-      <section className="our-portfolio flex justify-center" id="our-portfolio">
+      <section className="mt-8 md:mt-16 lg:mt-24 our-portfolio flex justify-center" id="our-portfolio">
         <div className="container w-[1300px]">
           {/* <!-- Tag y título --> */}
           <div className="section-header text-center">
@@ -572,15 +594,14 @@ export default function Landing() {
               Portafolio
             </span>
             <h2 className={`section-title ${styles.sectionTitle}`}>
-              Descubra nuestra trayectoria comprobada en
-              <span className="text-green">
-                soluciones para eliminar plagas
+              Descubra nuestra trayectoria comprobada en 
+              <span className="text-green"> soluciones para eliminar plagas
               </span>
             </h2>
           </div>
 
           {/* <!-- Filtros --> */}
-          <div className={`portfolio-filters ${styles.portfolioFilters}`}>
+          {/* <div className={`portfolio-filters ${styles.portfolioFilters}`}>
             <button
               className={`filter-btn ${styles.portfolioFilterBtn}`}
               data-filter="*"
@@ -617,11 +638,11 @@ export default function Landing() {
             >
               Plagas en Exteriores
             </button>
-          </div>
+          </div> */}
 
           {/* <!-- Galería con hover + overlay --> */}
           <div
-            className={`portfolio-grid ${styles.portfolioGrid}`}
+            className={`mt-8 md:mt-16 lg:mt-24 portfolio-grid ${styles.portfolioGrid}`}
             id="portfolioGrid"
           >
             <div className={`portfolio-item home ${styles.portfolioItem}`}>
@@ -709,7 +730,7 @@ export default function Landing() {
       </section>
 
       {/* <!-- por que elegirnos --> */}
-      <section className="why-choose flex justify-center" id="why-choose">
+      <section className="why-choose flex justify-center mt-8 md:mt-16 lg:mt-24" id="why-choose">
         <div className="container w-[1300px]">
           {/* <!-- Tag y título --> */}
           <div className="section-header text-center">
@@ -728,44 +749,50 @@ export default function Landing() {
           </div>
 
           <div className={`why-grid ${styles.whyGrid}`}>
-            {/* <!-- Tarjeta 1 --> */}
-            <div className={`why-card ${styles.whyCard}`}>
-              <div className={`why-icon ${styles.whyIcon}`}>
-                <i className="fas fa-clock"></i>
-              </div>
-              <h3>Servicios de emergencia</h3>
-              <p>Disponibles las 24 horas.</p>
-            </div>
+  {/* Tarjeta 1 - Servicios de emergencia */}
+  <div className={`why-card ${styles.whyCard}`}>
+    <div className={`why-icon ${styles.whyIcon}`}>
+      <Clock className="h-10 w-10 text-white-600" strokeWidth={2} />
+    </div>
+    <h3>Servicios de emergencia</h3>
+    <p>Atención inmediata 24/7, incluso feriados.</p>
+  </div>
 
-            {/* <!-- Tarjeta 2 --> */}
-            <div className={`why-card ${styles.whyCard}`}>
-              <div className={`why-icon ${styles.whyIcon}`}>
-                <i className="fas fa-cogs"></i>
-              </div>
-              <h3>Tratamientos personalizados</h3>
-              <p>Disponibles las 24 horas.</p>
-            </div>
+  {/* Tarjeta 2 - Tratamientos personalizados */}
+  <div className={`why-card ${styles.whyCard}`}>
+    <div className={`why-icon ${styles.whyIcon}`}>
+      <Settings className="h-10 w-10 text-white-600" strokeWidth={2} />
+      {/* o también puedes usar: <Target /> o <Wrench /> */}
+    </div>
+    <h3>Tratamientos personalizados</h3>
+    <p>Soluciones adaptadas al tipo de plaga y propiedad.</p>
+  </div>
 
-            {/* <!-- Tarjeta 3 --> */}
-            <div className={`why-card ${styles.whyCard}`}>
-              <div className={`why-icon ${styles.whyIcon}`}>
-                <i className="fas fa-user-shield"></i>
-              </div>
-              <h3>Profesionales certificados</h3>
-              <p>Disponibles las 24 horas.</p>
-            </div>
+  {/* Tarjeta 3 - Profesionales certificados */}
+  <div className={`why-card ${styles.whyCard}`}>
+    <div className={`why-icon ${styles.whyIcon}`}>
+      <ShieldCheck className="h-10 w-10 text-white-600" strokeWidth={2} />
+      {/* Alternativas bonitas: <Award />, <UserCheck />, <Certificate /> */}
+    </div>
+    <h3>Profesionales certificados</h3>
+    <p>Técnicos capacitados y con licencia oficial.</p>
+  </div>
 
-            {/* <!-- Tarjeta destacada con imagen --> */}
-            <div className={`why-highlight-card ${styles.whyHighCard}`}>
-              <img src="/images/choice/seis.webp" alt="Take Back Your Home" />
-              <div className={`highlight-content ${styles.whyHighContent}`}>
-                <h3>¡Recupere su hogar de las plagas hoy mismo!</h3>
-                <a href="tel:+1322782968" className="highlight-btn">
-                  <i className="fas fa-phone"></i> Llame ahora +591 74392912
-                </a>
-              </div>
-            </div>
-          </div>
+  {/* Tarjeta destacada con imagen */}
+  <div className={`why-highlight-card ${styles.whyHighCard}`}>
+    <img src="/images/choice/seis.webp" alt="Recupera tu hogar de plagas" />
+    <div className={`highlight-content ${styles.whyHighContent}`}>
+      <h3 className="text-2xl md:text-3xl font-bold mb-4">
+        ¡Recupere su hogar de las plagas hoy mismo!
+      </h3>
+      <a href="tel:+59174392912" className="highlight-btn inline-flex items-center gap-3 text-lg font-semibold">
+        <Phone className="h-6 w-6" />
+        Llame ahora +591 743 92912
+      </a>
+    </div>
+  </div>
+</div>
+
 
           {/* <!-- CTA final --> */}
           <div className={`why-cta ${styles.whyCta}`}>
@@ -816,48 +843,74 @@ export default function Landing() {
                 defaultValue="item-1"
               >
                 <AccordionItem value="item-1">
-                  <AccordionTrigger>Product Information</AccordionTrigger>
+                  <AccordionTrigger>1. ¿Qué tipos de plagas tratan? </AccordionTrigger>
                   <AccordionContent className="flex flex-col gap-4 text-balance">
                     <p>
-                      Our flagship product combines cutting-edge technology with
-                      sleek design. Built with premium materials, it offers
-                      unparalleled performance and reliability.
+                      Controlamos una amplia variedad de plagas, incluyendo <br />
+                      <strong> roedores, hormigas, cucarachas, termitas, chinches, mosquitos, arañas y fauna silvestre.</strong><br />
+                      Aplicamos métodos específicos según la especie para garantizar resultados efectivos.
                     </p>
-                    <p>
-                      Key features include advanced processing capabilities, and
-                      an intuitive user interface designed for both beginners
-                      and experts.
-                    </p>
+                    
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-2">
-                  <AccordionTrigger>Shipping Details</AccordionTrigger>
+                  <AccordionTrigger>2. ¿Son seguros sus métodos de control de plagas para mis mascotas? </AccordionTrigger>
                   <AccordionContent className="flex flex-col gap-4 text-balance">
                     <p>
-                      We offer worldwide shipping through trusted courier
-                      partners. Standard delivery takes 3-5 business days, while
-                      express shipping ensures delivery within 1-2 business
-                      days.
-                    </p>
-                    <p>
-                      All orders are carefully packaged and fully insured. Track
-                      your shipment in real-time through our dedicated tracking
-                      portal.
+                      Sí. Todos nuestros productos y procedimientos están certificados y son seguros para mascotas y personas, 
+                      siempre y cuando se sigan las indicaciones del técnico. <br />
+                      Utilizamos productos de baja toxicidad, aprobados por <strong>SENASAG</strong>, y aplicados bajo estándares profesionales para evitar cualquier riesgo. 
+                      Además, brindamos instrucciones claras sobre el tiempo de reingreso y cuidados posteriores para garantizar la seguridad de tus animales domésticos.
                     </p>
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-3">
-                  <AccordionTrigger>Return Policy</AccordionTrigger>
+                  <AccordionTrigger>3. ¿Con qué frecuencia debo programar los servicios de control de plagas? </AccordionTrigger>
                   <AccordionContent className="flex flex-col gap-4 text-balance">
                     <p>
-                      We stand behind our products with a comprehensive 30-day
-                      return policy. If you&apos;re not completely satisfied,
-                      simply return the item in its original condition.
+                      La frecuencia depende del tipo de plaga y del entorno:
+                      
+                      <p><strong>Hogares:</strong> cada 3 a 4 meses suele ser suficiente para mantener un ambiente libre de plagas.</p>
+                      
+                      <p><strong>Comercios:</strong> recomendamos un servicio mensual o bimensual, especialmente si hay almacenamiento de alimentos.</p>
+                      
+                      <p><strong>Industrias y restaurantes:</strong> servicios mensuales o incluso quincenales, de acuerdo con normas de salubridad.</p>
+                      <br></br>
+                      Nuestros técnicos evalúan tu caso y generan un plan personalizado según el nivel de infestación y las características del lugar.
                     </p>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-4">
+                  <AccordionTrigger>4. ¿Ofrecen servicios de control de plagas de emergencia? </AccordionTrigger>
+                  <AccordionContent className="flex flex-col gap-4 text-balance">
                     <p>
-                      Our hassle-free return process includes free return
-                      shipping and full refunds processed within 48 hours of
-                      receiving the returned item.
+                      Sí, contamos con servicios de emergencia para infestaciones severas o situaciones que requieren atención inmediata, como: <br />
+
+                        <strong>Nidos de avispas</strong> <br />
+                        <strong>Presencia elevada de roedores</strong> <br />
+                        <strong>Brotes de cucarachas en cocinas o negocios</strong> <br />
+                        <strong>Invasión de chinches</strong> <br />
+                        <strong>Plagas que afecten la operación de tu empresa</strong> <br />
+
+                        Atendemos en el menor tiempo posible para controlar rápidamente el problema y evitar riesgos para tu salud o tu actividad comercial.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-5">
+                  <AccordionTrigger>5. ¿Cómo sé si tengo una plaga? </AccordionTrigger>
+                  <AccordionContent className="flex flex-col gap-4 text-balance">
+                    <p>
+                      Algunas señales comunes incluyen: <br />
+
+                      <strong>Excrementos pequeños o manchas oscuras (roedores, cucarachas).</strong> <br />
+
+                      <strong>Ruidos dentro de paredes o techos.</strong> <br />
+
+                      <strong>Olores fuertes o desagradables, especialmente en cocinas o depósitos.</strong> <br />
+
+                      <strong>Huecos o montículos en madera o suelo (termitas). </strong><br />
+
+                      Si notas cualquiera de estos signos, lo ideal es solicitar una inspección profesional, ya que muchas plagas se esconden y solo un técnico puede detectarlas a tiempo.
                     </p>
                   </AccordionContent>
                 </AccordionItem>
@@ -867,7 +920,7 @@ export default function Landing() {
         </div>
       </section>
       {/* <!-- CTA --> */}
-      <section className={`about-your ${styles.ctaSection}`} id="about-your">
+      <section className={`mt-2 md:mt-6 lg:mt-10 about-your ${styles.ctaSection}`} id="about-your">
         <div className="container w-[1300px]">
           <div className={`about-your-wrapper ${styles.ctaWrapper}`}>
             {/* <!-- Imagen del técnico (izquierda) --> */}
@@ -882,28 +935,40 @@ export default function Landing() {
             <div className={`about-your-content ${styles.ctaContent}`}>
               <h2 className={`section-title mb-5 ${styles.sectionTitle}`}>
                 Hablemos de sus necesidades de
-                <span className="text-green">control de plagas</span>
+                <span className="text-green"> control de plagas</span>
               </h2>
 
               <ul className={`about-your-list ${styles.ctaList}`}>
-                <li>
+                {/* <li>
                   <span className={`list-icon ${styles.ctaListIcon}`}>
                     Check
                   </span>
                   Agende su inspección gratuita
-                </li>
-                <li>
+                </li> */}
+                {/* <li>
                   <span className={`list-icon ${styles.ctaListIcon}`}>
                     Check
                   </span>
                   Prevenga futuras infestaciones
-                </li>
-                <li>
+                </li> */}
+                <li className="flex items-center gap-4 group">
+                <CheckCircle2 className="h-9 w-9 shrink-0 text-emerald-500 transition-transform group-hover:scale-110" />
+                <span className="transition-colors group-hover:text-emerald-600">Agende su inspección gratuita</span>
+              </li>
+                <li className="flex items-center gap-4 group">
+                <CheckCircle2 className="h-9 w-9 shrink-0 text-emerald-500 transition-transform group-hover:scale-110" />
+                <span className="transition-colors group-hover:text-emerald-600">Prevenga futuras infestaciones</span>
+              </li>
+              <li className="flex items-center gap-4 group">
+                <CheckCircle2 className="h-9 w-9 shrink-0 text-emerald-500 transition-transform group-hover:scale-110" />
+                <span className="transition-colors group-hover:text-emerald-600">Reserva fácil y rápida</span>
+              </li>
+                {/* <li>
                   <span className={`list-icon ${styles.ctaListIcon}`}>
                     Check
                   </span>
                   Reserva fácil y rápida
-                </li>
+                </li> */}
               </ul>
 
               <a
@@ -912,7 +977,7 @@ export default function Landing() {
               >
                 Empieza Ahora
                 <span className={`arrow-circle ${styles.ctaArrowCircle}`}>
-                  Check
+                  <CheckCircle2 className="h-9 w-9 shrink-0 text-white-500 transition-transform group-hover:scale-110" />
                 </span>
               </a>
             </div>
@@ -981,7 +1046,7 @@ export default function Landing() {
             </div>
 
             {/* <!-- Columna 4: Contact Us --> */}
-            <div className={`footer-column contact ${styles.footerColumn}`}>
+            {/* <div className={`footer-column contact ${styles.footerColumn}`}>
               <h3>Contáctanos</h3>
               <div className={`contact-item ${styles.footerContactItem}`}>
                 <span className="contact-icon">Phone</span>
@@ -991,7 +1056,40 @@ export default function Landing() {
                 <span className="contact-icon phone">Email</span>
                 <a href="mailto:info@domainname.com">info@BolivianPest.com</a>
               </div>
-            </div>
+            </div> */}
+            
+
+<div className={`footer-column contact ${styles.footerColumn}`}>
+  <h3 className="text-xl font-bold mb-6">Contáctanos</h3>
+
+  <div className="space-y-4">
+    {/* Teléfono */}
+    <div className={`contact-item flex items-center gap-4 ${styles.footerContactItem}`}>
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-600 text-white">
+        <Phone className="h-5 w-5" strokeWidth={2.5} />
+      </div>
+      <div>
+        <p className="text-sm text-gray-400">Teléfono / WhatsApp</p>
+        <a href="tel:+59176738282" className="text-white hover:text-green-400 transition">
+          +591 76738282
+        </a>
+      </div>
+    </div>
+
+    {/* Email */}
+    <div className={`contact-item flex items-center gap-4 ${styles.footerContactItem}`}>
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-600 text-white">
+        <Mail className="h-5 w-5" strokeWidth={2.5} />
+      </div>
+      <div>
+        <p className="text-sm text-gray-400">Correo electrónico</p>
+        <a href="mailto:info@bolivianpest.com" className="text-white hover:text-green-400 transition">
+          info@bolivianpest.com
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
           </div>
 
           <hr className={`footer-divider${styles.footerDivider}`} />
@@ -1026,7 +1124,7 @@ export default function Landing() {
               </span>
             </div>
 
-            <div className={`social-links ${styles.footerSocialLinks}`}>
+            {/* <div className={`social-links ${styles.footerSocialLinks}`}>
               <a href="#" aria-label="Instagram">
                 <i className="fab fa-instagram"></i>
               </a>
@@ -1036,7 +1134,49 @@ export default function Landing() {
               <a href="#" aria-label="Twitter">
                 <i className="fab fa-tiktok"></i>
               </a>
-            </div>
+            </div> */}
+            <div className={`social-links ${styles.footerSocialLinks}`}>
+  <a
+    href="https://instagram.com/tuempresa"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Instagram"
+    className="group"
+  >
+    <Instagram className="h-6 w-6 transition-all group-hover:scale-110 group-hover:text-pink-500" />
+  </a>
+
+  <a
+    href="https://facebook.com/tuempresa"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Facebook"
+    className="group"
+  >
+    <Facebook className="h-6 w-6 transition-all group-hover:scale-110 group-hover:text-blue-600" />
+  </a>
+
+  {/* <a
+    href="https://tiktok.com/@tuempresa"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="TikTok"
+    className="group"
+  >
+    <TikTok className="h-6 w-6 transition-all group-hover:scale-110 group-hover:text-white" />
+  </a>
+
+  {/* Bonus muy usado en Bolivia: WhatsApp directo */}
+  {/* <a 
+    href="https://wa.me/59172221344"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="WhatsApp"
+    className="group"
+  >
+    <Whatsapp className="h-6 w-6 transition-all group-hover:scale-110 group-hover:text-green-500" />
+  </a> */}
+</div>
 
             <div className={`copyright ${styles.footerCopyright}`}>
               Copyright Bitdesarrollo © 2025 All Rights Reserved.
