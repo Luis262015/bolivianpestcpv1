@@ -23,13 +23,24 @@ interface Almacen {
   nombre: string;
 }
 
+interface Biologico {
+  id: number;
+  nombre: string;
+}
+
 interface Props {
   empresas: Empresa[];
   almacenes: Almacen[];
+  biologicos: Biologico[];
   seguimientos: any; // Aquí puedes definir el tipo completo
 }
 
-export default function Crear({ empresas, almacenes, seguimientos }: Props) {
+export default function Crear({
+  empresas,
+  almacenes,
+  seguimientos,
+  biologicos,
+}: Props) {
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
@@ -38,7 +49,7 @@ export default function Crear({ empresas, almacenes, seguimientos }: Props) {
 
       <div className="py-12">
         <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-          <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+          <div className="overflow-hidden shadow-sm sm:rounded-lg">
             <div className="p-6">
               <div className="mb-6 flex items-center justify-between">
                 <h2 className="text-2xl font-semibold">Seguimientos</h2>
@@ -78,6 +89,7 @@ export default function Crear({ empresas, almacenes, seguimientos }: Props) {
         onClose={() => setModalOpen(false)}
         empresas={empresas}
         almacenes={almacenes}
+        biologicos={biologicos}
       />
     </AppLayout>
   );

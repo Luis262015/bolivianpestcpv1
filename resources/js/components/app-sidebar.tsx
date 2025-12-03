@@ -25,15 +25,19 @@ import {
   Locate,
   NotebookPen,
   NotebookTabs,
+  ShieldCheck,
   ShoppingBasket,
   SquareChartGantt,
   TicketPercent,
   TrendingDown,
   TrendingUp,
   Users,
+  Warehouse,
   Wrench,
 } from 'lucide-react';
 import AppLogo from './app-logo';
+
+// const { hasPermission } = usePermissions();
 
 const mainNavItems: NavItem[] = [
   {
@@ -66,11 +70,21 @@ const mainNavItems2: MainNavItem[] = [
     ],
   },
   {
+    title: 'Almacenes',
+    icon: Warehouse,
+    href: '/almacenes',
+  },
+  {
     title: 'Cronogramas',
     icon: CalendarDays,
     href: '/cronogramas',
   },
 
+  // hasPermission('cronogramas') && {
+  //   title: 'Cronogramas XXXX',
+  //   icon: CalendarDays,
+  //   href: '/cronogramas',
+  // },
   {
     title: 'Mapas',
     icon: Locate,
@@ -111,6 +125,11 @@ const mainNavItems2: MainNavItem[] = [
         href: '/tipos',
       },
     ],
+  },
+  {
+    title: 'Certificados',
+    icon: ShieldCheck,
+    href: '/certificados',
   },
 ];
 
