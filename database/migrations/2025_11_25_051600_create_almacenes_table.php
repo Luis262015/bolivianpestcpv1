@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('direccion');
             $table->string('telefono');
             $table->string('email');
-            $table->string('cuidad');
+            $table->string('ciudad');
             $table->foreignId('empresa_id')->constrained('empresas');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();

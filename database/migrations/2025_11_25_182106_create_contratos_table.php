@@ -18,6 +18,10 @@ return new class extends Migration
             $table->string('telefono');
             $table->string('email');
             $table->string('ciudad');
+            $table->string('almacen');
+            $table->decimal('total', 10, 2);
+            $table->decimal('acuenta', 10, 2);
+            $table->decimal('saldo', 10, 2);
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();

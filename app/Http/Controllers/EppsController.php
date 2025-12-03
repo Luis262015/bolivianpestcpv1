@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CuentaCobrar;
+use App\Models\Epp;
 use Illuminate\Http\Request;
 
-class CuentasPorCobrarController extends Controller
+class EppsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,9 +13,8 @@ class CuentasPorCobrarController extends Controller
     public function index()
     {
         //
-        $cuentascobrar = CuentaCobrar::paginate(20);
-        return inertia('admin/cuentasporcobrar/lista', ['cuentascobrar' =>  $cuentascobrar]);
-        // return inertia('admin/cuentasporcobrar/lista');
+        $epps = Epp::select('id', 'nombre')->paginate(20);
+        return inertia('admin/epps/lista', ['epps' => $epps]);
     }
 
     /**
@@ -24,6 +23,7 @@ class CuentasPorCobrarController extends Controller
     public function create()
     {
         //
+        return inertia('admin/epps/crear', ['epp' => new Epp()]);
     }
 
     /**
@@ -32,6 +32,11 @@ class CuentasPorCobrarController extends Controller
     public function store(Request $request)
     {
         //
+        $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
+
+        Epp::create($validated);
+
+        return redirect()->route('epps.index');
     }
 
     /**
@@ -48,6 +53,8 @@ class CuentasPorCobrarController extends Controller
     public function edit(string $id)
     {
         //
+        $epp = Epp::find($id);
+        return inertia('admin/epps/editar', ['epp' => $epp]);
     }
 
     /**
@@ -56,6 +63,12 @@ class CuentasPorCobrarController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
+
+        $epp = Epp::find($id);
+        $epp->update($validated);
+
+        return redirect()->route('epps.index');
     }
 
     /**
@@ -64,5 +77,9 @@ class CuentasPorCobrarController extends Controller
     public function destroy(string $id)
     {
         //
+        $epp = Epp::find($id);
+        $epp->delete();
+
+        return redirect()->route('epps.index');
     }
 }

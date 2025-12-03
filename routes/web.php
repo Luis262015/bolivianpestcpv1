@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\BiologicosController;
 use App\Http\Controllers\CategoriasController;
 use App\Http\Controllers\ComprasController;
 use App\Http\Controllers\ConfigsController;
@@ -10,16 +12,20 @@ use App\Http\Controllers\CuentasPorCobrarController;
 use App\Http\Controllers\CuentasPorPagarController;
 use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\EmpresaController;
+use App\Http\Controllers\EppsController;
 use App\Http\Controllers\EtiquetasController;
 use App\Http\Controllers\GastosController;
 use App\Http\Controllers\IngresosController;
 use App\Http\Controllers\MapaController;
 use App\Http\Controllers\MarcasController;
+use App\Http\Controllers\MetodosController;
 use App\Http\Controllers\ProductosController;
+use App\Http\Controllers\ProteccionesController;
 use App\Http\Controllers\ProveedoresController;
 use App\Http\Controllers\RetirosController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\SeguimientoController;
+use App\Http\Controllers\SignosController;
 use App\Http\Controllers\SubcategoriasController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
@@ -60,6 +66,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('cronogramas', CronogramaController::class);
     Route::resource('mapas', MapaController::class);
     Route::resource('seguimientos', SeguimientoController::class);
+    Route::resource('biologicos', BiologicosController::class);
+    Route::resource('epps', EppsController::class);
+    Route::resource('metodos', MetodosController::class);
+    Route::resource('protecciones', ProteccionesController::class);
+    Route::resource('signos', SignosController::class);
 
     /// ********** CONTABILIDAD *****************    
     Route::resource('cuentasporcobrar', CuentasPorCobrarController::class);
@@ -82,6 +93,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('proveedores', ProveedoresController::class);
 
     /// ********** USUARIO ************************
+    Route::resource('agenda', AgendaController::class);
     Route::resource('usuarios', UsersController::class);
     Route::get('/documentos/{documento}/download', [DocumentosController::class, 'download'])->name('documentos.download');
     Route::resource('documentos', DocumentosController::class);

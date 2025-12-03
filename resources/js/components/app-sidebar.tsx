@@ -24,6 +24,7 @@ import {
   Keyboard,
   Locate,
   NotebookPen,
+  NotebookTabs,
   ShoppingBasket,
   SquareChartGantt,
   TicketPercent,
@@ -79,6 +80,33 @@ const mainNavItems2: MainNavItem[] = [
     title: 'Seguimientos',
     icon: NotebookPen,
     href: '/seguimientos',
+    down: true,
+    subItems: [
+      {
+        title: 'Lista',
+        href: 'seguimientos',
+      },
+      {
+        title: 'Biologicos',
+        href: 'biologicos',
+      },
+      {
+        title: 'Epps',
+        href: 'epps',
+      },
+      {
+        title: 'Metodos',
+        href: 'metodos',
+      },
+      {
+        title: 'Protecciones',
+        href: 'protecciones',
+      },
+      {
+        title: 'Signos',
+        href: 'signos',
+      },
+    ],
   },
 ];
 
@@ -175,6 +203,11 @@ const mainNavItems3: MainNavItem[] = [
 
 // Usuario
 const mainNavItems4: MainNavItem[] = [
+  {
+    title: 'Agenda',
+    icon: NotebookTabs,
+    href: '/agenda',
+  },
   {
     title: 'Documentos',
     icon: Files,

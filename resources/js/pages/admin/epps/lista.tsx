@@ -15,83 +15,59 @@ import { SquarePen, Trash2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: 'Cuentas Por Cobrar',
-    href: '/Compras',
+    title: 'Epps',
+    href: '/epps',
   },
 ];
 
-// interface Cliente {
-//   id: number;
-//   nombre: string;
-// }
-
-interface User {
+interface Epp {
   id: number;
-  nombre: String;
+  nombre: string;
 }
 
-interface CuentaCobrar {
-  id: number;
-  contrato_id: number;
-  user_id: number;
-  // cliente: Cliente;
-  total: number;
-  a_cuenta: number;
-  saldo: number;
-  estado: string;
-  fecha_pago: string;
-}
-
-interface CuentasCobrarPaginate {
-  data: CuentaCobrar[];
+interface EppsPaginate {
+  data: Epp[];
   links: { url: string | null; label: string; active: boolean }[];
 }
 
 export default function Index() {
   const { processing, delete: destroy } = useForm();
-  const { cuentascobrar } = usePage<{ cuentascobrar: CuentasCobrarPaginate }>()
-    .props;
+  const { epps } = usePage<{ epps: EppsPaginate }>().props;
 
   const handleDelete = (id: number) => {
     if (confirm('Estas seguro de eliminar el registro')) {
-      destroy(`/compras/${id}`);
+      destroy(`/epps/${id}`);
     }
   };
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Compras | List" />
+      <Head title="Epp | List" />
 
       <div className="m-4">
-        <div className="mb-2 text-center text-2xl">
-          Lista Cuentas por Cobrar
-        </div>
-        {cuentascobrar.data.length > 0 && (
+        <Link href={'/epps/create'}>
+          <Button className="mb-4" size="sm">
+            Nuevo EPP
+          </Button>
+        </Link>
+        <div className="mb-2 text-center text-2xl">Lista EPPS</div>
+        {epps.data.length > 0 && (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">ID</TableHead>
-                <TableHead>Contrato ID</TableHead>
-                <TableHead>User ID</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>A Cuenta</TableHead>
-                <TableHead>Saldo</TableHead>
-                <TableHead>Estado</TableHead>
+                <TableHead>Nombre</TableHead>
                 <TableHead>Acción</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {cuentascobrar.data.map((compra) => (
-                <TableRow key={compra.id}>
-                  <TableCell className="font-medium">{compra.id}</TableCell>
-                  <TableCell>{compra.contrato_id}</TableCell>
-                  <TableCell>{compra.user_id}</TableCell>
-                  <TableCell>{compra.total}</TableCell>
-                  <TableCell>{compra.a_cuenta}</TableCell>
-                  <TableCell>{compra.saldo}</TableCell>
-                  <TableCell>{compra.estado}</TableCell>
+              {epps.data.map((categoria) => (
+                <TableRow key={categoria.id}>
+                  <TableCell className="font-medium">{categoria.id}</TableCell>
+                  <TableCell>{categoria.nombre}</TableCell>
+
                   <TableCell>
-                    <Link href={`/compras/edit/${compra.id}`}>
+                    <Link href={`/epps/${categoria.id}/edit`}>
                       <Button className="" size="icon" variant="outline">
                         <SquarePen />
                       </Button>
@@ -101,7 +77,7 @@ export default function Index() {
                       className="ml-1"
                       size="icon"
                       variant="outline"
-                      onClick={() => handleDelete(compra.id)}
+                      onClick={() => handleDelete(categoria.id)}
                     >
                       <Trash2 />
                     </Button>
@@ -113,9 +89,28 @@ export default function Index() {
         )}
 
         <div className="my-2">
-          <CustomPagination links={cuentascobrar.links} />
+          <CustomPagination links={epps.links} />
         </div>
       </div>
     </AppLayout>
   );
 }
+
+// import AppLayout from '@/layouts/app-layout';
+// import { type BreadcrumbItem } from '@/types';
+// import { Head } from '@inertiajs/react';
+
+// const breadcrumbs: BreadcrumbItem[] = [
+//   {
+//     title: 'Etiquetas',
+//     href: '/etiquetas',
+//   },
+// ];
+
+// export default function Lista() {
+//   return (
+//     <AppLayout breadcrumbs={breadcrumbs}>
+//       <Head title="Etiquetas" />
+//     </AppLayout>
+//   );
+// }

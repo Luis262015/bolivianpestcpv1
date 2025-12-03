@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CuentaCobrar;
+use App\Models\Metodo;
 use Illuminate\Http\Request;
 
-class CuentasPorCobrarController extends Controller
+class MetodosController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,9 +13,8 @@ class CuentasPorCobrarController extends Controller
     public function index()
     {
         //
-        $cuentascobrar = CuentaCobrar::paginate(20);
-        return inertia('admin/cuentasporcobrar/lista', ['cuentascobrar' =>  $cuentascobrar]);
-        // return inertia('admin/cuentasporcobrar/lista');
+        $metodos = Metodo::select('id', 'nombre')->paginate(20);
+        return inertia('admin/metodos/lista', ['metodos' => $metodos]);
     }
 
     /**
@@ -24,6 +23,7 @@ class CuentasPorCobrarController extends Controller
     public function create()
     {
         //
+        return inertia('admin/metodos/crear', ['metodo' => new Metodo()]);
     }
 
     /**
@@ -32,6 +32,11 @@ class CuentasPorCobrarController extends Controller
     public function store(Request $request)
     {
         //
+        $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
+
+        Metodo::create($validated);
+
+        return redirect()->route('metodos.index');
     }
 
     /**
@@ -48,6 +53,8 @@ class CuentasPorCobrarController extends Controller
     public function edit(string $id)
     {
         //
+        $metodo = Metodo::find($id);
+        return inertia('admin/metodos/editar', ['metodo' => $metodo]);
     }
 
     /**
@@ -56,6 +63,12 @@ class CuentasPorCobrarController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
+
+        $metodo = Metodo::find($id);
+        $metodo->update($validated);
+
+        return redirect()->route('metodos.index');
     }
 
     /**
@@ -64,5 +77,9 @@ class CuentasPorCobrarController extends Controller
     public function destroy(string $id)
     {
         //
+        $metodo = Metodo::find($id);
+        $metodo->delete();
+
+        return redirect()->route('metodos.index');
     }
 }

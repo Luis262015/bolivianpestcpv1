@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CuentaCobrar;
+use App\Models\Signo;
 use Illuminate\Http\Request;
 
-class CuentasPorCobrarController extends Controller
+class SignosController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,9 +13,8 @@ class CuentasPorCobrarController extends Controller
     public function index()
     {
         //
-        $cuentascobrar = CuentaCobrar::paginate(20);
-        return inertia('admin/cuentasporcobrar/lista', ['cuentascobrar' =>  $cuentascobrar]);
-        // return inertia('admin/cuentasporcobrar/lista');
+        $signos = Signo::select('id', 'nombre')->paginate(20);
+        return inertia('admin/signos/lista', ['signos' => $signos]);
     }
 
     /**
@@ -24,6 +23,7 @@ class CuentasPorCobrarController extends Controller
     public function create()
     {
         //
+        return inertia('admin/signos/crear', ['signos' => new Signo()]);
     }
 
     /**
@@ -32,6 +32,11 @@ class CuentasPorCobrarController extends Controller
     public function store(Request $request)
     {
         //
+        $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
+
+        Signo::create($validated);
+
+        return redirect()->route('signos.index');
     }
 
     /**
@@ -48,6 +53,8 @@ class CuentasPorCobrarController extends Controller
     public function edit(string $id)
     {
         //
+        $signo = Signo::find($id);
+        return inertia('admin/signos/editar', ['signo' => $signo]);
     }
 
     /**
@@ -56,6 +63,12 @@ class CuentasPorCobrarController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
+
+        $signo = Signo::find($id);
+        $signo->update($validated);
+
+        return redirect()->route('signos.index');
     }
 
     /**
@@ -64,5 +77,9 @@ class CuentasPorCobrarController extends Controller
     public function destroy(string $id)
     {
         //
+        $signo = Signo::find($id);
+        $signo->delete();
+
+        return redirect()->route('signos.index');
     }
 }
