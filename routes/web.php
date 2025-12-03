@@ -27,6 +27,7 @@ use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\SeguimientoController;
 use App\Http\Controllers\SignosController;
 use App\Http\Controllers\SubcategoriasController;
+use App\Http\Controllers\TiposController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -71,6 +72,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('metodos', MetodosController::class);
     Route::resource('protecciones', ProteccionesController::class);
     Route::resource('signos', SignosController::class);
+    Route::resource('tipos', TiposController::class);
 
     /// ********** CONTABILIDAD *****************    
     Route::resource('cuentasporcobrar', CuentasPorCobrarController::class);

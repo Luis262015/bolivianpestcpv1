@@ -84,27 +84,31 @@ const mainNavItems2: MainNavItem[] = [
     subItems: [
       {
         title: 'Lista',
-        href: 'seguimientos',
+        href: '/seguimientos',
       },
       {
         title: 'Biologicos',
-        href: 'biologicos',
+        href: '/biologicos',
       },
       {
         title: 'Epps',
-        href: 'epps',
+        href: '/epps',
       },
       {
         title: 'Metodos',
-        href: 'metodos',
+        href: '/metodos',
       },
       {
         title: 'Protecciones',
-        href: 'protecciones',
+        href: '/protecciones',
       },
       {
         title: 'Signos',
-        href: 'signos',
+        href: '/signos',
+      },
+      {
+        title: 'Tipos',
+        href: '/tipos',
       },
     ],
   },
