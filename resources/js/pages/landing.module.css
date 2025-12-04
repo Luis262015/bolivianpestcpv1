@@ -132,7 +132,7 @@
 .serviceIcon {
   width: 80px;
   height: 80px;
-  background: #00b894;
+  background: #013147;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -217,7 +217,7 @@
 .featuresIcon {
   width: 62px;
   height: 62px;
-  background: #00b894;
+  background: #013147;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -256,7 +256,7 @@
   position: absolute;
   bottom: 30px;
   right: 25px;
-  background: #00b894;
+  background: #013147;
   color: white;
   width: 120px;
   height: 120px;
@@ -268,14 +268,14 @@
   font-size: 1rem;
   font-weight: 600;
   text-decoration: none;
-  box-shadow: 0 15px 35px rgba(0, 184, 148, 0.4);
+  box-shadow: 0 15px 35px rgba(24, 24, 24, 0.4);
   transition: all 0.4s ease;
   border: 8px solid white;
 }
 
 .featuresBtn:hover {
   transform: scale(1.08);
-  background: #00a07d;
+  background: #013147;
 }
 /* PORTAFOLIO */
 .portfolioFilters {
@@ -300,7 +300,7 @@
   position: absolute;
   width: 0;
   height: 3px;
-  background: #00b894;
+  background: #013147;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
@@ -370,8 +370,8 @@
   height: 100%;
   background: linear-gradient(
     135deg,
-    rgba(0, 184, 148, 0.96),
-    rgba(0, 120, 100, 0.94)
+    rgba(45, 60, 101, 0.96),
+    rgba(19, 2, 94, 0.94)
   );
   display: flex;
   align-items: center;
@@ -432,7 +432,7 @@
 .whyIcon {
   width: 80px;
   height: 80px;
-  background: #00b894;
+  background: #013147;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -485,7 +485,7 @@
 .whyHighContent a {
   display: inline-flex;
   align-items: center;
-  background: #00b894;
+  background: #013147;
   color: white;
   padding: 12px 24px;
   border-radius: 50px;
@@ -495,7 +495,7 @@
 }
 
 .whyHighContent a:hover {
-  background: #00a07d;
+  background: #353536;
   transform: translateY(-3px);
 }
 
@@ -508,7 +508,7 @@
 .whyCta a {
   display: inline-flex;
   align-items: center;
-  background: #00b894;
+  background: #013147;
   color: white;
   padding: 14px 32px;
   border-radius: 50px;
@@ -521,7 +521,7 @@
 .whyCta a::before {
   content: 'Gratis';
   background: white;
-  color: #00b894;
+  color: #01415f;
   padding: 6px 14px;
   border-radius: 50px;
   margin-right: 14px;
@@ -530,7 +530,7 @@
 }
 
 .whyCta a:hover {
-  background: #00a07d;
+  background: #05577d;
   transform: translateY(-4px);
 }
 
@@ -644,7 +644,7 @@
 .ctaListIcon {
   width: 36px;
   height: 36px;
-  background: #00b894;
+  background: #013147;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -659,7 +659,7 @@
   display: inline-flex;
   align-items: center;
   gap: 20px;
-  background: #00b894;
+  background: #013147;
   color: white;
   font-size: 1.4rem;
   font-weight: 600;
@@ -667,19 +667,19 @@
   border-radius: 60px;
   text-decoration: none;
   transition: all 0.4s ease;
-  box-shadow: 0 15px 35px rgba(0, 184, 148, 0.4);
+  box-shadow: 0 15px 35px rgba(41, 41, 41, 0.4);
 }
 
 .ctaBtnMember:hover {
-  background: #00a07d;
+  background: #014e72;
   transform: translateY(-5px);
-  box-shadow: 0 20px 45px rgba(0, 184, 148, 0.5);
+  box-shadow: 0 20px 45px rgba(50, 50, 52, 0.5);
 }
 
 .ctaArrowCircle {
   width: 56px;
   height: 56px;
-  background: rgba(255, 255, 255, 0.2);
+  background: #013147;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -691,7 +691,7 @@
 
 .ctaBtnMember:hover .ctaArrowCircle {
   background: white;
-  color: #00b894;
+  color: #404243;
 }
 /* FOOTER */
 
@@ -753,7 +753,7 @@
   bottom: -8px;
   width: 40px;
   height: 3px;
-  background: #00b894;
+  background: #013147;
 }
 
 .footerColumn p {
@@ -787,7 +787,7 @@
   width: 44px;
   height: 44px;
   background: white;
-  color: #0f1e2c;
+  color: #ffffff;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -796,7 +796,7 @@
 }
 
 .footerContactItem a {
-  color: #00b894;
+  color: #ffffff;
   text-decoration: none;
   font-weight: 500;
 }
@@ -804,7 +804,7 @@
 .footerDivider {
   border: none;
   height: 1px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1);
   margin: 40px 0;
 }
 
@@ -825,7 +825,7 @@
 .footerLogoText {
   font-size: 1.8rem;
   font-weight: bold;
-  background: linear-gradient(to right, white, #00b894);
+  background: linear-gradient(to right, white, #013147);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -843,7 +843,7 @@
   transition: all 0.3s;
 }
 .footerSocialLinks a:hover {
-  background: #00b894;
+  background: #013147;
   color: white;
   transform: translateY(-4px);
 }

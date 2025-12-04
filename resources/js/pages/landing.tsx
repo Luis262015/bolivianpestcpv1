@@ -1025,10 +1025,10 @@ export default function Landing() {
     defaultValue="item-1"
 >
     <AccordionItem value="item-1">
-      <AccordionTrigger className="text-lg text-emerald-500 hover:text-emerald-700 no-underline hover:no-underline">
+      <AccordionTrigger className="text-lg text-cyan-500 hover:text-cyan-700 no-underline hover:no-underline">
           1. ¿Qué tipos de plagas tratan? 
       </AccordionTrigger>
-      <AccordionContent className="flex flex-col  text-balance">
+      <AccordionContent className="flex flex-col  text-left">
         <p>
           Controlamos una amplia variedad de plagas, incluyendo <br />
           <strong> roedores, hormigas, cucarachas, termitas, chinches, mosquitos, arañas y fauna silvestre.</strong><br />
@@ -1037,20 +1037,16 @@ export default function Landing() {
       </AccordionContent>
     </AccordionItem>
     <AccordionItem value="item-2">
-      <AccordionTrigger className="text-lg text-emerald-500 hover:text-emerald-700 no-underline hover:no-underline">
+      <AccordionTrigger className="text-lg text-cyan-500 hover:text-cyan-700 no-underline hover:no-underline">
           2. ¿Son seguros sus métodos de control de plagas para mis mascotas? 
       </AccordionTrigger>
-      <AccordionContent className="flex flex-col  text-balance">
-        <p>
-          Sí. Todos nuestros productos y procedimientos están certificados y son seguros para mascotas y personas, 
-          siempre y cuando se sigan las indicaciones del técnico. <br />
-          Utilizamos productos de baja toxicidad, aprobados por <strong>SENASAG</strong>, y aplicados bajo estándares profesionales para evitar cualquier riesgo. 
-          Además, brindamos instrucciones claras sobre el tiempo de reingreso y cuidados posteriores para garantizar la seguridad de tus animales domésticos.
+      <AccordionContent className="flex flex-col  text-left">
+        <p> Sí. Todos nuestros productos y procedimientos están certificados y son seguros para mascotas y personas, siempre y cuando se sigan las indicaciones del técnico. Utilizamos productos de baja toxicidad, aprobados por <strong>SENASAG</strong>, y aplicados bajo estándares profesionales para evitar cualquier riesgo. Además, brindamos instrucciones claras sobre el tiempo de reingreso y cuidados posteriores para garantizar la seguridad de tus animales domésticos.
         </p>
       </AccordionContent>
     </AccordionItem>
     <AccordionItem value="item-3">
-      <AccordionTrigger className="text-lg text-emerald-500 hover:text-emerald-700 no-underline hover:no-underline">
+      <AccordionTrigger className="text-lg text-cyan-500 hover:text-cyan-700 no-underline hover:no-underline">
           3. ¿Con qué frecuencia debo programar los servicios de control de plagas? 
       </AccordionTrigger>
       <AccordionContent className="flex flex-col text-left">
@@ -1076,40 +1072,39 @@ export default function Landing() {
       </AccordionContent>
     </AccordionItem>
     <AccordionItem value="item-4">
-      <AccordionTrigger className="text-lg text-emerald-500 hover:text-emerald-700 no-underline hover:no-underline">
+      <AccordionTrigger className="text-lg text-cyan-500 hover:text-cyan-700 no-underline hover:no-underline">
           4. ¿Ofrecen servicios de control de plagas de emergencia? 
       </AccordionTrigger>
-      <AccordionContent className="flex flex-col text-balance">
-        <p>
-          Sí, contamos con servicios de emergencia para infestaciones severas o situaciones que requieren atención inmediata, como: <br />
-
-            <strong>Nidos de avispas</strong> <br />
-            <strong>Presencia elevada de roedores</strong> <br />
-            <strong>Brotes de cucarachas en cocinas o negocios</strong> <br />
-            <strong>Invasión de chinches</strong> <br />
-            <strong>Plagas que afecten la operación de tu empresa</strong> <br />
-
-           <br /> Atendemos en el menor tiempo posible para controlar rápidamente el problema y evitar riesgos para tu salud o tu actividad comercial.
+      <AccordionContent className="flex flex-col text-left">
+        <p>Sí, contamos con servicios de emergencia para infestaciones severas o situaciones que requieren atención inmediata, como: </p>
+        <br />
+        <ul>
+            <li><strong>Nidos de avispas</strong> </li>
+            <li><strong>Presencia elevada de roedores</strong> </li>
+            <li><strong>Brotes de cucarachas en cocinas o negocios</strong> </li>
+            <li><strong>Invasión de chinches</strong> </li>
+            <li><strong>Plagas que afecten la operación de tu empresa</strong> </li>
+        </ul>
+            <p>Atendemos en el menor tiempo posible para controlar rápidamente el problema y evitar riesgos para tu salud o tu actividad comercial.
         </p>
       </AccordionContent>
     </AccordionItem>
     <AccordionItem value="item-5">
-      <AccordionTrigger className="text-lg text-emerald-500 hover:text-emerald-700 no-underline hover:no-underline">
+      <AccordionTrigger className="text-lg text-cyan-500 hover:text-cyan-700 no-underline hover:no-underline">
           5. ¿Cómo sé si tengo una plaga? 
       </AccordionTrigger>
       <AccordionContent className="flex flex-col text-left">
-        <p>
-          Algunas señales comunes incluyen: <br />
+        <p>Algunas señales comunes incluyen: </p>
+          <ul>      
+          <li><strong>Excrementos pequeños o manchas oscuras (roedores, cucarachas).</strong></li> 
 
-          <strong>Excrementos pequeños o manchas oscuras (roedores, cucarachas).</strong> <br />
+          <li><strong>Ruidos dentro de paredes o techos.</strong></li> 
 
-          <strong>Ruidos dentro de paredes o techos.</strong> <br />
+          <li><strong>Olores fuertes o desagradables, especialmente en cocinas o depósitos.</strong></li> 
 
-          <strong>Olores fuertes o desagradables, especialmente en cocinas o depósitos.</strong> <br />
-
-          <strong>Huecos o montículos en madera o suelo (termitas). </strong><br />
-
-          <br />Si notas cualquiera de estos signos, lo ideal es solicitar una inspección profesional, ya que muchas plagas se esconden y solo un técnico puede detectarlas a tiempo.
+          <li><strong>Huecos o montículos en madera o suelo (termitas). </strong></li>
+          </ul>      
+          <p>Si notas cualquiera de estos signos, lo ideal es solicitar una inspección profesional, ya que muchas plagas se esconden y solo un técnico puede detectarlas a tiempo.
         </p>
       </AccordionContent>
     </AccordionItem>
@@ -1265,12 +1260,12 @@ export default function Landing() {
   <div className="space-y-4">
     {/* Teléfono */}
     <div className={`contact-item flex items-center gap-4 ${styles.footerContactItem}`}>
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-600 text-white">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cyan-600 text-white">
         <Phone className="h-5 w-5" strokeWidth={2.5} />
       </div>
       <div>
         <p className="text-sm text-gray-400">Teléfono / WhatsApp</p>
-        <a href="tel:+59176738282" className="text-white hover:text-green-400 transition">
+        <a href="tel:+59176738282" className="text-white hover:text-white-400 transition">
           +591 76738282
         </a>
       </div>
@@ -1278,12 +1273,12 @@ export default function Landing() {
 
     {/* Email */}
     <div className={`contact-item flex items-center gap-4 ${styles.footerContactItem}`}>
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-600 text-white">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cyan-600 text-white">
         <Mail className="h-5 w-5" strokeWidth={2.5} />
       </div>
       <div>
         <p className="text-sm text-gray-400">Correo electrónico</p>
-        <a href="mailto:info@bolivianpest.com" className="text-white hover:text-green-400 transition">
+        <a href="mailto:info@bolivianpest.com" className="text-white hover:text-white-400 transition">
           info@bolivianpest.com
         </a>
       </div>
@@ -1309,12 +1304,12 @@ export default function Landing() {
                   cx="50"
                   cy="50"
                   r="45"
-                  stroke="#00b894"
+                  stroke="#013147"
                   stroke-width="6"
                 />
                 <path
                   d="M30 50L45 65L70 35"
-                  stroke="#00b894"
+                  stroke="#013147"
                   stroke-width="8"
                   stroke-linecap="round"
                 />
