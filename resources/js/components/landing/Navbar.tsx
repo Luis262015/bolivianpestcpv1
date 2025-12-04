@@ -1,6 +1,6 @@
 // resources/js/components/landing/Navbar.tsx   (o donde lo tengas)
 
-import { Instagram, Facebook, Phone, Mail, Menu } from "lucide-react"
+import { Instagram, Facebook, Phone, MapPin, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from 'react';
 
@@ -44,7 +44,7 @@ export default function Navbar({ logo = '/images/logo.png' }: NavbarProps) {
             <a
               key={item.name}
               href={item.href}
-              className="text-white font-medium hover:text-yellow-300 transition-colors duration-200"
+              className="text-white font-medium hover:text-cyan-300 transition-colors duration-200"
             >
               {item.name}
             </a>
@@ -55,17 +55,17 @@ export default function Navbar({ logo = '/images/logo.png' }: NavbarProps) {
         <div className="flex items-center gap-4">
           {/* Iconos redes sociales (pantallas grandes) */}
           <div className="hidden md:flex items-center gap-3">
-            <a href="#" className="text-white hover:text-yellow-300 transition">
+            <a href="#" className="text-white hover:text-cyan-300 transition">
               <Instagram className="h-5 w-5" />
             </a>
-            <a href="#" className="text-white hover:text-yellow-300 transition">
+            <a href="#" className="text-white hover:text-cyan-300 transition">
               <Facebook className="h-5 w-5" />
             </a>
-            <a href="tel:+591" className="text-white hover:text-yellow-300 transition">
+            <a href="tel:+591" className="text-white hover:text-cyan-300 transition">
               <Phone className="h-5 w-5" />
             </a>
-            <a href="mailto:info@bolivianpest.com" className="text-white hover:text-yellow-300 transition">
-              <Mail className="h-5 w-5" />
+            <a href="mailto:info@bolivianpest.com" className="text-white hover:text-cyan-300 transition">
+              <MapPin className="h-5 w-5" />
             </a>
           </div>
 
@@ -82,7 +82,7 @@ export default function Navbar({ logo = '/images/logo.png' }: NavbarProps) {
                   <a
                     key={item.name}
                     href={item.href}
-                    className="text-white text-lg font-medium hover:text-yellow-300"
+                    className="text-white text-lg font-medium hover:text-cyan-300"
                   >
                     {item.name}
                   </a>
