@@ -36,9 +36,98 @@ export default function Landing() {
         />
       </Head>
 
-      <Navbar logo="/images/LogoHFCWhite.png" />
+     <Navbar logo="/images/LogoHFCWhite.png" /> 
 
-      <div className="relative ">
+      <div className="relative">
+  <Swiper
+    spaceBetween={30}
+    effect={'fade'}
+    loop={true}
+    autoplay={{ delay: 9000, disableOnInteraction: false }}
+    modules={[Autoplay, EffectFade, Navigation, Pagination]}
+    className="mySwiper h-full w-full"
+  >
+    <SwiperSlide>
+      <img
+        src="/images/slider/sli1.webp"
+        className="h-full w-full object-cover"
+        alt="Slide 1"
+        loading="lazy"
+      />
+    </SwiperSlide>
+    <SwiperSlide>
+      <img
+        src="/images/slider/sli2.webp"
+        className="h-full w-full object-cover"
+        alt="Slide 2"
+        loading="lazy"
+      />
+    </SwiperSlide>
+    <SwiperSlide>
+      <img
+        src="/images/slider/sli3.webp"
+        className="h-full w-full object-cover"
+        alt="Slide 3"
+        loading="lazy"
+      />
+    </SwiperSlide>
+    <SwiperSlide>
+      <img
+        src="/images/slider/sli4.webp"
+        className="h-full w-full object-cover"
+        alt="Slide 4"
+        loading="lazy"
+      />
+    </SwiperSlide>
+  </Swiper>
+
+  {/* Overlay con texto y personaje */}
+  <div className="absolute inset-0 z-10 flex items-center justify-center">
+    <div className="max-w-[1000px] w-full px-6 md:px-10">
+      <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-8 lg:gap-12">
+        
+        {/* Personaje - se oculta en ≤1024px (lg y menores) */}
+        <div className="hidden lg:block justify-self-end">
+          <img 
+            src="/images/cta/personaje.webp" 
+            alt="Personaje" 
+            className="max-w-full h-auto"
+          />
+        </div>
+
+        {/* Texto - centrado en móvil, alineado a la izquierda en desktop */}
+        <div className="text-center lg:text-left">
+          <h1 className="
+            mb-3 sm:mb-4 
+            font-bold text-white drop-shadow-2xl
+            text-2xl     /* ≤ 425px */
+            sm:text-3xl  /* 426px - 640px */
+            md:text-4xl  /* 768px+ */
+            lg:text-5xl  /* 1024px+ */
+            xl:text-[2.8rem]
+            leading-tight
+          ">
+            Servicios confiables de control de plagas e insectos en los que puede confiar.
+          </h1>
+
+          <p className="
+            text-white drop-shadow-lg
+            text-sm      /* ≤ 425px → más pequeño */
+            sm:text-base /* 426px - 640px */
+            md:text-lg   /* 768px+ */
+            lg:text-xl   /* 1024px+ */
+            leading-relaxed
+          ">
+            Proteja su hogar y negocio con nuestras soluciones efectivas para el control de plagas. 
+            Desde termitas hasta roedores, eliminamos las plagas de forma rápida y segura.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      {/* <div className="relative ">
         <Swiper
           spaceBetween={30}
           effect={'fade'}
@@ -85,7 +174,7 @@ export default function Landing() {
           </SwiperSlide>
         </Swiper>
         <div className="absolute inset-0 z-3 flex justify-center">
-          <div className="flex h-full w-[1300px] items-center justify-center">
+          <div className="flex h-full w-[1000px] items-center justify-center">
             <img src="/images/cta/personaje.webp" alt="Logo" className="" />
             <div>
               <h1 className="mb-2 text-left text-[2.2rem] font-bold text-white text-shadow-lg/40">
@@ -100,7 +189,7 @@ export default function Landing() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
       {/* <Swiper
         spaceBetween={30}
         effect={'fade'}
@@ -205,8 +294,8 @@ export default function Landing() {
 
       {/* <!-- about us --> */}
       <section className="about-us flex justify-center" id="about">
-        <div className="container w-[1300px]">
-          <div className="about-wrapper grid grid-cols-2 items-center gap-[10px]">
+        <div className="container w-full">
+          <div className="about-wrapper grid grid-cols-1  lg:grid-cols-2 items-center gap-[10px]">
             {/* <!-- Columna Izquierda - Imagen Principal + Círculos de Insectos --> */}
             <div className="about-image relative h-[600px]">
               <div className="main-circle absolute h-[520px] w-[520px] overflow-hidden rounded-full border-[12px] shadow-2xl">
@@ -241,7 +330,7 @@ export default function Landing() {
             </div>
 
             {/* <!-- Columna Derecha - Texto y Estadísticas --> */}
-            <div className="mt-8 md:mt-12 lg:mt-20 about-content">
+            <div className="mt-8 md:mt-12 lg:mt-20 ml-10 about-content">
               <span className={`section-tag ${styles.sectionTag}`}>
                 Acerca de Nosotros
               </span>
@@ -343,7 +432,7 @@ export default function Landing() {
 
       {/* <!-- Services --> */}
       <section className="mt-8 md:mt-12 lg:mt-20 services flex justify-center" id="services">
-        <div className="container w-[1300px]">
+        <div className="container w-full">
           {/* <!-- Tag y título --> */}
           <div className=" section-header text-center">
             <span className={`section-tag ${styles.sectionTag}`}>
@@ -364,9 +453,19 @@ export default function Landing() {
             autoplay={{ delay: 9000, disableOnInteraction: false }}
             modules={[Autoplay, Pagination, Navigation]}
             className="mt-2 md:mt-6 lg:mt-10 mySwiper"
-            slidesPerView={3}
             spaceBetween={30}
             loop={true}
+            breakpoints={{
+    0: {
+      slidesPerView: 1,
+    },
+    768: {
+      slidesPerView: 2,
+    },
+    1024: {
+      slidesPerView: 3,
+    },
+  }}
           >
             <SwiperSlide>
               <div className={styles.serviceCard}>
@@ -481,8 +580,12 @@ export default function Landing() {
         className={`mt-2 md:mt-6 lg:mt-10 our-features flex justify-center ${styles.ourFeatures}`}
         id="our-features"
       >
-        <div className="container w-[1300px]">
-          <div className="features-wrapper grid grid-cols-2 items-center gap-[80px]">
+        <div className="container w-full">
+          <div className="features-wrapper grid 
+    grid-cols-1   /* Móvil: 1 columna por defecto (sm) */
+    md:grid-cols-2 /* Tabletas y Escritorios medianos: 2 columnas */
+    items-center 
+    gap-[80px]">
             {/* <!-- Columna Izquierda - Texto + Características --> */}
             <div className="features-content">
               <span className={`section-tag ${styles.sectionTag}`}>
@@ -578,7 +681,7 @@ export default function Landing() {
                 className={`features-btn ${styles.featuresBtn}`}
               >
                 <i className="fas fa-phone"></i>
-                <span>Contact Us</span>
+                <span>Contactanos</span>
               </a>
             </div>
           </div>
@@ -587,7 +690,7 @@ export default function Landing() {
 
       {/* <!-- our portafolio  --> */}
       <section className="mt-8 md:mt-16 lg:mt-24 our-portfolio flex justify-center" id="our-portfolio">
-        <div className="container w-[1300px]">
+        <div className="container w-full">
           {/* <!-- Tag y título --> */}
           <div className="section-header text-center">
             <span className={`section-tag ${styles.sectionTag}`}>
@@ -731,7 +834,7 @@ export default function Landing() {
 
       {/* <!-- por que elegirnos --> */}
       <section className="why-choose flex justify-center mt-8 md:mt-16 lg:mt-24" id="why-choose">
-        <div className="container w-[1300px]">
+        <div className="container w-full">
           {/* <!-- Tag y título --> */}
           <div className="section-header text-center">
             <span className={`section-tag ${styles.sectionTag}`}>
@@ -804,8 +907,8 @@ export default function Landing() {
       </section>
 
       {/* <!-- frequently questions --> */}
-      <section className="faq-section flex justify-center" id="faq">
-        <div className="container w-[1300px]">
+      <section className="faq-section flex justify-center mt-10 md:mt-16 lg:mt-24 xl:mt-28" id="faq">
+        <div className="container w-full">
           <div className={`faq-wrapper ${styles.faqWrapper}`}>
             {/* <!-- Imágenes decorativas izquierda --> */}
             <div className={`faqImages ${styles.faqImages}`}>
@@ -836,7 +939,7 @@ export default function Landing() {
                 <span className="text-green">el control de plagas</span>
               </h2>
 
-              <Accordion
+              {/* <Accordion
                 type="single"
                 collapsible
                 className="w-full"
@@ -914,14 +1017,111 @@ export default function Landing() {
                     </p>
                   </AccordionContent>
                 </AccordionItem>
-              </Accordion>
+              </Accordion> */}
+              <Accordion
+    type="single"
+    collapsible
+    className="w-full"
+    defaultValue="item-1"
+>
+    <AccordionItem value="item-1">
+      <AccordionTrigger className="text-lg text-emerald-500 hover:text-emerald-700 no-underline hover:no-underline">
+          1. ¿Qué tipos de plagas tratan? 
+      </AccordionTrigger>
+      <AccordionContent className="flex flex-col  text-balance">
+        <p>
+          Controlamos una amplia variedad de plagas, incluyendo <br />
+          <strong> roedores, hormigas, cucarachas, termitas, chinches, mosquitos, arañas y fauna silvestre.</strong><br />
+          Aplicamos métodos específicos según la especie para garantizar resultados efectivos.
+        </p>
+      </AccordionContent>
+    </AccordionItem>
+    <AccordionItem value="item-2">
+      <AccordionTrigger className="text-lg text-emerald-500 hover:text-emerald-700 no-underline hover:no-underline">
+          2. ¿Son seguros sus métodos de control de plagas para mis mascotas? 
+      </AccordionTrigger>
+      <AccordionContent className="flex flex-col  text-balance">
+        <p>
+          Sí. Todos nuestros productos y procedimientos están certificados y son seguros para mascotas y personas, 
+          siempre y cuando se sigan las indicaciones del técnico. <br />
+          Utilizamos productos de baja toxicidad, aprobados por <strong>SENASAG</strong>, y aplicados bajo estándares profesionales para evitar cualquier riesgo. 
+          Además, brindamos instrucciones claras sobre el tiempo de reingreso y cuidados posteriores para garantizar la seguridad de tus animales domésticos.
+        </p>
+      </AccordionContent>
+    </AccordionItem>
+    <AccordionItem value="item-3">
+      <AccordionTrigger className="text-lg text-emerald-500 hover:text-emerald-700 no-underline hover:no-underline">
+          3. ¿Con qué frecuencia debo programar los servicios de control de plagas? 
+      </AccordionTrigger>
+      <AccordionContent className="flex flex-col text-left">
+        <p>
+    La frecuencia depende del tipo de plaga y del entorno:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Hogares:</strong> cada 3 a 4 meses suele ser suficiente para mantener un ambiente libre de plagas.
+    </li>
+    <li>
+      <strong>Comercios:</strong> recomendamos un servicio mensual o bimensual, especialmente si hay almacenamiento de alimentos.
+    </li>
+    <li>
+      <strong>Industrias y restaurantes:</strong> servicios mensuales o incluso quincenales, de acuerdo con normas de salubridad.
+    </li>
+  </ul>
+  
+  <p>
+    Nuestros técnicos evalúan tu caso y generan un plan personalizado según el nivel de infestación y las características del lugar.
+  </p>
+      </AccordionContent>
+    </AccordionItem>
+    <AccordionItem value="item-4">
+      <AccordionTrigger className="text-lg text-emerald-500 hover:text-emerald-700 no-underline hover:no-underline">
+          4. ¿Ofrecen servicios de control de plagas de emergencia? 
+      </AccordionTrigger>
+      <AccordionContent className="flex flex-col text-balance">
+        <p>
+          Sí, contamos con servicios de emergencia para infestaciones severas o situaciones que requieren atención inmediata, como: <br />
+
+            <strong>Nidos de avispas</strong> <br />
+            <strong>Presencia elevada de roedores</strong> <br />
+            <strong>Brotes de cucarachas en cocinas o negocios</strong> <br />
+            <strong>Invasión de chinches</strong> <br />
+            <strong>Plagas que afecten la operación de tu empresa</strong> <br />
+
+           <br /> Atendemos en el menor tiempo posible para controlar rápidamente el problema y evitar riesgos para tu salud o tu actividad comercial.
+        </p>
+      </AccordionContent>
+    </AccordionItem>
+    <AccordionItem value="item-5">
+      <AccordionTrigger className="text-lg text-emerald-500 hover:text-emerald-700 no-underline hover:no-underline">
+          5. ¿Cómo sé si tengo una plaga? 
+      </AccordionTrigger>
+      <AccordionContent className="flex flex-col text-left">
+        <p>
+          Algunas señales comunes incluyen: <br />
+
+          <strong>Excrementos pequeños o manchas oscuras (roedores, cucarachas).</strong> <br />
+
+          <strong>Ruidos dentro de paredes o techos.</strong> <br />
+
+          <strong>Olores fuertes o desagradables, especialmente en cocinas o depósitos.</strong> <br />
+
+          <strong>Huecos o montículos en madera o suelo (termitas). </strong><br />
+
+          <br />Si notas cualquiera de estos signos, lo ideal es solicitar una inspección profesional, ya que muchas plagas se esconden y solo un técnico puede detectarlas a tiempo.
+        </p>
+      </AccordionContent>
+    </AccordionItem>
+</Accordion>
+
             </div>
           </div>
         </div>
       </section>
       {/* <!-- CTA --> */}
       <section className={`mt-2 md:mt-6 lg:mt-10 about-your ${styles.ctaSection}`} id="about-your">
-        <div className="container w-[1300px]">
+        <div className="container w-full">
           <div className={`about-your-wrapper ${styles.ctaWrapper}`}>
             {/* <!-- Imagen del técnico (izquierda) --> */}
             <div className={`about-your-image ${styles.ctaImage}`}>
@@ -987,7 +1187,7 @@ export default function Landing() {
 
       {/* <!-- Footer --> */}
       <footer className={`footer flex justify-center ${styles.footer}`}>
-        <div className="container w-[1300px]">
+        <div className="container w-full">
           {/* <!-- Parte superior: 4 columnas --> */}
           <div className={`footer-top ${styles.footerTop}`}>
             {/* <!-- Columna 1: About Petronus --> */}
