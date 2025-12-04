@@ -26,6 +26,11 @@ interface CotizacionDetalle {
   total: number;
 }
 
+interface Almacen {
+  id: number;
+  nombre: string;
+}
+
 interface Cotizacion {
   id?: number;
   nombre: string;
@@ -37,6 +42,7 @@ interface Cotizacion {
   total: number;
   acuenta: number;
   saldo: number;
+  almacenes: Almacen[];
   detalles: CotizacionDetalle[];
 }
 
@@ -55,6 +61,10 @@ export default function CotizacionForm({ cotizacion }: Props) {
     total: cotizacion?.total || 0,
     acuenta: cotizacion?.acuenta || 0,
     saldo: cotizacion?.saldo || 0,
+    almacenes: cotizacion?.almacenes?.map((d) => ({
+      id: d.id || 0,
+      nombre: d.nombre || '',
+    })) || [{ id: 0, nombre: '' }],
     detalles: cotizacion?.detalles?.map((d) => ({
       descripcion: d.descripcion || '',
       area: Number(d.area) || 0,
@@ -62,6 +72,31 @@ export default function CotizacionForm({ cotizacion }: Props) {
       total: Number(d.total) || 0,
     })) || [{ descripcion: '', area: 0, precio_unitario: 0, total: 0 }],
   });
+
+  // === FUNCIONES PARA ALMACENES ===
+  const addAlmacen = () => {
+    setData('almacenes', [...data.almacenes, { id: 0, nombre: '' }]);
+  };
+
+  const removeAlmacen = (index: number) => {
+    if (data.almacenes.length > 1) {
+      setData(
+        'almacenes',
+        data.almacenes.filter((_, i) => i !== index),
+      );
+    }
+  };
+
+  const updateAlmacen = (
+    index: number,
+    field: keyof Almacen,
+    value: string | number,
+  ) => {
+    const nuevos = [...data.almacenes];
+    nuevos[index] = { ...nuevos[index], [field]: value };
+    setData('almacenes', nuevos);
+  };
+  // ------------------------------------
 
   const handleSubmit: FormEventHandler = (e) => {
     e.preventDefault();
@@ -236,7 +271,7 @@ export default function CotizacionForm({ cotizacion }: Props) {
                           </p>
                         )}
                       </div>
-                      <div>
+                      {/* <div>
                         <Label htmlFor="almacen">Almacen</Label>
                         <Input
                           id="almacen"
@@ -249,8 +284,64 @@ export default function CotizacionForm({ cotizacion }: Props) {
                             {errors.almacen}
                           </p>
                         )}
-                      </div>
+                      </div> */}
                     </div>
+                  </div>
+
+                  {/* === ALMACENES MÚLTIPLES === */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Almacenes</h3>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addAlmacen}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Agregar Almacén
+                      </Button>
+                    </div>
+
+                    {data.almacenes.map((almacen, index) => (
+                      <div key={index} className="flex items-end gap-3">
+                        <div className="flex-1">
+                          <Label htmlFor={`almacen-${index}`}>
+                            Almacén {index + 1}
+                          </Label>
+                          <Input
+                            id={`almacen-${index}`}
+                            value={almacen.nombre}
+                            onChange={(e) =>
+                              updateAlmacen(index, 'nombre', e.target.value)
+                            }
+                            placeholder="Ej: Almacén Central, Sucursal Norte..."
+                            className={
+                              errors[`almacenes.${index}`]
+                                ? 'border-red-500'
+                                : ''
+                            }
+                          />
+                          {errors[`almacenes.${index}.nombre`] && (
+                            <p className="mt-1 text-sm text-red-500">
+                              {errors[`almacenes.${index}.nombre`]}
+                            </p>
+                          )}
+                        </div>
+
+                        {data.almacenes.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeAlmacen(index)}
+                            className="mb-1 text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
                   </div>
 
                   {/* Detalles de la Cotización */}
@@ -290,34 +381,6 @@ export default function CotizacionForm({ cotizacion }: Props) {
                                 </Button>
                               )}
                             </div>
-
-                            {/* <div>
-                              <Label htmlFor={`descripcion-${index}`}>
-                                Descripción
-                              </Label>
-                              <Textarea
-                                id={`descripcion-${index}`}
-                                value={detalle.descripcion}
-                                onChange={(e) =>
-                                  updateDetalle(
-                                    index,
-                                    'descripcion',
-                                    e.target.value,
-                                  )
-                                }
-                                rows={3}
-                                className={
-                                  errors[`detalles.${index}.descripcion`]
-                                    ? 'border-red-500'
-                                    : ''
-                                }
-                              />
-                              {errors[`detalles.${index}.descripcion`] && (
-                                <p className="mt-1 text-sm text-red-500">
-                                  {errors[`detalles.${index}.descripcion`]}
-                                </p>
-                              )}
-                            </div> */}
 
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                               <div>

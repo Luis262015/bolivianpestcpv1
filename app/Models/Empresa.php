@@ -8,4 +8,9 @@ class Empresa extends Model
 {
     //
     protected $guarded = [];
+
+    public function almacenes()
+    {
+        return $this->hasMany(Almacen::class);
+    }
 }

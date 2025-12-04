@@ -145,6 +145,9 @@ class DocumentosController extends Controller
     public function destroy(string $id)
     {
         //
+        $documento = Documento::find($id);
+        $documento->delete();
+        return redirect()->route('documentos.index')->with('success', 'Documento eliminado');
     }
 
     // DESCARGA SEGURA (solo autenticados)

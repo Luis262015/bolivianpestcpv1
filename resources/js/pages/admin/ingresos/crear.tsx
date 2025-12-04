@@ -32,6 +32,8 @@ export default function Create() {
         <form onSubmit={handleSumit} method="post" className="space-y-4">
           <div className="gap-1.5">
             <Input
+              type="number"
+              step={'0.01'}
               placeholder="Monto ej. (10.90 decimal o 10 entero)"
               value={data.monto}
               onChange={(e) => setData('monto', e.target.value)}

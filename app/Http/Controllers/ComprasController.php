@@ -22,7 +22,7 @@ class ComprasController extends Controller
     public function index()
     {
         //
-        $compras = Compra::with(['tienda', 'proveedor', 'detalles.producto'])
+        $compras = Compra::with(['proveedor', 'detalles.producto'])
             ->paginate(20);
         return inertia('admin/compras/lista', ['compras' => $compras]);
     }
@@ -34,8 +34,8 @@ class ComprasController extends Controller
     {
         //
         $proveedores = Proveedor::all()->map(fn($p) => [
-            'value' => $p->id,
-            'label' => $p->razon_social
+            'id' => $p->id,
+            'nombre' => $p->nombre
         ]);
         return inertia('admin/compras/crear', ['compra' => new Compra(), 'proveedores' => $proveedores]);
     }
@@ -127,7 +127,7 @@ class ComprasController extends Controller
                 // Guardar cuenta por pagar
                 CuentaPagar::create([
                     'compra_id' =>  $compra->id,
-                    'proveedor_id' => $producto->id,
+                    'proveedor_id' => $validated['proveedor_id'],
                     'user_id' => Auth::id(),
                     'total' => $total,
                     'a_cuenta' => $validated['abonado'],

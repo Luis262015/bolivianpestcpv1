@@ -34,6 +34,8 @@ export default function Dashboard() {
         <form onSubmit={handleSumit} method="post" className="space-y-4">
           <div className="gap-1.5">
             <Input
+              type="number"
+              step={'0.01'}
               placeholder="Total ej. (10.90 decimal o 10 entero)"
               value={data.total}
               onChange={(e) => setData('total', e.target.value)}

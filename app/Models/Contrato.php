@@ -14,4 +14,9 @@ class Contrato extends Model
     {
         return $this->hasMany(ContratoDetalles::class);
     }
+
+    public function almacenes()
+    {
+        return $this->hasMany(Almacen::class);
+    }
 }

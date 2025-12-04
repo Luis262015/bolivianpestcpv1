@@ -234,7 +234,7 @@ export default function CotizacionForm({ cotizacion }: Props) {
 
                     {data.detalles.map((detalle, index) => (
                       <Card key={index} className="border-2">
-                        <CardContent className="pt-6">
+                        <CardContent className="">
                           <div className="space-y-4">
                             <div className="flex items-center justify-between">
                               <span className="text-sm font-medium">
@@ -253,35 +253,34 @@ export default function CotizacionForm({ cotizacion }: Props) {
                               )}
                             </div>
 
-                            <div>
-                              <Label htmlFor={`descripcion-${index}`}>
-                                Descripción
-                              </Label>
-                              <Textarea
-                                id={`descripcion-${index}`}
-                                value={detalle.descripcion}
-                                onChange={(e) =>
-                                  updateDetalle(
-                                    index,
-                                    'descripcion',
-                                    e.target.value,
-                                  )
-                                }
-                                rows={3}
-                                className={
-                                  errors[`detalles.${index}.descripcion`]
-                                    ? 'border-red-500'
-                                    : ''
-                                }
-                              />
-                              {errors[`detalles.${index}.descripcion`] && (
-                                <p className="mt-1 text-sm text-red-500">
-                                  {errors[`detalles.${index}.descripcion`]}
-                                </p>
-                              )}
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                              <div>
+                                <Label htmlFor={`descripcion-${index}`}>
+                                  Descripción
+                                </Label>
+                                <Textarea
+                                  id={`descripcion-${index}`}
+                                  value={detalle.descripcion}
+                                  onChange={(e) =>
+                                    updateDetalle(
+                                      index,
+                                      'descripcion',
+                                      e.target.value,
+                                    )
+                                  }
+                                  rows={3}
+                                  className={
+                                    errors[`detalles.${index}.descripcion`]
+                                      ? 'border-red-500'
+                                      : ''
+                                  }
+                                />
+                                {errors[`detalles.${index}.descripcion`] && (
+                                  <p className="mt-1 text-sm text-red-500">
+                                    {errors[`detalles.${index}.descripcion`]}
+                                  </p>
+                                )}
+                              </div>
                               <div>
                                 <Label htmlFor={`area-${index}`}>
                                   Área (m²)
@@ -354,7 +353,6 @@ export default function CotizacionForm({ cotizacion }: Props) {
                                   step="0.01"
                                   value={Number(detalle.total || 0).toFixed(2)}
                                   readOnly
-                                  className="bg-gray-50"
                                 />
                               </div>
                             </div>

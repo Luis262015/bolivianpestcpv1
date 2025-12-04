@@ -11,7 +11,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { SquarePen, Trash2 } from 'lucide-react';
+import { Banknote } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -92,11 +92,11 @@ export default function Index() {
                   <TableCell>{compra.estado}</TableCell>
                   <TableCell>
                     <Link href={`/compras/edit/${compra.id}`}>
-                      <Button className="" size="icon" variant="outline">
-                        <SquarePen />
+                      <Button className="" variant="outline">
+                        <Banknote /> Cobrar
                       </Button>
                     </Link>
-                    <Button
+                    {/* <Button
                       disabled={processing}
                       className="ml-1"
                       size="icon"
@@ -104,7 +104,7 @@ export default function Index() {
                       onClick={() => handleDelete(compra.id)}
                     >
                       <Trash2 />
-                    </Button>
+                    </Button> */}
                   </TableCell>
                 </TableRow>
               ))}

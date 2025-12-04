@@ -28,7 +28,7 @@ interface Tienda {
 
 interface Proveedor {
   id: number;
-  razon_social: string;
+  nombre: string;
 }
 
 interface CompraDetalle {
@@ -94,7 +94,7 @@ export default function Index() {
               <TableRow>
                 <TableHead className="w-12"></TableHead>
                 <TableHead className="w-[100px]">ID</TableHead>
-                <TableHead>Tienda</TableHead>
+                {/* <TableHead>Tienda</TableHead> */}
                 <TableHead>Proveedor</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Abonado</TableHead>
@@ -122,8 +122,8 @@ export default function Index() {
                       </Button>
                     </TableCell>
                     <TableCell className="font-medium">{compra.id}</TableCell>
-                    <TableCell>{compra.tienda.nombre}</TableCell>
-                    <TableCell>{compra.proveedor.razon_social}</TableCell>
+                    {/* <TableCell>{compra.nombre}</TableCell> */}
+                    <TableCell>{compra.proveedor.nombre}</TableCell>
                     <TableCell>{compra.total}</TableCell>
                     <TableCell>{compra.abonado}</TableCell>
                     <TableCell>{compra.saldo}</TableCell>

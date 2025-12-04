@@ -17,29 +17,39 @@ class SeguimientoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
         //
-        $empresaId = $request->query('empresa_id');
+        // $empresaId = $request->query('empresa_id');
+        // $query = Seguimiento::with(['empresa', 'user']);
+        // if ($empresaId) {
+        //     $query->where('empresa_id', $empresaId);
+        // }
+        // $seguimientos = $query->latest()->get();
+        // $empresas = Empresa::select('id', 'nombre')->orderBy('nombre')->get();
+        // return inertia('admin/seguimientos/lista', [
+        //     'seguimientos' => $seguimientos,
+        //     'empresas' => $empresas,
+        //     'empresaSeleccionado' => $empresaId,
+        // ]);
 
-        $query = Seguimiento::with(['empresa', 'user']);
-
-        if ($empresaId) {
-            $query->where('empresa_id', $empresaId);
-        }
-
-        $seguimientos = $query->latest()->get();
-        $empresas = Empresa::select('id', 'nombre')->orderBy('nombre')->get();
-
-
+        $empresas = Empresa::select('id', 'nombre')->get();
+        $almacenes = Almacen::select('id', 'nombre')->get();
+        $biologicos = Biologico::orderBy('nombre')->get();
+        $epps = Epp::orderBy('nombre')->get();
+        $metodos = Metodo::orderBy('nombre')->get();
+        $protecciones = Proteccion::orderBy('nombre')->get();
+        $signos = Signo::orderBy('nombre')->get();
 
         return inertia('admin/seguimientos/lista', [
-            'seguimientos' => $seguimientos,
             'empresas' => $empresas,
-            'empresaSeleccionado' => $empresaId,
-
+            'almacenes' => $almacenes,
+            'biologicos' => $biologicos,
+            'epps' => $epps,
+            'metodos' => $metodos,
+            'protecciones' => $protecciones,
+            'signos' => $signos,
         ]);
-        // return inertia('admin/seguimientos/lista');
     }
 
     /**

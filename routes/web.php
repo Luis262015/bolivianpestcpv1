@@ -92,6 +92,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/productos/search', [ProductosController::class, 'search'])->name('productos.search');
     Route::resource('productos', ProductosController::class);
 
+    Route::post('/proveedores/storemodal', [ProveedoresController::class, 'storeModal']);
     Route::resource('proveedores', ProveedoresController::class);
 
     /// ********** USUARIO ************************

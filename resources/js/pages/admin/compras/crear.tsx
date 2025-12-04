@@ -1,3 +1,5 @@
+// resources/js/Pages/Compras/Compra.tsx
+
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -15,6 +17,13 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'; // ← Select de shadcn
+import {
   Table,
   TableBody,
   TableCell,
@@ -31,16 +40,13 @@ import { Check, ChevronsUpDown, Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Compras',
-    href: 'compras/create',
-  },
+  { title: 'Compras', href: 'compras/create' },
 ];
 
 // === Interfaces ===
 interface Proveedor {
-  value: number;
-  label: string;
+  id: number;
+  nombre: string;
 }
 
 interface Producto {
@@ -78,8 +84,7 @@ interface Props {
   proveedores: Proveedor[];
 }
 
-// === Componente ===
-export default function Compra({ proveedores }: Props) {
+export default function Compra({ proveedores: proveedoresIniciales }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Producto[]>([]);
@@ -87,8 +92,22 @@ export default function Compra({ proveedores }: Props) {
   const [loading, setLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [items, setItems] = useState<ItemCompra[]>([]);
-  const [proveedorId, setProveedorId] = useState<number | null>(null);
+  const [proveedorId, setProveedorId] = useState<string>(''); // ← string para Select
+  // const [proveedorId, setProveedorId] = useState<number | null>(null);
   const [abonadoInput, setAbonadoInput] = useState(0);
+
+  // Estado para la lista de proveedores (se actualizará al crear uno nuevo)
+  const [proveedores, setProveedores] =
+    useState<Proveedor[]>(proveedoresIniciales);
+  // === Estado del modal de proveedor ===
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // Callback cuando se crea el proveedor
+  const handleProveedorCreado = (nuevo: { id: number; nombre: string }) => {
+    console.log('************************ CREADO ********************');
+    setProveedores((prev) => [...prev, nuevo]);
+    setProveedorId(String(nuevo.id)); // lo selecciona automáticamente
+  };
 
   const { data, setData, errors } = useForm<CompraFormData>({
     proveedor_id: null,
@@ -100,7 +119,7 @@ export default function Compra({ proveedores }: Props) {
     items: [],
   });
 
-  // === Búsqueda con debounce ===
+  //   // === Búsqueda con debounce ===
   useEffect(() => {
     if (query.length < 2) {
       setSearchResults([]);
@@ -122,21 +141,22 @@ export default function Compra({ proveedores }: Props) {
     return () => clearTimeout(delayDebounce);
   }, [query]);
 
-  // === Sincronizar abonado con useForm ===
+  // === Sincronizar abonado ===
   useEffect(() => {
     setData('abonado', abonadoInput);
   }, [abonadoInput, setData]);
 
   // === Cálculos ===
-  const totalCompra = useMemo(() => {
-    return items.reduce((sum, i) => sum + i.costo_total, 0);
-  }, [items]);
+  const totalCompra = useMemo(
+    () => items.reduce((sum, i) => sum + i.costo_total, 0),
+    [items],
+  );
+  const saldo = useMemo(
+    () => Math.max(0, totalCompra - abonadoInput),
+    [totalCompra, abonadoInput],
+  );
 
-  const saldo = useMemo(() => {
-    return Math.max(0, totalCompra - abonadoInput);
-  }, [totalCompra, abonadoInput]);
-
-  // === Agregar producto ===
+  //   // === Agregar producto ===
   const agregarItem = () => {
     if (!selectedProduct || quantity < 1) return;
 
@@ -162,7 +182,7 @@ export default function Compra({ proveedores }: Props) {
     setOpen(false);
   };
 
-  // === Actualizar item ===
+  //   // === Actualizar item ===
   const actualizarItem = (
     index: number,
     campo: 'cantidad' | 'costo_unitario' | 'precio_venta',
@@ -185,7 +205,7 @@ export default function Compra({ proveedores }: Props) {
     setItems(items.filter((_, i) => i !== index));
   };
 
-  // === Enviar formulario ===
+  //   // === Enviar formulario ===
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -301,24 +321,32 @@ export default function Compra({ proveedores }: Props) {
             </div>
           </div>
 
-          {/* === Proveedor === */}
-          <div>
+          {/* === Proveedor con Select de shadcn + botón modal === */}
+          <div className="space-y-2">
             <Label>Proveedor *</Label>
-            <select
-              className="w-full rounded-md border p-2"
-              onChange={(e) => setProveedorId(parseInt(e.target.value))}
-              value={proveedorId || ''}
-            >
-              <option value="">Selecciona un proveedor</option>
-              {proveedores.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-            {errors.proveedor_id && (
-              <p className="mt-1 text-sm text-red-500">{errors.proveedor_id}</p>
-            )}
+            <div className="flex gap-3">
+              <Select value={proveedorId} onValueChange={setProveedorId}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Selecciona un proveedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {proveedores.map((p) => (
+                    <SelectItem key={p.id} value={String(p.id)}>
+                      {p.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setModalOpen(true)}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Agregar
+              </Button>
+            </div>
           </div>
 
           {/* === Búsqueda de Producto === */}
@@ -519,7 +547,7 @@ export default function Compra({ proveedores }: Props) {
             </div>
           )}
 
-          {/* === Enviar === */}
+          {/* === Guardar === */}
           <div className="flex justify-end">
             <Button type="submit" disabled={!proveedorId || items.length === 0}>
               Guardar Compra
@@ -530,22 +558,3 @@ export default function Compra({ proveedores }: Props) {
     </AppLayout>
   );
 }
-
-// import AppLayout from '@/layouts/app-layout';
-// import { type BreadcrumbItem } from '@/types';
-// import { Head } from '@inertiajs/react';
-
-// const breadcrumbs: BreadcrumbItem[] = [
-//   {
-//     title: 'Compras',
-//     href: '/compras',
-//   },
-// ];
-
-// export default function Crear() {
-//   return (
-//     <AppLayout breadcrumbs={breadcrumbs}>
-//       <Head title="Compras" />
-//     </AppLayout>
-//   );
-// }

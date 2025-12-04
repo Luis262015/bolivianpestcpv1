@@ -291,7 +291,7 @@ export default function Dashboard() {
                     <TableCell>{gasto.concepto}</TableCell>
                     <TableCell>{gasto.detalle}</TableCell>
                     <TableCell className="text-right">
-                      ${gasto.total.toLocaleString('es-AR')}
+                      Bs. {gasto.total.toLocaleString('es-BO')}
                     </TableCell>
                     <TableCell className="text-center font-mono text-xs text-muted-foreground sm:text-sm">
                       {(() => {

@@ -1,28 +1,10 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
+import { useState } from 'react';
+import ModalSeguimiento from './ModalSeguimiento';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -36,128 +18,271 @@ interface Empresa {
   nombre: string;
 }
 
-interface User {
+interface Almacen {
   id: number;
-  name: string;
+  nombre: string;
 }
 
-interface Seguimiento {
+interface Metodo {
   id: number;
-  cliente_id: number;
-  user_id: number;
-  cantidad: number;
-  internas: number;
-  externas: number;
-  observaciones: string | null;
-  created_at: string;
-  cliente: Empresa;
-  user: User;
+  nombre: string;
+}
+interface Epp {
+  id: number;
+  nombre: string;
+}
+interface Proteccion {
+  id: number;
+  nombre: string;
+}
+interface Biologico {
+  id: number;
+  nombre: string;
+}
+interface Signo {
+  id: number;
+  nombre: string;
 }
 
 interface Props {
-  seguimientos: Seguimiento[];
   empresas: Empresa[];
-  empresaSeleccionado?: string;
+  almacenes: Almacen[];
+  metodos: Metodo[];
+  epps: Epp[];
+  protecciones: Proteccion[];
+  biologicos: Biologico[];
+  signos: Signo[];
+  seguimientos: any; // Aquí puedes definir el tipo completo
 }
 
 export default function Lista({
-  seguimientos,
   empresas,
-  empresaSeleccionado,
+  almacenes,
+  seguimientos,
+  metodos,
+  epps,
+  protecciones,
+  biologicos,
+  signos,
 }: Props) {
-  const handleClienteChange = (empresaId: string) => {
-    if (empresaId === 'todos') {
-      router.get('seguimientos.index');
-    } else {
-      // router.get(route('seguimientos.index', { cliente_id: empresaId }));
-      router.get(`/seguimientos?empresa_id=${empresaId}`);
-    }
-  };
+  const [modalOpen, setModalOpen] = useState(false);
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Seguimientos" />
-      <div className="container mx-auto py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Seguimientos</CardTitle>
-            <CardDescription>
-              Listado de seguimientos por cliente
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-6">
-              <label className="mb-2 block text-sm font-medium">
-                Filtrar por Cliente
-              </label>
-              <Select
-                value={empresaSeleccionado || 'todos'}
-                onValueChange={handleClienteChange}
-              >
-                <SelectTrigger className="w-full md:w-[300px]">
-                  <SelectValue placeholder="Selecciona un cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos los clientes</SelectItem>
-                  {empresas.map((cliente) => (
-                    <SelectItem key={cliente.id} value={cliente.id.toString()}>
-                      {cliente.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
-            {seguimientos.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground">
-                No hay seguimientos para mostrar
+      <div className="py-12">
+        <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="overflow-hidden shadow-sm sm:rounded-lg">
+            <div className="p-6">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-2xl font-semibold">Seguimientos</h2>
+                <Button onClick={() => setModalOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nuevo Seguimiento
+                </Button>
               </div>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Usuario</TableHead>
-                      <TableHead className="text-right">Cantidad</TableHead>
-                      <TableHead className="text-right">Internas</TableHead>
-                      <TableHead className="text-right">Externas</TableHead>
-                      <TableHead>Observaciones</TableHead>
-                      <TableHead>Fecha</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {seguimientos.map((seguimiento) => (
-                      <TableRow key={seguimiento.id}>
-                        <TableCell className="font-medium">
-                          {seguimiento.cliente.nombre}
-                        </TableCell>
-                        <TableCell>{seguimiento.user.name}</TableCell>
-                        <TableCell className="text-right">
-                          {seguimiento.cantidad}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {seguimiento.internas}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {seguimiento.externas}
-                        </TableCell>
-                        <TableCell className="max-w-xs truncate">
-                          {seguimiento.observaciones || '-'}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(seguimiento.created_at).toLocaleDateString(
-                            'es-ES',
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <div className="space-y-4">
+                {seguimientos?.data && seguimientos.data.length > 0 ? (
+                  seguimientos.data.map((seguimiento: any) => (
+                    <div key={seguimiento.id} className="rounded-lg border p-4">
+                      <h3 className="font-medium">
+                        {seguimiento.empresa?.nombre}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {seguimiento.almacen?.nombre}
+                      </p>
+                      <p className="mt-2 text-sm">
+                        {seguimiento.observaciones}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="py-8 text-center text-gray-500">
+                    No hay seguimientos registrados
+                  </p>
+                )}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <ModalSeguimiento
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        empresas={empresas}
+        almacenes={almacenes}
+        metodos={metodos}
+        epps={epps}
+        protecciones={protecciones}
+        biologicos={biologicos}
+        signos={signos}
+      />
     </AppLayout>
   );
 }
+
+// import {
+//   Card,
+//   CardContent,
+//   CardDescription,
+//   CardHeader,
+//   CardTitle,
+// } from '@/components/ui/card';
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from '@/components/ui/select';
+// import {
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableHead,
+//   TableHeader,
+//   TableRow,
+// } from '@/components/ui/table';
+// import AppLayout from '@/layouts/app-layout';
+// import { type BreadcrumbItem } from '@/types';
+// import { Head, router } from '@inertiajs/react';
+
+// const breadcrumbs: BreadcrumbItem[] = [
+//   {
+//     title: 'Seguimientos',
+//     href: '/seguimientos',
+//   },
+// ];
+
+// interface Empresa {
+//   id: number;
+//   nombre: string;
+// }
+
+// interface User {
+//   id: number;
+//   name: string;
+// }
+
+// interface Seguimiento {
+//   id: number;
+//   cliente_id: number;
+//   user_id: number;
+//   cantidad: number;
+//   internas: number;
+//   externas: number;
+//   observaciones: string | null;
+//   created_at: string;
+//   cliente: Empresa;
+//   user: User;
+// }
+
+// interface Props {
+//   seguimientos: Seguimiento[];
+//   empresas: Empresa[];
+//   empresaSeleccionado?: string;
+// }
+
+// export default function Lista({
+//   seguimientos,
+//   empresas,
+//   empresaSeleccionado,
+// }: Props) {
+//   const handleClienteChange = (empresaId: string) => {
+//     if (empresaId === 'todos') {
+//       router.get('seguimientos.index');
+//     } else {
+//       // router.get(route('seguimientos.index', { cliente_id: empresaId }));
+//       router.get(`/seguimientos?empresa_id=${empresaId}`);
+//     }
+//   };
+//   return (
+//     <AppLayout breadcrumbs={breadcrumbs}>
+//       <Head title="Seguimientos" />
+//       <div className="container mx-auto py-8">
+//         <Card>
+//           <CardHeader>
+//             <CardTitle>Seguimientos</CardTitle>
+//             <CardDescription>
+//               Listado de seguimientos por cliente
+//             </CardDescription>
+//           </CardHeader>
+//           <CardContent>
+//             <div className="mb-6">
+//               <label className="mb-2 block text-sm font-medium">
+//                 Filtrar por Cliente
+//               </label>
+//               <Select
+//                 value={empresaSeleccionado || 'todos'}
+//                 onValueChange={handleClienteChange}
+//               >
+//                 <SelectTrigger className="w-full md:w-[300px]">
+//                   <SelectValue placeholder="Selecciona un cliente" />
+//                 </SelectTrigger>
+//                 <SelectContent>
+//                   <SelectItem value="todos">Todos los clientes</SelectItem>
+//                   {empresas.map((cliente) => (
+//                     <SelectItem key={cliente.id} value={cliente.id.toString()}>
+//                       {cliente.nombre}
+//                     </SelectItem>
+//                   ))}
+//                 </SelectContent>
+//               </Select>
+//             </div>
+
+//             {seguimientos.length === 0 ? (
+//               <div className="py-8 text-center text-muted-foreground">
+//                 No hay seguimientos para mostrar
+//               </div>
+//             ) : (
+//               <div className="rounded-md border">
+//                 <Table>
+//                   <TableHeader>
+//                     <TableRow>
+//                       <TableHead>Cliente</TableHead>
+//                       <TableHead>Usuario</TableHead>
+//                       <TableHead className="text-right">Cantidad</TableHead>
+//                       <TableHead className="text-right">Internas</TableHead>
+//                       <TableHead className="text-right">Externas</TableHead>
+//                       <TableHead>Observaciones</TableHead>
+//                       <TableHead>Fecha</TableHead>
+//                     </TableRow>
+//                   </TableHeader>
+//                   <TableBody>
+//                     {seguimientos.map((seguimiento) => (
+//                       <TableRow key={seguimiento.id}>
+//                         <TableCell className="font-medium">
+//                           {seguimiento.cliente.nombre}
+//                         </TableCell>
+//                         <TableCell>{seguimiento.user.name}</TableCell>
+//                         <TableCell className="text-right">
+//                           {seguimiento.cantidad}
+//                         </TableCell>
+//                         <TableCell className="text-right">
+//                           {seguimiento.internas}
+//                         </TableCell>
+//                         <TableCell className="text-right">
+//                           {seguimiento.externas}
+//                         </TableCell>
+//                         <TableCell className="max-w-xs truncate">
+//                           {seguimiento.observaciones || '-'}
+//                         </TableCell>
+//                         <TableCell>
+//                           {new Date(seguimiento.created_at).toLocaleDateString(
+//                             'es-ES',
+//                           )}
+//                         </TableCell>
+//                       </TableRow>
+//                     ))}
+//                   </TableBody>
+//                 </Table>
+//               </div>
+//             )}
+//           </CardContent>
+//         </Card>
+//       </div>
+//     </AppLayout>
+//   );
+// }

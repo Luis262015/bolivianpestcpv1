@@ -8,4 +8,14 @@ class Compra extends Model
 {
     //
     protected $guarded = [];
+
+    public function proveedor()
+    {
+        return $this->belongsTo(Proveedor::class);
+    }
+
+    public function detalles()
+    {
+        return $this->hasMany(CompraDetalle::class);
+    }
 }

@@ -51,21 +51,22 @@ const mainNavItems: NavItem[] = [
 
 const mainNavItems2: MainNavItem[] = [
   {
-    title: 'Empresas',
+    title: 'Clientes',
     icon: Factory,
     down: true,
     subItems: [
       {
-        title: 'Lista',
-        href: '/empresas',
+        title: 'Contratos',
+        href: '/contratos',
       },
       {
         title: 'Cotizaciones',
         href: '/cotizaciones',
       },
+
       {
-        title: 'Contratos',
-        href: '/contratos',
+        title: 'Lista',
+        href: '/empresas',
       },
     ],
   },

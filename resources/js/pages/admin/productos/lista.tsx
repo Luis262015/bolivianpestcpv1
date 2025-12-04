@@ -87,9 +87,11 @@ export default function Index() {
                 <TableRow key={producto.id}>
                   <TableCell className="font-medium">{producto.id}</TableCell>
                   <TableCell>{producto.nombre}</TableCell>
-                  <TableCell>{producto.categoria.nombre}</TableCell>
-                  <TableCell>{producto.subcategoria.nombre}</TableCell>
-                  <TableCell>{producto.marca.nombre}</TableCell>
+                  <TableCell>{producto.categoria?.nombre ?? '---'}</TableCell>
+                  <TableCell>
+                    {producto.subcategoria?.nombre ?? '---'}
+                  </TableCell>
+                  <TableCell>{producto.marca?.nombre ?? '---'}</TableCell>
                   <TableCell>
                     <Link href={`/productos/${producto.id}/edit`}>
                       <Button className="" size="icon" variant="outline">

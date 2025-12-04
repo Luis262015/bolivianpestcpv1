@@ -98,7 +98,6 @@ class UsersController extends Controller
     public function update(Request $request, User $usuario)
     {
         //
-        //
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $usuario->id,
@@ -136,5 +135,8 @@ class UsersController extends Controller
     public function destroy(string $id)
     {
         //
+        $user = User::find($id);
+        $user->deleteOrFail();
+        return redirect()->route('usuarios.index')->with('success', 'Usuario eliminado');
     }
 }

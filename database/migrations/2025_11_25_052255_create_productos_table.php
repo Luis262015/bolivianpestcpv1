@@ -23,9 +23,9 @@ return new class extends Migration
             $table->decimal('precio_venta', 10, 2)->nullable();
             $table->integer('stock')->nullable();
             $table->integer('stock_min')->nullable();
-            $table->foreignId('marca_id')->constrained('marcas');
-            $table->foreignId('categoria_id')->constrained('categorias');
-            $table->foreignId('subcategoria_id')->constrained('subcategorias');
+            $table->foreignId('marca_id')->nullable()->constrained('marcas');
+            $table->foreignId('categoria_id')->nullable()->constrained('categorias');
+            $table->foreignId('subcategoria_id')->nullable()->constrained('subcategorias');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();
