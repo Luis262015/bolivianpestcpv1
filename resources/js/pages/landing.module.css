@@ -1,3 +1,4 @@
+
 .sectionTag {
   background: #013147;
   color: white;
@@ -101,7 +102,7 @@
   margin-bottom: 5px;
 }
 .aboutStats p {
-  color: #555;
+  color: #e7e7e7;
   font-size: 0.95rem;
 }
 
@@ -183,6 +184,29 @@
   grid-template-columns: 1fr 1fr;
   gap: 30px 40px;
 }
+/* 🔥 Menos de 1090px → 2 columnas */
+@media (max-width: 0px) {
+  .featuresGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+  }
+}
+
+/* 📱 Menos de 768px → 2 columnas más compactas */
+@media (max-width: 768px) {
+  .featuresGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+/* 📱 Menos de 560px → 1 columna */
+@media (max-width: 560px) {
+  .featuresGrid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+}
 
 .featuresItem {
   display: flex;
@@ -231,11 +255,11 @@
 .featuresBtn {
   position: absolute;
   bottom: 30px;
-  right: -25px;
+  right: 25px;
   background: #00b894;
   color: white;
-  width: 160px;
-  height: 160px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   display: flex;
   flex-direction: column;
@@ -287,6 +311,29 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 30px;
+}
+/* 🔥 Menos de 1090px → 2 columnas */
+@media (max-width: 1090px) {
+  .portfolioGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+  }
+}
+
+/* 📱 Menos de 768px → 2 columnas más compactas */
+@media (max-width: 768px) {
+  .portfolioGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+/* 📱 Menos de 560px → 1 columna */
+@media (max-width: 560px) {
+  .portfolioGrid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
 }
 
 .portfolioItem {
@@ -346,6 +393,29 @@
   gap: 30px;
   margin-bottom: 60px;
 }
+/* 🔥 Menos de 1090px → 2 columnas */
+@media (max-width: 1090px) {
+  .whyGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+  }
+}
+
+/* 📱 Menos de 768px → 2 columnas más compactas */
+@media (max-width: 768px) {
+  .whyGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+/* 📱 Menos de 560px → 1 columna */
+@media (max-width: 560px) {
+  .whyGrid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+}
 
 .whyCard {
   padding: 40px 25px;
@@ -374,7 +444,7 @@
 
 .whyCard h3 {
   font-size: 1.35rem;
-  color: #2d3436;
+  color: #e4e9eb;
   margin-bottom: 12px;
 }
 
@@ -471,6 +541,29 @@
   grid-template-columns: 1fr 1.1fr;
   gap: 80px;
   align-items: center;
+}
+/* 🔥 Menos de 1024px → 2 columnas iguales */
+@media (max-width: 1024px) {
+  .faqWrapper {
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+  }
+}
+
+/* 📱 Menos de 850px → 1 columna (stack) */
+@media (max-width: 850px) {
+  .faqWrapper {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center; /* opcional si quieres centrar contenido */
+  }
+}
+
+/* 📱 Menos de 650px → stack más compacto */
+@media (max-width: 650px) {
+  .faqWrapper {
+    gap: 25px;
+  }
 }
 
 .faqImages {
@@ -614,6 +707,29 @@
   grid-template-columns: 1.4fr 1fr 1fr 1fr;
   gap: 50px;
   margin-bottom: 50px;
+}
+/* 🔥 Tablet grande a mediana — menos de 1090px → 2 columnas */
+@media (max-width: 1090px) {
+  .footerTop {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 35px;
+  }
+}
+
+/* 📱 Móviles grandes — menos de 768px → 2 columnas más compactas */
+@media (max-width: 768px) {
+  .footerTop {
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+  }
+}
+
+/* 📱 Móviles pequeños — menos de 550px → 1 columna */
+@media (max-width: 550px) {
+  .footerTop {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
 }
 
 .footerColumn {
