@@ -122,12 +122,12 @@ export default function ModalSeguimiento({
   const handleNext = () => {
     if (step === 1 && (!data.empresa_id || !data.almacen_id)) return;
     if (step === 2) setData('labores', labores);
-    if (step === 3) setData('biologicos_ids', biologicosSel);
-    if (step === 4) setData('metodos_ids', metodosSel);
+    if (step === 3) setData('metodos_ids', metodosSel);
+    if (step === 4) setData('productos_usados', productos);
     if (step === 5) setData('epps_ids', eppsSel);
     if (step === 6) setData('protecciones_ids', proteccionesSel);
-    if (step === 7) setData('signos_ids', signosSel);
-    if (step === 8) setData('productos_usados', productos);
+    if (step === 7) setData('biologicos_ids', biologicosSel);
+    if (step === 8) setData('signos_ids', signosSel);
     if (step === 9)
       setData('observaciones_especificas', data.observaciones_especificas);
 
@@ -247,10 +247,10 @@ export default function ModalSeguimiento({
           {step === 2 && (
             <div className="space-y-5 py-6">
               <Label className="text-lg font-semibold">
-                Labores Realizadas (11 campos)
+                Labores Desarrolladas
               </Label>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {labores.map((labor, i) => (
+                {/* {labores.map((labor, i) => (
                   <Input
                     key={i}
                     placeholder={`Labor ${i + 1}`}
@@ -261,42 +261,76 @@ export default function ModalSeguimiento({
                       setLabores(updated);
                     }}
                   />
-                ))}
+                ))} */}
+                <Input
+                  placeholder="Cantidad Oficinas"
+                  type="number"
+                  step={'0.01'}
+                />
+                <Input
+                  placeholder="Cantidad Pisos"
+                  type="number"
+                  step={'0.01'}
+                />
+                <Input
+                  placeholder="Cantidad Baños"
+                  type="number"
+                  step={'0.01'}
+                />
+                <Input
+                  placeholder="Cantidad Cocinas"
+                  type="number"
+                  step={'0.01'}
+                />
+                <Input
+                  placeholder="Cantidad Almacenes"
+                  type="number"
+                  step={'0.01'}
+                />
+                <Input placeholder="Porteria" type="number" step={'0.01'} />
+                <Input
+                  placeholder="Dormitorio Policial"
+                  type="number"
+                  step={'0.01'}
+                />
+                <Input
+                  placeholder="Cant. Paredes Internas"
+                  type="number"
+                  step={'0.01'}
+                />
+                <Input
+                  placeholder="Cant. Trampas"
+                  type="number"
+                  step={'0.01'}
+                />
+                <Input
+                  placeholder="Trampas Cambiadas"
+                  type="number"
+                  step={'0.01'}
+                />
+                <Input
+                  placeholder="Roedores encontrados"
+                  type="number"
+                  step={'0.01'}
+                />
+                <Input
+                  placeholder="Trampas Internas"
+                  type="number"
+                  step={'0.01'}
+                />
+                <Input
+                  placeholder="Trampas Externas"
+                  type="number"
+                  step={'0.01'}
+                />
               </div>
             </div>
           )}
 
-          {/* PASO 3: Biológicos */}
+          {/* PASO 3: Métodos */}
           {step === 3 && (
             <div className="space-y-5 py-6">
-              <Label className="text-lg font-semibold">
-                Biológicos Utilizados
-              </Label>
-              <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
-                {biologicos.map((b) => (
-                  <label
-                    key={b.id}
-                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
-                  >
-                    <Checkbox
-                      checked={biologicosSel.includes(b.id)}
-                      onCheckedChange={() =>
-                        toggle(biologicosSel, setBiologicosSel, b.id)
-                      }
-                    />
-                    <span>{b.nombre}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* PASO 4: Métodos */}
-          {step === 4 && (
-            <div className="space-y-5 py-6">
-              <Label className="text-lg font-semibold">
-                Métodos de Aplicación
-              </Label>
+              <Label className="text-lg font-semibold">Método Utilizado</Label>
               <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
                 {metodos.map((m) => (
                   <label
@@ -316,81 +350,8 @@ export default function ModalSeguimiento({
             </div>
           )}
 
-          {/* PASO 5: EPP */}
-          {step === 5 && (
-            <div className="space-y-5 py-6">
-              <Label className="text-lg font-semibold">
-                Equipos de Protección Personal (EPP)
-              </Label>
-              <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
-                {epps.map((e) => (
-                  <label
-                    key={e.id}
-                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
-                  >
-                    <Checkbox
-                      checked={eppsSel.includes(e.id)}
-                      onCheckedChange={() => toggle(eppsSel, setEppsSel, e.id)}
-                    />
-                    <span>{e.nombre}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* PASO 6: Métodos de Protección */}
-          {step === 6 && (
-            <div className="space-y-5 py-6">
-              <Label className="text-lg font-semibold">
-                Métodos de Protección Adicional
-              </Label>
-              <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
-                {protecciones.map((p) => (
-                  <label
-                    key={p.id}
-                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
-                  >
-                    <Checkbox
-                      checked={proteccionesSel.includes(p.id)}
-                      onCheckedChange={() =>
-                        toggle(proteccionesSel, setProteccionesSel, p.id)
-                      }
-                    />
-                    <span>{p.nombre}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* PASO 7: Signos / Síntomas */}
-          {step === 7 && (
-            <div className="space-y-5 py-6">
-              <Label className="text-lg font-semibold">
-                Signos o Síntomas Observados
-              </Label>
-              <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
-                {signos.map((s) => (
-                  <label
-                    key={s.id}
-                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
-                  >
-                    <Checkbox
-                      checked={signosSel.includes(s.id)}
-                      onCheckedChange={() =>
-                        toggle(signosSel, setSignosSel, s.id)
-                      }
-                    />
-                    <span>{s.nombre}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* PASO 8: Productos y Cantidades */}
-          {step === 8 && (
+          {/* PASO 4: Productos y Cantidades */}
+          {step === 4 && (
             <div className="space-y-5 py-6">
               <div className="flex items-center justify-between">
                 <Label className="text-lg font-semibold">
@@ -434,11 +395,109 @@ export default function ModalSeguimiento({
             </div>
           )}
 
+          {/* PASO 5: EPP */}
+          {step === 5 && (
+            <div className="space-y-5 py-6">
+              <Label className="text-lg font-semibold">
+                Equipos de Protección Personal Utilizados (EPP)
+              </Label>
+              <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                {epps.map((e) => (
+                  <label
+                    key={e.id}
+                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                  >
+                    <Checkbox
+                      checked={eppsSel.includes(e.id)}
+                      onCheckedChange={() => toggle(eppsSel, setEppsSel, e.id)}
+                    />
+                    <span>{e.nombre}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* PASO 6: Métodos de Protección */}
+          {step === 6 && (
+            <div className="space-y-5 py-6">
+              <Label className="text-lg font-semibold">
+                Métodos de Protección Adoptadas para Terceros
+              </Label>
+              <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                {protecciones.map((p) => (
+                  <label
+                    key={p.id}
+                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                  >
+                    <Checkbox
+                      checked={proteccionesSel.includes(p.id)}
+                      onCheckedChange={() =>
+                        toggle(proteccionesSel, setProteccionesSel, p.id)
+                      }
+                    />
+                    <span>{p.nombre}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* PASO 7: Biológicos */}
+          {step === 7 && (
+            <div className="space-y-5 py-6">
+              <Label className="text-lg font-semibold">
+                Observaciones de Ciclos Biológicos
+              </Label>
+              <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                {biologicos.map((b) => (
+                  <label
+                    key={b.id}
+                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                  >
+                    <Checkbox
+                      checked={biologicosSel.includes(b.id)}
+                      onCheckedChange={() =>
+                        toggle(biologicosSel, setBiologicosSel, b.id)
+                      }
+                    />
+                    <span>{b.nombre}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* PASO 8: Signos / Síntomas */}
+          {step === 8 && (
+            <div className="space-y-5 py-6">
+              <Label className="text-lg font-semibold">
+                Observaciones de Signos de Roedores
+              </Label>
+              <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                {signos.map((s) => (
+                  <label
+                    key={s.id}
+                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                  >
+                    <Checkbox
+                      checked={signosSel.includes(s.id)}
+                      onCheckedChange={() =>
+                        toggle(signosSel, setSignosSel, s.id)
+                      }
+                    />
+                    <span>{s.nombre}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* PASO 9: Observaciones Específicas */}
           {step === 9 && (
             <div className="space-y-5 py-6">
               <Label className="text-lg font-semibold">
-                Observaciones Específicas
+                Observaciones Bolivian PEST
               </Label>
               <Textarea
                 rows={8}
