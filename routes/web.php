@@ -3,6 +3,7 @@
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\BiologicosController;
 use App\Http\Controllers\CategoriasController;
+use App\Http\Controllers\CertificadosController;
 use App\Http\Controllers\ComprasController;
 use App\Http\Controllers\ConfigsController;
 use App\Http\Controllers\ContratoController;
@@ -73,6 +74,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('protecciones', ProteccionesController::class);
     Route::resource('signos', SignosController::class);
     Route::resource('tipos', TiposController::class);
+    Route::get('/certificados/pdf', [CertificadosController::class, 'pdf'])->name('certificados.pdf');
+    Route::resource('certificados', CertificadosController::class);
 
     /// ********** CONTABILIDAD *****************    
     Route::resource('cuentasporcobrar', CuentasPorCobrarController::class);

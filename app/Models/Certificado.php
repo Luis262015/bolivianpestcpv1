@@ -8,4 +8,9 @@ class Certificado extends Model
 {
     //
     protected $guarded = [];
+
+    public function empresa()
+    {
+        return $this->belongsTo(Empresa::class);
+    }
 }
