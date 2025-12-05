@@ -18,6 +18,7 @@ import { FormEventHandler } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Cotizaciones', href: '/cotizaciones' },
+  { title: 'Crear', href: '/cotizaciones/create' },
 ];
 
 interface CotizacionDetalle {

@@ -45,6 +45,11 @@ class CotizacionController extends Controller
             'detalles.*.total' => 'required|numeric|min:0',
         ]);
 
+        $totalSuma = 0;
+        foreach ($validated['detalles'] as $detalle) {
+            $totalSuma += $detalle['total'];
+        }
+
         // Extraer solo los campos que pertenecen a cotizaciones
         $cotizacionData = [
             'nombre' => $validated['nombre'],
@@ -52,6 +57,7 @@ class CotizacionController extends Controller
             'telefono' => $validated['telefono'],
             'email' => $validated['email'],
             'ciudad' => $validated['ciudad'],
+            'total' => $totalSuma,
         ];
 
         $cotizacion = Cotizacion::create($cotizacionData);

@@ -13,7 +13,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
 import { Plus, Trash2 } from 'lucide-react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useMemo } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Contratos', href: '/contratos' },
@@ -100,11 +100,28 @@ export default function CotizacionForm({ cotizacion }: Props) {
 
   const handleSubmit: FormEventHandler = (e) => {
     e.preventDefault();
+
+    // const total = totalGeneral;
+    // const saldo = total - (data.acuenta || 0);
+
+    // setData('total', total);
+    // setData('saldo', saldo);
+
+    // console.log(data);
+
+    // if (cotizacion?.id) {
+    //   put(`/contratos/${cotizacion.id}`);
+    // } else {
+    //   post('/contratos');
+    // }
+
     const payload = {
       ...data,
       total: totalGeneral,
       saldo: saldoCalculado,
     };
+
+    // console.log(payload);
 
     if (cotizacion?.id) {
       put(`/contratos/${cotizacion.id}`, payload as any);
@@ -157,7 +174,8 @@ export default function CotizacionForm({ cotizacion }: Props) {
   };
 
   // Este es el total que se guarda en la cotización
-  const totalGeneral = calcularGranTotal();
+  // const totalGeneral = calcularGranTotal();
+  const totalGeneral = useMemo(() => calcularGranTotal(), [data.detalles]);
 
   // Saldo automático
   const saldoCalculado = totalGeneral - (data.acuenta || 0);
@@ -271,20 +289,6 @@ export default function CotizacionForm({ cotizacion }: Props) {
                           </p>
                         )}
                       </div>
-                      {/* <div>
-                        <Label htmlFor="almacen">Almacen</Label>
-                        <Input
-                          id="almacen"
-                          value={data.almacen}
-                          onChange={(e) => setData('almacen', e.target.value)}
-                          className={errors.almacen ? 'border-red-500' : ''}
-                        />
-                        {errors.almacen && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {errors.almacen}
-                          </p>
-                        )}
-                      </div> */}
                     </div>
                   </div>
 
@@ -482,7 +486,6 @@ export default function CotizacionForm({ cotizacion }: Props) {
                                   step="0.01"
                                   value={Number(detalle.total || 0).toFixed(2)}
                                   readOnly
-                                  // className="bg-gray-50"
                                 />
                               </div>
                             </div>

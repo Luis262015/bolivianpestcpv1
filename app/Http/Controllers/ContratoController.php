@@ -36,6 +36,7 @@ class ContratoController extends Controller
    */
   public function store(Request $request)
   {
+    // dd($request);
     //
     $validated = $request->validate([
       'nombre' => 'required|string|max:255',
@@ -58,6 +59,11 @@ class ContratoController extends Controller
 
     // dd($validated);
 
+    $totalSuma = 0;
+    foreach ($validated['detalles'] as $detalle) {
+      $totalSuma += $detalle['total'];
+    }
+
     // Extraer solo los campos que pertenecen a cotizaciones
     $cotizacionData = [
       'nombre' => $validated['nombre'],
@@ -66,7 +72,8 @@ class ContratoController extends Controller
       'email' => $validated['email'],
       'ciudad' => $validated['ciudad'],
       'almacen' => "",
-      'total' => $validated['total'],
+      // 'total' => $validated['total'],      
+      'total' => $totalSuma,
       'acuenta' => $validated['acuenta'],
       'saldo' => $validated['saldo'],
     ];
