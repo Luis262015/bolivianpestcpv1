@@ -20,6 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from '@inertiajs/react';
 import { Plus, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
+import SignaturePad from './SignaturePad';
 
 interface Empresa {
   id: number;
@@ -107,6 +108,7 @@ export default function ModalSeguimiento({
     firma_encargado: '',
     firma_supervisor: '',
     observaciones_generales: '',
+    imagenes: [] as File[],
   });
 
   const toggle = (
@@ -131,7 +133,7 @@ export default function ModalSeguimiento({
     if (step === 9)
       setData('observaciones_especificas', data.observaciones_especificas);
 
-    setStep((s) => Math.min(s + 1, 11));
+    setStep((s) => Math.min(s + 1, 12));
   };
 
   const handleBack = () => setStep((s) => Math.max(s - 1, 1));
@@ -151,7 +153,7 @@ export default function ModalSeguimiento({
   };
 
   const handleClose = () => {
-    // reset();
+    reset();
     setStep(1);
     setBiologicosSel([]);
     setMetodosSel([]);
@@ -179,15 +181,24 @@ export default function ModalSeguimiento({
     setData('productos_usados', updated);
   };
 
+  const [firmaEncargado, setFirmaEncargado] = useState<string>('');
+  const [firmaSupervisor, setFirmaSupervisor] = useState<string>('');
+
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    // <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
+    >
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[800px]">
         <DialogHeader>
-          <DialogTitle>Nuevo Seguimiento - Paso {step} de 11</DialogTitle>
+          <DialogTitle>Nuevo Seguimiento - Paso {step} de 12</DialogTitle>
           <div className="mt-3 h-2 w-full rounded-full bg-muted">
             <div
               className="h-2 rounded-full bg-primary transition-all"
-              style={{ width: `${(step / 11) * 100}%` }}
+              style={{ width: `${(step / 12) * 100}%` }}
             />
           </div>
         </DialogHeader>
@@ -215,7 +226,9 @@ export default function ModalSeguimiento({
                     </SelectContent>
                   </Select>
                   {errors.empresa_id && (
-                    <p className="text-sm text-red-500">{errors.empresa_id}</p>
+                    <p className="text-sm text-red-500">
+                      {errors.empresa_id || 'Error en empresa'}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -250,18 +263,6 @@ export default function ModalSeguimiento({
                 Labores Desarrolladas
               </Label>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {/* {labores.map((labor, i) => (
-                  <Input
-                    key={i}
-                    placeholder={`Labor ${i + 1}`}
-                    value={labor}
-                    onChange={(e) => {
-                      const updated = [...labores];
-                      updated[i] = e.target.value;
-                      setLabores(updated);
-                    }}
-                  />
-                ))} */}
                 <Input
                   placeholder="Cantidad Oficinas"
                   type="number"
@@ -370,7 +371,7 @@ export default function ModalSeguimiento({
                       onChange={(e) =>
                         updateProducto(i, 'producto', e.target.value)
                       }
-                      className="flex-1"
+                      className=""
                     />
                     <Input
                       placeholder="Cantidad (ej: 500ml)"
@@ -503,9 +504,9 @@ export default function ModalSeguimiento({
                 rows={8}
                 placeholder="Detalles adicionales del seguimiento..."
                 value={data.observaciones_especificas}
-                // onChange={(e) =>
-                //   setData('observaciones_especificas', e.target.value)
-                // }
+                onChange={(e) =>
+                  setData('observaciones_especificas', e.target.value)
+                }
               />
             </div>
           )}
@@ -521,34 +522,92 @@ export default function ModalSeguimiento({
                   <Label>Nombre del Encargado</Label>
                   <Input
                     value={data.encargado_nombre}
-                    // onChange={(e) =>
-                    //   setData('encargado_nombre', e.target.value)
-                    // }
+                    onChange={(e) =>
+                      setData('encargado_nombre', e.target.value)
+                    }
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Cargo</Label>
                   <Input
                     value={data.encargado_cargo}
-                    // onChange={(e) => setData('encargado_cargo', e.target.value)}
+                    onChange={(e) => setData('encargado_cargo', e.target.value)}
                   />
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Firma Encargado (texto o dibujar después)</Label>
-                  <Input placeholder="Escriba su nombre completo como firma" />
+                  {/* <Input placeholder="Escriba su nombre completo como firma" /> */}
+                  <SignaturePad onChange={(data) => setFirmaEncargado(data)} />
+                  {firmaEncargado && (
+                    <img
+                      src={firmaEncargado}
+                      alt="Firma Encargado"
+                      className="w-40 border"
+                    />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Firma Supervisor</Label>
-                  <Input placeholder="Escriba su nombre completo como firma" />
+                  {/* <Input placeholder="Escriba su nombre completo como firma" /> */}
+                  <SignaturePad onChange={(data) => setFirmaSupervisor(data)} />
+
+                  {firmaSupervisor && (
+                    <img
+                      src={firmaSupervisor}
+                      alt="Firma Supervisor"
+                      className="w-40 border"
+                    />
+                  )}
                 </div>
               </div>
             </div>
           )}
 
-          {/* PASO 11: Observaciones Generales + Final */}
+          {/* PASO 11: Imagenes de  */}
           {step === 11 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Subir imágenes</h3>
+
+              <p className="text-sm text-muted-foreground">
+                Puedes adjuntar imágenes relacionadas al seguimiento (opcional).
+              </p>
+
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    setData('imagenes', Array.from(e.target.files));
+                  }
+                }}
+              />
+
+              {/* Preview */}
+              {data.imagenes.length > 0 && (
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  {data.imagenes.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex flex-col items-center rounded-md border p-2"
+                    >
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt="preview"
+                        className="h-32 w-full rounded object-cover"
+                      />
+                      <span className="mt-1 text-xs">{file.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PASO 12: Observaciones Generales + Final */}
+          {step === 12 && (
             <div className="space-y-6 py-6 text-center">
               <div className="mx-auto mb-4 size-20 rounded-full bg-green-100 p-5">
                 <svg
@@ -573,9 +632,9 @@ export default function ModalSeguimiento({
                 rows={5}
                 placeholder="Observaciones generales finales (opcional)"
                 value={data.observaciones_generales}
-                // onChange={(e) =>
-                //   setData('observaciones_generales', e.target.value)
-                // }
+                onChange={(e) =>
+                  setData('observaciones_generales', e.target.value)
+                }
               />
             </div>
           )}
@@ -591,9 +650,14 @@ export default function ModalSeguimiento({
               Cancelar
             </Button>
 
-            {step < 11 ? (
-              <Button type="button" onClick={handleNext}>
-                Siguiente
+            {step < 12 ? (
+              // <Button type="button" onClick={handleNext}>
+              //   Siguiente
+              // </Button>
+              <Button asChild>
+                <button type="button" onClick={handleNext}>
+                  Siguiente
+                </button>
               </Button>
             ) : (
               <Button type="submit" disabled={processing}>
@@ -606,681 +670,3 @@ export default function ModalSeguimiento({
     </Dialog>
   );
 }
-// ------------------------------------------------------------------------------------------
-// import { Button } from '@/components/ui/button';
-// import { Checkbox } from '@/components/ui/checkbox'; // ← NUEVO
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogFooter,
-//   DialogHeader,
-//   DialogTitle,
-// } from '@/components/ui/dialog';
-// import { Input } from '@/components/ui/input';
-// import { Label } from '@/components/ui/label';
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from '@/components/ui/select';
-// import { Textarea } from '@/components/ui/textarea';
-// import { useForm } from '@inertiajs/react';
-// import { Plus, Trash2 } from 'lucide-react';
-// import React, { useState } from 'react';
-
-// interface Empresa {
-//   id: number;
-//   nombre: string;
-// }
-
-// interface Almacen {
-//   id: number;
-//   nombre: string;
-// }
-
-// interface BiologicoDB {
-//   id: number;
-//   nombre: string;
-// }
-
-// interface EPP {
-//   nombre: string;
-// }
-
-// interface ModalSeguimientoProps {
-//   open: boolean;
-//   onClose: () => void;
-//   empresas: Empresa[];
-//   almacenes: Almacen[];
-//   biologicos: BiologicoDB[]; // ← Lista completa desde la DB
-// }
-
-// export default function ModalSeguimiento({
-//   open,
-//   onClose,
-//   empresas,
-//   almacenes,
-//   biologicos, // ← Recibimos los biológicos reales
-// }: ModalSeguimientoProps) {
-//   const [step, setStep] = useState(1);
-
-//   // Estado para los checkboxes (solo IDs)
-//   const [biologicosSeleccionados, setBiologicosSeleccionados] = useState<
-//     number[]
-//   >([]);
-
-//   // Estado para los EPPs (texto libre)
-//   const [epps, setEpps] = useState<EPP[]>([{ nombre: '' }]);
-
-//   const { data, setData, post, processing, errors, reset } = useForm({
-//     empresa_id: '',
-//     almacen_id: '',
-//     observaciones: '',
-//     biologicos_ids: [] as number[], // ← Ahora es un array de IDs
-//     epps: [{ nombre: '' }],
-//   });
-
-//   const toggleBiologico = (id: number) => {
-//     setBiologicosSeleccionados((prev) =>
-//       prev.includes(id) ? prev.filter((b) => b !== id) : [...prev, id],
-//     );
-//   };
-
-//   const handleNext = () => {
-//     if (step === 1 && data.empresa_id && data.almacen_id) {
-//       setStep(2);
-//     } else if (step === 2) {
-//       setData('biologicos_ids', biologicosSeleccionados);
-//       setStep(step + 1);
-//     }
-//   };
-
-//   const handleBack = () => {
-//     setStep(step - 1);
-//   };
-
-//   const handleSubmit = (e: React.FormEvent) => {
-//     e.preventDefault();
-
-//     // Aseguramos que los IDs estén actualizados antes de enviar
-//     setData('biologicos_ids', biologicosSeleccionados);
-
-//     post('/seguimientos', {
-//       onSuccess: () => {
-//         handleClose();
-//       },
-//     });
-//   };
-
-//   const handleClose = () => {
-//     reset();
-//     setBiologicosSeleccionados([]);
-//     setEpps([{ nombre: '' }]);
-//     setStep(1);
-//     onClose();
-//   };
-
-//   // --- Funciones EPP ---
-//   const addEpp = () => {
-//     setEpps([...epps, { nombre: '' }]);
-//   };
-
-//   const removeEpp = (index: number) => {
-//     if (epps.length > 1) {
-//       setEpps(epps.filter((_, i) => i !== index));
-//     }
-//   };
-
-//   const updateEpp = (index: number, value: string) => {
-//     const updated = [...epps];
-//     updated[index].nombre = value;
-//     setEpps(updated);
-//     setData('epps', updated);
-//   };
-
-//   return (
-//     <Dialog open={open} onOpenChange={handleClose}>
-//       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[700px]">
-//         <DialogHeader>
-//           <DialogTitle>Nuevo Seguimiento - Paso {step} de 3</DialogTitle>
-//         </DialogHeader>
-
-//         <form onSubmit={handleSubmit}>
-//           {/* Paso 1: Datos básicos */}
-//           {step === 1 && (
-//             <div className="space-y-5 py-4">
-//               <div className="space-y-2">
-//                 <Label htmlFor="empresa_id">Empresa *</Label>
-//                 <Select
-//                   value={data.empresa_id}
-//                   onValueChange={(value) => setData('empresa_id', value)}
-//                 >
-//                   <SelectTrigger>
-//                     <SelectValue placeholder="Seleccionar empresa" />
-//                   </SelectTrigger>
-//                   <SelectContent>
-//                     {empresas.map((empresa) => (
-//                       <SelectItem
-//                         key={empresa.id}
-//                         value={empresa.id.toString()}
-//                       >
-//                         {empresa.nombre}
-//                       </SelectItem>
-//                     ))}
-//                   </SelectContent>
-//                 </Select>
-//                 {errors.empresa_id && (
-//                   <p className="text-sm text-red-500">{errors.empresa_id}</p>
-//                 )}
-//               </div>
-
-//               <div className="space-y-2">
-//                 <Label htmlFor="almacen_id">Almacén *</Label>
-//                 <Select
-//                   value={data.almacen_id}
-//                   onValueChange={(value) => setData('almacen_id', value)}
-//                 >
-//                   <SelectTrigger>
-//                     <SelectValue placeholder="Seleccionar almacén" />
-//                   </SelectTrigger>
-//                   <SelectContent>
-//                     {almacenes.map((almacen) => (
-//                       <SelectItem
-//                         key={almacen.id}
-//                         value={almacen.id.toString()}
-//                       >
-//                         {almacen.nombre}
-//                       </SelectItem>
-//                     ))}
-//                   </SelectContent>
-//                 </Select>
-//                 {errors.almacen_id && (
-//                   <p className="text-sm text-red-500">{errors.almacen_id}</p>
-//                 )}
-//               </div>
-
-//               <div className="space-y-2">
-//                 <Label htmlFor="observaciones">Observaciones</Label>
-//                 <Textarea
-//                   value={data.observaciones || ''}
-//                   onChange={(e) => setData('observaciones', e.target.value)}
-//                   rows={4}
-//                   placeholder="Observaciones generales del seguimiento"
-//                 />
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Paso 2: Apliacaciones */}
-//           {step === 2 && (
-//             <div className="space-y-6 py-4">
-//               <div>
-//                 <Label className="text-lg font-semibold">Aplicaciones</Label>
-//                 <p className="text-sm text-muted-foreground">
-//                   Espacio donde se realizo las aplicaciones
-//                 </p>
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Paso 3: Biológicos con Checkboxes */}
-//           {step === 3 && (
-//             <div className="space-y-6 py-4">
-//               <div>
-//                 <Label className="text-lg font-semibold">
-//                   Biológicos presentes en el seguimiento
-//                 </Label>
-//                 <p className="text-sm text-muted-foreground">
-//                   Selecciona todos los que apliquen
-//                 </p>
-//               </div>
-
-//               {biologicos.length === 0 ? (
-//                 <p className="text-sm text-muted-foreground">
-//                   No hay biológicos registrados en el sistema.
-//                 </p>
-//               ) : (
-//                 <div className="grid max-h-[420px] grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
-//                   {biologicos.map((biologico) => (
-//                     <label
-//                       key={biologico.id}
-//                       className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 transition-colors hover:bg-accent has-[:checked]:border-primary has-[:checked]:bg-primary/10"
-//                     >
-//                       <Checkbox
-//                         checked={biologicosSeleccionados.includes(biologico.id)}
-//                         onCheckedChange={() => toggleBiologico(biologico.id)}
-//                       />
-//                       <span className="text-sm font-medium">
-//                         {biologico.nombre}
-//                       </span>
-//                     </label>
-//                   ))}
-//                 </div>
-//               )}
-
-//               {errors.biologicos_ids && (
-//                 <p className="text-sm text-red-500">{errors.biologicos_ids}</p>
-//               )}
-//             </div>
-//           )}
-
-//           {/* Paso 4: EPP */}
-//           {step === 4 && (
-//             <div className="space-y-5 py-4">
-//               <div className="flex items-center justify-between">
-//                 <Label className="text-lg font-semibold">
-//                   Equipos de Protección Personal (EPP)
-//                 </Label>
-//                 <Button type="button" size="sm" onClick={addEpp}>
-//                   <Plus className="mr-2 h-4 w-4" />
-//                   Agregar EPP
-//                 </Button>
-//               </div>
-
-//               <div className="max-h-[400px] space-y-3 overflow-y-auto">
-//                 {epps.map((epp, index) => (
-//                   <div key={index} className="flex items-center gap-3">
-//                     <Input
-//                       value={epp.nombre}
-//                       onChange={(e) => updateEpp(index, e.target.value)}
-//                       placeholder={`EPP ${index + 1}`}
-//                       className="flex-1"
-//                     />
-//                     {epps.length > 1 && (
-//                       <Button
-//                         type="button"
-//                         variant="ghost"
-//                         size="sm"
-//                         onClick={() => removeEpp(index)}
-//                       >
-//                         <Trash2 className="h-4 w-4 text-red-500" />
-//                       </Button>
-//                     )}
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Footer con botones */}
-//           <DialogFooter className="mt-6 gap-3">
-//             {step > 1 && (
-//               <Button type="button" variant="outline" onClick={handleBack}>
-//                 Atrás
-//               </Button>
-//             )}
-
-//             <Button type="button" variant="outline" onClick={handleClose}>
-//               Cancelar
-//             </Button>
-
-//             {step < 3 ? (
-//               <Button
-//                 type="button"
-//                 onClick={handleNext}
-//                 // disabled={
-//                 //   (step === 1 && (!data.empresa_id || !data.almacen_id)) ||
-//                 //   (step === 2 && biologicosSeleccionados.length === 0)
-//                 // }
-//               >
-//                 Siguiente
-//               </Button>
-//             ) : (
-//               <Button type="submit" disabled={processing}>
-//                 {processing ? 'Guardando...' : 'Guardar Seguimiento'}
-//               </Button>
-//             )}
-//           </DialogFooter>
-//         </form>
-//       </DialogContent>
-//     </Dialog>
-//   );
-// }
-
-// ------------------------------------------------------------------------------------------------------
-// import { Button } from '@/components/ui/button';
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogFooter,
-//   DialogHeader,
-//   DialogTitle,
-// } from '@/components/ui/dialog';
-// import { Input } from '@/components/ui/input';
-// import { Label } from '@/components/ui/label';
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from '@/components/ui/select';
-// import { Textarea } from '@/components/ui/textarea';
-// import { useForm } from '@inertiajs/react';
-// import { Plus, Trash2 } from 'lucide-react';
-// import React, { useState } from 'react';
-
-// interface Empresa {
-//   id: number;
-//   nombre: string;
-// }
-
-// interface Almacen {
-//   id: number;
-//   nombre: string;
-// }
-
-// interface Biologico {
-//   nombre: string;
-//   descripcion: string;
-// }
-
-// interface EPP {
-//   nombre: string;
-// }
-
-// interface ModalSeguimientoProps {
-//   open: boolean;
-//   onClose: () => void;
-//   empresas: Empresa[];
-//   almacenes: Almacen[];
-// }
-
-// export default function ModalSeguimiento({
-//   open,
-//   onClose,
-//   empresas,
-//   almacenes,
-// }: ModalSeguimientoProps) {
-//   const [step, setStep] = useState(1);
-//   const [biologicos, setBiologicos] = useState<Biologico[]>([
-//     { nombre: '', descripcion: '' },
-//   ]);
-//   const [epps, setEpps] = useState<EPP[]>([{ nombre: '' }]);
-
-//   const { data, setData, post, processing, errors, reset } = useForm({
-//     empresa_id: '',
-//     almacen_id: '',
-//     observaciones: '',
-//     biologicos: [{ nombre: '', descripcion: '' }],
-//     epps: [{ nombre: '' }],
-//   });
-
-//   const handleNext = () => {
-//     if (step === 1 && data.empresa_id && data.almacen_id) {
-//       setStep(2);
-//     } else if (step === 2) {
-//       setData('biologicos', biologicos);
-//       setStep(3);
-//     }
-//   };
-
-//   const handleBack = () => {
-//     setStep(step - 1);
-//   };
-
-//   const handleSubmit = (e: React.FormEvent) => {
-//     e.preventDefault();
-
-//     // Actualizar los datos del formulario con los arrays finales
-//     setData({
-//       ...data,
-//       biologicos,
-//       epps,
-//     });
-
-//     post('/seguimientos', {
-//       onSuccess: () => {
-//         handleClose();
-//       },
-//     });
-//   };
-
-//   const handleClose = () => {
-//     reset();
-//     setBiologicos([{ nombre: '', descripcion: '' }]);
-//     setEpps([{ nombre: '' }]);
-//     setStep(1);
-//     onClose();
-//   };
-
-//   const addBiologico = () => {
-//     setBiologicos([...biologicos, { nombre: '', descripcion: '' }]);
-//   };
-
-//   const removeBiologico = (index: number) => {
-//     if (biologicos.length > 1) {
-//       setBiologicos(biologicos.filter((_, i) => i !== index));
-//     }
-//   };
-
-//   const updateBiologico = (
-//     index: number,
-//     field: keyof Biologico,
-//     value: string,
-//   ) => {
-//     const updated = [...biologicos];
-//     updated[index][field] = value;
-//     setBiologicos(updated);
-//   };
-
-//   const addEpp = () => {
-//     setEpps([...epps, { nombre: '' }]);
-//   };
-
-//   const removeEpp = (index: number) => {
-//     if (epps.length > 1) {
-//       setEpps(epps.filter((_, i) => i !== index));
-//     }
-//   };
-
-//   const updateEpp = (index: number, value: string) => {
-//     const updated = [...epps];
-//     updated[index].nombre = value;
-//     setEpps(updated);
-//   };
-
-//   return (
-//     <Dialog open={open} onOpenChange={handleClose}>
-//       <DialogContent className="sm:max-w-[600px]">
-//         <DialogHeader>
-//           <DialogTitle>Nuevo Seguimiento - Paso {step} de 3</DialogTitle>
-//         </DialogHeader>
-
-//         <form onSubmit={handleSubmit}>
-//           {/* Paso 1: Datos básicos */}
-//           {step === 1 && (
-//             <div className="space-y-4 py-4">
-//               <div className="space-y-2">
-//                 <Label htmlFor="empresa_id">Empresa *</Label>
-//                 <Select
-//                   value={data.empresa_id}
-//                   onValueChange={(value) => setData('empresa_id', value)}
-//                 >
-//                   <SelectTrigger>
-//                     <SelectValue placeholder="Seleccionar empresa" />
-//                   </SelectTrigger>
-//                   <SelectContent>
-//                     {empresas.map((empresa) => (
-//                       <SelectItem
-//                         key={empresa.id}
-//                         value={empresa.id.toString()}
-//                       >
-//                         {empresa.nombre}
-//                       </SelectItem>
-//                     ))}
-//                   </SelectContent>
-//                 </Select>
-//                 {errors.empresa_id && (
-//                   <p className="text-sm text-red-500">{errors.empresa_id}</p>
-//                 )}
-//               </div>
-
-//               <div className="space-y-2">
-//                 <Label htmlFor="almacen_id">Almacén *</Label>
-//                 <Select
-//                   value={data.almacen_id}
-//                   onValueChange={(value) => setData('almacen_id', value)}
-//                 >
-//                   <SelectTrigger>
-//                     <SelectValue placeholder="Seleccionar almacén" />
-//                   </SelectTrigger>
-//                   <SelectContent>
-//                     {almacenes.map((almacen) => (
-//                       <SelectItem
-//                         key={almacen.id}
-//                         value={almacen.id.toString()}
-//                       >
-//                         {almacen.nombre}
-//                       </SelectItem>
-//                     ))}
-//                   </SelectContent>
-//                 </Select>
-//                 {errors.almacen_id && (
-//                   <p className="text-sm text-red-500">{errors.almacen_id}</p>
-//                 )}
-//               </div>
-
-//               <div className="space-y-2">
-//                 <Label htmlFor="observaciones">Observaciones</Label>
-//                 <Textarea
-//                   id="observaciones"
-//                   value={data.observaciones}
-//                   onChange={(e) => setData('observaciones', e.target.value)}
-//                   rows={4}
-//                   placeholder="Ingrese observaciones"
-//                 />
-//                 {errors.observaciones && (
-//                   <p className="text-sm text-red-500">{errors.observaciones}</p>
-//                 )}
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Paso 2: Biológicos */}
-//           {step === 2 && (
-//             <div className="space-y-4 py-4">
-//               <div className="flex items-center justify-between">
-//                 <Label>Biológicos</Label>
-//                 <Button type="button" size="sm" onClick={addBiologico}>
-//                   <Plus className="mr-1 h-4 w-4" />
-//                   Agregar
-//                 </Button>
-//               </div>
-
-//               <div className="max-h-[400px] space-y-4 overflow-y-auto">
-//                 {biologicos.map((biologico, index) => (
-//                   <div key={index} className="space-y-3 rounded-lg border p-4">
-//                     <div className="flex items-center justify-between">
-//                       <span className="text-sm font-medium">
-//                         Biológico {index + 1}
-//                       </span>
-//                       {biologicos.length > 1 && (
-//                         <Button
-//                           type="button"
-//                           variant="ghost"
-//                           size="sm"
-//                           onClick={() => removeBiologico(index)}
-//                         >
-//                           <Trash2 className="h-4 w-4 text-red-500" />
-//                         </Button>
-//                       )}
-//                     </div>
-
-//                     <div className="space-y-2">
-//                       <Label>Nombre *</Label>
-//                       <Input
-//                         value={biologico.nombre}
-//                         onChange={(e) =>
-//                           updateBiologico(index, 'nombre', e.target.value)
-//                         }
-//                         placeholder="Nombre del biológico"
-//                       />
-//                     </div>
-
-//                     <div className="space-y-2">
-//                       <Label>Descripción</Label>
-//                       <Textarea
-//                         value={biologico.descripcion}
-//                         onChange={(e) =>
-//                           updateBiologico(index, 'descripcion', e.target.value)
-//                         }
-//                         placeholder="Descripción del biológico"
-//                         rows={3}
-//                       />
-//                     </div>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Paso 3: EPP */}
-//           {step === 3 && (
-//             <div className="space-y-4 py-4">
-//               <div className="flex items-center justify-between">
-//                 <Label>Equipos de Protección Personal (EPP)</Label>
-//                 <Button type="button" size="sm" onClick={addEpp}>
-//                   <Plus className="mr-1 h-4 w-4" />
-//                   Agregar
-//                 </Button>
-//               </div>
-
-//               <div className="max-h-[400px] space-y-3 overflow-y-auto">
-//                 {epps.map((epp, index) => (
-//                   <div key={index} className="flex items-center gap-2">
-//                     <div className="flex-1">
-//                       <Input
-//                         value={epp.nombre}
-//                         onChange={(e) => updateEpp(index, e.target.value)}
-//                         placeholder={`EPP ${index + 1}`}
-//                       />
-//                     </div>
-//                     {epps.length > 1 && (
-//                       <Button
-//                         type="button"
-//                         variant="ghost"
-//                         size="sm"
-//                         onClick={() => removeEpp(index)}
-//                       >
-//                         <Trash2 className="h-4 w-4 text-red-500" />
-//                       </Button>
-//                     )}
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-//           )}
-
-//           <DialogFooter className="gap-2">
-//             {step > 1 && (
-//               <Button type="button" variant="outline" onClick={handleBack}>
-//                 Atrás
-//               </Button>
-//             )}
-
-//             <Button type="button" variant="outline" onClick={handleClose}>
-//               Cancelar
-//             </Button>
-
-//             {step < 3 ? (
-//               <Button
-//                 type="button"
-//                 onClick={handleNext}
-//                 disabled={step === 1 && (!data.empresa_id || !data.almacen_id)}
-//               >
-//                 Siguiente
-//               </Button>
-//             ) : (
-//               <Button type="submit" disabled={processing}>
-//                 {processing ? 'Guardando...' : 'Guardar Seguimiento'}
-//               </Button>
-//             )}
-//           </DialogFooter>
-//         </form>
-//       </DialogContent>
-//     </Dialog>
-//   );
-// }
