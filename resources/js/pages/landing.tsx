@@ -47,6 +47,9 @@ export default function Landing() {
     modules={[Autoplay, EffectFade, Navigation, Pagination]}
     className="mySwiper h-full w-full"
   >
+
+     {/* Overlay azul semitransparente */}
+  <div className="absolute inset-0 bg-gray-900/80 pointer-events-none z-10" />
     <SwiperSlide>
       <img
         src="/images/slider/sli1.webp"
@@ -297,7 +300,7 @@ export default function Landing() {
         <div className="container w-full">
           <div className="about-wrapper grid grid-cols-1  lg:grid-cols-2 items-center gap-[10px]">
             {/* <!-- Columna Izquierda - Imagen Principal + Círculos de Insectos --> */}
-            <div className="about-image relative h-[600px]">
+            <div className="about-image relative h-[600px] mt-8 md:mt-12 lg:mt-20">
               <div className="main-circle absolute h-[520px] w-[520px] overflow-hidden rounded-full border-[12px] shadow-2xl">
                 <img
                   src="/images/about/cuatro.webp"
@@ -330,7 +333,7 @@ export default function Landing() {
             </div>
 
             {/* <!-- Columna Derecha - Texto y Estadísticas --> */}
-            <div className="mt-8 md:mt-12 lg:mt-20 ml-10 about-content">
+            <div className="mt-8 md:mt-12 lg:mt-20 ml-2 md:ml-12 lg:ml-20  about-content">
               <span className={`section-tag ${styles.sectionTag}`}>
                 Acerca de Nosotros
               </span>
