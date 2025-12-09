@@ -130,91 +130,6 @@ export default function Landing() {
   </div>
 </div>
 
-      {/* <div className="relative ">
-        <Swiper
-          spaceBetween={30}
-          effect={'fade'}
-          // navigation={true}
-          // pagination={{
-          //   clickable: true,
-          // }}
-          loop={true}
-          autoplay={{ delay: 9000, disableOnInteraction: false }}
-          modules={[Autoplay, EffectFade, Navigation, Pagination]}
-          className="mySwiper h-full w-full"
-        >
-          <SwiperSlide>
-            <img
-              src="/images/slider/sli1.webp"
-              className="h-full w-full object-cover"
-              alt="Slide 1"
-              loading='lazy'
-            />
-          </SwiperSlide>
-          <SwiperSlide>
-            <img
-              src="/images/slider/sli2.webp"
-              className="h-full w-full object-cover"
-              alt="Slide 2"
-              loading='lazy'
-            />
-          </SwiperSlide>
-          <SwiperSlide>
-            <img
-              src="/images/slider/sli3.webp"
-              className="h-full w-full object-cover"
-              alt="Slide 3"
-              loading='lazy'
-            />
-          </SwiperSlide>
-          <SwiperSlide>
-            <img
-              src="/images/slider/sli4.webp"
-              className="h-full w-full object-cover"
-              alt="Slide 4"
-              loading='lazy'
-            />
-          </SwiperSlide>
-        </Swiper>
-        <div className="absolute inset-0 z-3 flex justify-center">
-          <div className="flex h-full w-[1000px] items-center justify-center">
-            <img src="/images/cta/personaje.webp" alt="Logo" className="" />
-            <div>
-              <h1 className="mb-2 text-left text-[2.2rem] font-bold text-white text-shadow-lg/40">
-                Servicios confiables de control de plagas e insectos en los que
-                puede confiar.
-              </h1>
-              <p className="mb-2 text-left text-[1.3rem] text-white text-shadow-lg/40">
-                Proteja su hogar y negocio con nuestras soluciones efectivas
-                para el control de plagas. Desde termitas hasta roedores,
-                eliminamos las plagas de forma rápida y segura.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div> */}
-      {/* <Swiper
-        spaceBetween={30}
-        effect={'fade'}
-        navigation={true}
-        pagination={{
-          clickable: true,
-        }}
-        loop={true}
-        autoplay={{ delay: 9000, disableOnInteraction: false }}
-        modules={[Autoplay, EffectFade, Navigation, Pagination]}
-        className="mySwiper"
-      >
-        <SwiperSlide>
-          <img src="/images/slider/slider1.webp" alt="Slide 1" />
-        </SwiperSlide>
-        <SwiperSlide>
-          <img src="/images/slider/slider1.webp" alt="Slide 2" />
-        </SwiperSlide>
-        <SwiperSlide>
-          <img src="/images/slider/slider1.webp" alt="Slide 3" />
-        </SwiperSlide>
-      </Swiper> */}
 
       {/* <!-- Features --> */}
       <section className="">
@@ -229,9 +144,9 @@ export default function Landing() {
             </div>
             <div className="ms-4">
               <h3 className="text-[20px] font-bold">Cobertura Integral</h3>
-              <a href="#" className="read-more">
+              {/* <a href="#" className="read-more">
                 Leer más <span>→</span>
-              </a>
+              </a> */}
             </div>
           </div>
 
@@ -248,9 +163,9 @@ export default function Landing() {
                 Tiempos de respuesta <br />
                 rapidos
               </h3>
-              <a href="#" className="read-more">
+              {/* <a href="#" className="read-more">
                 Leer más <span>→</span>
-              </a>
+              </a> */}
             </div>
           </div>
 
@@ -269,9 +184,9 @@ export default function Landing() {
               >
                 Servicios <br /> comerciales
               </h3>
-              <a href="#" className="read-more">
+              {/* <a href="#" className="read-more">
                 Leer más <span>→</span>
-              </a>
+              </a> */}
             </div>
           </div>
 
@@ -287,16 +202,16 @@ export default function Landing() {
               <h3 className="text-[20px] font-bold">
                 Servicio de <br /> Emergencia 24/7
               </h3>
-              <a href="#" className="read-more">
+              {/* <a href="#" className="read-more">
                 Leer más <span>→</span>
-              </a>
+              </a> */}
             </div>
           </div>
         </div>
       </section>
 
       {/* <!-- about us --> */}
-      <section className="about-us flex justify-center" id="about">
+      <section className="about-us flex justify-center" id="nosotros">
         <div className="container w-full">
           <div className="about-wrapper grid grid-cols-1  lg:grid-cols-2 items-center gap-[10px]">
             {/* <!-- Columna Izquierda - Imagen Principal + Círculos de Insectos --> */}
@@ -434,7 +349,7 @@ export default function Landing() {
       </section>
 
       {/* <!-- Services --> */}
-      <section className="mt-8 md:mt-12 lg:mt-20 services flex justify-center" id="services">
+      <section className="mt-8 md:mt-12 lg:mt-20 services flex justify-center" id="servicios">
         <div className="container w-full">
           {/* <!-- Tag y título --> */}
           <div className=" section-header text-center">
@@ -443,7 +358,7 @@ export default function Landing() {
             </span>
             <h2 className={`section-title ${styles.sectionTitle}`}>
               Soluciones expertas para cualquier
-              <span className="text-green">problema de plagas</span>
+              <span className="text-green"> problema de plagas</span>
             </h2>
           </div>
 
@@ -581,7 +496,7 @@ export default function Landing() {
       {/* <!-- our features --> */}
       <section
         className={`mt-2 md:mt-6 lg:mt-10 our-features flex justify-center ${styles.ourFeatures}`}
-        id="our-features"
+        id="#"
       >
         <div className="container w-full">
           <div className="features-wrapper grid 
@@ -692,7 +607,7 @@ export default function Landing() {
       </section>
 
       {/* <!-- our portafolio  --> */}
-      <section className="mt-8 md:mt-16 lg:mt-24 our-portfolio flex justify-center" id="our-portfolio">
+      <section className="mt-8 md:mt-16 lg:mt-24 our-portfolio flex justify-center" id="portafolio">
         <div className="container w-full">
           {/* <!-- Tag y título --> */}
           <div className="section-header text-center">
@@ -860,8 +775,8 @@ export default function Landing() {
     <div className={`why-icon ${styles.whyIcon}`}>
       <Clock className="h-10 w-10 text-white-600" strokeWidth={2} />
     </div>
-    <h3>Servicios de emergencia</h3>
-    <p>Atención inmediata 24/7, incluso feriados.</p>
+    <h3 className='text-center'>Servicios de emergencia</h3>
+    <p className='text-center'>Atención inmediata 24/7, incluso feriados.</p>
   </div>
 
   {/* Tarjeta 2 - Tratamientos personalizados */}
@@ -870,8 +785,8 @@ export default function Landing() {
       <Settings className="h-10 w-10 text-white-600" strokeWidth={2} />
       {/* o también puedes usar: <Target /> o <Wrench /> */}
     </div>
-    <h3>Tratamientos personalizados</h3>
-    <p>Soluciones adaptadas al tipo de plaga y propiedad.</p>
+    <h3 className='text-center'>Tratamientos personalizados</h3>
+    <p className='text-center'>Soluciones adaptadas al tipo de plaga y propiedad.</p>
   </div>
 
   {/* Tarjeta 3 - Profesionales certificados */}
@@ -880,8 +795,8 @@ export default function Landing() {
       <ShieldCheck className="h-10 w-10 text-white-600" strokeWidth={2} />
       {/* Alternativas bonitas: <Award />, <UserCheck />, <Certificate /> */}
     </div>
-    <h3>Profesionales certificados</h3>
-    <p>Técnicos capacitados y con licencia oficial.</p>
+    <h3 className='text-center'>Profesionales certificados</h3>
+    <p className='text-center'>Técnicos capacitados y con licencia oficial.</p>
   </div>
 
   {/* Tarjeta destacada con imagen */}
@@ -891,9 +806,9 @@ export default function Landing() {
       <h3 className="text-2xl md:text-3xl font-bold mb-4">
         ¡Recupere su hogar de las plagas hoy mismo!
       </h3>
-      <a href="tel:+59174392912" className="highlight-btn inline-flex items-center gap-3 text-lg font-semibold">
+      <a href="https://wa.me/59176738282" target="_blank" className="highlight-btn inline-flex items-center gap-3 text-lg font-semibold">
         <Phone className="h-6 w-6" />
-        Llame ahora +591 743 92912
+        Llame ahora +591 76738282
       </a>
     </div>
   </div>
@@ -902,7 +817,7 @@ export default function Landing() {
 
           {/* <!-- CTA final --> */}
           <div className={`why-cta ${styles.whyCta}`}>
-            <a href="#contact" className="btn-free">
+            <a href="mailto:info@bolivianpest.com" target="_blank" className="btn-free">
               ¡Creemos un ambiente libre de plagas! – ¡Contáctenos hoy!
             </a>
           </div>
@@ -941,86 +856,6 @@ export default function Landing() {
                 Encuentre respuestas útiles a sus dudas sobre
                 <span className="text-green">el control de plagas</span>
               </h2>
-
-              {/* <Accordion
-                type="single"
-                collapsible
-                className="w-full"
-                defaultValue="item-1"
-              >
-                <AccordionItem value="item-1">
-                  <AccordionTrigger>1. ¿Qué tipos de plagas tratan? </AccordionTrigger>
-                  <AccordionContent className="flex flex-col gap-4 text-balance">
-                    <p>
-                      Controlamos una amplia variedad de plagas, incluyendo <br />
-                      <strong> roedores, hormigas, cucarachas, termitas, chinches, mosquitos, arañas y fauna silvestre.</strong><br />
-                      Aplicamos métodos específicos según la especie para garantizar resultados efectivos.
-                    </p>
-                    
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-2">
-                  <AccordionTrigger>2. ¿Son seguros sus métodos de control de plagas para mis mascotas? </AccordionTrigger>
-                  <AccordionContent className="flex flex-col gap-4 text-balance">
-                    <p>
-                      Sí. Todos nuestros productos y procedimientos están certificados y son seguros para mascotas y personas, 
-                      siempre y cuando se sigan las indicaciones del técnico. <br />
-                      Utilizamos productos de baja toxicidad, aprobados por <strong>SENASAG</strong>, y aplicados bajo estándares profesionales para evitar cualquier riesgo. 
-                      Además, brindamos instrucciones claras sobre el tiempo de reingreso y cuidados posteriores para garantizar la seguridad de tus animales domésticos.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-3">
-                  <AccordionTrigger>3. ¿Con qué frecuencia debo programar los servicios de control de plagas? </AccordionTrigger>
-                  <AccordionContent className="flex flex-col gap-4 text-balance">
-                    <p>
-                      La frecuencia depende del tipo de plaga y del entorno:
-                      
-                      <p><strong>Hogares:</strong> cada 3 a 4 meses suele ser suficiente para mantener un ambiente libre de plagas.</p>
-                      
-                      <p><strong>Comercios:</strong> recomendamos un servicio mensual o bimensual, especialmente si hay almacenamiento de alimentos.</p>
-                      
-                      <p><strong>Industrias y restaurantes:</strong> servicios mensuales o incluso quincenales, de acuerdo con normas de salubridad.</p>
-                      <br></br>
-                      Nuestros técnicos evalúan tu caso y generan un plan personalizado según el nivel de infestación y las características del lugar.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-4">
-                  <AccordionTrigger>4. ¿Ofrecen servicios de control de plagas de emergencia? </AccordionTrigger>
-                  <AccordionContent className="flex flex-col gap-4 text-balance">
-                    <p>
-                      Sí, contamos con servicios de emergencia para infestaciones severas o situaciones que requieren atención inmediata, como: <br />
-
-                        <strong>Nidos de avispas</strong> <br />
-                        <strong>Presencia elevada de roedores</strong> <br />
-                        <strong>Brotes de cucarachas en cocinas o negocios</strong> <br />
-                        <strong>Invasión de chinches</strong> <br />
-                        <strong>Plagas que afecten la operación de tu empresa</strong> <br />
-
-                        Atendemos en el menor tiempo posible para controlar rápidamente el problema y evitar riesgos para tu salud o tu actividad comercial.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-5">
-                  <AccordionTrigger>5. ¿Cómo sé si tengo una plaga? </AccordionTrigger>
-                  <AccordionContent className="flex flex-col gap-4 text-balance">
-                    <p>
-                      Algunas señales comunes incluyen: <br />
-
-                      <strong>Excrementos pequeños o manchas oscuras (roedores, cucarachas).</strong> <br />
-
-                      <strong>Ruidos dentro de paredes o techos.</strong> <br />
-
-                      <strong>Olores fuertes o desagradables, especialmente en cocinas o depósitos.</strong> <br />
-
-                      <strong>Huecos o montículos en madera o suelo (termitas). </strong><br />
-
-                      Si notas cualquiera de estos signos, lo ideal es solicitar una inspección profesional, ya que muchas plagas se esconden y solo un técnico puede detectarlas a tiempo.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion> */}
               <Accordion
     type="single"
     collapsible
@@ -1032,10 +867,9 @@ export default function Landing() {
           1. ¿Qué tipos de plagas tratan? 
       </AccordionTrigger>
       <AccordionContent className="flex flex-col  text-left">
-        <p>
-          Controlamos una amplia variedad de plagas, incluyendo <br />
-          <strong> roedores, hormigas, cucarachas, termitas, chinches, mosquitos, arañas y fauna silvestre.</strong><br />
-          Aplicamos métodos específicos según la especie para garantizar resultados efectivos.
+        <p>Controlamos una amplia variedad de plagas, incluyendo</p>
+          <p><strong> roedores, hormigas, cucarachas, termitas, chinches, mosquitos, arañas y fauna silvestre.</strong></p>
+          <p>Aplicamos métodos específicos según la especie para garantizar resultados efectivos.
         </p>
       </AccordionContent>
     </AccordionItem>
@@ -1118,7 +952,7 @@ export default function Landing() {
         </div>
       </section>
       {/* <!-- CTA --> */}
-      <section className={`mt-2 md:mt-6 lg:mt-10 about-your ${styles.ctaSection}`} id="about-your">
+      <section className={`mt-2 md:mt-6 lg:mt-10 about-your ${styles.ctaSection}`} id="contacto">
         <div className="container w-full">
           <div className={`about-your-wrapper ${styles.ctaWrapper}`}>
             {/* <!-- Imagen del técnico (izquierda) --> */}
@@ -1137,18 +971,7 @@ export default function Landing() {
               </h2>
 
               <ul className={`about-your-list ${styles.ctaList}`}>
-                {/* <li>
-                  <span className={`list-icon ${styles.ctaListIcon}`}>
-                    Check
-                  </span>
-                  Agende su inspección gratuita
-                </li> */}
-                {/* <li>
-                  <span className={`list-icon ${styles.ctaListIcon}`}>
-                    Check
-                  </span>
-                  Prevenga futuras infestaciones
-                </li> */}
+                
                 <li className="flex items-center gap-4 group">
                 <CheckCircle2 className="h-9 w-9 shrink-0 text-emerald-500 transition-transform group-hover:scale-110" />
                 <span className="transition-colors group-hover:text-emerald-600">Agende su inspección gratuita</span>
@@ -1170,7 +993,8 @@ export default function Landing() {
               </ul>
 
               <a
-                href="#contact"
+                href="https://wa.me/59176738282"
+                target="_blank"
                 className={`btn-membership ${styles.ctaBtnMember}`}
               >
                 Empieza Ahora
@@ -1216,7 +1040,7 @@ export default function Landing() {
                   <a href="#">Testimonios</a>
                 </li>
                 <li>
-                  <a href="#">Contáctanos</a>
+                  <a href="https://wa.me/59176738282">Contáctanos</a>
                 </li>
               </ul>
             </div>
@@ -1242,19 +1066,6 @@ export default function Landing() {
                 </li>
               </ul>
             </div>
-
-            {/* <!-- Columna 4: Contact Us --> */}
-            {/* <div className={`footer-column contact ${styles.footerColumn}`}>
-              <h3>Contáctanos</h3>
-              <div className={`contact-item ${styles.footerContactItem}`}>
-                <span className="contact-icon">Phone</span>
-                <a href="tel:+19123456789">+591 32221344</a>
-              </div>
-              <div className={`contact-item ${styles.footerContactItem}`}>
-                <span className="contact-icon phone">Email</span>
-                <a href="mailto:info@domainname.com">info@BolivianPest.com</a>
-              </div>
-            </div> */}
             
 
 <div className={`footer-column contact ${styles.footerColumn}`}>
@@ -1268,7 +1079,7 @@ export default function Landing() {
       </div>
       <div>
         <p className="text-sm text-gray-400">Teléfono / WhatsApp</p>
-        <a href="tel:+59176738282" className="text-white hover:text-white-400 transition">
+        <a href="https://wa.me/59176738282" className="text-white hover:text-white-400 transition">
           +591 76738282
         </a>
       </div>
@@ -1345,7 +1156,7 @@ export default function Landing() {
   </a>
 
   <a
-    href="https://facebook.com/tuempresa"
+    href="https://www.facebook.com/p/Bolivian-Pest-Higiene-Ambiental-61572172198692/"
     target="_blank"
     rel="noopener noreferrer"
     aria-label="Facebook"
@@ -1365,15 +1176,15 @@ export default function Landing() {
   </a>
 
   {/* Bonus muy usado en Bolivia: WhatsApp directo */}
-  {/* <a 
-    href="https://wa.me/59172221344"
+   <a 
+    href="https://wa.me/59176738282"
     target="_blank"
     rel="noopener noreferrer"
     aria-label="WhatsApp"
     className="group"
   >
-    <Whatsapp className="h-6 w-6 transition-all group-hover:scale-110 group-hover:text-green-500" />
-  </a> */}
+    <Phone className="h-6 w-6 transition-all group-hover:scale-110 group-hover:text-green-500" />
+  </a> 
 </div>
 
             <div className={`copyright ${styles.footerCopyright}`}>

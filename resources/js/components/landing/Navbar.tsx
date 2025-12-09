@@ -55,16 +55,16 @@ export default function Navbar({ logo = '/images/logo.png' }: NavbarProps) {
         <div className="flex items-center gap-4">
           {/* Iconos redes sociales (pantallas grandes) */}
           <div className="hidden md:flex items-center gap-3">
-            <a href="#" className="text-white hover:text-cyan-300 transition">
+            <a href="#" target="_blank" className="text-white hover:text-cyan-300 transition">
               <Instagram className="h-5 w-5" />
             </a>
-            <a href="#" className="text-white hover:text-cyan-300 transition">
+            <a href="https://www.facebook.com/p/Bolivian-Pest-Higiene-Ambiental-61572172198692/" target="_blank" className="text-white hover:text-cyan-300 transition">
               <Facebook className="h-5 w-5" />
             </a>
-            <a href="tel:+591" className="text-white hover:text-cyan-300 transition">
+            <a href="https://wa.me/59176738282" target="_blank" className="text-white hover:text-cyan-300 transition">
               <Phone className="h-5 w-5" />
             </a>
-            <a href="mailto:info@bolivianpest.com" className="text-white hover:text-cyan-300 transition">
+            <a href="https://maps.app.goo.gl/jUskCwmwawdAVt9A8?g_st=awb" target="_blank" className="text-white hover:text-cyan-300 transition">
               <MapPin className="h-5 w-5" />
             </a>
           </div>
@@ -82,15 +82,17 @@ export default function Navbar({ logo = '/images/logo.png' }: NavbarProps) {
                   <a
                     key={item.name}
                     href={item.href}
-                    className="text-white text-lg font-medium hover:text-cyan-300"
+                    className="text-white text-lg font-medium hover:text-cyan-300 ml-3"
                   >
                     {item.name}
                   </a>
                 ))}
-                <div className="flex gap-4 mt-6">
-                  <a href="#" className="text-white"><Instagram className="h-6 w-6" /></a>
-                  <a href="#" className="text-white"><Facebook className="h-6 w-6" /></a>
-                  <a href="tel:+591" className="text-white"><Phone className="h-6 w-6" /></a>
+                <div className="flex gap-4 mt-6 ml-3">
+                  <a href="#" target="_blank" className="text-white"><Instagram className="h-6 w-6" /></a>
+                  <a href="https://www.facebook.com/p/Bolivian-Pest-Higiene-Ambiental-61572172198692/" target="_blank" className="text-white"><Facebook className="h-6 w-6" /></a>
+                  <a href="https://wa.me/59176738282" target="_blank" className="text-white"><Phone className="h-6 w-6" /></a>
+                  <a href="https://maps.app.goo.gl/jUskCwmwawdAVt9A8?g_st=awb" target="_blank"><MapPin className="h-6 w-6" />
+            </a>
                 </div>
               </div>
             </SheetContent>

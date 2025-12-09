@@ -142,7 +142,7 @@
   margin: -40px auto 20px;
   position: relative;
   z-index: 2;
-  box-shadow: 0 10px 20px rgba(0, 184, 148, 0.3);
+  box-shadow: 0 10px 20px rgba(0, 101, 184, 0.3);
 }
 
 .serviceCard h3 {
