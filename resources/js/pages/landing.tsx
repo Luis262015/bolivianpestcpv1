@@ -23,10 +23,13 @@ import 'swiper/css/autoplay';
 import 'swiper/css/effect-fade';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import SplashScreen from '@/components/SplashScreen';
 
 export default function Landing() {
   return (
     <>
+    <SplashScreen screen="/images/LogoBlack.png" />
+
       {/* pestaña de navegador */}
       <Head title="Inicio">
         <link rel="preconnect" href="https://fonts.bunny.net" />
