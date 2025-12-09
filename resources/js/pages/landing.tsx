@@ -595,7 +595,7 @@ export default function Landing() {
 
               {/* <!-- Botón circular flotante --> */}
               <a
-                href="#contact"
+                href="https://wa.me/59176738282"
                 className={`features-btn ${styles.featuresBtn}`}
               >
                 <i className="fas fa-phone"></i>
