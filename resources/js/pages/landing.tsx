@@ -17,7 +17,12 @@ import { BugOff, Check, Play, CheckCircle2, Phone, Mail,Clock,
   Zap, 
   Award, 
   Users,
- Instagram, Facebook, Siren, BadgeCheck  } from 'lucide-react';
+ Instagram, Facebook, Siren, BadgeCheck,  
+ Snail,
+ Rat,
+ HouseWifi,
+ Building2,
+ Factory} from 'lucide-react';
 import 'swiper/css';
 import 'swiper/css/autoplay';
 import 'swiper/css/effect-fade';
@@ -395,7 +400,7 @@ export default function Landing() {
                 </div>
                 <div className={styles.serviceIcon}>
                   {/* <i className="fas fa-building"></i> */}
-                  <BugOff size={30} />
+                  <Factory size={30} />
                 </div>
                 <h3>Soluciones comerciales para el control de plagas</h3>
                 <p>
@@ -413,7 +418,7 @@ export default function Landing() {
                   <img src="/images/services/dos.webp" alt="Termite" />
                 </div>
                 <div className={styles.serviceIcon}>
-                  <BugOff size={30} />
+                  <Rat size={30} />
                 </div>
                 <h3>Control de termitas y roedores</h3>
                 <p>
@@ -431,7 +436,7 @@ export default function Landing() {
                   <img src="/images/services/tres.webp" alt="Outdoor" />
                 </div>
                 <div className={styles.serviceIcon}>
-                  <BugOff size={30} />
+                  <Snail size={30} />
                 </div>
                 <h3>Control de plagas en exteriores</h3>
                 <p>
@@ -449,7 +454,7 @@ export default function Landing() {
                   <img src="/images/services/cuatro.webp" alt="Smart Home" />
                 </div>
                 <div className={styles.serviceIcon}>
-                  <BugOff size={30} />
+                  <HouseWifi size={30} />
                 </div>
                 <h3>Integración de hogares inteligentes</h3>
                 <p>
@@ -467,7 +472,7 @@ export default function Landing() {
                   <img src="/images/services/cinco.webp" alt="Smart Home" />
                 </div>
                 <div className={styles.serviceIcon}>
-                  <BugOff size={30} />
+                  <Building2 size={30} />
                 </div>
                 <h3>Control de plagas residenciales</h3>
                 <p>
