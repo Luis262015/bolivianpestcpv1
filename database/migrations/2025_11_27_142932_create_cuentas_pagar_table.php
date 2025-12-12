@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users');
 
             $table->double('total');
-            $table->double('a_cuenta');
+            $table->double('acuenta');
             $table->double('saldo');
             $table->enum('estado', ['Pendiente', 'Cancelado']);
             $table->date('fecha_pago');

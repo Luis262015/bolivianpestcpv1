@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('compra_id')->nullable();
             $table->unsignedBigInteger('producto_id');
 
-            $table->enum('tipo', ['Entrada', 'Salida', 'Transferencia', 'Ajuste']);
+            $table->enum('tipo', ['Entrada', 'Salida']);
             $table->integer('cantidad');
             $table->integer('cantidad_saldo');
             $table->double('costo_unitario');

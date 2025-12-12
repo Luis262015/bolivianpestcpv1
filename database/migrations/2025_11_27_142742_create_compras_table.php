@@ -15,15 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('proveedor_id')->nullable()->constrained('proveedores');
-            $table->string('numero');
-            $table->string('autorizacion');
-            $table->string('control');
-            $table->text('observaciones');
             $table->double('total');
             $table->double('abonado');
             $table->double('saldo');
+            $table->text('observaciones');
             $table->enum('tipo', ['Compra', 'Credito', 'Adelanto', 'Anulado']);
-
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Almacen;
+use App\Models\Contacto;
 use App\Models\Contrato;
 use App\Models\CuentaCobrar;
 use App\Models\Empresa;
@@ -28,7 +29,8 @@ class ContratoController extends Controller
   public function create()
   {
     //
-    return inertia('admin/contrato/crear');
+    $contactos = Contacto::orderBy('nombre')->get(['id', 'nombre', 'telefono', 'email']);
+    return inertia('admin/contrato/crear', ['contactos' => $contactos]);
   }
 
   /**

@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('cronogramas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('empresa_id')->constrained('empresas');
-            $table->foreignId('user_id')->constrained('users');
             $table->foreignId('almacen_id')->constrained('almacenes');
+            $table->foreignId('user_id')->constrained('users');
+            $table->string('title');
+            $table->date('date');                    // fecha de la tarea (yyyy-MM-dd)
+            $table->string('color')->default('bg-blue-500');
+            $table->enum('status', ['pendiente', 'postergado', 'completado'])->default('pendiente');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();

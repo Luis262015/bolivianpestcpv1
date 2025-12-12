@@ -18,9 +18,7 @@ return new class extends Migration
             $table->foreignId('contrato_id')->constrained('contratos');
             // $table->foreignId('cliente_id')->constrained('clientes');
             $table->foreignId('user_id')->constrained('users');
-
             $table->double('total');
-            $table->double('a_cuenta');
             $table->double('saldo');
             $table->enum('estado', ['Pendiente', 'Cancelado']);
             $table->date('fecha_pago')->nullable();

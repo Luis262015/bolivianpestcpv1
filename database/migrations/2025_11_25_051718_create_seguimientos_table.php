@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('seguimientos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('empresa_id')->constrained('empresas');
-            $table->foreignId('user_id')->constrained('users');
             $table->foreignId('almacen_id')->constrained('almacenes');
+            $table->foreignId('user_id')->constrained('users');
             $table->foreignId('tipo_seguimiento_id')->nullable()->constrained('tipo_seguimientos');
             $table->string('paredes_internas')->nullable();
             $table->string('cantidad_pisos')->nullable();

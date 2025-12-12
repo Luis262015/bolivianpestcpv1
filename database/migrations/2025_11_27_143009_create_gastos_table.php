@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users');
 
             $table->string('concepto');
-            $table->text('detalle');
             $table->double('total');
 
             $table->timestamp('created_at')->useCurrent();

@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('certificados', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('empresa_id')->constrained('empresas');
+            $table->foreignId('user_id')->constrained('users');
             $table->string('qrcode');
             $table->string('firmadigital');
             $table->string('titulo');
@@ -26,8 +28,6 @@ return new class extends Migration
             $table->date('registro');
             $table->text('area');
             $table->text('acciones');
-            $table->foreignId('empresa_id')->constrained('empresas');
-            $table->foreignId('user_id')->constrained('users');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();

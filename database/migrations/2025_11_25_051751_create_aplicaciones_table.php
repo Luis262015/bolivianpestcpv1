@@ -21,6 +21,11 @@ return new class extends Migration
             $table->string('almacenes');
             $table->string('porteria');
             $table->string('policial');
+            $table->string('trampas');
+            $table->string('trampas_cambiar');
+            $table->string('internas');
+            $table->string('externas');
+            $table->string('roedores');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();

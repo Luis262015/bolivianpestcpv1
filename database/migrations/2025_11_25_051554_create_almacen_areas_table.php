@@ -11,15 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pago_empresas', function (Blueprint $table) {
+        Schema::create('almacen_areas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('empresa_id')->constrained('empresas');
-            $table->foreignId('user_id')->constrained('users');
-            $table->double('subtotal');
-            $table->double('iva');
+            $table->foreignId('almacen_id')->constrained('almacenes');
+            $table->string('descripcion');
+            $table->integer('area');
+            $table->integer('visitas');
+            $table->double('precio');
             $table->double('total');
-            $table->double('a_cuenta');
-            $table->double('saldo');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();
@@ -31,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pago_empresas');
+        Schema::dropIfExists('almacen_areas');
     }
 };

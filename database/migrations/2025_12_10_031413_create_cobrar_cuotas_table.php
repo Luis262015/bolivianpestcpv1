@@ -11,17 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('contratos', function (Blueprint $table) {
+        Schema::create('cobrar_cuotas', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre');
-            $table->string('direccion');
-            $table->string('telefono');
-            $table->string('email');
-            $table->string('ciudad');
-            $table->string('almacen');
-            $table->decimal('total', 10, 2);
-            $table->decimal('acuenta', 10, 2);
-            $table->decimal('saldo', 10, 2);
+            $table->foreignId('cuenta_cobrar_id')->constrained('cuentas_cobrar')->cascadeOnDelete();
+            $table->integer('numero_cuota');
+            $table->date('fecha_vencimiento');
+            $table->decimal('monto', 12, 2);
+            $table->enum('estado', ['pendiente', 'pagado', 'vencido'])->default('pendiente');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();
@@ -33,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('contratos');
+        Schema::dropIfExists('cobrar_cuotas');
     }
 };

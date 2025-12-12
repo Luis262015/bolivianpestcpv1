@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('mapa_puntos', function (Blueprint $table) {
+        Schema::create('gasto_financieros', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->string('cuenta');
+            $table->double('total');
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent();
+            // $table->timestamps();
         });
     }
 
@@ -22,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('mapa_puntos');
+        Schema::dropIfExists('gasto_financieros');
     }
 };

@@ -13,11 +13,10 @@ return new class extends Migration
     {
         Schema::create('hoja_tecnicas', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre');
-            $table->string('descripcion')->nullable();
+            $table->foreignId('producto_id')->constrained('productos');
+            $table->string('titulo');
             $table->string('imagen')->nullable();
             $table->string('ruta')->nullable();
-            $table->foreignId('producto_id')->constrained('productos');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();

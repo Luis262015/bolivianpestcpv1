@@ -13,12 +13,11 @@ return new class extends Migration
     {
         Schema::create('contactos', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('almacen_id')->constrained('almacenes');
             $table->string('nombre');
-            $table->string('apellido');
             $table->string('telefono');
             $table->string('email');
             $table->string('ci');
-            $table->foreignId('empresa_id')->constrained('empresas');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();

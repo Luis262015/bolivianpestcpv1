@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('ciudad')->nullable();
             $table->foreignId('empresa_id')->constrained('empresas');
-            $table->foreignId('contrato_id')->constrained('contratos');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();

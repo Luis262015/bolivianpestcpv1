@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('contrato_detalles', function (Blueprint $table) {
+        Schema::create('producto_vencimientos', function (Blueprint $table) {
             $table->id();
-            $table->string('descripcion');
-            $table->decimal('area');
-            $table->decimal('precio_unitario', 10, 2);
-            $table->decimal('total', 10, 2);
-            $table->foreignId('contrato_id')->constrained('contratos');
+            $table->foreignId('producto_id')->constrained('productos');
+            $table->string('codigo');
+            $table->date('vencimiento');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();
@@ -29,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('contrato_detalles');
+        Schema::dropIfExists('producto_vencimientos');
     }
 };

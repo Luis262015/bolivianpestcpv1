@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('empresas', function (Blueprint $table) {
+        Schema::create('trampas', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre');
-            $table->string('direccion');
-            $table->string('telefono');
-            $table->string('email');
-            $table->string('ciudad');
-            $table->boolean('activo')->default(true);
+            $table->foreignId('almacen_id')->constrained('almacenes');
+            $table->foreignId('mapa_id')->constrained('mapas');
+            $table->foreignId('trampa_tipo_id')->constrained('trampa_tipos');
+            $table->integer('posx');
+            $table->integer('posy');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();
@@ -30,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('empresas');
+        Schema::dropIfExists('trampas');
     }
 };

@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('cotizacion_detalles', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('cotizacion_id')->constrained('cotizaciones');
             $table->string('descripcion');
             $table->string('area');
+            $table->integer('cantidad');
+            $table->integer('visitas');
             $table->decimal('precio_unitario', 10, 2);
             $table->decimal('total', 10, 2);
-            $table->foreignId('cotizacion_id')->constrained('cotizaciones');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();

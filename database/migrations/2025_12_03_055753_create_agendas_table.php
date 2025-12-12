@@ -18,7 +18,9 @@ return new class extends Migration
             $table->date('date');                    // fecha de la tarea (yyyy-MM-dd)
             $table->string('color')->default('bg-blue-500');
             $table->enum('status', ['pendiente', 'postergado', 'completado'])->default('pendiente');
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent();
+            // $table->timestamps();
         });
     }
 
