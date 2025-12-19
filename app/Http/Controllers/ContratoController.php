@@ -12,13 +12,52 @@ use Illuminate\Support\Facades\Auth;
 
 class ContratoController extends Controller
 {
+
+  // ARRAY para validacion de datos de formulario
+  private $toValidated = [
+    'nombre' => 'required|string|max:255',
+    'direccion' => 'required|string|max:255',
+    'telefono' => 'required|string|max:20',
+    'email' => 'required|email',
+    'ciudad' => 'required|string|max:100',
+    'total' => 'required|numeric|min:0',
+    'acuenta' => 'required|numeric|min:0',
+    'saldo' => 'required|numeric|min:0',
+
+    'almacenes' => 'required|array|min:1',
+    'almacenes.*.nombre' => 'required|string|max:255',
+
+    'almacenes.*.almacen_trampa' => 'required|array|min:1',
+    'almacenes.*.almacen_trampa.descripcion' => 'required|string|max:255',
+    'almacenes.*.almacen_trampa.cantidad' => 'required|numeric|min:0',
+    'almacenes.*.almacen_trampa.visitas' => 'required|numeric|min:0',
+    'almacenes.*.almacen_trampa.precio' => 'required|numeric|min:0',
+    'almacenes.*.almacen_trampa.total' => 'required|numeric|min:0',
+    'almacenes.*.almacen_trampa.fechas_visitas' => 'required|array|min:1',
+
+    'almacenes.*.almacen_area' => 'required|array|min:1',
+    'almacenes.*.almacen_area.descripcion' => 'required|string|max:255',
+    'almacenes.*.almacen_area.area' => 'required|numeric|min:0',
+    'almacenes.*.almacen_area.visitas' => 'required|numeric|min:0',
+    'almacenes.*.almacen_area.precio' => 'required|numeric|min:0',
+    'almacenes.*.almacen_area.total' => 'required|numeric|min:0',
+    'almacenes.*.almacen_area.fechas_visitas' => 'required|array|min:1',
+    // 'detalles' => 'required|array|min:1',
+    // 'detalles.*.descripcion' => 'required|string',
+    // 'detalles.*.area' => 'required|numeric|min:0',
+    // 'detalles.*.precio_unitario' => 'required|numeric|min:0',
+    // 'detalles.*.total' => 'required|numeric|min:0',
+  ];
+
+
+
   /**
    * Display a listing of the resource.
    */
   public function index()
   {
     //
-    $contratos = Contrato::with('detalles')->get();
+    $contratos = Contrato::with('detalles')->paginate(20);
     return inertia('admin/contrato/lista', ['contratos' => $contratos]);
     // return inertia('admin/contrato/lista');
   }
@@ -29,8 +68,10 @@ class ContratoController extends Controller
   public function create()
   {
     //
-    $contactos = Contacto::orderBy('nombre')->get(['id', 'nombre', 'telefono', 'email']);
-    return inertia('admin/contrato/crear', ['contactos' => $contactos]);
+    // $contactos = Contacto::orderBy('nombre')->get(['id', 'nombre', 'telefono', 'email']);
+    // return inertia('admin/contrato/crear', ['contactos' => $contactos]);
+
+    return inertia('admin/contrato/crear');
   }
 
   /**
@@ -38,28 +79,32 @@ class ContratoController extends Controller
    */
   public function store(Request $request)
   {
-    // dd($request);
-    //
-    $validated = $request->validate([
-      'nombre' => 'required|string|max:255',
-      'direccion' => 'required|string|max:255',
-      'telefono' => 'required|string|max:20',
-      'email' => 'required|email',
-      'ciudad' => 'required|string|max:100',
-      // 'almacen' => 'required|string|max:100',
-      'total' => 'required|numeric|min:0',
-      'acuenta' => 'required|numeric|min:0',
-      'saldo' => 'required|numeric|min:0',
-      'almacenes' => 'required|array|min:1',
-      'almacenes.*.nombre' => 'required|string|max:255',
-      'detalles' => 'required|array|min:1',
-      'detalles.*.descripcion' => 'required|string',
-      'detalles.*.area' => 'required|numeric|min:0',
-      'detalles.*.precio_unitario' => 'required|numeric|min:0',
-      'detalles.*.total' => 'required|numeric|min:0',
-    ]);
 
-    // dd($validated);
+    // dd($request);
+
+    // $validated = $request->validate([
+    //   'nombre' => 'required|string|max:255',
+    //   'direccion' => 'required|string|max:255',
+    //   'telefono' => 'required|string|max:20',
+    //   'email' => 'required|email',
+    //   'ciudad' => 'required|string|max:100',
+    //   // 'almacen' => 'required|string|max:100',
+    //   'total' => 'required|numeric|min:0',
+    //   'acuenta' => 'required|numeric|min:0',
+    //   'saldo' => 'required|numeric|min:0',
+    //   'almacenes' => 'required|array|min:1',
+    //   'almacenes.*.nombre' => 'required|string|max:255',
+    //   'detalles' => 'required|array|min:1',
+    //   'detalles.*.descripcion' => 'required|string',
+    //   'detalles.*.area' => 'required|numeric|min:0',
+    //   'detalles.*.precio_unitario' => 'required|numeric|min:0',
+    //   'detalles.*.total' => 'required|numeric|min:0',
+    // ]);
+
+    $validated = $request->validate($this->toValidated);
+
+    // dd($request);
+    dd($validated);
 
     $totalSuma = 0;
     foreach ($validated['detalles'] as $detalle) {

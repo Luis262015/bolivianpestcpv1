@@ -1,3 +1,4 @@
+import CustomPagination from '@/components/CustomPagination';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -9,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -18,21 +19,24 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-interface Cotizacion {
+interface Contrato {
   id: number;
   nombre: string;
   total: number;
   acuenta: number;
   saldo: number;
-  // ... otros campos
   detalles: { id: number; descripcion: string /* ... */ }[];
 }
 
-interface Props {
-  contratos: Cotizacion[];
+interface ContratosPaginate {
+  data: Contrato[];
+  links: { url: string | null; label: string; active: boolean }[];
 }
 
-export default function Lista({ contratos }: Props) {
+export default function Lista() {
+  const { processing, delete: destroy } = useForm();
+  const { contratos } = usePage<{ contratos: ContratosPaginate }>().props;
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="contratos" />
@@ -52,7 +56,7 @@ export default function Lista({ contratos }: Props) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {contratos.map((cot) => (
+            {contratos.data.map((cot) => (
               <TableRow key={cot.id}>
                 <TableCell>{cot.nombre}</TableCell>
                 <TableCell>{cot.total}</TableCell>
@@ -68,26 +72,10 @@ export default function Lista({ contratos }: Props) {
             ))}
           </TableBody>
         </Table>
+        <div className="my-2">
+          <CustomPagination links={contratos.links} />
+        </div>
       </div>
     </AppLayout>
   );
 }
-
-// import AppLayout from '@/layouts/app-layout';
-// import { type BreadcrumbItem } from '@/types';
-// import { Head } from '@inertiajs/react';
-
-// const breadcrumbs: BreadcrumbItem[] = [
-//   {
-//     title: 'Contratos',
-//     href: '/contratos',
-//   },
-// ];
-
-// export default function Lista() {
-//   return (
-//     <AppLayout breadcrumbs={breadcrumbs}>
-//       <Head title="Contratos" />
-//     </AppLayout>
-//   );
-// }

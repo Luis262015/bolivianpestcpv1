@@ -8,13 +8,6 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
@@ -25,11 +18,11 @@ const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Contratos', href: '/contratos' },
 ];
 
-interface Contacto {
-  id: number;
-  nombre: string;
-  telefono?: string;
-}
+// interface Contacto {
+//   id: number;
+//   nombre: string;
+//   telefono?: string;
+// }
 
 interface AlmacenTrampa {
   descripcion: string;
@@ -52,7 +45,11 @@ interface AlmacenArea {
 interface Almacen {
   id?: number;
   nombre: string;
-  contacto_id: number;
+  direccion: string;
+  telefono: string;
+  email: string;
+  ciudad: string;
+  // contacto_id: number;
   almacen_trampa: AlmacenTrampa;
   almacen_area: AlmacenArea;
 }
@@ -66,17 +63,17 @@ interface Cotizacion {
   ciudad: string;
   fecha_fin_contrato: string;
   total: number;
-  acuenta: number;
-  saldo: number;
+  // acuenta: number;
+  // saldo: number;
   almacenes: Almacen[];
 }
 
 interface Props {
   cotizacion?: Cotizacion;
-  contactos: Contacto[];
+  // contactos: Contacto[];
 }
 
-export default function CotizacionForm({ cotizacion, contactos }: Props) {
+export default function CotizacionForm({ cotizacion }: Props) {
   const { data, setData, post, put, processing, errors } = useForm<Cotizacion>({
     nombre: cotizacion?.nombre ?? '',
     direccion: cotizacion?.direccion ?? '',
@@ -85,15 +82,19 @@ export default function CotizacionForm({ cotizacion, contactos }: Props) {
     ciudad: cotizacion?.ciudad ?? '',
     fecha_fin_contrato: cotizacion?.fecha_fin_contrato ?? '',
     total: cotizacion?.total ?? 0,
-    acuenta: cotizacion?.acuenta ?? 0,
-    saldo: cotizacion?.saldo ?? 0,
+    // acuenta: cotizacion?.acuenta ?? 0,
+    // saldo: cotizacion?.saldo ?? 0,
 
     almacenes:
       cotizacion?.almacenes?.length > 0
         ? cotizacion.almacenes.map((a) => ({
             id: a.id,
             nombre: a.nombre ?? '',
-            contacto_id: a.contacto_id ?? contactos[0]?.id ?? 0,
+            direccion: a.direccion ?? '',
+            telefono: a.telefono ?? '',
+            email: a.email ?? '',
+            ciudad: a.ciudad ?? '',
+            // contacto_id: a.contacto_id ?? contactos[0]?.id ?? 0,
             almacen_trampa: {
               descripcion:
                 a.almacen_trampa?.descripcion ??
@@ -118,7 +119,11 @@ export default function CotizacionForm({ cotizacion, contactos }: Props) {
         : [
             {
               nombre: '',
-              contacto_id: contactos[0]?.id ?? 0,
+              direccion: '',
+              telefono: '',
+              email: '',
+              ciudad: '',
+              // contacto_id: contactos[0]?.id ?? 0,
               almacen_trampa: {
                 descripcion: 'Control de roedores con trampas',
                 cantidad: 0,
@@ -260,14 +265,18 @@ export default function CotizacionForm({ cotizacion, contactos }: Props) {
   }, [data.almacenes]);
 
   const granTotal = totalAlmacenes;
-  const saldoCalculado = granTotal - (data.acuenta ?? 0);
+  // const saldoCalculado = granTotal - (data.acuenta ?? 0);
 
   const addAlmacen = () => {
     setData('almacenes', [
       ...data.almacenes,
       {
         nombre: '',
-        contacto_id: contactos[0]?.id ?? 0,
+        direccion: '',
+        telefono: '',
+        email: '',
+        ciudad: '',
+        // contacto_id: contactos[0]?.id ?? 0,
         almacen_trampa: {
           descripcion: 'Control de roedores con trampas',
           cantidad: 0,
@@ -302,7 +311,7 @@ export default function CotizacionForm({ cotizacion, contactos }: Props) {
     const payload = {
       ...data,
       total: granTotal,
-      saldo: saldoCalculado,
+      // saldo: saldoCalculado,
     };
 
     if (cotizacion?.id) {
@@ -421,7 +430,7 @@ export default function CotizacionForm({ cotizacion, contactos }: Props) {
                         </div>
                       </CardHeader>
 
-                      <CardContent className="space-y-8">
+                      <CardContent className="space-y-4">
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                           <div>
                             <Label>Nombre del almacén</Label>
@@ -437,6 +446,58 @@ export default function CotizacionForm({ cotizacion, contactos }: Props) {
                             />
                           </div>
                           <div>
+                            <Label>Direccion</Label>
+                            <Input
+                              value={almacen.direccion}
+                              onChange={(e) =>
+                                setData(
+                                  `almacenes.${index}.direccion` as any,
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Ej. Almacén Central"
+                            />
+                          </div>
+                          <div>
+                            <Label>Telefono</Label>
+                            <Input
+                              value={almacen.direccion}
+                              onChange={(e) =>
+                                setData(
+                                  `almacenes.${index}.direccion` as any,
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Ej. Almacén Central"
+                            />
+                          </div>
+                          <div>
+                            <Label>Email</Label>
+                            <Input
+                              value={almacen.direccion}
+                              onChange={(e) =>
+                                setData(
+                                  `almacenes.${index}.direccion` as any,
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Ej. Almacén Central"
+                            />
+                          </div>
+                          <div>
+                            <Label>Ciudad</Label>
+                            <Input
+                              value={almacen.direccion}
+                              onChange={(e) =>
+                                setData(
+                                  `almacenes.${index}.direccion` as any,
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Ej. Almacén Central"
+                            />
+                          </div>
+                          {/* <div>
                             <Label>Contacto responsable</Label>
                             <Select
                               value={String(almacen.contacto_id)}
@@ -459,16 +520,16 @@ export default function CotizacionForm({ cotizacion, contactos }: Props) {
                                 ))}
                               </SelectContent>
                             </Select>
-                          </div>
+                          </div> */}
                         </div>
 
                         {/* === SERVICIO POR TRAMPAS === */}
-                        <div className="rounded-lg border bg-muted/40 p-6">
+                        <div className="rounded-lg border bg-muted/40 p-4">
                           <h4 className="mb-4 font-semibold text-primary">
                             Servicio por Trampas
                           </h4>
                           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                            <div className="md:col-span-2">
+                            <div className="">
                               <Label>Descripción</Label>
                               <Input
                                 value={almacen.almacen_trampa.descripcion}
@@ -573,12 +634,12 @@ export default function CotizacionForm({ cotizacion, contactos }: Props) {
                         </div>
 
                         {/* === SERVICIO POR ÁREA === */}
-                        <div className="rounded-lg border bg-muted/40 p-6">
+                        <div className="rounded-lg border bg-muted/40 p-4">
                           <h4 className="mb-4 font-semibold text-primary">
                             Servicio por Área (m²)
                           </h4>
                           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                            <div className="md:col-span-2">
+                            <div className="">
                               <Label>Descripción</Label>
                               <Input
                                 value={almacen.almacen_area.descripcion}
@@ -702,11 +763,11 @@ export default function CotizacionForm({ cotizacion, contactos }: Props) {
                 <Card className="border-2 bg-primary/5">
                   <CardContent className="pt-8">
                     <div className="space-y-6 text-right">
-                      <div className="text-3xl font-bold text-primary">
+                      <div className="text-2xl font-bold text-primary">
                         TOTAL DEL CONTRATO: Bs. {granTotal.toFixed(2)}
                       </div>
 
-                      <div className="flex items-center justify-end gap-8">
+                      {/* <div className="flex items-center justify-end gap-8">
                         <Label className="text-lg">A cuenta:</Label>
                         <Input
                           type="number"
@@ -723,7 +784,7 @@ export default function CotizacionForm({ cotizacion, contactos }: Props) {
                         >
                           Bs. {saldoCalculado.toFixed(2)}
                         </span>
-                      </div>
+                      </div> */}
                     </div>
                   </CardContent>
                 </Card>

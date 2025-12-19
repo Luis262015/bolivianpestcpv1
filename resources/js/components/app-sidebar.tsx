@@ -25,14 +25,13 @@ import {
   Locate,
   NotebookPen,
   NotebookTabs,
-  ShieldCheck,
   ShoppingBasket,
+  ShoppingCart,
   SquareChartGantt,
   TicketPercent,
   TrendingDown,
   TrendingUp,
   Users,
-  Warehouse,
   Wrench,
 } from 'lucide-react';
 import AppLogo from './app-logo';
@@ -51,10 +50,14 @@ const mainNavItems: NavItem[] = [
 
 const mainNavItems2: MainNavItem[] = [
   {
-    title: 'Clientes',
+    title: 'Empresas',
     icon: Factory,
     down: true,
     subItems: [
+      {
+        title: 'Lista',
+        href: '/empresas',
+      },
       {
         title: 'Contratos',
         href: '/contratos',
@@ -63,18 +66,13 @@ const mainNavItems2: MainNavItem[] = [
         title: 'Cotizaciones',
         href: '/cotizaciones',
       },
-
-      {
-        title: 'Lista',
-        href: '/empresas',
-      },
     ],
   },
-  {
-    title: 'Almacenes',
-    icon: Warehouse,
-    href: '/almacenes',
-  },
+  // {
+  //   title: 'Almacenes',
+  //   icon: Warehouse,
+  //   href: '/almacenes',
+  // },
   {
     title: 'Cronogramas',
     icon: CalendarDays,
@@ -102,6 +100,10 @@ const mainNavItems2: MainNavItem[] = [
         href: '/seguimientos',
       },
       {
+        title: 'Tipos',
+        href: '/tipos',
+      },
+      {
         title: 'Biologicos',
         href: '/biologicos',
       },
@@ -122,30 +124,35 @@ const mainNavItems2: MainNavItem[] = [
         href: '/signos',
       },
       {
-        title: 'Tipos',
-        href: '/tipos',
+        title: 'Especies',
+        href: '/especies',
       },
     ],
   },
-  {
-    title: 'Certificados',
-    icon: ShieldCheck,
-    href: '/certificados',
-  },
+  // {
+  //   title: 'Certificados',
+  //   icon: ShieldCheck,
+  //   href: '/certificados',
+  // },
 ];
 
 // Contabilidad
 
 const mainNavItems3: MainNavItem[] = [
   {
-    title: 'Cuentas por Cobrar',
-    icon: TrendingUp,
-    href: '/cuentasporcobrar',
-  },
-  {
-    title: 'Cuentas por Pagar',
-    icon: TrendingDown,
-    href: '/cuentasporpagar',
+    title: 'Ventas',
+    icon: ShoppingCart,
+    down: true,
+    subItems: [
+      {
+        title: 'Realizar Venta',
+        href: '/ventas/create',
+      },
+      {
+        title: 'Lista',
+        href: '/ventas',
+      },
+    ],
   },
   {
     title: 'Compras',
@@ -161,6 +168,17 @@ const mainNavItems3: MainNavItem[] = [
         href: '/compras',
       },
     ],
+  },
+
+  {
+    title: 'Cuentas por Cobrar',
+    icon: TrendingUp,
+    href: '/cuentasporcobrar',
+  },
+  {
+    title: 'Cuentas por Pagar',
+    icon: TrendingDown,
+    href: '/cuentasporpagar',
   },
 
   {
@@ -187,13 +205,13 @@ const mainNavItems3: MainNavItem[] = [
         title: 'Agregar Producto',
         href: '/productos/create',
       },
-      //   {
-      //     title: 'Carga Masiva',
-      //     href: '/productos/upload',
-      //   },
       {
         title: 'Lista',
         href: '/productos',
+      },
+      {
+        title: 'Unidades',
+        href: '/unidades',
       },
       {
         title: 'Categorias',
@@ -251,23 +269,17 @@ const mainNavItems4: MainNavItem[] = [
         title: 'Lista',
         href: '/usuarios',
       },
+      {
+        title: 'Roles',
+        href: '/roles',
+      },
     ],
   },
 
   {
     title: 'Configuraciones',
     icon: Wrench,
-    down: true,
-    subItems: [
-      {
-        title: 'Roles',
-        href: '/roles',
-      },
-      {
-        title: 'Configs',
-        href: '/configs',
-      },
-    ],
+    href: '/configs',
   },
 ];
 

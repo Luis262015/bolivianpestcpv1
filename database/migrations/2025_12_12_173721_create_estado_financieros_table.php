@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('estado_financieros', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('estado_id')->constrained('estadoresultados');
-            $table->foreignId('gasto_id')->constrained('gastos_financieros');
+            $table->foreignId('estado_id')->constrained('estado_resultados');
+            $table->foreignId('gasto_id')->constrained('gasto_financieros');
             $table->double('total');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();

@@ -49,11 +49,11 @@ export default function Lista() {
       <Head title="Empresas" />
 
       <div className="m-4">
-        <Link href={'/empresas/create'}>
+        {/* <Link href={'/empresas/create'}>
           <Button className="mb-4" size="sm">
             Nueva Empresa
           </Button>
-        </Link>
+        </Link> */}
         <div className="mb-2 text-center text-2xl">Lista de Empresas</div>
         {empresas.data.length > 0 && (
           <Table>

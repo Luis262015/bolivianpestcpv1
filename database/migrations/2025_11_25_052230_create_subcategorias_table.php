@@ -14,8 +14,6 @@ return new class extends Migration
         Schema::create('subcategorias', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
-            $table->string('imagen')->nullable();
-            $table->integer('orden')->nullable();
             $table->foreignId('categoria_id')->constrained('categorias');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();

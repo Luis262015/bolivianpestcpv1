@@ -8,4 +8,6 @@ class Unidad extends Model
 {
     //
     protected $table = 'unidades';
+
+    protected $guarded = [];
 }

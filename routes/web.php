@@ -14,6 +14,7 @@ use App\Http\Controllers\CuentasPorPagarController;
 use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\EppsController;
+use App\Http\Controllers\EspeciesController;
 use App\Http\Controllers\EtiquetasController;
 use App\Http\Controllers\GastosController;
 use App\Http\Controllers\IngresosController;
@@ -29,6 +30,7 @@ use App\Http\Controllers\SeguimientoController;
 use App\Http\Controllers\SignosController;
 use App\Http\Controllers\SubcategoriasController;
 use App\Http\Controllers\TiposController;
+use App\Http\Controllers\UnidadesController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -74,6 +76,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('protecciones', ProteccionesController::class);
     Route::resource('signos', SignosController::class);
     Route::resource('tipos', TiposController::class);
+    Route::resource('especies', EspeciesController::class);
+    Route::resource('unidades', UnidadesController::class);
     Route::get('/certificados/pdf', [CertificadosController::class, 'pdf'])->name('certificados.pdf');
     Route::resource('certificados', CertificadosController::class);
 
