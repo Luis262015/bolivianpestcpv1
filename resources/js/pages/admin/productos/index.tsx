@@ -25,9 +25,30 @@ import { useState } from 'react';
 
 // ----- INTERFACES
 
+interface Categoria {
+  id: number;
+  nombre: string;
+}
+
+interface Marca {
+  id: number;
+  nombre: string;
+}
+
+interface Unidad {
+  id: number;
+  nombre: string;
+}
+
 interface Item {
   id: number;
   nombre: string;
+  descripcion: string;
+  unidad_valor: string;
+  stock_min: string;
+  categoria: Categoria;
+  marca: Marca;
+  unidad: Unidad;
 }
 
 interface ItemsPaginate {
@@ -35,10 +56,15 @@ interface ItemsPaginate {
   links: { url: string | null; label: string; active: boolean }[];
 }
 
+interface Role {
+  id: number;
+  name: string;
+}
+
 // ------ CONSTANTES
 
-const titlePage = 'EPPS';
-const urlPage = '/epps';
+const titlePage = 'Usuarios';
+const urlPage = '/usuarios';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: titlePage, href: urlPage }];
 
@@ -50,7 +76,17 @@ export default function Index() {
   }>().props;
 
   const [editItem, setEditItem] = useState<Item | null>(null);
+
+  const [nombre, setNombre] = useState('');
+  const [descripcion, setDescripcion] = useState('');
+  const [unidadValor, setUnidadValor] = useState('');
+  const [stockMin, setStockMin] = useState('');
+
   const [itemName, setItemName] = useState('');
+  const [itemDir, setItemDir] = useState('');
+  const [itemTel, setItemTel] = useState('');
+  const [itemEmail, setItemEmail] = useState('');
+  const [itemCon, setItemCon] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
   const handleCreate = (e: React.FormEvent) => {
@@ -61,10 +97,18 @@ export default function Index() {
       urlPage,
       {
         nombre: itemName,
+        direccion: itemDir,
+        telefono: itemTel,
+        email: itemEmail,
+        contacto: itemCon,
       },
       {
         onSuccess: () => {
           setItemName('');
+          setItemDir('');
+          setItemTel('');
+          setItemEmail('');
+          setItemCon('');
           setIsOpen(false);
         },
       },
@@ -79,11 +123,19 @@ export default function Index() {
       `${urlPage}/${editItem.id}`,
       {
         nombre: itemName,
+        direccion: itemDir,
+        telefono: itemTel,
+        email: itemEmail,
+        contacto: itemCon,
       },
       {
         onSuccess: () => {
           setEditItem(null);
           setItemName('');
+          setItemDir('');
+          setItemTel('');
+          setItemEmail('');
+          setItemCon('');
           setIsOpen(false);
         },
       },
@@ -99,12 +151,20 @@ export default function Index() {
   const openEditModal = (item: Item) => {
     setEditItem(item);
     setItemName(item.nombre);
+    setItemDir(item.direccion);
+    setItemTel(item.telefono);
+    setItemEmail(item.email);
+    setItemCon(item.contacto);
     setIsOpen(true);
   };
 
   const openCreateModal = () => {
     setEditItem(null);
     setItemName('');
+    setItemDir('');
+    setItemTel('');
+    setItemEmail('');
+    setItemCon('');
     setIsOpen(true);
   };
 
@@ -113,8 +173,8 @@ export default function Index() {
       <Head title={titlePage} />
 
       <div className="m-4">
-        <div className="mb-4 flex items-center">
-          <h1 className="me-5 text-2xl font-bold">Gestión de {titlePage}</h1>
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Gestión de {titlePage}</h1>
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
               <Button onClick={openCreateModal}>
@@ -123,18 +183,56 @@ export default function Index() {
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>{editItem ? 'Editar' : 'Crear'}</DialogTitle>
+                <DialogTitle>
+                  {editItem ? 'Editar Proveedor' : 'Nuevo Proveedor'}
+                </DialogTitle>
               </DialogHeader>
               <form
                 onSubmit={editItem ? handleEdit : handleCreate}
                 className="space-y-4"
               >
                 <div>
-                  <Label htmlFor="name">Nombre: {titlePage}</Label>
+                  <Label htmlFor="name">Nombre:</Label>
                   <Input
                     id="nombre"
                     value={itemName}
                     onChange={(e) => setItemName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="name">Direccion:</Label>
+                  <Input
+                    id="direccion"
+                    value={itemDir}
+                    onChange={(e) => setItemDir(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="name">Telefono:</Label>
+                  <Input
+                    id="telefono"
+                    value={itemTel}
+                    onChange={(e) => setItemTel(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="name">Email:</Label>
+                  <Input
+                    id="email"
+                    value={itemEmail}
+                    onChange={(e) => setItemEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="name">Contacto:</Label>
+                  <Input
+                    id="contacto"
+                    value={itemCon}
+                    onChange={(e) => setItemCon(e.target.value)}
                     required
                   />
                 </div>

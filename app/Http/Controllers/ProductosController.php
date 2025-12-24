@@ -7,6 +7,7 @@ use App\Models\Etiqueta;
 use App\Models\Marca;
 use App\Models\Producto;
 use App\Models\Subcategoria;
+use App\Models\Unidad;
 use Illuminate\Http\Request;
 
 class ProductosController extends Controller
@@ -34,7 +35,8 @@ class ProductosController extends Controller
     $subcategorias = Subcategoria::all('id', 'nombre');
     $marcas = Marca::all('id', 'nombre');
     $etiquetas = Etiqueta::all('id', 'nombre');
-    return inertia('admin/productos/crear', ['producto' => new Producto(), 'categorias' => $categorias, 'subcategorias' => $subcategorias, 'marcas' => $marcas, 'etiquetas' => $etiquetas, 'etiquetas_sugeridas' => ['Nuevo', 'Oferta', 'Envío Gratis', 'Orgánico', 'Importado'],]);
+    $unidades = Unidad::all();
+    return inertia('admin/productos/crear', ['producto' => new Producto(), 'categorias' => $categorias, 'subcategorias' => $subcategorias, 'marcas' => $marcas, 'etiquetas' => $etiquetas, 'etiquetas_sugeridas' => ['Nuevo', 'Oferta', 'Envío Gratis', 'Orgánico', 'Importado'], 'unidades' => $unidades]);
   }
 
   public function store(Request $request)

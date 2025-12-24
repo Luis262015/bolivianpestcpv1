@@ -15,7 +15,7 @@ export default function Index() {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Configuraciones" />
-      <div className="mx-3 space-y-6">
+      <div className="m-5 space-y-6">
         <HeadingSmall
           title="Appearance settings"
           description="Update your account's appearance settings"

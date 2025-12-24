@@ -22,6 +22,10 @@ const breadcrumbs: BreadcrumbItem[] = [
     title: 'Documetos',
     href: '/documentos',
   },
+  {
+    title: 'Subir',
+    href: '/documentos/create',
+  },
 ];
 
 export default function Crear() {

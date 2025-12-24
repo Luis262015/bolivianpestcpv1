@@ -608,9 +608,9 @@ export default function Lista() {
           </div>
 
           {/* Lista de tareas */}
-          <div className="hidden lg:col-span-1 lg:block">
+          {/* <div className="hidden lg:col-span-1 lg:block">
             <TaskList />
-          </div>
+          </div> */}
         </div>
       </div>
 

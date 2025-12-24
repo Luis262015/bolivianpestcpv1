@@ -12,6 +12,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
+import { Label } from '@radix-ui/react-dropdown-menu';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { MultiSelect } from './MultiSelect';
@@ -47,13 +48,16 @@ interface Etiqueta {
   nombre: string;
 }
 
+interface Unidad {
+  id: number;
+  nombre: string;
+}
+
 interface ProductoFormData {
   nombre: string;
-  imagen: string;
-  orden: string;
-  codigo: string;
   descripcion: string;
   ruta: string;
+  unidad_id: string;
   marca_id: string;
   categoria_id: string;
   subcategoria_id: string;
@@ -61,10 +65,11 @@ interface ProductoFormData {
 }
 
 export default function Create() {
-  const { categorias, marcas, etiquetas } = usePage<{
+  const { categorias, marcas, etiquetas, unidades } = usePage<{
     categorias: Categoria[];
     marcas: Marca[];
     etiquetas: Etiqueta[];
+    unidades: Unidad[];
   }>().props;
 
   // const { subcategorias } = usePage<{ subcategorias: Subcategoria[] }>().props;
@@ -72,11 +77,9 @@ export default function Create() {
   const { data, setData, post, processing, errors } = useForm<ProductoFormData>(
     {
       nombre: '',
-      imagen: '',
-      orden: '',
-      codigo: '',
       descripcion: '',
       ruta: '',
+      unidad_id: '',
       marca_id: '',
       categoria_id: '',
       subcategoria_id: '',
@@ -145,10 +148,12 @@ export default function Create() {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Productos | Create" />
 
-      <div className="w-8/12 p-4">
+      <div className="mx-auto w-8/12 p-4">
+        <div className="my-2 text-2xl font-bold">Nuevo Producto</div>
         <form onSubmit={handleSumit} method="post" className="space-y-4">
           {/* NOMBRE */}
           <div className="gap-1.5">
+            <Label>Nombre:</Label>
             <Input
               placeholder="Nombre"
               value={data.nombre}
@@ -161,7 +166,8 @@ export default function Create() {
             )}
           </div>
           {/* ORDEN */}
-          <div className="gap-1.5">
+          {/* <div className="gap-1.5">
+            <Label>Orden:</Label>
             <Input
               type="number"
               placeholder="Orden"
@@ -173,9 +179,9 @@ export default function Create() {
                 {errors.orden}
               </div>
             )}
-          </div>
+          </div> */}
           {/* CODIGO */}
-          <div className="gap-1.5">
+          {/* <div className="gap-1.5">
             <Input
               placeholder="Codigo"
               value={data.codigo}
@@ -186,10 +192,11 @@ export default function Create() {
                 {errors.codigo}
               </div>
             )}
-          </div>
+          </div> */}
 
           {/* DESCRIPCION */}
           <div className="gap-1.5">
+            <Label>Descripción</Label>
             <Input
               placeholder="Descripcion"
               value={data.descripcion}
@@ -202,8 +209,39 @@ export default function Create() {
             )}
           </div>
 
+          {/* UNIDAD */}
+          <div className="gap-1.5">
+            <Label>Seleccion de unidad</Label>
+            <Select
+              onValueChange={(value) => setData('unidad_id', value)}
+              value={data.unidad_id}
+              disabled={processing}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione una unidad"></SelectValue>
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Unidad</SelectLabel>
+                  {unidades.map((marca) => (
+                    <SelectItem key={marca.id} value={String(marca.id)}>
+                      {marca.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            {errors.marca_id && (
+              <div className="mt-1 flex items-center text-sm text-red-500">
+                {errors.marca_id}
+              </div>
+            )}
+          </div>
+
           {/* CATEGORIA */}
           <div className="gap-1.5">
+            <Label>Selección de categoria</Label>
             <Select
               value={data.categoria_id}
               onValueChange={(value) => setData('categoria_id', value)}
@@ -229,6 +267,7 @@ export default function Create() {
           </div>
           {/* SUBCATEGORIAS */}
           <div className="gap-1.5">
+            <Label>Selección de subcategoria</Label>
             <Select
               value={data.subcategoria_id}
               onValueChange={(value) => setData('subcategoria_id', value)}
@@ -274,13 +313,14 @@ export default function Create() {
           </div>
           {/* MARCA */}
           <div className="gap-1.5">
+            <Label>Selección de marca</Label>
             <Select
               onValueChange={(value) => setData('marca_id', value)}
               value={data.marca_id}
               disabled={processing}
             >
               <SelectTrigger>
-                <SelectValue></SelectValue>
+                <SelectValue placeholder="Seleccione una marca"></SelectValue>
               </SelectTrigger>
 
               <SelectContent>
@@ -305,6 +345,7 @@ export default function Create() {
             {/* <label className="mb-1 block text-sm font-medium text-gray-700">
               Etiquetas
             </label> */}
+            <Label>Selecion de etiquetas</Label>
             <MultiSelect
               opciones={etiquetas}
               seleccionadas={data.etiqueta_ids}

@@ -11,7 +11,7 @@ class ProveedoresController extends Controller
   public function index()
   {
     $proveedores = Proveedor::paginate(20);
-    return inertia('admin/proveedores/lista', ['proveedores' => $proveedores]);
+    return inertia('admin/proveedores/index', ['items' => $proveedores]);
   }
 
   public function create()

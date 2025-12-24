@@ -13,8 +13,10 @@ class UsersController extends Controller
 {
   public function index()
   {
+    // $roles = Role::select('id', 'name')->where('name', '!=', 'superadmin')->get();
     $usuarios = User::select('id', 'name', 'email')->with('roles')->paginate(20);
-    return inertia('admin/usuarios/lista', ['users' => $usuarios]);
+    $roles = Role::select('id', 'name')->where('name', '!=', 'superadmin')->get();
+    return inertia('admin/usuarios/index', ['users' => $usuarios, 'roles' => $roles]);
   }
 
   public function create()
@@ -25,8 +27,11 @@ class UsersController extends Controller
 
   public function store(Request $request)
   {
+
+    // dd($request);
+
     $validated = $request->validate([
-      'name' => 'required|string|max:255',
+      'name' => 'required|string|min:5|max:255',
       'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
       'password' => ['required', 'confirmed', Rules\Password::defaults()],
       'role' => ['required', Rule::exists('roles', 'id')->whereNot('name', 'superadmin')],

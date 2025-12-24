@@ -262,11 +262,7 @@ const mainNavItems4: MainNavItem[] = [
     down: true,
     subItems: [
       {
-        title: 'Agregar Usuario',
-        href: '/usuarios/create',
-      },
-      {
-        title: 'Lista',
+        title: 'Usuarios',
         href: '/usuarios',
       },
       {

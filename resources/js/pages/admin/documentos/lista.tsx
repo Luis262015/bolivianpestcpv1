@@ -68,8 +68,8 @@ export default function Lista() {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Documentos" />
-      <div className="mx-auto max-w-7xl px-4 py-10">
-        <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="max-w-7xl px-4 py-10">
+        <div className="mb-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
           <h1 className="text-3xl font-bold">Mis Documentos</h1>
           <Button asChild>
             <a href="/documentos/create">+ Subir nuevo</a>
@@ -84,7 +84,8 @@ export default function Lista() {
             className="max-w-md"
           />
         </div>
-
+      </div>
+      <div className="mx-auto max-w-7xl px-4 py-10">
         {documents.data.length === 0 ? (
           <div className="py-16 text-center">
             <p className="text-lg text-gray-500">No hay documentos aún</p>

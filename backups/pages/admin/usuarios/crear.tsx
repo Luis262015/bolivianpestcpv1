@@ -22,7 +22,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     href: '/usuarios',
   },
   {
-    title: 'Usuarios',
+    title: 'Crear',
     href: '/usuarios/create',
   },
 ];
@@ -61,6 +61,7 @@ export default function Create() {
       <div className="w-8/12 p-4">
         <form onSubmit={handleSumit} method="post" className="space-y-4">
           <div className="gap-1.5">
+            <Label>Nombre:</Label>
             <Input
               placeholder="Nombre"
               value={data.name}
@@ -73,6 +74,7 @@ export default function Create() {
             )}
           </div>
           <div className="gap-1.5">
+            <Label>Email</Label>
             <Input
               type="email"
               placeholder="Email"
@@ -87,6 +89,7 @@ export default function Create() {
           </div>
 
           <div className="grid gap-2">
+            <Label>Password</Label>
             <Input
               id="password"
               type="password"
@@ -101,6 +104,7 @@ export default function Create() {
           </div>
 
           <div className="grid gap-2">
+            <Label>Confirmar Password</Label>
             <Input
               id="password_confirmation"
               type="password"
@@ -115,6 +119,7 @@ export default function Create() {
           </div>
 
           <div className="gap-1.5">
+            <Label>Seleccion de rol</Label>
             <Select
               onValueChange={(value) => setData('role', value)}
               value={data.role}

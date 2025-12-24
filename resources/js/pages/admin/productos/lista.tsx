@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { SquarePen, Trash2 } from 'lucide-react';
+import { Plus, SquarePen, Trash2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -64,12 +64,16 @@ export default function Index() {
       <Head title="Productos | List" />
 
       <div className="m-4">
-        <Link href={'/productos/create'}>
-          <Button className="mb-4" size="sm">
-            Nuevo Producto
-          </Button>
-        </Link>
-        <div className="mb-2 text-center text-2xl">Lista de productos</div>
+        <div className="flex items-center">
+          <div className="me-5 mb-2 text-center text-2xl">
+            Lista de productos
+          </div>
+          <Link href={'/productos/create'}>
+            <Button className="mb-4" size="sm">
+              <Plus className="mr-2 h-4 w-4" /> Nuevo Producto
+            </Button>
+          </Link>
+        </div>
         {productos.data.length > 0 && (
           <Table>
             <TableHeader>
