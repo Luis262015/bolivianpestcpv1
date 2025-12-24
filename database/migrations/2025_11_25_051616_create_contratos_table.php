@@ -6,28 +6,28 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
-    {
-        Schema::create('contratos', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('empresa_id')->constrained('empresas');
-            $table->decimal('total', 10, 2);
-            $table->decimal('acuenta', 10, 2);
-            $table->decimal('saldo', 10, 2);
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
-            // $table->timestamps();
-        });
-    }
+  /**
+   * Run the migrations.
+   */
+  public function up(): void
+  {
+    Schema::create('contratos', function (Blueprint $table) {
+      $table->id();
+      $table->foreignId('empresa_id')->constrained('empresas');
+      $table->decimal('total', 10, 2);
+      $table->decimal('acuenta', 10, 2);
+      $table->decimal('saldo', 10, 2);
+      $table->timestamp('created_at')->useCurrent();
+      $table->timestamp('updated_at')->useCurrent();
+      // $table->timestamps();
+    });
+  }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('contratos');
-    }
+  /**
+   * Reverse the migrations.
+   */
+  public function down(): void
+  {
+    Schema::dropIfExists('contratos');
+  }
 };

@@ -56,7 +56,7 @@ interface Unidad {
 interface ProductoFormData {
   nombre: string;
   descripcion: string;
-  ruta: string;
+  unidad_valor: string;
   unidad_id: string;
   marca_id: string;
   categoria_id: string;
@@ -78,7 +78,7 @@ export default function Create() {
     {
       nombre: '',
       descripcion: '',
-      ruta: '',
+      unidad_valor: '',
       unidad_id: '',
       marca_id: '',
       categoria_id: '',
@@ -208,35 +208,46 @@ export default function Create() {
               </div>
             )}
           </div>
-
           {/* UNIDAD */}
           <div className="gap-1.5">
-            <Label>Seleccion de unidad</Label>
-            <Select
-              onValueChange={(value) => setData('unidad_id', value)}
-              value={data.unidad_id}
-              disabled={processing}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccione una unidad"></SelectValue>
-              </SelectTrigger>
+            <Label>Unidad: </Label>
+            <div className="flex items-center">
+              <Input
+                placeholder="Cantidad"
+                value={data.unidad_valor}
+                onChange={(e) => setData('unidad_valor', e.target.value)}
+              ></Input>
+              {errors.unidad_valor && (
+                <div className="mt-1 flex items-center text-sm text-red-500">
+                  {errors.unidad_valor}
+                </div>
+              )}
+              <Select
+                onValueChange={(value) => setData('unidad_id', value)}
+                value={data.unidad_id}
+                disabled={processing}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione una unidad"></SelectValue>
+                </SelectTrigger>
 
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Unidad</SelectLabel>
-                  {unidades.map((marca) => (
-                    <SelectItem key={marca.id} value={String(marca.id)}>
-                      {marca.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            {errors.marca_id && (
-              <div className="mt-1 flex items-center text-sm text-red-500">
-                {errors.marca_id}
-              </div>
-            )}
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Unidad</SelectLabel>
+                    {unidades.map((marca) => (
+                      <SelectItem key={marca.id} value={String(marca.id)}>
+                        {marca.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              {errors.marca_id && (
+                <div className="mt-1 flex items-center text-sm text-red-500">
+                  {errors.marca_id}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* CATEGORIA */}

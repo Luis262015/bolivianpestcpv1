@@ -6,28 +6,28 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
-    {
-        Schema::create('hoja_tecnicas', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('producto_id')->constrained('productos');
-            $table->string('titulo');
-            $table->string('imagen')->nullable();
-            $table->string('ruta')->nullable();
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
-            // $table->timestamps();
-        });
-    }
+  /**
+   * Run the migrations.
+   */
+  public function up(): void
+  {
+    Schema::create('hoja_tecnicas', function (Blueprint $table) {
+      $table->id();
+      $table->foreignId('producto_id')->constrained('productos');
+      $table->string('titulo');
+      $table->string('imagen')->nullable();
+      $table->string('ruta')->nullable();
+      $table->timestamp('created_at')->useCurrent();
+      $table->timestamp('updated_at')->useCurrent();
+      // $table->timestamps();
+    });
+  }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('hoja_tecnicas');
-    }
+  /**
+   * Reverse the migrations.
+   */
+  public function down(): void
+  {
+    Schema::dropIfExists('hoja_tecnicas');
+  }
 };

@@ -6,32 +6,32 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
-    {
-        Schema::create('cotizaciones', function (Blueprint $table) {
-            $table->id();
-            $table->string('nombre');
-            $table->string('direccion');
-            $table->string('telefono');
-            $table->string('email');
-            $table->string('ciudad');
+  /**
+   * Run the migrations.
+   */
+  public function up(): void
+  {
+    Schema::create('cotizaciones', function (Blueprint $table) {
+      $table->id();
+      $table->string('nombre');
+      $table->string('direccion');
+      $table->string('telefono');
+      $table->string('email');
+      $table->string('ciudad');
 
-            $table->decimal('total', 10, 2);
+      $table->decimal('total', 10, 2);
 
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
-            // $table->timestamps();
-        });
-    }
+      $table->timestamp('created_at')->useCurrent();
+      $table->timestamp('updated_at')->useCurrent();
+      // $table->timestamps();
+    });
+  }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('cotizaciones');
-    }
+  /**
+   * Reverse the migrations.
+   */
+  public function down(): void
+  {
+    Schema::dropIfExists('cotizaciones');
+  }
 };

@@ -12,6 +12,18 @@ use Illuminate\Http\Request;
 
 class ProductosController extends Controller
 {
+
+  private $validate = [
+    'categoria_id' => 'required|exists:categorias,id',
+    'marca_id' => 'required|exists:marcas,id',
+    'unidad_id' => 'required|exists:unidades,id',
+    'nombre' => 'required|string|max:255',
+    'descripcion' => 'nullable|string',
+    'unidad_valor' => 'required|numeric',
+    'etiqueta_ids' => 'nullable|array',
+    'etiqueta_ids.*' => 'exists:etiquetas,id',
+  ];
+
   public function index()
   {
     $productos = Producto::select('id', 'nombre', 'categoria_id', 'subcategoria_id', 'marca_id')
@@ -35,31 +47,15 @@ class ProductosController extends Controller
     $subcategorias = Subcategoria::all('id', 'nombre');
     $marcas = Marca::all('id', 'nombre');
     $etiquetas = Etiqueta::all('id', 'nombre');
-    $unidades = Unidad::all();
+    $unidades = Unidad::all('id', 'nombre');
     return inertia('admin/productos/crear', ['producto' => new Producto(), 'categorias' => $categorias, 'subcategorias' => $subcategorias, 'marcas' => $marcas, 'etiquetas' => $etiquetas, 'etiquetas_sugeridas' => ['Nuevo', 'Oferta', 'Envío Gratis', 'Orgánico', 'Importado'], 'unidades' => $unidades]);
   }
 
   public function store(Request $request)
   {
-    $validated = $request->validate([
-      'nombre' => 'required|string|max:255',
-      'imagen' => 'nullable|string|max:50',
-      'orden' => 'nullable',
-      'codigo' => 'nullable',
-      'descripcion' => 'nullable|string',
-      'ruta' => 'nullable|string',
-
-      'marca_id' => 'required|exists:marcas,id',
-      'categoria_id' => 'required|exists:categorias,id',
-      'subcategoria_id' => 'nullable|integer',
-      'etiqueta_ids' => 'nullable|array',
-      'etiqueta_ids.*' => 'exists:etiquetas,id',
-    ]);
+    $validated = $request->validate($this->validate);
     $producto = new Producto();
     $producto->nombre = $validated['nombre'];
-    $producto->imagen = $validated['imagen'];
-    $producto->orden = $validated['orden'];
-    $producto->codigo = $validated['codigo'];
     $producto->descripcion = $validated['descripcion'];
     $producto->ruta = $validated['ruta'];
     $producto->marca_id = $validated['marca_id'];
@@ -92,20 +88,7 @@ class ProductosController extends Controller
 
   public function update(Request $request, string $id)
   {
-    $validated = $request->validate([
-      'nombre' => 'required|string|max:255',
-      'imagen' => 'nullable|string|max:50',
-      'orden' => 'nullable',
-      'codigo' => 'nullable',
-      'descripcion' => 'nullable|string',
-      'ruta' => 'nullable|string',
-
-      'marca_id' => 'required|exists:marcas,id',
-      'categoria_id' => 'required|exists:categorias,id',
-      'subcategoria_id' => 'nullable|integer',
-      'etiqueta_ids' => 'nullable|array',
-      'etiqueta_ids.*' => 'exists:etiquetas,id',
-    ]);
+    $validated = $request->validate($this->validate);
     $producto = Producto::find($id);
     $producto->nombre = $validated['nombre'];
     // $producto->imagen = $validated['imagen'];

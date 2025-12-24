@@ -6,27 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
-    {
-        Schema::create('retiros', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->string('concepto');
-            $table->double('total');
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
-            // $table->timestamps();
-        });
-    }
+  /**
+   * Run the migrations.
+   */
+  public function up(): void
+  {
+    Schema::create('retiros', function (Blueprint $table) {
+      $table->id();
+      $table->foreignId('user_id')->constrained('users');
+      $table->string('concepto');
+      $table->double('total');
+      $table->timestamp('created_at')->useCurrent();
+      $table->timestamp('updated_at')->useCurrent();
+      // $table->timestamps();
+    });
+  }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('retiros');
-    }
+  /**
+   * Reverse the migrations.
+   */
+  public function down(): void
+  {
+    Schema::dropIfExists('retiros');
+  }
 };
