@@ -42,6 +42,13 @@ class ContratoController extends Controller
     'almacenes.*.almacen_area.precio' => 'required|numeric|min:0',
     'almacenes.*.almacen_area.total' => 'required|numeric|min:0',
     'almacenes.*.almacen_area.fechas_visitas' => 'required|array|min:1',
+
+    'almacenes.*.almacen_insectocutor' => 'required|array|min:1',
+    'almacenes.*.almacen_insectocutor.descripcion' => 'required|string|max:255',
+    'almacenes.*.almacen_insectocutor.cantidad' => 'required|numeric|min:0',
+    'almacenes.*.almacen_insectocutor.precio' => 'required|numeric|min:0',
+    'almacenes.*.almacen_insectocutor.total' => 'required|numeric|min:0',
+
     // 'detalles' => 'required|array|min:1',
     // 'detalles.*.descripcion' => 'required|string',
     // 'detalles.*.area' => 'required|numeric|min:0',
@@ -80,7 +87,7 @@ class ContratoController extends Controller
   public function store(Request $request)
   {
 
-    // dd($request);
+    dd($request);
 
     // $validated = $request->validate([
     //   'nombre' => 'required|string|max:255',

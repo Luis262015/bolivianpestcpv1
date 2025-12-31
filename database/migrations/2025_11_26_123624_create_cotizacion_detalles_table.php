@@ -14,12 +14,26 @@ return new class extends Migration
     Schema::create('cotizacion_detalles', function (Blueprint $table) {
       $table->id();
       $table->foreignId('cotizacion_id')->constrained('cotizaciones');
-      $table->string('descripcion');
-      $table->string('area');
-      $table->integer('cantidad');
-      $table->integer('visitas');
-      $table->decimal('precio_unitario', 10, 2);
+
+      $table->string('nombre');
+
+      // Almacen trampas
+      $table->string('t_cantidad');
+      $table->string('t_visitas');
+      $table->string('t_precio');
+      $table->string('t_total');
+      // Almacen area
+      $table->string('a_area');
+      $table->string('a_visitas');
+      $table->string('a_precio');
+      $table->string('a_total');
+      // Almacen insectocutores
+      $table->string('i_cantidad');
+      $table->string('i_precio');
+      $table->string('i_total');
+
       $table->decimal('total', 10, 2);
+
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();
       // $table->timestamps();

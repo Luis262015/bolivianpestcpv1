@@ -13,10 +13,11 @@ return new class extends Migration
   {
     Schema::create('contratos', function (Blueprint $table) {
       $table->id();
+
       $table->foreignId('empresa_id')->constrained('empresas');
+      $table->date('expiracion');
       $table->decimal('total', 10, 2);
-      $table->decimal('acuenta', 10, 2);
-      $table->decimal('saldo', 10, 2);
+
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();
       // $table->timestamps();

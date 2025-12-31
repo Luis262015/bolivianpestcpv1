@@ -22,10 +22,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface Contrato {
   id?: number;
   nombre: string;
-  direccion: string;
-  telefono: string;
   email: string;
+  direccion: string;
   ciudad: string;
+  telefono: string;
   fecha_fin_contrato: string;
   total: number;
   almacenes: Almacen[];
@@ -38,12 +38,14 @@ interface Almacen {
   telefono: string;
   email: string;
   ciudad: string;
+  encargado: string;
   almacen_trampa: AlmacenTrampa;
   almacen_area: AlmacenArea;
+  almacen_insectocutor: AlmancenInsectocutor;
 }
 
 interface AlmacenTrampa {
-  descripcion: string;
+  // descripcion: string;
   cantidad: number;
   visitas: number;
   precio: number;
@@ -52,7 +54,7 @@ interface AlmacenTrampa {
 }
 
 interface AlmacenArea {
-  descripcion: string;
+  // descripcion: string;
   area: number;
   visitas: number;
   precio: number;
@@ -61,7 +63,7 @@ interface AlmacenArea {
 }
 
 interface AlmancenInsectocutor {
-  descripcion: string;
+  // descripcion: string;
   cantidad: number;
   precio: number;
   total: number;
@@ -90,10 +92,11 @@ export default function CotizacionForm({ contrato }: Props) {
             telefono: a.telefono ?? '',
             email: a.email ?? '',
             ciudad: a.ciudad ?? '',
+            encargado: a.encargado ?? '',
             almacen_trampa: {
-              descripcion:
-                a.almacen_trampa?.descripcion ??
-                'Control de roedores con trampas',
+              // descripcion:
+              //   a.almacen_trampa?.descripcion ??
+              //   'Control de roedores con trampas',
               cantidad: a.almacen_trampa?.cantidad ?? 0,
               visitas: a.almacen_trampa?.visitas ?? 1,
               precio: a.almacen_trampa?.precio ?? 0,
@@ -102,7 +105,7 @@ export default function CotizacionForm({ contrato }: Props) {
                 a.almacen_trampa?.fechas_visitas ?? Array(1).fill(''),
             },
             almacen_area: {
-              descripcion: a.almacen_area?.descripcion ?? 'Fumigación general',
+              // descripcion: a.almacen_area?.descripcion ?? 'Fumigación general',
               area: a.almacen_area?.area ?? 0,
               visitas: a.almacen_area?.visitas ?? 1,
               precio: a.almacen_area?.precio ?? 0,
@@ -111,11 +114,11 @@ export default function CotizacionForm({ contrato }: Props) {
                 a.almacen_area?.fechas_visitas ?? Array(1).fill(''),
             },
             almacen_insectocutor: {
-              descripcion: a.almacen_area?.descripcion ?? 'Fumigación general',
-              area: a.almacen_area?.area ?? 0,
-              visitas: a.almacen_area?.visitas ?? 1,
-              precio: a.almacen_area?.precio ?? 0,
-              total: a.almacen_area?.total ?? 0,
+              // descripcion:
+              //   a.almacen_insectocutor?.descripcion ?? 'Insectocutores',
+              cantidad: a.almacen_insectocutor?.cantidad ?? 0,
+              precio: a.almacen_insectocutor?.precio ?? 0,
+              total: a.almacen_insectocutor?.total ?? 0,
             },
           }))
         : [
@@ -125,9 +128,10 @@ export default function CotizacionForm({ contrato }: Props) {
               telefono: '',
               email: '',
               ciudad: '',
+              encargado: '',
               // contacto_id: contactos[0]?.id ?? 0,
               almacen_trampa: {
-                descripcion: 'Control de roedores con trampas',
+                // descripcion: 'Control de roedores con trampas',
                 cantidad: 0,
                 visitas: 1,
                 precio: 0,
@@ -135,12 +139,18 @@ export default function CotizacionForm({ contrato }: Props) {
                 fechas_visitas: Array(1).fill(''),
               },
               almacen_area: {
-                descripcion: 'Fumigación general',
+                // descripcion: 'Fumigación general',
                 area: 0,
                 visitas: 1,
                 precio: 0,
                 total: 0,
                 fechas_visitas: Array(1).fill(''),
+              },
+              almacen_insectocutor: {
+                // descripcion: 'Insectocutores',
+                cantidad: 0,
+                precio: 0,
+                total: 0,
               },
             },
           ],
@@ -159,6 +169,10 @@ export default function CotizacionForm({ contrato }: Props) {
     return area * visitas * precio;
   };
 
+  const calcularTotalInsectocutor = (cantidad: number, precio: number) => {
+    return cantidad * precio;
+  };
+
   // Actualizar totales cuando cambian los campos
   const updateTrampaField = (
     index: number,
@@ -168,9 +182,10 @@ export default function CotizacionForm({ contrato }: Props) {
     const updated = [...data.almacenes];
     const trampa = { ...updated[index].almacen_trampa };
 
-    if (field === 'descripcion') {
-      trampa.descripcion = value as string;
-    } else if (field === 'visitas') {
+    // if (field === 'descripcion') {
+    //   trampa.descripcion = value as string;
+    // } else
+    if (field === 'visitas') {
       const newVisitas = Number(value);
       trampa.visitas = newVisitas;
       // Ajustar el array de fechas según la cantidad de visitas
@@ -205,9 +220,10 @@ export default function CotizacionForm({ contrato }: Props) {
     const updated = [...data.almacenes];
     const area = { ...updated[index].almacen_area };
 
-    if (field === 'descripcion') {
-      area.descripcion = value as string;
-    } else if (field === 'visitas') {
+    // if (field === 'descripcion') {
+    //   area.descripcion = value as string;
+    // } else
+    if (field === 'visitas') {
       const newVisitas = Number(value);
       area.visitas = newVisitas;
       // Ajustar el array de fechas según la cantidad de visitas
@@ -226,6 +242,31 @@ export default function CotizacionForm({ contrato }: Props) {
 
     area.total = calcularTotalArea(area.area, area.visitas, area.precio);
     updated[index].almacen_area = area;
+
+    setData('almacenes', updated);
+  };
+
+  const updateInsectocutorField = (
+    index: number,
+    field: keyof AlmancenInsectocutor,
+    value: number | string,
+  ) => {
+    const updated = [...data.almacenes];
+    const insectocutor = { ...updated[index].almacen_insectocutor };
+
+    // if (field === 'descripcion') {
+    //   insectocutor.descripcion = value as string;
+    // } else {
+    //   (insectocutor[field] as number) = Number(value);
+    // }
+
+    (insectocutor[field] as number) = Number(value);
+
+    insectocutor.total = calcularTotalInsectocutor(
+      insectocutor.cantidad,
+      insectocutor.precio,
+    );
+    updated[index].almacen_insectocutor = insectocutor;
 
     setData('almacenes', updated);
   };
@@ -261,7 +302,10 @@ export default function CotizacionForm({ contrato }: Props) {
   const totalAlmacenes = useMemo(() => {
     return data.almacenes.reduce((sum, a) => {
       return (
-        sum + (a.almacen_trampa?.total ?? 0) + (a.almacen_area?.total ?? 0)
+        sum +
+        (a.almacen_trampa?.total ?? 0) +
+        (a.almacen_area?.total ?? 0) +
+        (a.almacen_insectocutor?.total ?? 0)
       );
     }, 0);
   }, [data.almacenes]);
@@ -278,22 +322,29 @@ export default function CotizacionForm({ contrato }: Props) {
         telefono: '',
         email: '',
         ciudad: '',
+        encargado: '',
         // contacto_id: contactos[0]?.id ?? 0,
         almacen_trampa: {
-          descripcion: 'Control de roedores con trampas',
+          // descripcion: 'Control de roedores con trampas',
           cantidad: 0,
-          visitas: 12,
+          visitas: 1,
           precio: 0,
           total: 0,
-          fechas_visitas: Array(12).fill(''),
+          fechas_visitas: Array(1).fill(''),
         },
         almacen_area: {
-          descripcion: 'Fumigación general',
+          // descripcion: 'Fumigación general',
           area: 0,
-          visitas: 12,
+          visitas: 1,
           precio: 0,
           total: 0,
-          fechas_visitas: Array(12).fill(''),
+          fechas_visitas: Array(1).fill(''),
+        },
+        almacen_insectocutor: {
+          // descripcion: 'Insectocutores',
+          cantidad: 0,
+          precio: 0,
+          total: 0,
         },
       },
     ]);
@@ -313,7 +364,6 @@ export default function CotizacionForm({ contrato }: Props) {
     const payload = {
       ...data,
       total: granTotal,
-      // saldo: saldoCalculado,
     };
 
     if (contrato?.id) {
@@ -400,12 +450,7 @@ export default function CotizacionForm({ contrato }: Props) {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">Almacenes</h3>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={addAlmacen}
-                    >
+                    <Button type="button" size="sm" onClick={addAlmacen}>
                       <Plus className="mr-2 h-4 w-4" /> Agregar Almacén
                     </Button>
                   </div>
@@ -448,6 +493,19 @@ export default function CotizacionForm({ contrato }: Props) {
                             />
                           </div>
                           <div>
+                            <Label>Email</Label>
+                            <Input
+                              value={almacen.email}
+                              onChange={(e) =>
+                                setData(
+                                  `almacenes.${index}.email` as any,
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Ej. almacen@empresa.com"
+                            />
+                          </div>
+                          <div>
                             <Label>Direccion</Label>
                             <Input
                               value={almacen.direccion}
@@ -457,46 +515,47 @@ export default function CotizacionForm({ contrato }: Props) {
                                   e.target.value,
                                 )
                               }
-                              placeholder="Ej. Almacén Central"
-                            />
-                          </div>
-                          <div>
-                            <Label>Telefono</Label>
-                            <Input
-                              value={almacen.direccion}
-                              onChange={(e) =>
-                                setData(
-                                  `almacenes.${index}.direccion` as any,
-                                  e.target.value,
-                                )
-                              }
-                              placeholder="Ej. Almacén Central"
-                            />
-                          </div>
-                          <div>
-                            <Label>Email</Label>
-                            <Input
-                              value={almacen.direccion}
-                              onChange={(e) =>
-                                setData(
-                                  `almacenes.${index}.direccion` as any,
-                                  e.target.value,
-                                )
-                              }
-                              placeholder="Ej. Almacén Central"
+                              placeholder="Ej. Calle #111"
                             />
                           </div>
                           <div>
                             <Label>Ciudad</Label>
                             <Input
-                              value={almacen.direccion}
+                              value={almacen.ciudad}
                               onChange={(e) =>
                                 setData(
-                                  `almacenes.${index}.direccion` as any,
+                                  `almacenes.${index}.ciudad` as any,
                                   e.target.value,
                                 )
                               }
-                              placeholder="Ej. Almacén Central"
+                              placeholder="Ej. La Paz"
+                            />
+                          </div>
+
+                          <div>
+                            <Label>Encargado</Label>
+                            <Input
+                              value={almacen.encargado}
+                              onChange={(e) =>
+                                setData(
+                                  `almacenes.${index}.encargado` as any,
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Ej. Pablo Perez"
+                            />
+                          </div>
+                          <div>
+                            <Label>Telefono</Label>
+                            <Input
+                              value={almacen.telefono}
+                              onChange={(e) =>
+                                setData(
+                                  `almacenes.${index}.telefono` as any,
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Ej. 76543211"
                             />
                           </div>
                           {/* <div>
@@ -526,12 +585,12 @@ export default function CotizacionForm({ contrato }: Props) {
                         </div>
 
                         {/* === SERVICIO POR TRAMPAS === */}
-                        <div className="rounded-lg border bg-muted/40 p-4">
+                        <div className="rounded-lg border bg-amber-300/10 p-4">
                           <h4 className="mb-4 font-semibold text-primary">
                             Servicio por Trampas
                           </h4>
                           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                            <div className="">
+                            {/* <div className="">
                               <Label>Descripción</Label>
                               <Input
                                 value={almacen.almacen_trampa.descripcion}
@@ -543,7 +602,7 @@ export default function CotizacionForm({ contrato }: Props) {
                                   )
                                 }
                               />
-                            </div>
+                            </div> */}
                             <div>
                               <Label>Cantidad</Label>
                               <Input
@@ -636,12 +695,13 @@ export default function CotizacionForm({ contrato }: Props) {
                         </div>
 
                         {/* === SERVICIO POR ÁREA === */}
-                        <div className="rounded-lg border bg-muted/40 p-4">
+                        {/* <div className="rounded-lg border bg-muted/40 p-4"> */}
+                        <div className="rounded-lg border bg-blue-500/10 p-4">
                           <h4 className="mb-4 font-semibold text-primary">
                             Servicio por Área (m²)
                           </h4>
                           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                            <div className="">
+                            {/* <div className="">
                               <Label>Descripción</Label>
                               <Input
                                 value={almacen.almacen_area.descripcion}
@@ -653,7 +713,7 @@ export default function CotizacionForm({ contrato }: Props) {
                                   )
                                 }
                               />
-                            </div>
+                            </div> */}
                             <div>
                               <Label>Área (m²)</Label>
                               <Input
@@ -742,6 +802,65 @@ export default function CotizacionForm({ contrato }: Props) {
                           </p>
                         </div>
 
+                        {/* === SERVICIO POR INSECTOCUTOR === */}
+                        {/* <div className="rounded-lg border bg-muted/40 p-4"> */}
+                        <div className="rounded-lg border bg-red-700/10 p-4">
+                          <h4 className="mb-4 font-semibold text-primary">
+                            Servicio por Insectocutores
+                          </h4>
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                            {/* <div className="">
+                              <Label>Descripción</Label>
+                              <Input
+                                value={almacen.almacen_insectocutor.descripcion}
+                                onChange={(e) =>
+                                  updateInsectocutorField(
+                                    index,
+                                    'descripcion',
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </div> */}
+                            <div>
+                              <Label>Cantidad: </Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={almacen.almacen_insectocutor.cantidad}
+                                onChange={(e) =>
+                                  updateInsectocutorField(
+                                    index,
+                                    'cantidad',
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </div>
+
+                            <div>
+                              <Label>Precio: </Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={almacen.almacen_insectocutor.precio}
+                                onChange={(e) =>
+                                  updateInsectocutorField(
+                                    index,
+                                    'precio',
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+
+                          <p className="mt-4 text-right text-lg font-bold">
+                            Total anual: Bs.{' '}
+                            {almacen.almacen_insectocutor.total.toFixed(2)}
+                          </p>
+                        </div>
+
                         <div className="flex justify-end">
                           <div className="text-right">
                             <p className="text-sm text-muted-foreground">
@@ -751,7 +870,8 @@ export default function CotizacionForm({ contrato }: Props) {
                               Bs.{' '}
                               {(
                                 almacen.almacen_trampa.total +
-                                almacen.almacen_area.total
+                                almacen.almacen_area.total +
+                                almacen.almacen_insectocutor.total
                               ).toFixed(2)}
                             </p>
                           </div>
