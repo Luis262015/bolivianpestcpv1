@@ -8,6 +8,7 @@ class CronogramaController extends Controller
 {
   public function index()
   {
+
     return inertia('admin/cronogramas/prueba');
   }
 

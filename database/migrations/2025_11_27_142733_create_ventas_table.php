@@ -15,10 +15,10 @@ return new class extends Migration
       $table->id();
       $table->foreignId('user_id')->constrained('users');
       $table->foreignId('cliente_id')->nullable()->constrained('clientes');
-      $table->double('subtotal');
+      // $table->double('subtotal');
       $table->double('total');
-      $table->double('acuenta');
-      $table->double('saldo');
+      // $table->double('acuenta');
+      // $table->double('saldo');
       $table->enum('tipo', ['Venta', 'Pago', 'Adelanto', 'Anulado']);
       $table->enum('metodo', ['Efectivo', 'QR', 'Transferencia']);
       $table->timestamp('created_at')->useCurrent();

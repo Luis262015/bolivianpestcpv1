@@ -16,6 +16,7 @@ import { Link } from '@inertiajs/react';
 import {
   Apple,
   CalendarDays,
+  ChartCandlestick,
   Factory,
   Files,
   HandCoins,
@@ -68,27 +69,19 @@ const mainNavItems2: MainNavItem[] = [
       },
     ],
   },
-  // {
-  //   title: 'Almacenes',
-  //   icon: Warehouse,
-  //   href: '/almacenes',
-  // },
+
   {
     title: 'Cronogramas',
     icon: CalendarDays,
     href: '/cronogramas',
   },
 
-  // hasPermission('cronogramas') && {
-  //   title: 'Cronogramas XXXX',
-  //   icon: CalendarDays,
-  //   href: '/cronogramas',
-  // },
   {
     title: 'Mapas',
     icon: Locate,
     href: '/mapas',
   },
+
   {
     title: 'Seguimientos',
     icon: NotebookPen,
@@ -129,11 +122,6 @@ const mainNavItems2: MainNavItem[] = [
       },
     ],
   },
-  // {
-  //   title: 'Certificados',
-  //   icon: ShieldCheck,
-  //   href: '/certificados',
-  // },
 ];
 
 // Contabilidad
@@ -171,31 +159,78 @@ const mainNavItems3: MainNavItem[] = [
   },
 
   {
-    title: 'Cuentas por Cobrar',
+    title: 'Ingresos',
     icon: TrendingUp,
-    href: '/cuentasporcobrar',
-  },
-  {
-    title: 'Cuentas por Pagar',
-    icon: TrendingDown,
-    href: '/cuentasporpagar',
+    down: true,
+    subItems: [
+      {
+        title: 'Cuentas por Cobrar',
+        icon: TrendingUp,
+        href: '/cuentasporcobrar',
+      },
+      {
+        title: 'Ingresos',
+        icon: HandCoins,
+        href: '/ingresos',
+      },
+    ],
   },
 
   {
-    title: 'Ingresos',
-    icon: HandCoins,
-    href: '/ingresos',
+    title: 'Egresos',
+    icon: TrendingDown,
+    down: true,
+    subItems: [
+      {
+        title: 'Cuentas por Pagar',
+        icon: TrendingDown,
+        href: '/cuentasporpagar',
+      },
+      {
+        title: 'Retiros',
+        icon: HandHelping,
+        href: '/retiros',
+      },
+      {
+        title: 'Gastos',
+        icon: TicketPercent,
+        href: '/gastos',
+      },
+    ],
   },
+
   {
-    title: 'Retiros',
-    icon: HandHelping,
-    href: '/retiros',
+    title: 'Estados',
+    icon: ChartCandlestick,
+    href: '/estados',
   },
-  {
-    title: 'Gastos',
-    icon: TicketPercent,
-    href: '/gastos',
-  },
+
+  // {
+  //   title: 'Cuentas por Cobrar',
+  //   icon: TrendingUp,
+  //   href: '/cuentasporcobrar',
+  // },
+  // {
+  //   title: 'Cuentas por Pagar',
+  //   icon: TrendingDown,
+  //   href: '/cuentasporpagar',
+  // },
+
+  // {
+  //   title: 'Ingresos',
+  //   icon: HandCoins,
+  //   href: '/ingresos',
+  // },
+  // {
+  //   title: 'Retiros',
+  //   icon: HandHelping,
+  //   href: '/retiros',
+  // },
+  // {
+  //   title: 'Gastos',
+  //   icon: TicketPercent,
+  //   href: '/gastos',
+  // },
   {
     title: 'Productos',
     icon: Apple,

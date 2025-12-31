@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -445,6 +446,29 @@ export default function Lista(): JSX.Element {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Mapas" />
+      <div className="p-6">
+        <div className="text-2xl font-bold">Gestión de Mapas</div>
+      </div>
+      <div className="p-6">
+        <div className="flex flex-wrap">
+          <div className="me-5">
+            <Label>Empresa</Label>
+            <Select>
+              <SelectTrigger className="w-80">
+                <SelectValue placeholder="Pruebas"></SelectValue>
+              </SelectTrigger>
+            </Select>
+          </div>
+          <div>
+            <Label>Almacen</Label>
+            <Select>
+              <SelectTrigger className="w-80">
+                <SelectValue placeholder="Pruebas"></SelectValue>
+              </SelectTrigger>
+            </Select>
+          </div>
+        </div>
+      </div>
       <div className="min-h-screen p-6">
         <div className="mx-auto grid max-w-7xl grid-cols-12 gap-6">
           <Card className="col-span-9">

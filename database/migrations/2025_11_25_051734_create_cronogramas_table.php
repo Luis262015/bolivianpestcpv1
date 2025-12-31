@@ -15,6 +15,7 @@ return new class extends Migration
       $table->id();
       $table->foreignId('almacen_id')->constrained('almacenes');
       $table->foreignId('user_id')->constrained('users');
+      $table->foreignId('tecnico_id')->constrained('users');
       $table->string('title');
       $table->date('date');                    // fecha de la tarea (yyyy-MM-dd)
       $table->string('color')->default('bg-blue-500');

@@ -243,13 +243,13 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Compras | Crear" />
 
-      <div className="mx-auto max-w-6xl p-6">
+      <div className="p-6">
         <h1 className="mb-6 text-3xl font-bold">Registro de Compra</h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* === Datos de Factura === */}
-          <div className="grid grid-cols-1 gap-4 border-b pb-6 md:grid-cols-2">
-            <div>
+          <div className="grid grid-cols-1 gap-4 pb-1 md:grid-cols-2">
+            {/* <div>
               <Label htmlFor="numero">Número de Factura *</Label>
               <Input
                 id="numero"
@@ -260,9 +260,9 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
               {errors.numero && (
                 <p className="mt-1 text-sm text-red-500">{errors.numero}</p>
               )}
-            </div>
+            </div> */}
 
-            <div>
+            {/* <div>
               <Label htmlFor="autorizacion">Autorización SRI *</Label>
               <Input
                 id="autorizacion"
@@ -276,9 +276,9 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
                   {errors.autorizacion}
                 </p>
               )}
-            </div>
+            </div> */}
 
-            <div>
+            {/* <div>
               <Label htmlFor="control">Control Interno</Label>
               <Input
                 id="control"
@@ -286,9 +286,9 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
                 onChange={(e) => setData('control', e.target.value)}
                 placeholder="Opcional"
               />
-            </div>
+            </div> */}
 
-            <div>
+            {/* <div>
               <Label htmlFor="observaciones">Observaciones</Label>
               <Input
                 id="observaciones"
@@ -296,9 +296,9 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
                 onChange={(e) => setData('observaciones', e.target.value)}
                 placeholder="Notas adicionales"
               />
-            </div>
+            </div> */}
 
-            <div>
+            {/* <div>
               <Label htmlFor="abonado">Abonado</Label>
               <Input
                 id="abonado"
@@ -311,117 +311,90 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
                 }
                 placeholder="0.00"
               />
-            </div>
+            </div> */}
 
-            <div>
+            {/* <div>
               <Label>Saldo</Label>
               <div className="flex h-10 items-center rounded-md border bg-muted px-3 font-medium text-muted-foreground">
                 $ {saldo.toFixed(2)}
               </div>
-            </div>
+            </div> */}
           </div>
 
-          {/* === Proveedor con Select de shadcn + botón modal === */}
-          <div className="space-y-2">
-            <Label>Proveedor *</Label>
-            <div className="flex gap-3">
-              <Select value={proveedorId} onValueChange={setProveedorId}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Selecciona un proveedor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {proveedores.map((p) => (
-                    <SelectItem key={p.id} value={String(p.id)}>
-                      {p.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setModalOpen(true)}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Agregar
-              </Button>
-            </div>
-          </div>
-
-          {/* === Búsqueda de Producto === */}
-          <div className="flex items-end gap-3 border-b pb-4">
-            <div className="flex-grow">
-              <Label>Buscar Producto</Label>
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className="w-full justify-between"
-                  >
-                    {selectedProduct
-                      ? selectedProduct.nombre
-                      : 'Buscar producto...'}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
-                  <Command shouldFilter={false}>
-                    <CommandInput
-                      placeholder="Escribe para buscar..."
-                      value={query}
-                      onValueChange={setQuery}
-                    />
-                    <CommandList>
-                      {loading && <CommandEmpty>Buscando...</CommandEmpty>}
-                      {!loading && query.length < 2 && (
-                        <CommandEmpty>
-                          Escribe al menos 2 caracteres
-                        </CommandEmpty>
-                      )}
-                      {!loading &&
-                        searchResults.length === 0 &&
-                        query.length >= 2 && (
+          <div className="flex justify-between">
+            {/* === Búsqueda de Producto === */}
+            <div className="flex items-end gap-3 pb-4">
+              <div className="flex-grow">
+                <Label>Buscar Producto</Label>
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className="w-full justify-between"
+                    >
+                      {selectedProduct
+                        ? selectedProduct.nombre
+                        : 'Buscar producto...'}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start">
+                    <Command shouldFilter={false}>
+                      <CommandInput
+                        placeholder="Escribe para buscar..."
+                        value={query}
+                        onValueChange={setQuery}
+                      />
+                      <CommandList>
+                        {loading && <CommandEmpty>Buscando...</CommandEmpty>}
+                        {!loading && query.length < 2 && (
                           <CommandEmpty>
-                            No se encontraron productos
+                            Escribe al menos 2 caracteres
                           </CommandEmpty>
                         )}
-                      <CommandGroup>
-                        {searchResults.map((product) => (
-                          <CommandItem
-                            key={product.id}
-                            onSelect={() => {
-                              setSelectedProduct(product);
-                              setQuery(product.nombre);
-                              setOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                'mr-2 h-4 w-4',
-                                selectedProduct?.id === product.id
-                                  ? 'opacity-100'
-                                  : 'opacity-0',
-                              )}
-                            />
-                            <div>
-                              <div>{product.nombre}</div>
-                              <div className="text-xs text-gray-500">
-                                Compra: ${product.precio_compra} | Venta: $
-                                {product.precio_venta}
+                        {!loading &&
+                          searchResults.length === 0 &&
+                          query.length >= 2 && (
+                            <CommandEmpty>
+                              No se encontraron productos
+                            </CommandEmpty>
+                          )}
+                        <CommandGroup>
+                          {searchResults.map((product) => (
+                            <CommandItem
+                              key={product.id}
+                              onSelect={() => {
+                                setSelectedProduct(product);
+                                setQuery(product.nombre);
+                                setOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  'mr-2 h-4 w-4',
+                                  selectedProduct?.id === product.id
+                                    ? 'opacity-100'
+                                    : 'opacity-0',
+                                )}
+                              />
+                              <div>
+                                <div>{product.nombre}</div>
+                                <div className="text-xs text-gray-500">
+                                  Compra: ${product.precio_compra} | Venta: $
+                                  {product.precio_venta}
+                                </div>
                               </div>
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
 
-            <div className="w-20">
+              {/* <div className="w-20">
               <Label>Cant.</Label>
               <Input
                 type="number"
@@ -433,21 +406,50 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
                 className="text-center"
                 disabled={!selectedProduct}
               />
+            </div> */}
+
+              <Button
+                type="button"
+                onClick={agregarItem}
+                disabled={!selectedProduct}
+                className="h-10"
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                Añadir
+              </Button>
             </div>
 
-            <Button
-              type="button"
-              onClick={agregarItem}
-              disabled={!selectedProduct}
-              className="h-10"
-            >
-              <Plus className="mr-1 h-4 w-4" />
-              Añadir
-            </Button>
+            {/* === Proveedor con Select de shadcn + botón modal === */}
+            <div className="space-y-2">
+              <Label>Proveedor *</Label>
+              <div className="flex gap-3">
+                <Select value={proveedorId} onValueChange={setProveedorId}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Selecciona un proveedor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {proveedores.map((p) => (
+                      <SelectItem key={p.id} value={String(p.id)}>
+                        {p.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setModalOpen(true)}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Agregar
+                </Button>
+              </div>
+            </div>
           </div>
 
           {/* === Tabla de Items === */}
-          <Table>
+          <Table className="">
             <TableHeader>
               <TableRow>
                 <TableHead>Producto</TableHead>

@@ -17,8 +17,8 @@ export default function Index() {
       <Head title="Configuraciones" />
       <div className="m-5 space-y-6">
         <HeadingSmall
-          title="Appearance settings"
-          description="Update your account's appearance settings"
+          title="Configuración de apariencia"
+          description="Actualice la configuración de apariencia de su cuenta"
         />
         <AppearanceTabs />
       </div>

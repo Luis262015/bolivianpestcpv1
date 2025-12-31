@@ -80,13 +80,15 @@ export default function Index() {
       <Head title="Compras | List" />
 
       <div className="m-4">
-        <Link href={'/compras/create'}>
-          <Button className="mb-4" size="sm">
-            Hacer Compra
-          </Button>
-        </Link>
+        <div className="flex">
+          <div className="me-5 mb-2 text-2xl font-bold">Gestión de compras</div>
 
-        <div className="mb-2 text-center text-2xl">Lista de compras</div>
+          <Link href={'/compras/create'}>
+            <Button className="mb-4" size="sm">
+              Hacer Compra
+            </Button>
+          </Link>
+        </div>
 
         {compras.data.length > 0 ? (
           <Table>
@@ -97,8 +99,8 @@ export default function Index() {
                 {/* <TableHead>Tienda</TableHead> */}
                 <TableHead>Proveedor</TableHead>
                 <TableHead>Total</TableHead>
-                <TableHead>Abonado</TableHead>
-                <TableHead>Saldo</TableHead>
+                {/* <TableHead>Abonado</TableHead>
+                <TableHead>Saldo</TableHead> */}
                 <TableHead>Tipo</TableHead>
                 <TableHead>Acción</TableHead>
               </TableRow>
@@ -125,8 +127,8 @@ export default function Index() {
                     {/* <TableCell>{compra.nombre}</TableCell> */}
                     <TableCell>{compra.proveedor.nombre}</TableCell>
                     <TableCell>{compra.total}</TableCell>
-                    <TableCell>{compra.abonado}</TableCell>
-                    <TableCell>{compra.saldo}</TableCell>
+                    {/* <TableCell>{compra.abonado}</TableCell>
+                    <TableCell>{compra.saldo}</TableCell> */}
                     <TableCell>{compra.tipo}</TableCell>
                     <TableCell className="flex gap-1">
                       <Link href={`/compras/edit/${compra.id}`}>

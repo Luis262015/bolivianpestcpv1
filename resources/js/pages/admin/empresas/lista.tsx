@@ -54,7 +54,7 @@ export default function Lista() {
             Nueva Empresa
           </Button>
         </Link> */}
-        <div className="mb-2 text-center text-2xl">Lista de Empresas</div>
+        <div className="mb-2 text-2xl font-bold">Gestión de Empresas</div>
         {empresas.data.length > 0 && (
           <Table>
             <TableHeader>

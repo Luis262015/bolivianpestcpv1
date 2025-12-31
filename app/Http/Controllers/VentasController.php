@@ -6,9 +6,15 @@ use Illuminate\Http\Request;
 
 class VentasController extends Controller
 {
-  public function index() {}
+  public function index()
+  {
+    return inertia('admin/ventas/index');
+  }
 
-  public function create() {}
+  public function create()
+  {
+    return inertia('admin/ventas/crear');
+  }
 
   public function store(Request $request) {}
 

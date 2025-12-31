@@ -66,7 +66,7 @@ export default function Index() {
       <div className="m-4">
         <div className="flex items-center">
           <div className="me-5 mb-2 text-center text-2xl">
-            Lista de productos
+            Gestión de productos
           </div>
           <Link href={'/productos/create'}>
             <Button className="mb-4" size="sm">

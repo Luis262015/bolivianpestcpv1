@@ -15,9 +15,11 @@ use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\EppsController;
 use App\Http\Controllers\EspeciesController;
+use App\Http\Controllers\EstadosController;
 use App\Http\Controllers\EtiquetasController;
 use App\Http\Controllers\GastosController;
 use App\Http\Controllers\IngresosController;
+use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\MapaController;
 use App\Http\Controllers\MarcasController;
 use App\Http\Controllers\MetodosController;
@@ -32,6 +34,7 @@ use App\Http\Controllers\SubcategoriasController;
 use App\Http\Controllers\TiposController;
 use App\Http\Controllers\UnidadesController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\VentasController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -85,9 +88,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('cuentasporcobrar', CuentasPorCobrarController::class);
     Route::resource('cuentasporpagar', CuentasPorPagarController::class);
     Route::resource('compras', ComprasController::class);
+    Route::resource('ventas', VentasController::class);
     Route::resource('ingresos', IngresosController::class);
     Route::resource('retiros', RetirosController::class);
     Route::resource('gastos', GastosController::class);
+    Route::resource('estados', EstadosController::class);
 
     Route::resource('categorias', CategoriasController::class);
     Route::resource('subcategorias', SubcategoriasController::class);
@@ -98,6 +103,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/productos/subcategorias/{categoria}', [ProductosController::class, 'getSubcategorias'])->name('productos.subcategorias');
     Route::get('/productos/search', [ProductosController::class, 'search'])->name('productos.search');
     Route::resource('productos', ProductosController::class);
+
+    Route::resource('inventarios', InventarioController::class);
 
     Route::post('/proveedores/storemodal', [ProveedoresController::class, 'storeModal']);
     Route::resource('proveedores', ProveedoresController::class);

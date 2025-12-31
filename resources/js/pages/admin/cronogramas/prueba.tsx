@@ -517,6 +517,29 @@ export default function Lista() {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Cronogramas" />
+      <div className="p-6">
+        <div className="text-2xl font-bold">Gestión de Cronograma</div>
+      </div>
+      <div className="p-6">
+        <div className="flex flex-wrap">
+          <div className="me-5">
+            <Label>Empresa</Label>
+            <Select>
+              <SelectTrigger className="w-80">
+                <SelectValue placeholder="Pruebas"></SelectValue>
+              </SelectTrigger>
+            </Select>
+          </div>
+          <div>
+            <Label>Almacen</Label>
+            <Select>
+              <SelectTrigger className="w-80">
+                <SelectValue placeholder="Pruebas"></SelectValue>
+              </SelectTrigger>
+            </Select>
+          </div>
+        </div>
+      </div>
       <div className="min-h-screen bg-background">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-4 lg:px-8">
           {/* Calendario */}

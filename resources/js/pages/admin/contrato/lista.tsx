@@ -11,6 +11,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -42,9 +43,14 @@ export default function Lista() {
       <Head title="contratos" />
 
       <div className="p-6">
-        <Link href="/contratos/create">
-          <Button>Nuevo Contrato</Button>
-        </Link>
+        <div className="flex items-center">
+          <div className="me-5 text-2xl font-bold">Gestión de Contratos</div>
+          <Link href="/contratos/create">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Nuevo
+            </Button>
+          </Link>
+        </div>
         <Table>
           <TableHeader>
             <TableRow>

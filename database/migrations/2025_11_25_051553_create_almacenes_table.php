@@ -15,6 +15,7 @@ return new class extends Migration
       $table->id();
       $table->string('nombre');
       $table->string('direccion')->nullable();
+      $table->string('encargado')->nullable();
       $table->string('telefono')->nullable();
       $table->string('email')->nullable();
       $table->string('ciudad')->nullable();
@@ -30,6 +31,6 @@ return new class extends Migration
    */
   public function down(): void
   {
-    Schema::dropIfExists('almacens');
+    Schema::dropIfExists('almacenes');
   }
 };

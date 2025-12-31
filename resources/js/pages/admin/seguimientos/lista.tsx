@@ -71,15 +71,17 @@ export default function Lista({
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Seguimientos" />
 
-      <div className="py-12">
-        <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+      <div className="">
+        <div className="mx-auto max-w-7xl">
           <div className="overflow-hidden shadow-sm sm:rounded-lg">
             <div className="p-6">
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-2xl font-semibold">Seguimientos</h2>
+              <div className="mb-6 flex items-center">
+                <h2 className="me-5 text-2xl font-semibold">
+                  Gestión de Seguimientos
+                </h2>
                 <Button onClick={() => setModalOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Nuevo Seguimiento
+                  Nuevo
                 </Button>
               </div>
               <div className="space-y-4">

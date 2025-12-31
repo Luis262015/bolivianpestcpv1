@@ -145,8 +145,8 @@ export default function Index() {
       <Head title={titlePage} />
 
       <div className="m-4">
-        <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Gestión de {titlePage}</h1>
+        <div className="mb-4 flex items-center">
+          <h1 className="me-5 text-2xl font-bold">Gestión de {titlePage}</h1>
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
               <Button onClick={openCreateModal}>
