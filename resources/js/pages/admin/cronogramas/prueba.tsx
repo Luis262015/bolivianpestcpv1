@@ -126,7 +126,7 @@ export default function Lista() {
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('month');
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -135,28 +135,35 @@ export default function Lista() {
   const [taskStatus, setTaskStatus] = useState<TaskStatus>('pendiente');
   const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
   const [selectedEmpresaId, setSelectedEmpresaId] = useState<number | null>(
-    filters.empresa_id,
+    filters?.empresa_id ?? null,
   );
   const [selectedAlmacenId, setSelectedAlmacenId] = useState<number | null>(
-    filters.almacen_id,
+    filters?.almacen_id ?? null,
   );
 
   const dragOverRef = useRef<string | null>(null);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
 
   const puedeCrearTarea = !!selectedAlmacenId;
+  const noHayAlmacenSeleccionado = selectedAlmacenId === null;
 
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-
+  // Limpiar tareas cuando se quita el almacén seleccionado
   useEffect(() => {
-    setTasks(initialTasks);
+    if (noHayAlmacenSeleccionado) {
+      setTasks([]);
+    }
+  }, [noHayAlmacenSeleccionado]);
+
+  // Sincronizar tareas cuando llegan del backend
+  useEffect(() => {
+    setTasks(initialTasks || []);
   }, [initialTasks]);
 
   const almacenesFiltrados = selectedEmpresaId
     ? almacenes.filter((a: Almacen) => a.empresa_id === selectedEmpresaId)
     : almacenes;
 
+  // Resetear almacén si ya no pertenece a la empresa seleccionada
   useEffect(() => {
     if (
       selectedAlmacenId &&
@@ -164,18 +171,28 @@ export default function Lista() {
     ) {
       setSelectedAlmacenId(null);
     }
-  }, [selectedEmpresaId]);
+  }, [selectedEmpresaId, almacenesFiltrados]);
 
+  // Cargar datos SOLO cuando hay almacén seleccionado
   useEffect(() => {
-    router.get(
-      '/cronogramas',
-      { empresa_id: selectedEmpresaId, almacen_id: selectedAlmacenId },
-      { preserveState: true, replace: true },
-    );
+    if (selectedAlmacenId !== null) {
+      router.get(
+        '/cronogramas',
+        {
+          empresa_id: selectedEmpresaId,
+          almacen_id: selectedAlmacenId,
+        },
+        {
+          preserveState: true,
+          replace: true,
+          preserveScroll: true,
+        },
+      );
+    }
   }, [selectedEmpresaId, selectedAlmacenId]);
 
-  // const getTasksForDate = (dateStr: string) =>
-  //   tasks.filter((t) => t.date === dateStr);
+  const getTasksForDate = (dateStr: string) =>
+    tasks.filter((t) => t.date === dateStr);
 
   const goToPrevious = () => {
     setCurrentDate(
@@ -290,9 +307,7 @@ export default function Lista() {
     router.patch(
       `/cronogramas/${draggedTask.id}`,
       { date: dateStr },
-      {
-        preserveState: true,
-      },
+      { preserveState: true },
     );
 
     setDraggedTask(null);
@@ -409,7 +424,7 @@ export default function Lista() {
                   disabled={!puedeCrearTarea}
                   onClick={(e) => {
                     e.stopPropagation();
-                    openTaskDialog(day);
+                    if (puedeCrearTarea) openTaskDialog(day);
                   }}
                 >
                   <Plus className="mr-1 h-3 w-3" /> Agregar
@@ -514,8 +529,10 @@ export default function Lista() {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Cronogramas" />
+
       <div className="space-y-6 p-6">
         <h1 className="text-2xl font-bold">Gestión de Cronograma</h1>
+
         <div className="flex flex-wrap items-end gap-6">
           <div className="space-y-1.5">
             <Label>Empresa</Label>
@@ -537,6 +554,7 @@ export default function Lista() {
               </SelectContent>
             </Select>
           </div>
+
           <div className="space-y-1.5">
             <Label>Almacén</Label>
             <Select
@@ -564,6 +582,7 @@ export default function Lista() {
               </SelectContent>
             </Select>
           </div>
+
           <Button
             onClick={() =>
               router.get('/cronogramas', {
@@ -575,81 +594,101 @@ export default function Lista() {
             Cargar
           </Button>
         </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" onClick={goToPrevious}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
+
+        {noHayAlmacenSeleccionado ? (
+          <div className="flex min-h-[500px] items-center justify-center rounded-lg border border-dashed bg-muted/40 p-10 text-center">
+            <div className="max-w-md space-y-4">
+              <h3 className="text-xl font-semibold">Selecciona un almacén</h3>
+              <p className="text-muted-foreground">
+                Para ver y gestionar el cronograma de tareas, primero selecciona
+                una empresa y luego el almacén correspondiente.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-6">
+              <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2">
-                  {viewMode === 'month' ? (
-                    <>
-                      <Select
-                        value={currentDate.getMonth().toString()}
-                        onValueChange={handleMonthChange}
-                      >
-                        <SelectTrigger className="w-36">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 12 }, (_, i) => (
-                            <SelectItem key={i} value={i.toString()}>
-                              {format(new Date(year, i), 'MMMM')}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Select
-                        value={currentDate.getFullYear().toString()}
-                        onValueChange={handleYearChange}
-                      >
-                        <SelectTrigger className="w-24">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 11 }, (_, i) => {
-                            const y = currentDate.getFullYear() - 5 + i;
-                            return (
-                              <SelectItem key={y} value={y.toString()}>
-                                {y}
+                  <Button variant="outline" size="icon" onClick={goToPrevious}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+
+                  <div className="flex items-center gap-2">
+                    {viewMode === 'month' ? (
+                      <>
+                        <Select
+                          value={currentDate.getMonth().toString()}
+                          onValueChange={handleMonthChange}
+                        >
+                          <SelectTrigger className="w-36">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 12 }, (_, i) => (
+                              <SelectItem key={i} value={i.toString()}>
+                                {format(new Date(2026, i), 'MMMM')}
                               </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                    </>
-                  ) : (
-                    <h2 className="px-4 text-xl font-semibold">
-                      {currentDate.getFullYear()}
-                    </h2>
-                  )}
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <Select
+                          value={currentDate.getFullYear().toString()}
+                          onValueChange={handleYearChange}
+                        >
+                          <SelectTrigger className="w-24">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 11 }, (_, i) => {
+                              const y = currentDate.getFullYear() - 5 + i;
+                              return (
+                                <SelectItem key={y} value={y.toString()}>
+                                  {y}
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </>
+                    ) : (
+                      <h2 className="px-4 text-xl font-semibold">
+                        {currentDate.getFullYear()}
+                      </h2>
+                    )}
+                  </div>
+
+                  <Button variant="outline" size="icon" onClick={goToNext}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button variant="outline" size="icon" onClick={goToNext}>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={goToToday}>
+                    Hoy
+                  </Button>
+
+                  <Tabs
+                    value={viewMode}
+                    onValueChange={(v) => setViewMode(v as ViewMode)}
+                  >
+                    <TabsList>
+                      <TabsTrigger value="month">Mensual</TabsTrigger>
+                      <TabsTrigger value="year">Anual</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={goToToday}>
-                  Hoy
-                </Button>
-                <Tabs
-                  value={viewMode}
-                  onValueChange={(v) => setViewMode(v as ViewMode)}
-                >
-                  <TabsList>
-                    <TabsTrigger value="month">Mensual</TabsTrigger>
-                    <TabsTrigger value="year">Anual</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+
+              <div className="mt-6">
+                {viewMode === 'month' ? <MonthlyView /> : <YearlyView />}
               </div>
-            </div>
-            <div className="mt-6">
-              {viewMode === 'month' ? <MonthlyView /> : <YearlyView />}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -669,11 +708,12 @@ export default function Lista() {
                 autoFocus
               />
             </div>
+
             <div>
               <Label>Usuario responsable</Label>
               <Select
                 value={selectedUserId ? selectedUserId.toString() : ''}
-                onValueChange={(v) => setSelectedUserId(parseInt(v))}
+                onValueChange={(v) => setSelectedUserId(v ? parseInt(v) : '')}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona usuario..." />
@@ -687,6 +727,7 @@ export default function Lista() {
                 </SelectContent>
               </Select>
             </div>
+
             <div>
               <Label>Estado</Label>
               <div className="mt-2 grid grid-cols-3 gap-2">
@@ -706,6 +747,7 @@ export default function Lista() {
                 ))}
               </div>
             </div>
+
             <div>
               <Label>Color</Label>
               <div className="mt-2 flex gap-2">

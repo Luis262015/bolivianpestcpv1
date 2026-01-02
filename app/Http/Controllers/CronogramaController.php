@@ -61,13 +61,64 @@ class CronogramaController extends Controller
 
   public function create() {}
 
-  public function store(Request $request) {}
+  public function store(Request $request)
+  {
+    $validated = $request->validate([
+      'title' => 'required|string|max:255',
+      'date' => 'required|date',
+      'color' => 'required|string|max:50',
+      'status' => 'required|in:pendiente,postergado,completado',
+      'user_id' => 'required|exists:users,id',
+      'empresa_id' => 'required|exists:empresas,id',
+      'almacen_id' => 'required|exists:almacenes,id',
+    ]);
+
+    Cronograma::create([
+      'titulo' => $validated['title'],
+      'fecha' => $validated['date'],
+      'color' => $validated['color'],
+      'estado' => $validated['status'],
+      'user_id' => $validated['user_id'],
+      'empresa_id' => $validated['empresa_id'],
+      'almacen_id' => $validated['almacen_id'],
+    ]);
+
+    return redirect()->route('cronogramas.index');
+  }
 
   public function show(string $id) {}
 
   public function edit(string $id) {}
 
-  public function update(Request $request, string $id) {}
+  public function update(Request $request, Cronograma $tarea)
+  {
+    $validated = $request->validate([
+      'title' => 'required|string|max:255',
+      'date' => 'required|date',
+      'color' => 'required|string|max:50',
+      'status' => 'required|in:pendiente,postergado,completado',
+      'user_id' => 'required|exists:users,id',
+      'empresa_id' => 'required|exists:empresas,id',
+      'almacen_id' => 'required|exists:almacenes,id',
+    ]);
 
-  public function destroy(string $id) {}
+    $tarea->update([
+      'titulo' => $validated['title'],
+      'fecha' => $validated['date'],
+      'color' => $validated['color'],
+      'estado' => $validated['status'],
+      'user_id' => $validated['user_id'],
+      'empresa_id' => $validated['empresa_id'],
+      'almacen_id' => $validated['almacen_id'],
+    ]);
+
+    return redirect()->route('cronogramas.index');
+  }
+
+  public function destroy(Cronograma $tarea)
+  {
+    $tarea->delete();
+
+    return redirect()->route('cronogramas.index');
+  }
 }

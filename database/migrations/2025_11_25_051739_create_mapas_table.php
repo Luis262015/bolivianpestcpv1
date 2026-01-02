@@ -14,8 +14,15 @@ return new class extends Migration
     Schema::create('mapas', function (Blueprint $table) {
       $table->id();
       $table->foreignId('empresa_id')->constrained('empresas');
-      $table->foreignId('user_id')->constrained('users');
       $table->foreignId('almacen_id')->constrained('almacenes');
+      $table->foreignId('user_id')->constrained('users');
+
+      // Datos del dibujo (textos + trampas) en JSON
+      $table->json('data')->nullable();
+
+      // Ruta de la imagen de fondo (ej: "mapas/almacen_5_2026.png")
+      $table->string('background')->nullable();
+
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();
       // $table->timestamps();
