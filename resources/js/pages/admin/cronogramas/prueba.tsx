@@ -146,6 +146,9 @@ export default function Lista() {
 
   const puedeCrearTarea = !!selectedAlmacenId;
 
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
   useEffect(() => {
     setTasks(initialTasks);
   }, [initialTasks]);
@@ -171,8 +174,8 @@ export default function Lista() {
     );
   }, [selectedEmpresaId, selectedAlmacenId]);
 
-  const getTasksForDate = (dateStr: string) =>
-    tasks.filter((t) => t.date === dateStr);
+  // const getTasksForDate = (dateStr: string) =>
+  //   tasks.filter((t) => t.date === dateStr);
 
   const goToPrevious = () => {
     setCurrentDate(

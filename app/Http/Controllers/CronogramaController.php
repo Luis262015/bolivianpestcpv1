@@ -23,35 +23,35 @@ class CronogramaController extends Controller
 
     $usuarios = User::select('id', 'name as nombre', 'email')->orderBy('name')->get();
 
-    $query = Cronograma::query()
-      ->with('user:id,name')
-      ->select('id', 'titulo as title', 'fecha as date', 'color', 'estado as status', 'user_id', 'empresa_id', 'almacen_id');
+    // $query = Cronograma::query()
+    //   ->with('user:id,name')
+    //   ->select('id', 'titulo as title', 'fecha as date', 'color', 'estado as status', 'user_id', 'empresa_id', 'almacen_id');
 
-    if ($empresaId) {
-      $query->where('empresa_id', $empresaId);
-    }
-    if ($almacenId) {
-      $query->where('almacen_id', $almacenId);
-    }
+    // if ($empresaId) {
+    //   $query->where('empresa_id', $empresaId);
+    // }
+    // if ($almacenId) {
+    //   $query->where('almacen_id', $almacenId);
+    // }
 
-    $tareas = $query->get()->map(function ($tarea) {
-      return [
-        'id' => $tarea->id,
-        'title' => $tarea->title,
-        'date' => $tarea->date->format('Y-m-d'),
-        'color' => $tarea->color ?? 'bg-blue-500',
-        'status' => $tarea->status ?? 'pendiente',
-        'user_id' => $tarea->user_id,
-        'empresa_id' => $tarea->empresa_id,
-        'almacen_id' => $tarea->almacen_id,
-      ];
-    });
+    // $tareas = $query->get()->map(function ($tarea) {
+    //   return [
+    //     'id' => $tarea->id,
+    //     'title' => $tarea->title,
+    //     'date' => $tarea->date->format('Y-m-d'),
+    //     'color' => $tarea->color ?? 'bg-blue-500',
+    //     'status' => $tarea->status ?? 'pendiente',
+    //     'user_id' => $tarea->user_id,
+    //     'empresa_id' => $tarea->empresa_id,
+    //     'almacen_id' => $tarea->almacen_id,
+    //   ];
+    // });
 
     return inertia('admin/cronogramas/prueba', [
       'empresas' => $empresas,
       'almacenes' => $almacenes,
       'usuarios' => $usuarios,
-      'tareas' => $tareas,
+      // 'tareas' => $tareas,
       'filters' => [
         'empresa_id' => $empresaId ? (int) $empresaId : null,
         'almacen_id' => $almacenId ? (int) $almacenId : null,
