@@ -28,7 +28,7 @@ class ContratoController extends Controller
     'almacenes.*.nombre' => 'required|string|max:255',
 
     'almacenes.*.almacen_trampa' => 'required|array|min:1',
-    'almacenes.*.almacen_trampa.descripcion' => 'required|string|max:255',
+    // 'almacenes.*.almacen_trampa.descripcion' => 'required|string|max:255',
     'almacenes.*.almacen_trampa.cantidad' => 'required|numeric|min:0',
     'almacenes.*.almacen_trampa.visitas' => 'required|numeric|min:0',
     'almacenes.*.almacen_trampa.precio' => 'required|numeric|min:0',
@@ -36,7 +36,7 @@ class ContratoController extends Controller
     'almacenes.*.almacen_trampa.fechas_visitas' => 'required|array|min:1',
 
     'almacenes.*.almacen_area' => 'required|array|min:1',
-    'almacenes.*.almacen_area.descripcion' => 'required|string|max:255',
+    // 'almacenes.*.almacen_area.descripcion' => 'required|string|max:255',
     'almacenes.*.almacen_area.area' => 'required|numeric|min:0',
     'almacenes.*.almacen_area.visitas' => 'required|numeric|min:0',
     'almacenes.*.almacen_area.precio' => 'required|numeric|min:0',
@@ -44,46 +44,23 @@ class ContratoController extends Controller
     'almacenes.*.almacen_area.fechas_visitas' => 'required|array|min:1',
 
     'almacenes.*.almacen_insectocutor' => 'required|array|min:1',
-    'almacenes.*.almacen_insectocutor.descripcion' => 'required|string|max:255',
+    // 'almacenes.*.almacen_insectocutor.descripcion' => 'required|string|max:255',
     'almacenes.*.almacen_insectocutor.cantidad' => 'required|numeric|min:0',
     'almacenes.*.almacen_insectocutor.precio' => 'required|numeric|min:0',
     'almacenes.*.almacen_insectocutor.total' => 'required|numeric|min:0',
-
-    // 'detalles' => 'required|array|min:1',
-    // 'detalles.*.descripcion' => 'required|string',
-    // 'detalles.*.area' => 'required|numeric|min:0',
-    // 'detalles.*.precio_unitario' => 'required|numeric|min:0',
-    // 'detalles.*.total' => 'required|numeric|min:0',
   ];
 
-
-
-  /**
-   * Display a listing of the resource.
-   */
   public function index()
   {
-    //
     $contratos = Contrato::with('detalles')->paginate(20);
     return inertia('admin/contrato/lista', ['contratos' => $contratos]);
-    // return inertia('admin/contrato/lista');
   }
 
-  /**
-   * Show the form for creating a new resource.
-   */
   public function create()
   {
-    //
-    // $contactos = Contacto::orderBy('nombre')->get(['id', 'nombre', 'telefono', 'email']);
-    // return inertia('admin/contrato/crear', ['contactos' => $contactos]);
-
     return inertia('admin/contrato/crear');
   }
 
-  /**
-   * Store a newly created resource in storage.
-   */
   public function store(Request $request)
   {
 

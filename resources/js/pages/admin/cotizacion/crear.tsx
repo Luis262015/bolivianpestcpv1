@@ -15,8 +15,8 @@ import { Plus, Trash2 } from 'lucide-react';
 import { FormEventHandler, useMemo } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Contratos', href: '/contratos' },
-  { title: 'Nuevo Contrato', href: '/contratos/create' },
+  { title: 'Cotizaciones', href: '/cotizaciones' },
+  { title: 'Nueva Cotizacion', href: '/cotizaciones/create' },
 ];
 
 interface Cotizacion {
@@ -28,130 +28,167 @@ interface Cotizacion {
   telefono: string;
   // fecha_fin_contrato: string;
   total: number;
-  almacenes: Almacen[];
+  detalles: Detalle[];
 }
 
-interface Almacen {
+interface Detalle {
   id?: number;
   nombre: string;
-  // direccion: string;
-  // telefono: string;
-  // email: string;
-  // ciudad: string;
-  // encargado: string;
-  almacen_trampa: AlmacenTrampa;
-  almacen_area: AlmacenArea;
-  almacen_insectocutor: AlmancenInsectocutor;
+  t_cantidad: number;
+  t_visitas: number;
+  t_precio: number;
+  t_total: number;
+  a_area: number;
+  a_visitas: number;
+  a_precio: number;
+  a_total: number;
+  i_cantidad: number;
+  i_precio: number;
+  i_total: number;
 }
 
-interface AlmacenTrampa {
-  // descripcion: string;
-  cantidad: number;
-  visitas: number;
-  precio: number;
-  total: number;
-  // fechas_visitas?: string[];
-}
+// interface Almacen {
+//   id?: number;
+//   nombre: string;
+//   // direccion: string;
+//   // telefono: string;
+//   // email: string;
+//   // ciudad: string;
+//   // encargado: string;
+//   almacen_trampa: AlmacenTrampa;
+//   almacen_area: AlmacenArea;
+//   almacen_insectocutor: AlmancenInsectocutor;
+// }
 
-interface AlmacenArea {
-  // descripcion: string;
-  area: number;
-  visitas: number;
-  precio: number;
-  total: number;
-  // fechas_visitas?: string[];
-}
+// interface AlmacenTrampa {
+//   // descripcion: string;
+//   cantidad: number;
+//   visitas: number;
+//   precio: number;
+//   total: number;
+//   // fechas_visitas?: string[];
+// }
 
-interface AlmancenInsectocutor {
-  // descripcion: string;
-  cantidad: number;
-  precio: number;
-  total: number;
-}
+// interface AlmacenArea {
+//   // descripcion: string;
+//   area: number;
+//   visitas: number;
+//   precio: number;
+//   total: number;
+//   // fechas_visitas?: string[];
+// }
+
+// interface AlmancenInsectocutor {
+//   // descripcion: string;
+//   cantidad: number;
+//   precio: number;
+//   total: number;
+// }
 
 interface Props {
-  contrato: Cotizacion;
+  cotizacion: Cotizacion;
 }
 
-export default function CotizacionForm({ contrato }: Props) {
-  const { data, setData, post, put, processing, errors } = useForm<Cotizacion>({
-    nombre: contrato?.nombre ?? '',
-    // direccion: contrato?.direccion ?? '',
-    telefono: contrato?.telefono ?? '',
-    email: contrato?.email ?? '',
-    // ciudad: contrato?.ciudad ?? '',
-    // fecha_fin_contrato: contrato?.fecha_fin_contrato ?? '',
-    total: contrato?.total ?? 0,
+export default function CotizacionForm({ cotizacion }: Props) {
+  console.log(cotizacion);
 
-    almacenes:
-      contrato?.almacenes?.length > 0
-        ? contrato.almacenes.map((a) => ({
+  const { data, setData, post, put, processing, errors } = useForm<Cotizacion>({
+    nombre: cotizacion?.nombre ?? '',
+    telefono: cotizacion?.telefono ?? '',
+    email: cotizacion?.email ?? '',
+    total: cotizacion?.total ?? 0,
+
+    detalles:
+      cotizacion?.detalles?.length > 0
+        ? cotizacion.detalles.map((a) => ({
             id: a.id,
             nombre: a.nombre ?? '',
+            t_cantidad: a.t_cantidad ?? 0,
+            t_visitas: a.t_visitas ?? 1,
+            t_precio: a.t_precio ?? 0,
+            t_total: a.t_total ?? 0,
+            a_area: a.a_area ?? 0,
+            a_visitas: a.a_visitas ?? 1,
+            a_precio: a.a_precio ?? 0,
+            a_total: a.a_total ?? 0,
+            i_cantidad: a.i_cantidad ?? 0,
+            i_precio: a.i_precio ?? 0,
+            i_total: a.i_total ?? 0,
             // direccion: a.direccion ?? '',
             // telefono: a.telefono ?? '',
             // email: a.email ?? '',
             // ciudad: a.ciudad ?? '',
             // encargado: a.encargado ?? '',
-            almacen_trampa: {
-              // descripcion:
-              //   a.almacen_trampa?.descripcion ??
-              //   'Control de roedores con trampas',
-              cantidad: a.almacen_trampa?.cantidad ?? 0,
-              visitas: a.almacen_trampa?.visitas ?? 1,
-              precio: a.almacen_trampa?.precio ?? 0,
-              total: a.almacen_trampa?.total ?? 0,
-              // fechas_visitas:
-              //   a.almacen_trampa?.fechas_visitas ?? Array(1).fill(''),
-            },
-            almacen_area: {
-              // descripcion: a.almacen_area?.descripcion ?? 'Fumigación general',
-              area: a.almacen_area?.area ?? 0,
-              visitas: a.almacen_area?.visitas ?? 1,
-              precio: a.almacen_area?.precio ?? 0,
-              total: a.almacen_area?.total ?? 0,
-              // fechas_visitas:
-              //   a.almacen_area?.fechas_visitas ?? Array(1).fill(''),
-            },
-            almacen_insectocutor: {
-              // descripcion:
-              //   a.almacen_insectocutor?.descripcion ?? 'Insectocutores',
-              cantidad: a.almacen_insectocutor?.cantidad ?? 0,
-              precio: a.almacen_insectocutor?.precio ?? 0,
-              total: a.almacen_insectocutor?.total ?? 0,
-            },
+            // almacen_trampa: {
+            //   // descripcion:
+            //   //   a.almacen_trampa?.descripcion ??
+            //   //   'Control de roedores con trampas',
+            //   cantidad: a.t_cantidad ?? 0,
+            //   visitas: a.t_visitas ?? 1,
+            //   precio: a.t_precio ?? 0,
+            //   total: a.t_total ?? 0,
+            //   // fechas_visitas:
+            //   //   a.almacen_trampa?.fechas_visitas ?? Array(1).fill(''),
+            // },
+            // almacen_area: {
+            //   // descripcion: a.almacen_area?.descripcion ?? 'Fumigación general',
+            //   area: a.a_area ?? 0,
+            //   visitas: a.a_visitas ?? 1,
+            //   precio: a.a_precio ?? 0,
+            //   total: a.a_total ?? 0,
+            //   // fechas_visitas:
+            //   //   a.almacen_area?.fechas_visitas ?? Array(1).fill(''),
+            // },
+            // almacen_insectocutor: {
+            //   // descripcion:
+            //   //   a.almacen_insectocutor?.descripcion ?? 'Insectocutores',
+            //   cantidad: a.i_cantidad ?? 0,
+            //   precio: a.i_precio ?? 0,
+            //   total: a.i_total ?? 0,
+            // },
           }))
         : [
             {
               nombre: '',
+              t_cantidad: 0,
+              t_visitas: 1,
+              t_precio: 0,
+              t_total: 0,
+              a_area: 0,
+              a_visitas: 1,
+              a_precio: 0,
+              a_total: 0,
+              i_cantidad: 0,
+              i_precio: 0,
+              i_total: 0,
               // direccion: '',
               // telefono: '',
               // email: '',
               // ciudad: '',
               // encargado: '',
               // contacto_id: contactos[0]?.id ?? 0,
-              almacen_trampa: {
-                // descripcion: 'Control de roedores con trampas',
-                cantidad: 0,
-                visitas: 1,
-                precio: 0,
-                total: 0,
-                // fechas_visitas: Array(1).fill(''),
-              },
-              almacen_area: {
-                // descripcion: 'Fumigación general',
-                area: 0,
-                visitas: 1,
-                precio: 0,
-                total: 0,
-                // fechas_visitas: Array(1).fill(''),
-              },
-              almacen_insectocutor: {
-                // descripcion: 'Insectocutores',
-                cantidad: 0,
-                precio: 0,
-                total: 0,
-              },
+              // almacen_trampa: {
+              //   // descripcion: 'Control de roedores con trampas',
+              //   cantidad: 0,
+              //   visitas: 1,
+              //   precio: 0,
+              //   total: 0,
+              //   // fechas_visitas: Array(1).fill(''),
+              // },
+              // almacen_area: {
+              //   // descripcion: 'Fumigación general',
+              //   area: 0,
+              //   visitas: 1,
+              //   precio: 0,
+              //   total: 0,
+              //   // fechas_visitas: Array(1).fill(''),
+              // },
+              // almacen_insectocutor: {
+              //   // descripcion: 'Insectocutores',
+              //   cantidad: 0,
+              //   precio: 0,
+              //   total: 0,
+              // },
             },
           ],
   });
@@ -176,11 +213,11 @@ export default function CotizacionForm({ contrato }: Props) {
   // Actualizar totales cuando cambian los campos
   const updateTrampaField = (
     index: number,
-    field: keyof AlmacenTrampa,
+    field: keyof Detalle,
     value: number | string,
   ) => {
-    const updated = [...data.almacenes];
-    const trampa = { ...updated[index].almacen_trampa };
+    const updated = [...data.detalles];
+    const trampa = { ...updated[index] };
 
     // if (field === 'descripcion') {
     //   trampa.descripcion = value as string;
@@ -202,23 +239,23 @@ export default function CotizacionForm({ contrato }: Props) {
     // }
     (trampa[field] as number) = Number(value);
 
-    trampa.total = calcularTotalTrampas(
-      trampa.cantidad,
-      trampa.visitas,
-      trampa.precio,
+    trampa.t_total = calcularTotalTrampas(
+      trampa.t_cantidad,
+      trampa.t_visitas,
+      trampa.t_precio,
     );
-    updated[index].almacen_trampa = trampa;
+    updated[index] = trampa;
 
-    setData('almacenes', updated);
+    setData('detalles', updated);
   };
 
   const updateAreaField = (
     index: number,
-    field: keyof AlmacenArea,
+    field: keyof Detalle,
     value: number | string,
   ) => {
-    const updated = [...data.almacenes];
-    const area = { ...updated[index].almacen_area };
+    const updated = [...data.detalles];
+    const area = { ...updated[index] };
 
     // if (field === 'descripcion') {
     //   area.descripcion = value as string;
@@ -240,19 +277,23 @@ export default function CotizacionForm({ contrato }: Props) {
     // }
     (area[field] as number) = Number(value);
 
-    area.total = calcularTotalArea(area.area, area.visitas, area.precio);
-    updated[index].almacen_area = area;
+    area.a_total = calcularTotalArea(
+      area.a_area,
+      area.a_visitas,
+      area.a_precio,
+    );
+    updated[index] = area;
 
-    setData('almacenes', updated);
+    setData('detalles', updated);
   };
 
   const updateInsectocutorField = (
     index: number,
-    field: keyof AlmancenInsectocutor,
+    field: keyof Detalle,
     value: number | string,
   ) => {
-    const updated = [...data.almacenes];
-    const insectocutor = { ...updated[index].almacen_insectocutor };
+    const updated = [...data.detalles];
+    const insectocutor = { ...updated[index] };
 
     // if (field === 'descripcion') {
     //   insectocutor.descripcion = value as string;
@@ -262,13 +303,13 @@ export default function CotizacionForm({ contrato }: Props) {
 
     (insectocutor[field] as number) = Number(value);
 
-    insectocutor.total = calcularTotalInsectocutor(
-      insectocutor.cantidad,
-      insectocutor.precio,
+    insectocutor.i_total = calcularTotalInsectocutor(
+      insectocutor.i_cantidad,
+      insectocutor.i_precio,
     );
-    updated[index].almacen_insectocutor = insectocutor;
+    updated[index] = insectocutor;
 
-    setData('almacenes', updated);
+    setData('detalles', updated);
   };
 
   // const updateTrampaFechaVisita = (
@@ -300,61 +341,73 @@ export default function CotizacionForm({ contrato }: Props) {
   // };
 
   const totalAlmacenes = useMemo(() => {
-    return data.almacenes.reduce((sum, a) => {
+    return data.detalles.reduce((sum, a) => {
       return (
         sum +
-        (a.almacen_trampa?.total ?? 0) +
-        (a.almacen_area?.total ?? 0) +
-        (a.almacen_insectocutor?.total ?? 0)
+        (Number(a.t_total) ?? 0) +
+        (Number(a.a_total) ?? 0) +
+        (Number(a.i_total) ?? 0)
       );
     }, 0);
-  }, [data.almacenes]);
+  }, [data.detalles]);
 
   const granTotal = totalAlmacenes;
   // const saldoCalculado = granTotal - (data.acuenta ?? 0);
 
   const addAlmacen = () => {
-    setData('almacenes', [
-      ...data.almacenes,
+    setData('detalles', [
+      ...data.detalles,
       {
         nombre: '',
+        t_cantidad: 0,
+        t_visitas: 1,
+        t_precio: 0,
+        t_total: 0,
+        a_area: 0,
+        a_visitas: 1,
+        a_precio: 0,
+        a_total: 0,
+        i_cantidad: 0,
+        i_precio: 0,
+        i_total: 0,
+
         // direccion: '',
         // telefono: '',
         // email: '',
         // ciudad: '',
         // encargado: '',
         // contacto_id: contactos[0]?.id ?? 0,
-        almacen_trampa: {
-          // descripcion: 'Control de roedores con trampas',
-          cantidad: 0,
-          visitas: 1,
-          precio: 0,
-          total: 0,
-          // fechas_visitas: Array(1).fill(''),
-        },
-        almacen_area: {
-          // descripcion: 'Fumigación general',
-          area: 0,
-          visitas: 1,
-          precio: 0,
-          total: 0,
-          // fechas_visitas: Array(1).fill(''),
-        },
-        almacen_insectocutor: {
-          // descripcion: 'Insectocutores',
-          cantidad: 0,
-          precio: 0,
-          total: 0,
-        },
+        // almacen_trampa: {
+        //   // descripcion: 'Control de roedores con trampas',
+        //   cantidad: 0,
+        //   visitas: 1,
+        //   precio: 0,
+        //   total: 0,
+        //   // fechas_visitas: Array(1).fill(''),
+        // },
+        // almacen_area: {
+        //   // descripcion: 'Fumigación general',
+        //   area: 0,
+        //   visitas: 1,
+        //   precio: 0,
+        //   total: 0,
+        //   // fechas_visitas: Array(1).fill(''),
+        // },
+        // almacen_insectocutor: {
+        //   // descripcion: 'Insectocutores',
+        //   cantidad: 0,
+        //   precio: 0,
+        //   total: 0,
+        // },
       },
     ]);
   };
 
   const removeAlmacen = (index: number) => {
-    if (data.almacenes.length > 1) {
+    if (data.detalles.length > 1) {
       setData(
-        'almacenes',
-        data.almacenes.filter((_, i) => i !== index),
+        'detalles',
+        data.detalles.filter((_, i) => i !== index),
       );
     }
   };
@@ -363,26 +416,27 @@ export default function CotizacionForm({ contrato }: Props) {
     e.preventDefault();
     const payload = {
       ...data,
+
       total: granTotal,
     };
 
-    if (contrato?.id) {
-      put(`/contratos/${contrato.id}`, payload as any);
+    if (cotizacion?.id) {
+      put(`/cotizaciones/${cotizacion.id}`, payload as any);
     } else {
-      post('/contratos', payload as any);
+      post('/cotizaciones', payload as any);
     }
   };
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title={contrato ? 'Editar Contrato' : 'Nuevo Contrato'} />
+      <Head title={cotizacion ? 'Editar Contrato' : 'Nuevo Contrato'} />
 
       <div className="py-5">
         <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
           <Card>
             <CardHeader>
               <CardTitle>
-                {contrato ? 'Editar Cotizacion' : 'Nuevo Cotizacion'}
+                {cotizacion ? 'Editar Cotizacion' : 'Nuevo Cotizacion'}
               </CardTitle>
               <CardDescription>
                 Complete los datos del cliente y los servicios por almacén
@@ -455,7 +509,7 @@ export default function CotizacionForm({ contrato }: Props) {
                     </Button>
                   </div>
 
-                  {data.almacenes.map((almacen, index) => (
+                  {data.detalles.map((almacen, index) => (
                     <Card key={index} className="border-2">
                       <CardHeader>
                         <div className="flex items-center justify-between">
@@ -463,7 +517,7 @@ export default function CotizacionForm({ contrato }: Props) {
                             Almacén #{index + 1} —{' '}
                             {almacen.nombre || 'Sin nombre'}
                           </CardTitle>
-                          {data.almacenes.length > 1 && (
+                          {data.detalles.length > 1 && (
                             <Button
                               type="button"
                               variant="ghost"
@@ -485,7 +539,7 @@ export default function CotizacionForm({ contrato }: Props) {
                               value={almacen.nombre}
                               onChange={(e) =>
                                 setData(
-                                  `almacenes.${index}.nombre` as any,
+                                  `detalles.${index}.nombre` as any,
                                   e.target.value,
                                 )
                               }
@@ -607,11 +661,11 @@ export default function CotizacionForm({ contrato }: Props) {
                               <Label>Cantidad</Label>
                               <Input
                                 type="number"
-                                value={almacen.almacen_trampa.cantidad}
+                                value={almacen.t_cantidad}
                                 onChange={(e) =>
                                   updateTrampaField(
                                     index,
-                                    'cantidad',
+                                    't_cantidad',
                                     e.target.value,
                                   )
                                 }
@@ -622,11 +676,11 @@ export default function CotizacionForm({ contrato }: Props) {
                               <Input
                                 type="number"
                                 min="1"
-                                value={almacen.almacen_trampa.visitas}
+                                value={almacen.t_visitas}
                                 onChange={(e) =>
                                   updateTrampaField(
                                     index,
-                                    'visitas',
+                                    't_visitas',
                                     e.target.value,
                                   )
                                 }
@@ -637,11 +691,11 @@ export default function CotizacionForm({ contrato }: Props) {
                               <Input
                                 type="number"
                                 step="0.01"
-                                value={almacen.almacen_trampa.precio}
+                                value={almacen.t_precio}
                                 onChange={(e) =>
                                   updateTrampaField(
                                     index,
-                                    'precio',
+                                    't_precio',
                                     e.target.value,
                                   )
                                 }
@@ -690,7 +744,7 @@ export default function CotizacionForm({ contrato }: Props) {
 
                           <p className="mt-4 text-right text-lg font-bold">
                             Total anual: Bs.{' '}
-                            {almacen.almacen_trampa.total.toFixed(2)}
+                            {Number(almacen.t_total).toFixed(2)}
                           </p>
                         </div>
 
@@ -719,9 +773,13 @@ export default function CotizacionForm({ contrato }: Props) {
                               <Input
                                 type="number"
                                 step="0.01"
-                                value={almacen.almacen_area.area}
+                                value={almacen.a_area}
                                 onChange={(e) =>
-                                  updateAreaField(index, 'area', e.target.value)
+                                  updateAreaField(
+                                    index,
+                                    'a_area',
+                                    e.target.value,
+                                  )
                                 }
                               />
                             </div>
@@ -730,11 +788,11 @@ export default function CotizacionForm({ contrato }: Props) {
                               <Input
                                 type="number"
                                 min="1"
-                                value={almacen.almacen_area.visitas}
+                                value={almacen.a_visitas}
                                 onChange={(e) =>
                                   updateAreaField(
                                     index,
-                                    'visitas',
+                                    'a_visitas',
                                     e.target.value,
                                   )
                                 }
@@ -745,11 +803,11 @@ export default function CotizacionForm({ contrato }: Props) {
                               <Input
                                 type="number"
                                 step="0.01"
-                                value={almacen.almacen_area.precio}
+                                value={almacen.a_precio}
                                 onChange={(e) =>
                                   updateAreaField(
                                     index,
-                                    'precio',
+                                    'a_precio',
                                     e.target.value,
                                   )
                                 }
@@ -798,7 +856,7 @@ export default function CotizacionForm({ contrato }: Props) {
 
                           <p className="mt-4 text-right text-lg font-bold">
                             Total anual: Bs.{' '}
-                            {almacen.almacen_area.total.toFixed(2)}
+                            {Number(almacen.a_total).toFixed(2)}
                           </p>
                         </div>
 
@@ -827,11 +885,11 @@ export default function CotizacionForm({ contrato }: Props) {
                               <Input
                                 type="number"
                                 step="0.01"
-                                value={almacen.almacen_insectocutor.cantidad}
+                                value={almacen.i_cantidad}
                                 onChange={(e) =>
                                   updateInsectocutorField(
                                     index,
-                                    'cantidad',
+                                    'i_cantidad',
                                     e.target.value,
                                   )
                                 }
@@ -843,11 +901,11 @@ export default function CotizacionForm({ contrato }: Props) {
                               <Input
                                 type="number"
                                 step="0.01"
-                                value={almacen.almacen_insectocutor.precio}
+                                value={almacen.i_precio}
                                 onChange={(e) =>
                                   updateInsectocutorField(
                                     index,
-                                    'precio',
+                                    'i_precio',
                                     e.target.value,
                                   )
                                 }
@@ -857,7 +915,7 @@ export default function CotizacionForm({ contrato }: Props) {
 
                           <p className="mt-4 text-right text-lg font-bold">
                             Total anual: Bs.{' '}
-                            {almacen.almacen_insectocutor.total.toFixed(2)}
+                            {Number(almacen.i_total).toFixed(2)}
                           </p>
                         </div>
 
@@ -868,10 +926,10 @@ export default function CotizacionForm({ contrato }: Props) {
                             </p>
                             <p className="text-2xl font-bold text-primary">
                               Bs.{' '}
-                              {(
-                                almacen.almacen_trampa.total +
-                                almacen.almacen_area.total +
-                                almacen.almacen_insectocutor.total
+                              {Number(
+                                Number(almacen.t_total) +
+                                  Number(almacen.a_total) +
+                                  Number(almacen.i_total),
                               ).toFixed(2)}
                             </p>
                           </div>
@@ -886,7 +944,7 @@ export default function CotizacionForm({ contrato }: Props) {
                   <CardContent className="pt-8">
                     <div className="space-y-6 text-right">
                       <div className="text-2xl font-bold text-primary">
-                        Total del Contrato: Bs. {granTotal.toFixed(2)}
+                        Total del Contrato: Bs. {Number(granTotal).toFixed(2)}
                       </div>
 
                       {/* <div className="flex items-center justify-end gap-8">
@@ -915,16 +973,16 @@ export default function CotizacionForm({ contrato }: Props) {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => router.visit('/contratos')}
+                    onClick={() => router.visit('/cotizaciones')}
                   >
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={processing}>
                     {processing
                       ? 'Guardando...'
-                      : contrato
+                      : cotizacion
                         ? 'Actualizar'
-                        : 'Crear Contrato'}
+                        : 'Crear Cotizacion'}
                   </Button>
                 </div>
               </form>

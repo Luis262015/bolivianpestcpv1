@@ -14,7 +14,7 @@ return new class extends Migration
     Schema::create('almacen_trampas', function (Blueprint $table) {
       $table->id();
       $table->foreignId('almacen_id')->constrained('almacenes');
-      $table->string('descripcion');
+      $table->string('descripcion')->nullable();
       $table->integer('cantidad');
       $table->integer('visitas');
       $table->double('precio');

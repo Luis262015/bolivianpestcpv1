@@ -18,19 +18,19 @@ return new class extends Migration
       $table->string('nombre');
 
       // Almacen trampas
-      $table->string('t_cantidad');
-      $table->string('t_visitas');
-      $table->string('t_precio');
-      $table->string('t_total');
+      $table->integer('t_cantidad');
+      $table->integer('t_visitas');
+      $table->decimal('t_precio', 10, 2);
+      $table->decimal('t_total', 10, 2);
       // Almacen area
-      $table->string('a_area');
-      $table->string('a_visitas');
-      $table->string('a_precio');
-      $table->string('a_total');
+      $table->integer('a_area');
+      $table->integer('a_visitas');
+      $table->decimal('a_precio', 10, 2);
+      $table->decimal('a_total', 10, 2);
       // Almacen insectocutores
-      $table->string('i_cantidad');
-      $table->string('i_precio');
-      $table->string('i_total');
+      $table->integer('i_cantidad');
+      $table->decimal('i_precio', 10, 2);
+      $table->decimal('i_total', 10, 2);
 
       $table->decimal('total', 10, 2);
 

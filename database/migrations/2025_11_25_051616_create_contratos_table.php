@@ -15,8 +15,8 @@ return new class extends Migration
       $table->id();
 
       $table->foreignId('empresa_id')->constrained('empresas');
-      $table->date('expiracion');
       $table->decimal('total', 10, 2);
+      $table->date('expiracion');
 
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();

@@ -13,13 +13,13 @@ return new class extends Migration
   {
     Schema::create('almacenes', function (Blueprint $table) {
       $table->id();
+      $table->foreignId('empresa_id')->constrained('empresas');
       $table->string('nombre');
       $table->string('direccion')->nullable();
       $table->string('encargado')->nullable();
       $table->string('telefono')->nullable();
       $table->string('email')->nullable();
       $table->string('ciudad')->nullable();
-      $table->foreignId('empresa_id')->constrained('empresas');
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();
       // $table->timestamps();
