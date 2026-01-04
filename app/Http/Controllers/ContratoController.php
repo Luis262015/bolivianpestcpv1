@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Almacen;
+use App\Models\AlmacenArea;
+use App\Models\AlmacenTrampa;
+use App\Models\AlmancenInsectocutor;
 use App\Models\Contacto;
 use App\Models\Contrato;
+use App\Models\ContratoDetalles;
 use App\Models\CuentaCobrar;
 use App\Models\Empresa;
 use Illuminate\Http\Request;
@@ -21,11 +25,17 @@ class ContratoController extends Controller
     'email' => 'required|email',
     'ciudad' => 'required|string|max:100',
     'total' => 'required|numeric|min:0',
-    'acuenta' => 'required|numeric|min:0',
-    'saldo' => 'required|numeric|min:0',
+    'fecha_fin_contrato' => 'required|date',
+    // 'acuenta' => 'required|numeric|min:0',
+    // 'saldo' => 'required|numeric|min:0',
 
     'almacenes' => 'required|array|min:1',
     'almacenes.*.nombre' => 'required|string|max:255',
+    'almacenes.*.direccion' => 'required|string|max:255',
+    'almacenes.*.telefono' => 'required|string|max:255',
+    'almacenes.*.email' => 'required|email',
+    'almacenes.*.ciudad' => 'required|string|max:255',
+    'almacenes.*.encargado' => 'required|string|max:255',
 
     'almacenes.*.almacen_trampa' => 'required|array|min:1',
     // 'almacenes.*.almacen_trampa.descripcion' => 'required|string|max:255',
@@ -64,56 +74,19 @@ class ContratoController extends Controller
   public function store(Request $request)
   {
 
-    dd($request);
-
-    // $validated = $request->validate([
-    //   'nombre' => 'required|string|max:255',
-    //   'direccion' => 'required|string|max:255',
-    //   'telefono' => 'required|string|max:20',
-    //   'email' => 'required|email',
-    //   'ciudad' => 'required|string|max:100',
-    //   // 'almacen' => 'required|string|max:100',
-    //   'total' => 'required|numeric|min:0',
-    //   'acuenta' => 'required|numeric|min:0',
-    //   'saldo' => 'required|numeric|min:0',
-    //   'almacenes' => 'required|array|min:1',
-    //   'almacenes.*.nombre' => 'required|string|max:255',
-    //   'detalles' => 'required|array|min:1',
-    //   'detalles.*.descripcion' => 'required|string',
-    //   'detalles.*.area' => 'required|numeric|min:0',
-    //   'detalles.*.precio_unitario' => 'required|numeric|min:0',
-    //   'detalles.*.total' => 'required|numeric|min:0',
-    // ]);
+    // dd($request);
 
     $validated = $request->validate($this->toValidated);
 
-    // dd($request);
-    dd($validated);
+    // dd($validated);
 
     $totalSuma = 0;
-    foreach ($validated['detalles'] as $detalle) {
-      $totalSuma += $detalle['total'];
+    foreach ($validated['almacenes'] as $almacen) {
+      // $totalSuma += $detalle['total'];
+      $totalSuma += $almacen['almacen_trampa']['total'] + $almacen['almacen_area']['total'] + $almacen['almacen_insectocutor']['total'];
     }
 
-    // Extraer solo los campos que pertenecen a cotizaciones
-    $cotizacionData = [
-      'nombre' => $validated['nombre'],
-      'direccion' => $validated['direccion'],
-      'telefono' => $validated['telefono'],
-      'email' => $validated['email'],
-      'ciudad' => $validated['ciudad'],
-      'almacen' => "",
-      // 'total' => $validated['total'],      
-      'total' => $totalSuma,
-      'acuenta' => $validated['acuenta'],
-      'saldo' => $validated['saldo'],
-    ];
-    $cotizacion = Contrato::create($cotizacionData);
-
-    // Detalles
-    foreach ($validated['detalles'] as $detalle) {
-      $cotizacion->detalles()->create($detalle);
-    }
+    // dd($totalSuma);
 
     // CREAR EMPRESA
     $empresa = new Empresa();
@@ -122,46 +95,91 @@ class ContratoController extends Controller
     $empresa->telefono = $validated['telefono'];
     $empresa->email = $validated['email'];
     $empresa->ciudad = $validated['ciudad'];
-    $empresa->almacen = "";
     $empresa->activo = true;
     $empresa->save();
 
+    // CREAR CONTRATO
+    $contratoData = [
+      'empresa_id' => $empresa->id,
+      'total' => $totalSuma,
+      'expiracion' => $validated['fecha_fin_contrato'],
+    ];
+    $contrato = Contrato::create($contratoData);
+
+    // Detalles
+    // foreach ($validated['detalles'] as $detalle) {
+    //   $cotizacion->detalles()->create($detalle);
+    // }
+
     // Almacenes
     foreach ($validated['almacenes'] as $almacen) {
+      // CREAR DATOS DE ALMACEN
       $almacendb = new Almacen();
-      $almacendb->nombre = $almacen['nombre'];
-      $almacendb->direccion = $validated['direccion'];
-      $almacendb->telefono = $validated['telefono'];
-      $almacendb->email = $validated['email'];
-      $almacendb->ciudad = $validated['ciudad'];
       $almacendb->empresa_id = $empresa->id;
-      $almacendb->contrato_id = $cotizacion->id;
+      $almacendb->nombre = $almacen['nombre'];
+      $almacendb->direccion = $almacen['direccion'];
+      $almacendb->encargado = $almacen['encargado'];
+      $almacendb->telefono = $almacen['telefono'];
+      $almacendb->email = $almacen['email'];
+      $almacendb->ciudad = $almacen['ciudad'];
       $almacendb->save();
+      // - DATOS DE ALMANCEN TRAMPAS
+      $trampas = new AlmacenTrampa();
+      $trampas->almacen_id = $almacendb->id;
+      $trampas->cantidad = $almacen['almacen_trampa']['cantidad'];
+      $trampas->visitas = $almacen['almacen_trampa']['visitas'];
+      $trampas->precio = $almacen['almacen_trampa']['precio'];
+      $trampas->total = $almacen['almacen_trampa']['total'];
+      $trampas->save();
+      // - DATOS DE ALMANCEN AREAS
+      $areas = new AlmacenArea();
+      $areas->almacen_id = $almacendb->id;
+      $areas->area = $almacen['almacen_area']['area'];
+      $areas->visitas = $almacen['almacen_area']['visitas'];
+      $areas->precio = $almacen['almacen_area']['precio'];
+      $areas->total = $almacen['almacen_area']['total'];
+      $areas->save();
+      // - DATOS DE ALMANCEN INSECTOCUTORES
+      $insect = new AlmancenInsectocutor();
+      $insect->almacen_id = $almacendb->id;
+      $insect->cantidad = $almacen['almacen_insectocutor']['cantidad'];
+      $insect->precio = $almacen['almacen_insectocutor']['precio'];
+      $insect->total = $almacen['almacen_insectocutor']['total'];
+      $insect->save();
+
+      // DETALLES DE CONTRATO
+      $detalles = new ContratoDetalles();
+      $detalles->contrato_id = $contrato->id;
+      $detalles->nombre = $almacen['nombre'];
+      $detalles->t_cantidad = $almacen['almacen_trampa']['cantidad'];
+      $detalles->t_visitas = $almacen['almacen_trampa']['visitas'];
+      $detalles->t_precio = $almacen['almacen_trampa']['precio'];
+      $detalles->t_total = $almacen['almacen_trampa']['total'];
+      $detalles->a_area = $almacen['almacen_area']['area'];
+      $detalles->a_visitas = $almacen['almacen_area']['visitas'];
+      $detalles->a_precio = $almacen['almacen_area']['precio'];
+      $detalles->a_total = $almacen['almacen_area']['total'];
+      $detalles->i_cantidad = $almacen['almacen_insectocutor']['cantidad'];
+      $detalles->i_precio = $almacen['almacen_insectocutor']['precio'];
+      $detalles->i_total = $almacen['almacen_insectocutor']['total'];
+      $detalles->total = 0;
+      $detalles->save();
+
+      // FECHAS A CRONOGRAMA
+      // -------------
     }
-
-    // CREAR ALMACEN
-    // $almacen = new Almacen();
-    // $almacen->nombre = $validated['nombre'];
-    // $almacen->direccion = $validated['direccion'];
-    // $almacen->telefono = $validated['telefono'];
-    // $almacen->email = $validated['email'];
-    // $almacen->ciudad = $validated['ciudad'];
-    // $almacen->empresa_id = $empresa->id;
-    // $almacen->save();
-
-
 
     // Registro: CUENTAS por COBRAR
-    if ($validated['saldo'] > 0) {
-      $cuentacobrar = new CuentaCobrar();
-      $cuentacobrar->contrato_id = $cotizacion->id;
-      $cuentacobrar->user_id = Auth::id();
-      $cuentacobrar->total = $validated['total'];
-      $cuentacobrar->a_cuenta = $validated['acuenta'];
-      $cuentacobrar->saldo = $validated['saldo'];
-      $cuentacobrar->estado = 'Pendiente';
-      $cuentacobrar->save();
-    }
+    // if ($validated['saldo'] > 0) {
+    //   $cuentacobrar = new CuentaCobrar();
+    //   $cuentacobrar->contrato_id = $contrato->id;
+    //   $cuentacobrar->user_id = Auth::id();
+    //   $cuentacobrar->total = $validated['total'];
+    //   $cuentacobrar->a_cuenta = $validated['acuenta'];
+    //   $cuentacobrar->saldo = $validated['saldo'];
+    //   $cuentacobrar->estado = 'Pendiente';
+    //   $cuentacobrar->save();
+    // }
 
     return redirect()->route('contratos.index');
   }

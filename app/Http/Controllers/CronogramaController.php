@@ -10,109 +10,99 @@ use Illuminate\Http\Request;
 
 class CronogramaController extends Controller
 {
+
+  private $toValidated = [
+    'title' => 'required|string|max:255',
+    'date' => 'required|date',
+    'color' => 'required|string|max:50',
+    'status' => 'required|in:pendiente,postergado,completado',
+    'user_id' => 'required|exists:users,id',
+    'empresa_id' => 'required|exists:empresas,id',
+    'almacen_id' => 'required|exists:almacenes,id',
+  ];
+
   public function index(Request $request)
   {
 
-    $empresaId = $request->query('empresa_id');
-    $almacenId = $request->query('almacen_id');
+    // dd($request);    
 
-    $empresas = Empresa::select('id', 'nombre')->orderBy('nombre')->get();
-    $almacenes = $empresaId
-      ? Almacen::where('empresa_id', $empresaId)->select('id', 'nombre', 'empresa_id')->orderBy('nombre')->get()
-      : collect();
+    $filters = $request->only(['empresa_id', 'almacen_id']);
 
-    $usuarios = User::select('id', 'name as nombre', 'email')->orderBy('name')->get();
+    $empresas = Empresa::all(['id', 'nombre']);
+    $almacenes = Almacen::all(['id', 'nombre', 'empresa_id']);
+    $usuarios = User::all(['id', 'name as nombre']); // Ajusta si el campo es 'nombre' en lugar de 'name'
 
-    // $query = Cronograma::query()
-    //   ->with('user:id,name')
-    //   ->select('id', 'titulo as title', 'fecha as date', 'color', 'estado as status', 'user_id', 'empresa_id', 'almacen_id');
+    $tareas = [];
+    if (isset($filters['almacen_id'])) {
+      $tareas = Cronograma::where('almacen_id', $filters['almacen_id'])
+        ->get(['id', 'title', 'date', 'color', 'status', 'user_id', 'almacen_id']);
+    }
 
-    // if ($empresaId) {
-    //   $query->where('empresa_id', $empresaId);
-    // }
-    // if ($almacenId) {
-    //   $query->where('almacen_id', $almacenId);
-    // }
-
-    // $tareas = $query->get()->map(function ($tarea) {
-    //   return [
-    //     'id' => $tarea->id,
-    //     'title' => $tarea->title,
-    //     'date' => $tarea->date->format('Y-m-d'),
-    //     'color' => $tarea->color ?? 'bg-blue-500',
-    //     'status' => $tarea->status ?? 'pendiente',
-    //     'user_id' => $tarea->user_id,
-    //     'empresa_id' => $tarea->empresa_id,
-    //     'almacen_id' => $tarea->almacen_id,
-    //   ];
-    // });
-
-    return inertia('admin/cronogramas/prueba', [
+    return inertia('admin/cronogramas/prueba', [ // Ajusta la ruta del componente Inertia si es necesario
       'empresas' => $empresas,
       'almacenes' => $almacenes,
       'usuarios' => $usuarios,
-      // 'tareas' => $tareas,
-      'filters' => [
-        'empresa_id' => $empresaId ? (int) $empresaId : null,
-        'almacen_id' => $almacenId ? (int) $almacenId : null,
-      ],
+      'tareas' => $tareas,
+      'filters' => $filters,
     ]);
+
+    // return inertia('admin/cronogramas/prueba', [
+    //   'empresas' => $empresas,
+    //   'almacenes' => $almacenes,
+    //   'usuarios' => $usuarios,
+    //   // 'tareas' => $tareas,
+    //   'filters' => [
+    //     'empresa_id' => $empresaId ? (int) $empresaId : null,
+    //     'almacen_id' => $almacenId ? (int) $almacenId : null,
+    //   ],
+    // ]);
   }
 
   public function create() {}
 
   public function store(Request $request)
   {
+
+    // dd($request);
+
     $validated = $request->validate([
       'title' => 'required|string|max:255',
       'date' => 'required|date',
-      'color' => 'required|string|max:50',
+      'color' => 'required|string',
       'status' => 'required|in:pendiente,postergado,completado',
       'user_id' => 'required|exists:users,id',
-      'empresa_id' => 'required|exists:empresas,id',
+      'tecnico_id' => 'required|exists:users,id',
       'almacen_id' => 'required|exists:almacenes,id',
     ]);
 
-    Cronograma::create([
-      'titulo' => $validated['title'],
-      'fecha' => $validated['date'],
-      'color' => $validated['color'],
-      'estado' => $validated['status'],
-      'user_id' => $validated['user_id'],
-      'empresa_id' => $validated['empresa_id'],
-      'almacen_id' => $validated['almacen_id'],
-    ]);
+    // dd($validated);
 
-    return redirect()->route('cronogramas.index');
+    $tarea = Cronograma::create($validated);
+
+    return redirect()->route('cronogramas.index', $request->only(['empresa_id', 'almacen_id']))
+      ->with('success', 'Tarea creada correctamente.');
   }
 
   public function show(string $id) {}
 
   public function edit(string $id) {}
 
-  public function update(Request $request, Cronograma $tarea)
+  public function update(Request $request, Cronograma $cronograma)
   {
     $validated = $request->validate([
-      'title' => 'required|string|max:255',
-      'date' => 'required|date',
-      'color' => 'required|string|max:50',
-      'status' => 'required|in:pendiente,postergado,completado',
-      'user_id' => 'required|exists:users,id',
-      'empresa_id' => 'required|exists:empresas,id',
-      'almacen_id' => 'required|exists:almacenes,id',
+      'title' => 'sometimes|required|string|max:255',
+      'date' => 'sometimes|required|date',
+      'color' => 'sometimes|required|string',
+      'status' => 'sometimes|required|in:pendiente,postergado,completado',
+      'user_id' => 'sometimes|required|exists:users,id',
+      'tecnico_id' => 'sometimes|required|exists:users,id',
+      'almacen_id' => 'sometimes|required|exists:almacenes,id',
     ]);
 
-    $tarea->update([
-      'titulo' => $validated['title'],
-      'fecha' => $validated['date'],
-      'color' => $validated['color'],
-      'estado' => $validated['status'],
-      'user_id' => $validated['user_id'],
-      'empresa_id' => $validated['empresa_id'],
-      'almacen_id' => $validated['almacen_id'],
-    ]);
+    $cronograma->update($validated);
 
-    return redirect()->route('cronogramas.index');
+    return redirect()->route('cronogramas.index', $request->only(['empresa_id', 'almacen_id']))
+      ->with('success', 'Tarea actualizada correctamente.');
   }
 
   public function destroy(Cronograma $tarea)
@@ -121,4 +111,6 @@ class CronogramaController extends Controller
 
     return redirect()->route('cronogramas.index');
   }
+
+  public function getAlmacenes() {}
 }

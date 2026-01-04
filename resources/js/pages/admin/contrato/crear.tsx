@@ -495,6 +495,7 @@ export default function CotizacionForm({ contrato }: Props) {
                           <div>
                             <Label>Email</Label>
                             <Input
+                              type="email"
                               value={almacen.email}
                               onChange={(e) =>
                                 setData(
