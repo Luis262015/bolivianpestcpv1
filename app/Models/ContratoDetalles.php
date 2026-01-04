@@ -6,6 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class ContratoDetalles extends Model
 {
-    //
+
     protected $guarded = [];
 }

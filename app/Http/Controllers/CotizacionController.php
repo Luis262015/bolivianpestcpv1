@@ -160,10 +160,10 @@ class CotizacionController extends Controller
     // Actualizar solo los campos de cotización
     $cotizacion->update([
       'nombre' => $validated['nombre'],
-      'direccion' => $validated['direccion'],
+      // 'direccion' => $validated['direccion'],
       'telefono' => $validated['telefono'],
       'email' => $validated['email'],
-      'ciudad' => $validated['ciudad'],
+      // 'ciudad' => $validated['ciudad'],
     ]);
 
     // Sincronizar detalles: eliminar no enviados, actualizar o crear
@@ -171,7 +171,7 @@ class CotizacionController extends Controller
     $cotizacion->detalles()->whereNotIn('id', $detalleIds)->delete();
 
     foreach ($validated['detalles'] as $detalle) {
-      $cotizacion->detalles()->updateOrCreate(['id' => $detalle['id'] ?? null], $detalle);
+      $cotizacion->detalles()->updateOrCreate(['id' => $detalle['id'] ?? null, 'total' => $detalle['total'] ?? 0], $detalle);
     }
 
     return redirect()->route('cotizaciones.index');

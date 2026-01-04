@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Cotizacion extends Model
 {
-    //
     protected $table = 'cotizaciones';
     protected $guarded = [];
 

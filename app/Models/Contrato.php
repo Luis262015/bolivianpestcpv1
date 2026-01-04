@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contrato extends Model
 {
-    //
     protected $guarded = [];
 
     public function detalles(): HasMany
