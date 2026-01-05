@@ -283,7 +283,7 @@ const mainNavItems4: MainNavItem[] = [
   {
     title: 'Agenda',
     icon: NotebookTabs,
-    href: '/agenda',
+    href: '/agendas',
   },
   {
     title: 'Documentos',

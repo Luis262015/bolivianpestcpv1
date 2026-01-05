@@ -12,13 +12,20 @@ class CronogramaController extends Controller
 {
 
   private $toValidated = [
-    'title' => 'required|string|max:255',
-    'date' => 'required|date',
-    'color' => 'required|string|max:50',
-    'status' => 'required|in:pendiente,postergado,completado',
-    'user_id' => 'required|exists:users,id',
-    'empresa_id' => 'required|exists:empresas,id',
-    'almacen_id' => 'required|exists:almacenes,id',
+    // 'title' => 'required|string|max:255',
+    // 'date' => 'required|date',
+    // 'color' => 'required|string',
+    // 'status' => 'required|in:pendiente,postergado,completado',
+    // 'user_id' => 'required|exists:users,id',
+    // 'tecnico_id' => 'required|exists:users,id',
+    // 'almacen_id' => 'required|exists:almacenes,id',
+    'title' => 'sometimes|required|string|max:255',
+    'date' => 'sometimes|required|date',
+    'color' => 'sometimes|required|string',
+    'status' => 'sometimes|required|in:pendiente,postergado,completado',
+    'user_id' => 'sometimes|required|exists:users,id',
+    'tecnico_id' => 'sometimes|required|exists:users,id',
+    'almacen_id' => 'sometimes|required|exists:almacenes,id',
   ];
 
   public function index(Request $request)
@@ -65,15 +72,7 @@ class CronogramaController extends Controller
 
     // dd($request);
 
-    $validated = $request->validate([
-      'title' => 'required|string|max:255',
-      'date' => 'required|date',
-      'color' => 'required|string',
-      'status' => 'required|in:pendiente,postergado,completado',
-      'user_id' => 'required|exists:users,id',
-      'tecnico_id' => 'required|exists:users,id',
-      'almacen_id' => 'required|exists:almacenes,id',
-    ]);
+    $validated = $request->validate($this->toValidated);
 
     // dd($validated);
 
@@ -89,15 +88,7 @@ class CronogramaController extends Controller
 
   public function update(Request $request, Cronograma $cronograma)
   {
-    $validated = $request->validate([
-      'title' => 'sometimes|required|string|max:255',
-      'date' => 'sometimes|required|date',
-      'color' => 'sometimes|required|string',
-      'status' => 'sometimes|required|in:pendiente,postergado,completado',
-      'user_id' => 'sometimes|required|exists:users,id',
-      'tecnico_id' => 'sometimes|required|exists:users,id',
-      'almacen_id' => 'sometimes|required|exists:almacenes,id',
-    ]);
+    $validated = $request->validate($this->toValidated);
 
     $cronograma->update($validated);
 

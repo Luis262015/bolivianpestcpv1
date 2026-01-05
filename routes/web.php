@@ -110,7 +110,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('proveedores', ProveedoresController::class);
 
     /// ********** USUARIO ************************
-    Route::resource('agenda', AgendaController::class);
+    Route::resource('agendas', AgendaController::class);
     Route::resource('usuarios', UsersController::class);
     Route::get('/documentos/{documento}/download', [DocumentosController::class, 'download'])->name('documentos.download');
     Route::resource('documentos', DocumentosController::class);

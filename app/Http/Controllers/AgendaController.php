@@ -9,20 +9,35 @@ use DateTime;
 
 class AgendaController extends Controller
 {
+
+  private $toValidated = [
+    'title' => 'required|string|max:255',
+    'date' => 'required|date_format:Y-m-d',
+    'color' => 'required|string|in:bg-red-500,bg-blue-500,bg-green-500,bg-yellow-500,bg-purple-500',
+    'status' => 'required|in:pendiente,postergado,completado',
+  ];
+
   public function index()
   {
-    $tasks = Agenda::mine()
-      ->orderBy('date')
-      ->get()
-      ->map(fn($task) => [
-        'id' => (string) $task->id,
-        'title' => $task->title,
-        'date' => (new DateTime($task->date))->format('Y-m-d'),
-        'color' => $task->color,
-        'status' => $task->status,
-      ]);
-    return inertia('admin/agenda/index', [
-      'initialTasks' => $tasks,
+    // $tasks = Agenda::mine()
+    //   ->orderBy('date')
+    //   ->get()
+    //   ->map(fn($task) => [
+    //     'id' => (string) $task->id,
+    //     'title' => $task->title,
+    //     'date' => (new DateTime($task->date))->format('Y-m-d'),
+    //     'color' => $task->color,
+    //     'status' => $task->status,
+    //   ]);
+    // return inertia('admin/agenda/index', [
+    //   'initialTasks' => $tasks,      
+    // ]);
+
+    $tareas = Agenda::get(['id', 'title', 'date', 'color', 'status', 'user_id']);
+
+
+    return inertia('admin/agenda/index', [ // Ajusta la ruta del componente Inertia si es necesario
+      'tareas' => $tareas,
     ]);
   }
 
@@ -30,18 +45,11 @@ class AgendaController extends Controller
 
   public function store(Request $request)
   {
-    $validated = $request->validate([
-      'title' => 'required|string|max:255',
-      'date' => 'required|date_format:Y-m-d',
-      'color' => 'required|string|in:bg-red-500,bg-blue-500,bg-green-500,bg-yellow-500,bg-purple-500',
-      'status' => 'required|in:pendiente,postergado,completado',
-    ]);
-
+    $validated = $request->validate($this->toValidated);
     $task = Agenda::create([
       'user_id' => Auth::id(),
       ...$validated,
     ]);
-
     return response()->json([
       'id' => (string) $task->id,
       'title' => $task->title,
@@ -58,16 +66,8 @@ class AgendaController extends Controller
   public function update(Request $request, Agenda $agenda)
   {
     $this->authorizeTask($agenda);
-
-    $validated = $request->validate([
-      'title' => 'sometimes|required|string|max:255',
-      'date' => 'sometimes|required|date_format:Y-m-d',
-      'color' => 'sometimes|required|string|in:bg-red-500,bg-blue-500,bg-green-500,bg-yellow-500,bg-purple-500',
-      'status' => 'sometimes|required|in:pendiente,postergado,completado',
-    ]);
-
+    $validated = $request->validate($this->toValidated);
     $agenda->update($validated);
-
     return response()->json([
       'id' => (string) $agenda->id,
       'title' => $agenda->title,
@@ -79,10 +79,8 @@ class AgendaController extends Controller
 
   public function destroy(Agenda $agenda)
   {
-    //
     $this->authorizeTask($agenda);
     $agenda->delete();
-
     return response()->json(['message' => 'Tarea eliminada']);
   }
 

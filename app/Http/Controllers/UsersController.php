@@ -15,6 +15,7 @@ class UsersController extends Controller
   {
     // $roles = Role::select('id', 'name')->where('name', '!=', 'superadmin')->get();
     $usuarios = User::select('id', 'name', 'email')->with('roles')->paginate(20);
+    dd($usuarios);
     $roles = Role::select('id', 'name')->where('name', '!=', 'superadmin')->get();
     return inertia('admin/usuarios/index', ['users' => $usuarios, 'roles' => $roles]);
   }

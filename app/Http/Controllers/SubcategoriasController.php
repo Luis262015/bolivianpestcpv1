@@ -8,12 +8,21 @@ use Illuminate\Http\Request;
 
 class SubcategoriasController extends Controller
 {
+
+  private $toValidated = [
+    'nombre' => ['required', 'string', 'max:255'],
+    'categoria_id' => ['required', 'integer']
+  ];
+
   public function index()
   {
     $subcategorias = Subcategoria::with(['categoria' => function ($query) {
       $query->select('id', 'nombre');
     }])->paginate(20);
-    return inertia('admin/subcategorias/lista', ['subcategorias' => $subcategorias]);
+    $categorias = Categoria::select('id', 'nombre')->get();
+
+    // dd($subcategorias);
+    return inertia('admin/subcategorias/index', ['subcategorias' => $subcategorias, 'categorias' => $categorias]);
   }
 
   public function create()
@@ -24,12 +33,9 @@ class SubcategoriasController extends Controller
 
   public function store(Request $request)
   {
-    $validated = $request->validate([
-      'nombre' => ['required', 'string', 'max:255'],
-      'orden' => ['required', 'integer', 'min:0'],
-      'imagen' => ['nullable', 'string', 'max:255'],
-      'categoria_id' => ['required', 'integer']
-    ]);
+    // dd($request);
+    $validated = $request->validate($this->toValidated);
+    // dd($validated);
     Subcategoria::create($validated);
     return redirect()->route('subcategorias.index');
   }
@@ -45,12 +51,8 @@ class SubcategoriasController extends Controller
 
   public function update(Request $request, string $id)
   {
-    $validated = $request->validate([
-      'nombre' => ['required', 'string', 'max:255'],
-      'orden' => ['required', 'integer', 'min:0'],
-      'imagen' => ['nullable', 'string', 'max:255'],
-      'categoria_id' => ['required', 'integer']
-    ]);
+    $validated = $request->validate($this->toValidated);
+
     $subcategoria = Subcategoria::find($id);
     $subcategoria->update($validated);
     return redirect()->route('subcategorias.index');
