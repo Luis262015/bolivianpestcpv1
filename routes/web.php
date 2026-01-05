@@ -18,6 +18,9 @@ use App\Http\Controllers\EspeciesController;
 use App\Http\Controllers\EstadosController;
 use App\Http\Controllers\EtiquetasController;
 use App\Http\Controllers\GastosController;
+use App\Http\Controllers\GastosExController;
+use App\Http\Controllers\GastosFinController;
+use App\Http\Controllers\GastosOpController;
 use App\Http\Controllers\IngresosController;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\MapaController;
@@ -92,6 +95,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('ingresos', IngresosController::class);
     Route::resource('retiros', RetirosController::class);
     Route::resource('gastos', GastosController::class);
+    Route::resource('gastosop', GastosOpController::class);
+    Route::resource('gastosfin', GastosFinController::class);
+    Route::resource('gastosex', GastosExController::class);
     Route::resource('estados', EstadosController::class);
 
     Route::resource('categorias', CategoriasController::class);

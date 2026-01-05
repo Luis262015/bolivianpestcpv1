@@ -20,12 +20,18 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
+interface Empresa {
+  id: number;
+  nombre: string;
+}
+
 interface Contrato {
   id: number;
   nombre: string;
   total: number;
   acuenta: number;
   saldo: number;
+  empresa: Empresa;
   detalles: { id: number; descripcion: string /* ... */ }[];
 }
 
@@ -37,6 +43,8 @@ interface ContratosPaginate {
 export default function Lista() {
   const { processing, delete: destroy } = useForm();
   const { contratos } = usePage<{ contratos: ContratosPaginate }>().props;
+
+  console.log(contratos);
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -54,20 +62,20 @@ export default function Lista() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nombre</TableHead>
+              <TableHead>Cliente</TableHead>
               <TableHead>Total</TableHead>
-              <TableHead>A Cuenta</TableHead>
-              <TableHead>Saldo</TableHead>
+              {/* <TableHead>A Cuenta</TableHead>
+              <TableHead>Saldo</TableHead> */}
               <TableHead>Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {contratos.data.map((cot) => (
               <TableRow key={cot.id}>
-                <TableCell>{cot.nombre}</TableCell>
+                <TableCell>{cot.empresa.nombre}</TableCell>
                 <TableCell>{cot.total}</TableCell>
-                <TableCell>{cot.acuenta}</TableCell>
-                <TableCell>{cot.saldo}</TableCell>
+                {/* <TableCell>{cot.acuenta}</TableCell>
+                <TableCell>{cot.saldo}</TableCell> */}
                 <TableCell>
                   <Link href={`/contratos/${cot.id}/edit`}>
                     <Button variant="outline">Editar</Button>

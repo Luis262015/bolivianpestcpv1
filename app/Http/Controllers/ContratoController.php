@@ -62,7 +62,11 @@ class ContratoController extends Controller
 
   public function index()
   {
-    $contratos = Contrato::with('detalles')->paginate(20);
+    $contratos = Contrato::with('detalles')
+      ->with(['empresa' => function ($query) {
+        $query->select('id', 'nombre');
+      }])
+      ->paginate(20);
     return inertia('admin/contrato/lista', ['contratos' => $contratos]);
   }
 
@@ -166,6 +170,7 @@ class ContratoController extends Controller
       $detalles->save();
 
       // FECHAS A CRONOGRAMA
+
       // -------------
     }
 

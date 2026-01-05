@@ -9,6 +9,11 @@ class Contrato extends Model
 {
     protected $guarded = [];
 
+    public function empresa()
+    {
+        return $this->belongsTo(Empresa::class);
+    }
+
     public function detalles(): HasMany
     {
         return $this->hasMany(ContratoDetalles::class);

@@ -14,25 +14,26 @@ class ProductosController extends Controller
 {
 
   private $validate = [
-    'categoria_id' => 'required|exists:categorias,id',
-    'marca_id' => 'required|exists:marcas,id',
-    'unidad_id' => 'required|exists:unidades,id',
     'nombre' => 'required|string|max:255',
     'descripcion' => 'nullable|string',
+    'stock_min' => 'required|numeric',
     'unidad_valor' => 'required|numeric',
+    'unidad_id' => 'required|exists:unidades,id',
+    'marca_id' => 'nullable|exists:marcas,id',
+    'categoria_id' => 'nullable|exists:categorias,id',
     'etiqueta_ids' => 'nullable|array',
     'etiqueta_ids.*' => 'exists:etiquetas,id',
   ];
 
   public function index()
   {
-    $productos = Producto::select('id', 'nombre', 'categoria_id', 'subcategoria_id', 'marca_id')
+    $productos = Producto::select('id', 'nombre', 'categoria_id', 'marca_id')
       ->with(['categoria' => function ($query) {
         $query->select('id', 'nombre');
       }])
-      ->with(['subcategoria' => function ($query) {
-        $query->select('id', 'nombre');
-      }])
+      // ->with(['subcategoria' => function ($query) {
+      //   $query->select('id', 'nombre');
+      // }])
       ->with(['marca' => function ($query) {
         $query->select('id', 'nombre');
       }])
@@ -53,14 +54,21 @@ class ProductosController extends Controller
 
   public function store(Request $request)
   {
+
+    // dd($request);
+
     $validated = $request->validate($this->validate);
+
+    // dd($validated);
+
     $producto = new Producto();
+    $producto->categoria_id = $validated['categoria_id'];
+    $producto->marca_id = $validated['marca_id'];
+    $producto->unidad_id = $validated['unidad_id'];
     $producto->nombre = $validated['nombre'];
     $producto->descripcion = $validated['descripcion'];
-    $producto->ruta = $validated['ruta'];
-    $producto->marca_id = $validated['marca_id'];
-    $producto->categoria_id = $validated['categoria_id'];
-    $producto->subcategoria_id = $validated['subcategoria_id'];
+    $producto->unidad_valor = $validated['unidad_valor'];
+    $producto->stock_min = $validated['stock_min'];
     $producto->save();
 
     // Sincronizar etiquetas
@@ -69,7 +77,6 @@ class ProductosController extends Controller
     } else {
       $producto->etiquetas()->detach(); // Limpiar si no hay
     }
-
 
     return redirect()->route('productos.index')->with('success', 'Producto creado con éxito');
   }

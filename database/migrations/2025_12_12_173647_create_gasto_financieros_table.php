@@ -13,7 +13,9 @@ return new class extends Migration
   {
     Schema::create('gasto_financieros', function (Blueprint $table) {
       $table->id();
-      $table->string('cuenta');
+      // $table->string('cuenta');
+      $table->foreignId('cuenta_id')->constrained('cuenta_financieros');
+      $table->string('concepto');
       $table->double('total');
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();

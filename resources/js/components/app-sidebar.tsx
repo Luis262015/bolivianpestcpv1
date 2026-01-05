@@ -20,7 +20,6 @@ import {
   Factory,
   Files,
   HandCoins,
-  HandHelping,
   Handshake,
   Keyboard,
   Locate,
@@ -158,79 +157,98 @@ const mainNavItems3: MainNavItem[] = [
     ],
   },
 
-  {
-    title: 'Ingresos',
-    icon: TrendingUp,
-    down: true,
-    subItems: [
-      {
-        title: 'Cuentas por Cobrar',
-        icon: TrendingUp,
-        href: '/cuentasporcobrar',
-      },
-      {
-        title: 'Ingresos',
-        icon: HandCoins,
-        href: '/ingresos',
-      },
-    ],
-  },
+  // {
+  //   title: 'Ingresos',
+  //   icon: TrendingUp,
+  //   down: true,
+  //   subItems: [
+  //     {
+  //       title: 'Cuentas por Cobrar',
+  //       icon: TrendingUp,
+  //       href: '/cuentasporcobrar',
+  //     },
+  //     {
+  //       title: 'Ingresos',
+  //       icon: HandCoins,
+  //       href: '/ingresos',
+  //     },
+  //   ],
+  // },
+
+  // {
+  //   title: 'Egresos',
+  //   icon: TrendingDown,
+  //   down: false,
+  //   subItems: [
+  //     {
+  //       title: 'Cuentas por Pagar',
+  //       icon: TrendingDown,
+  //       href: '/cuentasporpagar',
+  //     },
+  //     // {
+  //     //   title: 'Retiros',
+  //     //   icon: HandHelping,
+  //     //   href: '/retiros',
+  //     // },
+  //     // {
+  //     //   title: 'Gastos',
+  //     //   icon: TicketPercent,
+  //     //   href: '/gastos',
+  //     // },
+  //   ],
+  // },
 
   {
-    title: 'Egresos',
-    icon: TrendingDown,
-    down: true,
-    subItems: [
-      {
-        title: 'Cuentas por Pagar',
-        icon: TrendingDown,
-        href: '/cuentasporpagar',
-      },
-      {
-        title: 'Retiros',
-        icon: HandHelping,
-        href: '/retiros',
-      },
-      {
-        title: 'Gastos',
-        icon: TicketPercent,
-        href: '/gastos',
-      },
-    ],
-  },
-
-  {
-    title: 'Estados',
+    title: 'Estados Financieros',
     icon: ChartCandlestick,
     href: '/estados',
   },
 
-  // {
-  //   title: 'Cuentas por Cobrar',
-  //   icon: TrendingUp,
-  //   href: '/cuentasporcobrar',
-  // },
-  // {
-  //   title: 'Cuentas por Pagar',
-  //   icon: TrendingDown,
-  //   href: '/cuentasporpagar',
-  // },
+  {
+    title: 'Cuentas por Cobrar',
+    icon: TrendingUp,
+    href: '/cuentasporcobrar',
+  },
+  {
+    title: 'Cuentas por Pagar',
+    icon: TrendingDown,
+    href: '/cuentasporpagar',
+  },
 
-  // {
-  //   title: 'Ingresos',
-  //   icon: HandCoins,
-  //   href: '/ingresos',
-  // },
+  {
+    title: 'Ingresos',
+    icon: HandCoins,
+    href: '/ingresos',
+  },
   // {
   //   title: 'Retiros',
   //   icon: HandHelping,
   //   href: '/retiros',
   // },
-  // {
-  //   title: 'Gastos',
-  //   icon: TicketPercent,
-  //   href: '/gastos',
-  // },
+  {
+    title: 'Gastos',
+    icon: TicketPercent,
+    href: '/gastos',
+    down: true,
+    subItems: [
+      {
+        title: 'Financieros',
+        href: '/gastosfin',
+      },
+      {
+        title: 'Operativos',
+        href: '/gastosop',
+      },
+      {
+        title: 'Extras',
+        href: '/gastosex',
+      },
+      {
+        title: 'Caja Chica',
+        href: '/gastos',
+      },
+    ],
+  },
   {
     title: 'Productos',
     icon: Apple,

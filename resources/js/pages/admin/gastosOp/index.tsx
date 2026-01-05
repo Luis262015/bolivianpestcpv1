@@ -1,13 +1,5 @@
 import CustomPagination from '@/components/CustomPagination';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -20,21 +12,27 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { Edit, Filter, Plus, Trash2 } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronUp,
+  Filter,
+  SquarePen,
+  Trash2,
+  X,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Gastos', href: '/gastos' }];
 
-const titlePage = 'Gastos';
-const urlPage = '/gastos';
-
 interface Gasto {
   id: number;
   concepto: string;
+  detalle: string;
   total: number;
   created_at?: string;
+  fecha_gasto?: string;
 }
 
 interface GastosPaginate {
@@ -51,17 +49,12 @@ interface Filters {
   fecha_hasta: string;
 }
 
-export default function Gastos() {
+export default function GastosOp() {
   const { processing, delete: destroy } = useForm();
   const { gastos, filters = {} } = usePage<{
     gastos: GastosPaginate;
     filters?: Partial<Filters>;
   }>().props;
-
-  const [editItem, setEditItem] = useState<Gasto | null>(null);
-  const [concept, setConcept] = useState('');
-  const [total, setTotal] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
 
   // Estado de filtros
   const [localFilters, setLocalFilters] = useState<Filters>({
@@ -125,61 +118,6 @@ export default function Gastos() {
     (value) => value !== '' && value !== null && value !== undefined,
   );
 
-  const handleCreate = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!concept) return;
-
-    router.post(
-      urlPage,
-      {
-        concepto: concept,
-        total: total,
-      },
-      {
-        onSuccess: () => {
-          setConcept('');
-          setTotal(0);
-          setIsOpen(false);
-        },
-      },
-    );
-  };
-
-  const handleEdit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editItem || !concept) return;
-
-    router.put(
-      `${urlPage}/${editItem.id}`,
-      {
-        concepto: concept,
-        total: total,
-      },
-      {
-        onSuccess: () => {
-          setEditItem(null);
-          setConcept('');
-          setTotal(0);
-          setIsOpen(false);
-        },
-      },
-    );
-  };
-
-  const openEditModal = (item: Gasto) => {
-    setEditItem(item);
-    setConcept(item.concepto);
-    setTotal(item.total);
-    setIsOpen(true);
-  };
-
-  const openCreateModal = () => {
-    setEditItem(null);
-    setConcept('');
-    setTotal(0);
-    setIsOpen(true);
-  };
-
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Gastos | Lista" />
@@ -188,49 +126,9 @@ export default function Gastos() {
         {/* Botones principales */}
         <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
           <h1 className="me-5 text-2xl font-bold">Gestión de Gastos</h1>
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={openCreateModal}>
-                <Plus className="mr-2 h-4 w-4" /> Nuevo
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>{editItem ? 'Editar' : 'Crear'}</DialogTitle>
-              </DialogHeader>
-              <form
-                onSubmit={editItem ? handleEdit : handleCreate}
-                className="space-y-4"
-              >
-                <div>
-                  <Label htmlFor="name">Nombre: {titlePage}</Label>
-                  <Input
-                    id="concepto"
-                    value={concept}
-                    onChange={(e) => setConcept(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="name">Nombre: {titlePage}</Label>
-                  <Input
-                    id="total"
-                    type="number"
-                    value={total}
-                    onChange={(e) => setTotal(Number(e.target.value))}
-                    required
-                  />
-                </div>
 
-                <DialogFooter>
-                  <Button type="submit" className="w-full">
-                    {editItem ? 'Actualizar' : 'Crear'}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-          {/* <div className="flex gap-2">            
+          <div className="flex gap-2">
+            {/* BOTÓN FILTROS SIEMPRE VISIBLE */}
             <Button
               variant="outline"
               size="sm"
@@ -243,14 +141,16 @@ export default function Gastos() {
               ) : (
                 <ChevronDown className="ml-1 h-4 w-4" />
               )}
-            </Button>            
+            </Button>
+
+            {/* BOTÓN LIMPIAR */}
             {hasActiveFilters && (
               <Button variant="outline" size="sm" onClick={resetFilters}>
                 <X className="mr-1 h-4 w-4" />
                 Limpiar
               </Button>
             )}
-          </div> */}
+          </div>
         </div>
 
         {/* FILTROS COLAPSABLES EN TODAS LAS PANTALLAS */}
@@ -366,7 +266,7 @@ export default function Gastos() {
         </div>
 
         {/* Título */}
-        {/* <div className="mb-2 text-center text-2xl">Lista de gastos</div> */}
+        <div className="mb-2 text-center text-2xl">Lista de gastos</div>
 
         {/* Tabla */}
         {gastos.data.length > 0 ? (
@@ -376,6 +276,7 @@ export default function Gastos() {
                 <TableRow>
                   <TableHead className="w-[80px]">ID</TableHead>
                   <TableHead>Concepto</TableHead>
+                  <TableHead>Detalle</TableHead>
                   <TableHead className="text-right">Total</TableHead>
                   <TableHead className="text-center">Fecha</TableHead>
                   <TableHead className="text-center">Acción</TableHead>
@@ -386,12 +287,13 @@ export default function Gastos() {
                   <TableRow key={gasto.id}>
                     <TableCell className="font-medium">{gasto.id}</TableCell>
                     <TableCell>{gasto.concepto}</TableCell>
+                    <TableCell>{gasto.detalle}</TableCell>
                     <TableCell className="text-right">
                       Bs. {gasto.total.toLocaleString('es-BO')}
                     </TableCell>
                     <TableCell className="text-center font-mono text-xs text-muted-foreground sm:text-sm">
                       {(() => {
-                        const dateStr = gasto.created_at;
+                        const dateStr = gasto.fecha_gasto || gasto.created_at;
                         if (!dateStr) return '-';
 
                         const date = new Date(dateStr);
@@ -401,18 +303,11 @@ export default function Gastos() {
                       })()}
                     </TableCell>
                     <TableCell className="flex justify-center gap-1">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() => openEditModal(gasto)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      {/* <Link href={`/gastos/${gasto.id}/edit`}>
+                      <Link href={`/gastos/${gasto.id}/edit`}>
                         <Button size="icon" variant="outline">
                           <SquarePen className="h-4 w-4" />
                         </Button>
-                      </Link> */}
+                      </Link>
                       <Button
                         disabled={processing}
                         size="icon"

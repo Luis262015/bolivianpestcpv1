@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class GastoOperativo extends Model
+class CuentaOperativo extends Model
 {
     //
     protected $guarded = [];

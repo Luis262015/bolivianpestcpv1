@@ -106,5 +106,37 @@ class RolesSeeder extends Seeder
             ['nombre' => 'Marca de orina'],
             ['nombre' => 'Otros'],
         ]);
+
+        DB::table('cuenta_financieros')->insert([
+            ['nombre' => 'Sueldos administrativos'],
+            ['nombre' => 'Honorarios profesionales'],
+            ['nombre' => 'Utiles de oficina'],
+            ['nombre' => 'Alquiler de oficina'],
+            ['nombre' => 'Energia Electrica'],
+            ['nombre' => 'Agua'],
+            ['nombre' => 'Telefono'],
+            ['nombre' => 'Mantenimiento y reparaciones'],
+            ['nombre' => 'Limpieza'],
+            ['nombre' => 'Seguros'],
+            ['nombre' => 'Depresiacion'],
+        ]);
+        DB::table('cuenta_operativos')->insert([
+            ['nombre' => 'Sueldos personal'],
+            ['nombre' => 'Comisiones sobre ventas'],
+            ['nombre' => 'Marketing digital'],
+            ['nombre' => 'Material promocional'],
+            ['nombre' => 'Transporte y distribucion'],
+            ['nombre' => 'Combustible'],
+            ['nombre' => 'Viaticos y movilidad'],
+            ['nombre' => 'Empaques y embalajes'],
+        ]);
+        DB::table('cuenta_extras')->insert([
+            ['nombre' => 'Gastos bancarios operativos'],
+            ['nombre' => 'Capacitacion y cursos'],
+            ['nombre' => 'Licencias de Software'],
+            ['nombre' => 'Gastos de representación'],
+            ['nombre' => 'Eventos y actividades'],
+            ['nombre' => 'Seguridad y vigilancia'],
+        ]);
     }
 }

@@ -11,7 +11,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { Banknote } from 'lucide-react';
+import { Banknote, Plus } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -60,11 +60,18 @@ export default function Index() {
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Compras | List" />
+      <Head title="Cuentas por cobrar" />
 
-      <div className="m-4">
-        <div className="mb-2 text-center text-2xl">
-          Lista Cuentas por Cobrar
+      <div className="p-6">
+        <div className="flex items-center">
+          <div className="me-5 text-2xl font-bold">
+            Gestión de Cuentas por Cobrar
+          </div>
+          <Link href="/cotizaciones/create">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Nuevo
+            </Button>
+          </Link>
         </div>
         {cuentascobrar.data.length > 0 && (
           <Table>

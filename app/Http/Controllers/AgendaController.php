@@ -11,10 +11,10 @@ class AgendaController extends Controller
 {
 
   private $toValidated = [
-    'title' => 'required|string|max:255',
-    'date' => 'required|date_format:Y-m-d',
-    'color' => 'required|string|in:bg-red-500,bg-blue-500,bg-green-500,bg-yellow-500,bg-purple-500',
-    'status' => 'required|in:pendiente,postergado,completado',
+    'title' => 'sometimes|required|string|max:255',
+    'date' => 'sometimes|required|date_format:Y-m-d',
+    'color' => 'sometimes|required|string|in:bg-red-500,bg-blue-500,bg-green-500,bg-yellow-500,bg-purple-500',
+    'status' => 'sometimes|required|in:pendiente,postergado,completado',
   ];
 
   public function index()
@@ -50,13 +50,16 @@ class AgendaController extends Controller
       'user_id' => Auth::id(),
       ...$validated,
     ]);
-    return response()->json([
-      'id' => (string) $task->id,
-      'title' => $task->title,
-      'date' => (new DateTime($task->date))->format('Y-m-d'),
-      'color' => $task->color,
-      'status' => $task->status,
-    ]);
+
+    return redirect()->route('agendas.index')->with('success', 'Tarea creada correctamente');
+
+    // return response()->json([
+    //   'id' => (string) $task->id,
+    //   'title' => $task->title,
+    //   'date' => (new DateTime($task->date))->format('Y-m-d'),
+    //   'color' => $task->color,
+    //   'status' => $task->status,
+    // ]);
   }
 
   public function show(string $id) {}
@@ -65,23 +68,34 @@ class AgendaController extends Controller
 
   public function update(Request $request, Agenda $agenda)
   {
+
+    // dd($agenda);
+    //dd($request);
+
     $this->authorizeTask($agenda);
+
     $validated = $request->validate($this->toValidated);
+
     $agenda->update($validated);
-    return response()->json([
-      'id' => (string) $agenda->id,
-      'title' => $agenda->title,
-      'date' => (new DateTime($agenda->date))->format('Y-m-d'),
-      'color' => $agenda->color,
-      'status' => $agenda->status,
-    ]);
+
+    return redirect()->route('agendas.index')->with('success', 'Tarea actualizada correctamente');
+
+    // return response()->json([
+    //   'id' => (string) $agenda->id,
+    //   'title' => $agenda->title,
+    //   'date' => (new DateTime($agenda->date))->format('Y-m-d'),
+    //   'color' => $agenda->color,
+    //   'status' => $agenda->status,
+    // ]);
   }
 
   public function destroy(Agenda $agenda)
   {
     $this->authorizeTask($agenda);
     $agenda->delete();
-    return response()->json(['message' => 'Tarea eliminada']);
+    return redirect()->route('agendas.index')->with('success', 'Tarea eliminada correctamente');
+    // return response()->json(['message' => 'Tarea eliminada']);
+
   }
 
   // Método auxiliar para autorización

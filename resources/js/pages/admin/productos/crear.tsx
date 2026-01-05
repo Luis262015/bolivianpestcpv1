@@ -56,6 +56,7 @@ interface Unidad {
 interface ProductoFormData {
   nombre: string;
   descripcion: string;
+  stock_min: number;
   unidad_valor: string;
   unidad_id: string;
   marca_id: string;
@@ -78,6 +79,7 @@ export default function Create() {
     {
       nombre: '',
       descripcion: '',
+      stock_min: 0,
       unidad_valor: '',
       unidad_id: '',
       marca_id: '',
@@ -208,11 +210,27 @@ export default function Create() {
               </div>
             )}
           </div>
+          {/* STOCK MIN */}
+          <div className="gap-1.5">
+            <Label>Stock minimo</Label>
+            <Input
+              type="number"
+              placeholder="Stock Minimo"
+              value={data.stock_min}
+              onChange={(e) => setData('stock_min', Number(e.target.value))}
+            ></Input>
+            {errors.stock_min && (
+              <div className="mt-1 flex items-center text-sm text-red-500">
+                {errors.stock_min}
+              </div>
+            )}
+          </div>
           {/* UNIDAD */}
           <div className="gap-1.5">
             <Label>Unidad: </Label>
             <div className="flex items-center">
               <Input
+                type="number"
                 placeholder="Cantidad"
                 value={data.unidad_valor}
                 onChange={(e) => setData('unidad_valor', e.target.value)}
