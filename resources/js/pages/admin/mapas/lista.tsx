@@ -368,8 +368,9 @@ export default function MapaEditor(props: Props): JSX.Element {
     }
 
     router.post(
-      'mapas.store',
+      'mapas',
       {
+        empresa_id: selectedEmpresa,
         almacen_id: selectedAlmacen,
         texts,
         traps,
@@ -416,7 +417,7 @@ export default function MapaEditor(props: Props): JSX.Element {
     const almacenId = Number(value);
     setSelectedAlmacen(almacenId);
     router.get(
-      'mapas.index',
+      'mapas',
       {
         empresa_id: selectedEmpresa,
         almacen_id: almacenId,

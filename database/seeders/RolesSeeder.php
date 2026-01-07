@@ -138,5 +138,12 @@ class RolesSeeder extends Seeder
             ['nombre' => 'Eventos y actividades'],
             ['nombre' => 'Seguridad y vigilancia'],
         ]);
+
+        DB::table('unidades')->insert([
+            ['nombre' => 'Gramos'],
+            ['nombre' => 'C.C.'],
+            ['nombre' => 'Unidad'],
+            ['nombre' => 'Litros'],
+        ]);
     }
 }

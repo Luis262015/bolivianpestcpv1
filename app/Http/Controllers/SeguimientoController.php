@@ -6,10 +6,12 @@ use App\Models\Almacen;
 use App\Models\Biologico;
 use App\Models\Empresa;
 use App\Models\Epp;
+use App\Models\Especie;
 use App\Models\Metodo;
 use App\Models\Proteccion;
 use App\Models\Seguimiento;
 use App\Models\Signo;
+use App\Models\TipoSeguimiento;
 use Illuminate\Http\Request;
 
 class SeguimientoController extends Controller
@@ -23,6 +25,8 @@ class SeguimientoController extends Controller
     $metodos = Metodo::orderBy('nombre')->get();
     $protecciones = Proteccion::orderBy('nombre')->get();
     $signos = Signo::orderBy('nombre')->get();
+    $tiposSeguimiento = TipoSeguimiento::orderBy('nombre')->get();
+    $especies = Especie::orderBy('nombre')->get();
     return inertia('admin/seguimientos/lista', [
       'empresas' => $empresas,
       'almacenes' => $almacenes,
@@ -31,6 +35,8 @@ class SeguimientoController extends Controller
       'metodos' => $metodos,
       'protecciones' => $protecciones,
       'signos' => $signos,
+      'tipoSeguimiento' => $tiposSeguimiento,
+      'especies' => $especies,
     ]);
   }
 

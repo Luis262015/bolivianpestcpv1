@@ -140,6 +140,11 @@ class CotizacionController extends Controller
 
     $validated = $request->validate($this->toValidated);
 
+    $totalSuma = 0;
+    foreach ($validated['detalles'] as $detalle) {
+      $totalSuma += $detalle['t_total'] + $detalle['a_total'] +  $detalle['i_total'];
+    }
+
     // $validated = $request->validate([
     //   'nombre' => 'required|string|max:255',
     //   'direccion' => 'required|string|max:255',
@@ -163,6 +168,7 @@ class CotizacionController extends Controller
       // 'direccion' => $validated['direccion'],
       'telefono' => $validated['telefono'],
       'email' => $validated['email'],
+      'total' => $totalSuma,
       // 'ciudad' => $validated['ciudad'],
     ]);
 

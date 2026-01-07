@@ -14,15 +14,17 @@ return new class extends Migration
     Schema::create('cuentas_pagar', function (Blueprint $table) {
       $table->id();
 
-      $table->foreignId('compra_id')->constrained('compras');
-      $table->foreignId('proveedor_id')->constrained('proveedores');
+      $table->foreignId('compra_id')->nullable()->constrained('compras');
+      $table->foreignId('proveedor_id')->nullable()->constrained('proveedores');
       $table->foreignId('user_id')->constrained('users');
 
+      $table->string('concepto');
+      $table->string('detalles');
       $table->double('total');
-      $table->double('acuenta');
       $table->double('saldo');
       $table->enum('estado', ['Pendiente', 'Cancelado']);
-      $table->date('fecha_pago');
+      $table->date('fecha_pago')->nullable();
+      $table->boolean('plan_pagos');
 
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();

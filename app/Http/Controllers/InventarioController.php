@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kardex;
 use Illuminate\Http\Request;
 
 class InventarioController extends Controller
 {
   public function index()
   {
-    return inertia('admin/inventario/lista');
+    $lista = Kardex::with(['producto'])->paginate(20);
+    return inertia('admin/inventario/lista', ['lista' => $lista]);
   }
 
   public function create() {}

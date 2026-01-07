@@ -26,7 +26,7 @@ interface Contrato {
   direccion: string;
   ciudad: string;
   telefono: string;
-  fecha_fin_contrato: string;
+  expiracion: string;
   total: number;
   almacenes: Almacen[];
 }
@@ -74,13 +74,15 @@ interface Props {
 }
 
 export default function CotizacionForm({ contrato }: Props) {
+  console.log(contrato);
+
   const { data, setData, post, put, processing, errors } = useForm<Contrato>({
     nombre: contrato?.nombre ?? '',
     direccion: contrato?.direccion ?? '',
     telefono: contrato?.telefono ?? '',
     email: contrato?.email ?? '',
     ciudad: contrato?.ciudad ?? '',
-    fecha_fin_contrato: contrato?.fecha_fin_contrato ?? '',
+    expiracion: contrato?.expiracion ?? '',
     total: contrato?.total ?? 0,
 
     almacenes:
@@ -408,10 +410,8 @@ export default function CotizacionForm({ contrato }: Props) {
                       <Label>Fecha de finalización del contrato</Label>
                       <Input
                         type="date"
-                        value={data.fecha_fin_contrato}
-                        onChange={(e) =>
-                          setData('fecha_fin_contrato', e.target.value)
-                        }
+                        value={data.expiracion}
+                        onChange={(e) => setData('expiracion', e.target.value)}
                       />
                     </div>
                     <div>

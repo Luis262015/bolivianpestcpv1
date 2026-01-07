@@ -125,7 +125,7 @@ export default function Index() {
                     </TableCell>
                     <TableCell className="font-medium">{compra.id}</TableCell>
                     {/* <TableCell>{compra.nombre}</TableCell> */}
-                    <TableCell>{compra.proveedor.nombre}</TableCell>
+                    <TableCell>{compra.proveedor?.nombre ?? '---'}</TableCell>
                     <TableCell>{compra.total}</TableCell>
                     {/* <TableCell>{compra.abonado}</TableCell>
                     <TableCell>{compra.saldo}</TableCell> */}

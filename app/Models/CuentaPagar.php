@@ -15,4 +15,9 @@ class CuentaPagar extends Model
     {
         return $this->belongsTo(Proveedor::class);
     }
+
+    public function cuotas()
+    {
+        return $this->hasMany(PagarCuota::class);
+    }
 }

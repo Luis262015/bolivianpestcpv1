@@ -18,7 +18,7 @@ return new class extends Migration
       $table->double('total');
       // $table->double('abonado');
       // $table->double('saldo');
-      $table->text('observaciones');
+      $table->text('observaciones')->nullable();
       $table->enum('tipo', ['Compra', 'Credito', 'Adelanto', 'Anulado']);
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();

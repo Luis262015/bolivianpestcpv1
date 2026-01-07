@@ -67,11 +67,11 @@ interface ItemCompra {
 
 interface CompraFormData {
   proveedor_id: number | null;
-  numero: string;
-  autorizacion: string;
-  control: string;
-  observaciones: string;
-  abonado: number;
+  // numero: string;
+  // autorizacion: string;
+  // control: string;
+  // observaciones: string;
+  // abonado: number;
   items: Array<{
     producto_id: number;
     cantidad: number;
@@ -111,11 +111,11 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
 
   const { data, setData, errors } = useForm<CompraFormData>({
     proveedor_id: null,
-    numero: '',
-    autorizacion: '',
-    control: '',
-    observaciones: '',
-    abonado: 0,
+    // numero: '',
+    // autorizacion: '',
+    // control: '',
+    // observaciones: '',
+    // abonado: 0,
     items: [],
   });
 
@@ -142,9 +142,9 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
   }, [query]);
 
   // === Sincronizar abonado ===
-  useEffect(() => {
-    setData('abonado', abonadoInput);
-  }, [abonadoInput, setData]);
+  // useEffect(() => {
+  //   setData('abonado', abonadoInput);
+  // }, [abonadoInput, setData]);
 
   // === Cálculos ===
   const totalCompra = useMemo(
@@ -209,18 +209,19 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!proveedorId || items.length === 0) {
+    if (items.length === 0) {
       alert('Selecciona un proveedor y al menos un producto');
       return;
     }
 
     const payload = {
       proveedor_id: proveedorId,
-      numero: data.numero,
-      autorizacion: data.autorizacion,
-      control: data.control,
-      observaciones: data.observaciones,
-      abonado: abonadoInput,
+      // numero: data.numero,
+      // autorizacion: data.autorizacion,
+      // control: data.control,
+      // observaciones: data.observaciones,
+      // abonado: abonadoInput,
+      total: totalCompra,
       items: items.map((i) => ({
         producto_id: i.producto_id,
         cantidad: i.cantidad,
@@ -248,78 +249,7 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* === Datos de Factura === */}
-          <div className="grid grid-cols-1 gap-4 pb-1 md:grid-cols-2">
-            {/* <div>
-              <Label htmlFor="numero">Número de Factura *</Label>
-              <Input
-                id="numero"
-                value={data.numero}
-                onChange={(e) => setData('numero', e.target.value)}
-                placeholder="Ej: 001-001-000123"
-              />
-              {errors.numero && (
-                <p className="mt-1 text-sm text-red-500">{errors.numero}</p>
-              )}
-            </div> */}
-
-            {/* <div>
-              <Label htmlFor="autorizacion">Autorización SRI *</Label>
-              <Input
-                id="autorizacion"
-                value={data.autorizacion}
-                onChange={(e) => setData('autorizacion', e.target.value)}
-                placeholder="10 dígitos"
-                maxLength={10}
-              />
-              {errors.autorizacion && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.autorizacion}
-                </p>
-              )}
-            </div> */}
-
-            {/* <div>
-              <Label htmlFor="control">Control Interno</Label>
-              <Input
-                id="control"
-                value={data.control}
-                onChange={(e) => setData('control', e.target.value)}
-                placeholder="Opcional"
-              />
-            </div> */}
-
-            {/* <div>
-              <Label htmlFor="observaciones">Observaciones</Label>
-              <Input
-                id="observaciones"
-                value={data.observaciones}
-                onChange={(e) => setData('observaciones', e.target.value)}
-                placeholder="Notas adicionales"
-              />
-            </div> */}
-
-            {/* <div>
-              <Label htmlFor="abonado">Abonado</Label>
-              <Input
-                id="abonado"
-                type="number"
-                step="0.01"
-                min="0"
-                value={abonadoInput}
-                onChange={(e) =>
-                  setAbonadoInput(parseFloat(e.target.value) || 0)
-                }
-                placeholder="0.00"
-              />
-            </div> */}
-
-            {/* <div>
-              <Label>Saldo</Label>
-              <div className="flex h-10 items-center rounded-md border bg-muted px-3 font-medium text-muted-foreground">
-                $ {saldo.toFixed(2)}
-              </div>
-            </div> */}
-          </div>
+          <div className="grid grid-cols-1 gap-4 pb-1 md:grid-cols-2"></div>
 
           <div className="flex justify-between">
             {/* === Búsqueda de Producto === */}
@@ -394,20 +324,6 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
                 </Popover>
               </div>
 
-              {/* <div className="w-20">
-              <Label>Cant.</Label>
-              <Input
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) =>
-                  setQuantity(Math.max(1, parseInt(e.target.value) || 1))
-                }
-                className="text-center"
-                disabled={!selectedProduct}
-              />
-            </div> */}
-
               <Button
                 type="button"
                 onClick={agregarItem}
@@ -421,7 +337,7 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
 
             {/* === Proveedor con Select de shadcn + botón modal === */}
             <div className="space-y-2">
-              <Label>Proveedor *</Label>
+              <Label>Proveedor</Label>
               <div className="flex gap-3">
                 <Select value={proveedorId} onValueChange={setProveedorId}>
                   <SelectTrigger className="flex-1">
@@ -535,7 +451,7 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
                   ${totalCompra.toFixed(2)}
                 </span>
               </div>
-              <div>
+              {/* <div>
                 Abonado:{' '}
                 <span className="text-blue-600">
                   ${abonadoInput.toFixed(2)}
@@ -545,13 +461,13 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
                 className={cn(saldo > 0 ? 'text-red-600' : 'text-green-600')}
               >
                 Saldo: ${saldo.toFixed(2)}
-              </div>
+              </div> */}
             </div>
           )}
 
           {/* === Guardar === */}
           <div className="flex justify-end">
-            <Button type="submit" disabled={!proveedorId || items.length === 0}>
+            <Button type="submit" disabled={items.length === 0}>
               Guardar Compra
             </Button>
           </div>

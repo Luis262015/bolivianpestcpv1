@@ -1,33 +1,197 @@
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
+import CustomPagination from '@/components/CustomPagination';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { ChevronDown, ChevronUp, SquarePen, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: 'Ventas',
-    href: '/ventas',
+    title: 'Compras',
+    href: '/Compras',
   },
 ];
 
-export default function Lista() {
+interface Cliente {
+  id: number;
+  nombre: string;
+}
+
+interface VentaDetalle {
+  id: number;
+  producto: {
+    id: number;
+    nombre: string;
+  };
+  precio_venta: number;
+  cantidad: number;
+  total: number;
+}
+
+interface Venta {
+  id: number;
+  cliente: Cliente;
+  total: number;
+  tipo: string;
+  metodo: string;
+  detalles: VentaDetalle[]; // <-- Añadido
+}
+
+interface VentasPaginate {
+  data: Venta[];
+  links: { url: string | null; label: string; active: boolean }[];
+}
+
+export default function Index() {
+  const { processing, delete: destroy } = useForm();
+  const { ventas } = usePage<{ ventas: VentasPaginate }>().props;
+
+  // Estado para controlar qué fila está expandida
+  const [expandedRow, setExpandedRow] = useState<number | null>(null);
+
+  const toggleRow = (id: number) => {
+    setExpandedRow(expandedRow === id ? null : id);
+  };
+
+  const handleDelete = (id: number) => {
+    if (confirm('Estas seguro de eliminar el registro')) {
+      destroy(`/compras/${id}`);
+    }
+  };
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Inventarios" />
-      <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-        <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-          <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-            <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-          </div>
-          <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-            <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-          </div>
-          <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-            <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-          </div>
+      <Head title="Compras | List" />
+
+      <div className="m-4">
+        <div className="flex">
+          <div className="me-5 mb-2 text-2xl font-bold">Gestión de ventas</div>
+
+          <Link href={'/ventas/create'}>
+            <Button className="mb-4" size="sm">
+              Hacer Venta
+            </Button>
+          </Link>
         </div>
-        <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-          <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+
+        {ventas.data.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12"></TableHead>
+                <TableHead className="w-[100px]">ID</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Metodo</TableHead>
+                <TableHead>Acción</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {ventas.data.map((venta) => (
+                <>
+                  {/* Fila principal */}
+                  <TableRow key={venta.id}>
+                    <TableCell>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => toggleRow(venta.id)}
+                      >
+                        {expandedRow === venta.id ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </TableCell>
+                    <TableCell className="font-medium">{venta.id}</TableCell>
+                    <TableCell>{venta.cliente?.nombre ?? '---'}</TableCell>
+                    <TableCell>{venta.total}</TableCell>
+                    <TableCell>{venta.tipo}</TableCell>
+                    <TableCell>{venta.metodo}</TableCell>
+                    <TableCell className="flex gap-1">
+                      <Link href={`/ventas/edit/${venta.id}`}>
+                        <Button size="icon" variant="outline">
+                          <SquarePen className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Button
+                        disabled={processing}
+                        size="icon"
+                        variant="outline"
+                        onClick={() => handleDelete(venta.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+
+                  {/* Subtabla desplegable */}
+                  {expandedRow === venta.id && (
+                    <TableRow>
+                      <TableCell colSpan={9} className="p-0">
+                        <div className="border-t bg-muted/30">
+                          <div className="p-4">
+                            <h4 className="mb-3 text-sm font-semibold">
+                              Detalles de la compra
+                            </h4>
+                            {venta.detalles.length > 0 ? (
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Producto</TableHead>
+                                    <TableHead>Cantidad</TableHead>
+                                    <TableHead>Precio Venta</TableHead>
+                                    <TableHead>Total</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {venta.detalles.map((detalle) => (
+                                    <TableRow key={detalle.id}>
+                                      <TableCell>
+                                        {detalle.producto.nombre}
+                                      </TableCell>
+                                      <TableCell>{detalle.cantidad}</TableCell>
+                                      <TableCell>
+                                        {detalle.precio_venta}
+                                      </TableCell>
+                                      <TableCell>{detalle.total}</TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                No hay detalles para esta compra.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <p className="text-center text-muted-foreground">
+            No hay compras registradas.
+          </p>
+        )}
+
+        <div className="my-2">
+          <CustomPagination links={ventas.links} />
         </div>
       </div>
     </AppLayout>

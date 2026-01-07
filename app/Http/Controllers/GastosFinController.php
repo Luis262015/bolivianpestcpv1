@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CuentaFinanciero;
+use App\Models\Gasto;
 use App\Models\GastoFinanciero;
 use Illuminate\Http\Request;
 
@@ -38,12 +39,17 @@ class GastosFinController extends Controller
 
   public function update(Request $request, string $id)
   {
-    dd($request);
+    // dd($request);
     $validated = $request->validate($this->toValidated);
     $gasto = GastoFinanciero::find($id);
     $gasto->update($validated);
     return redirect()->route('gastosfin.index');
   }
 
-  public function destroy(string $id) {}
+  public function destroy(string $id)
+  {
+    $gasto = GastoFinanciero::find($id);
+    $gasto->delete();
+    return redirect()->route('gastosfin.index');
+  }
 }

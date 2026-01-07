@@ -6,6 +6,7 @@ use App\Models\Almacen;
 use App\Models\Empresa;
 use App\Models\Mapa;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class MapaController extends Controller
@@ -47,15 +48,25 @@ class MapaController extends Controller
 
   public function store(Request $request)
   {
+
+    // dd($request);
+
     $validated = $request->validate([
+      'empresa_id' => 'required|exists:empresas,id',
       'almacen_id' => 'required|exists:almacenes,id',
       'texts'      => 'nullable|array',
       'traps'      => 'nullable|array',
       'background' => 'nullable|string', // data:image/... base64
     ]);
 
+    // dd($validated);
+
     $mapa = Mapa::updateOrCreate(
-      ['almacen_id' => $validated['almacen_id']],
+      [
+        'almacen_id' => $validated['almacen_id'],
+        'empresa_id' => $validated['empresa_id'],
+        'user_id' => Auth::id(),
+      ],
       [
         'data' => json_encode([
           'texts' => $validated['texts'] ?? [],
@@ -63,6 +74,8 @@ class MapaController extends Controller
         ])
       ]
     );
+
+    // dd("Success");
 
     // Manejo de imagen de fondo (base64 → archivo en storage)
     if ($request->filled('background')) {

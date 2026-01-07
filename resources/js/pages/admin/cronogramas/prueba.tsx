@@ -237,7 +237,7 @@ export default function Lista() {
       setTaskColor(task.color);
       setTaskStatus(task.status);
       setSelectedUserId(task.user_id);
-      setSelectedDate(new Date(task.date));
+      setSelectedDate(new Date(task.date + 'T00:00:00'));
     } else {
       setEditingTask(null);
       setTaskTitle('');

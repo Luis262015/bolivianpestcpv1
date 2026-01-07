@@ -1,5 +1,4 @@
 import CustomPagination from '@/components/CustomPagination';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -10,8 +9,7 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { SquarePen, Trash2 } from 'lucide-react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -77,12 +75,12 @@ export default function Lista() {
                   <TableCell>{empresa.activo}</TableCell>
 
                   <TableCell>
-                    <Link href={`/empresas/${empresa.id}/edit`}>
+                    {/* <Link href={`/empresas/${empresa.id}/edit`}>
                       <Button className="" size="icon" variant="outline">
                         <SquarePen />
                       </Button>
-                    </Link>
-                    <Button
+                    </Link> */}
+                    {/* <Button
                       disabled={processing}
                       className="ml-1"
                       size="icon"
@@ -90,7 +88,7 @@ export default function Lista() {
                       onClick={() => handleDelete(empresa.id)}
                     >
                       <Trash2 />
-                    </Button>
+                    </Button> */}
                   </TableCell>
                 </TableRow>
               ))}

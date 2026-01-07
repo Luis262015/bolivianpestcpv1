@@ -14,7 +14,7 @@ return new class extends Migration
     Schema::create('pagar_pagos', function (Blueprint $table) {
       $table->id();
       $table->foreignId('cuenta_pagar_id')->constrained('cuentas_pagar')->cascadeOnDelete();
-      $table->foreignId('cuota_id')->nullable()->constrained('cobrar_cuotas')->nullOnDelete();
+      $table->foreignId('cuota_id')->nullable()->constrained('pagar_cuotas')->nullOnDelete();
       $table->date('fecha_pago');
       $table->decimal('monto', 12, 2);
       $table->string('metodo_pago')->nullable();

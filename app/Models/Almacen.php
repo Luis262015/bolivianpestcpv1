@@ -9,18 +9,18 @@ class Almacen extends Model
     protected $table = 'almacenes';
     protected $guarded = [];
 
-    public function almacenesTrampa()
+    public function almacenTrampa()
     {
-        return $this->hasMany(AlmacenTrampa::class);
+        return $this->hasOne(AlmacenTrampa::class);
     }
 
-    public function almacenesAreas()
+    public function almacenArea()
     {
-        return $this->hasMany(AlmacenArea::class);
+        return $this->hasOne(AlmacenArea::class);
     }
 
-    public function almacenInsectocutores()
+    public function almacenInsectocutor()
     {
-        return $this->hasMany(AlmancenInsectocutor::class);
+        return $this->hasOne(AlmancenInsectocutor::class);
     }
 }

@@ -44,6 +44,16 @@ interface Signo {
   nombre: string;
 }
 
+interface Especie {
+  id: number;
+  nombre: string;
+}
+
+interface TipoSeguimiento {
+  id: number;
+  nombre: string;
+}
+
 interface Props {
   empresas: Empresa[];
   almacenes: Almacen[];
@@ -52,6 +62,8 @@ interface Props {
   protecciones: Proteccion[];
   biologicos: Biologico[];
   signos: Signo[];
+  especies: Especie[];
+  tipoSeguimiento: TipoSeguimiento[];
   seguimientos: any; // Aquí puedes definir el tipo completo
 }
 
@@ -64,6 +76,8 @@ export default function Lista({
   protecciones,
   biologicos,
   signos,
+  especies,
+  tipoSeguimiento,
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -73,7 +87,7 @@ export default function Lista({
 
       <div className="">
         <div className="mx-auto max-w-7xl">
-          <div className="overflow-hidden shadow-sm sm:rounded-lg">
+          <div className="overflow-hidden sm:rounded-lg">
             <div className="p-6">
               <div className="mb-6 flex items-center">
                 <h2 className="me-5 text-2xl font-semibold">
@@ -87,7 +101,7 @@ export default function Lista({
               <div className="space-y-4">
                 {seguimientos?.data && seguimientos.data.length > 0 ? (
                   seguimientos.data.map((seguimiento: any) => (
-                    <div key={seguimiento.id} className="rounded-lg border p-4">
+                    <div key={seguimiento.id} className="rounded-lg p-4">
                       <h3 className="font-medium">
                         {seguimiento.empresa?.nombre}
                       </h3>
@@ -120,6 +134,8 @@ export default function Lista({
         protecciones={protecciones}
         biologicos={biologicos}
         signos={signos}
+        especies={especies}
+        tipoSeguimiento={tipoSeguimiento}
       />
     </AppLayout>
   );

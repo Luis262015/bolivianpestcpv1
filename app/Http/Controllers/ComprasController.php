@@ -16,6 +16,9 @@ use Carbon\Carbon;
 
 class ComprasController extends Controller
 {
+
+
+
   public function index()
   {
     $compras = Compra::with(['proveedor', 'detalles.producto'])
@@ -34,44 +37,40 @@ class ComprasController extends Controller
 
   public function store(Request $request)
   {
+
+    // dd($request);
+
     $validated = $request->validate([
-      'proveedor_id' => 'required|exists:proveedores,id',
-      'numero' => 'required|string|max:20',
-      'autorizacion' => 'required|string|size:10',
-      'control' => 'required|string',
-      'observaciones' => 'required|string',
-      'abonado' => 'required|numeric|min:0',
+      'proveedor_id' => 'nullable|exists:proveedores,id',
+      'total' => 'required|numeric',
+      // 'numero' => 'required|string|max:20',
+      // 'autorizacion' => 'required|string|size:10',
+      // 'control' => 'required|string',
+      // 'observaciones' => 'required|string',
+      // 'abonado' => 'required|numeric|min:0',
       'items' => 'required|array|min:1',
       'items.*.producto_id' => 'required|exists:productos,id',
       'items.*.cantidad' => 'required|numeric|min:1',
       'items.*.costo_unitario' => 'required|numeric',
       'items.*.precio_venta' => 'required|numeric',
     ]);
+
+    // dd($validated);
+
     try {
       DB::beginTransaction();
-
-      // Calcular total
-      $total = collect($validated['items'])->sum(function ($item) {
-        return $item['cantidad'] * $item['costo_unitario'];
-      });
-
       // Crear compra
       $compra = Compra::create([
         'user_id' => Auth::id(),
         'proveedor_id' => $validated['proveedor_id'],
-        'numero' => $validated['numero'],
-        'autorizacion' => $validated['autorizacion'],
-        'control' => $validated['control'],
-        'observaciones' => $validated['observaciones'],
-        'total' => $total,
-        'abonado' => $validated['abonado'],
-        'saldo' => $total - $validated['abonado'],
+        'observaciones' => '',
+        'total' => $validated['total'],
         'tipo' => 'Compra',
       ]);
 
       // Guardar detalles
       foreach ($validated['items'] as $item) {
-        $costoTotal = $item['cantidad'] * $item['costo_unitario'];
+        // $costoTotal = $item['cantidad'] * $item['costo_unitario'];
 
         CompraDetalle::create([
           'compra_id' => $compra->id,
@@ -108,23 +107,23 @@ class ComprasController extends Controller
       }
 
       // Registro de cuenta por pagar, si es necesario
-      if ($validated['abonado'] < $total) {
-        // Guardar cuenta por pagar
-        CuentaPagar::create([
-          'compra_id' =>  $compra->id,
-          'proveedor_id' => $validated['proveedor_id'],
-          'user_id' => Auth::id(),
-          'total' => $total,
-          'a_cuenta' => $validated['abonado'],
-          'saldo' => $total - $validated['abonado'],
-          'estado' => 'Pendiente',
-          'fecha_pago' => Carbon::now(),
-        ]);
-      }
+      // if ($validated['abonado'] < $total) {
+      //   // Guardar cuenta por pagar
+      //   CuentaPagar::create([
+      //     'compra_id' =>  $compra->id,
+      //     'proveedor_id' => $validated['proveedor_id'],
+      //     'user_id' => Auth::id(),
+      //     'total' => $total,
+      //     'a_cuenta' => $validated['abonado'],
+      //     'saldo' => $total - $validated['abonado'],
+      //     'estado' => 'Pendiente',
+      //     'fecha_pago' => Carbon::now(),
+      //   ]);
+      // }
 
       DB::commit();
 
-      return redirect()->back()->with('success', "Compra guardada correctamente. Total: \${$total}");
+      return redirect()->back()->with('success', "Compra guardada correctamente. Total: \${$validated['total']}");
     } catch (\Exception $e) {
       DB::rollBack();
       Log::error('Error al guardar compra:', ['error' => $e->getMessage()]);

@@ -42,6 +42,7 @@ interface Producto {
   categoria: Categoria;
   subcategoria: Subcategoria;
   marca: Marca;
+  stock: number;
 }
 
 interface ProductosPaginate {
@@ -65,7 +66,7 @@ export default function Index() {
 
       <div className="m-4">
         <div className="flex items-center">
-          <div className="me-5 mb-2 text-center text-2xl">
+          <div className="me-5 mb-2 text-center text-2xl font-bold">
             Gestión de productos
           </div>
           <Link href={'/productos/create'}>
@@ -83,6 +84,7 @@ export default function Index() {
                 <TableHead>Categoria</TableHead>
                 <TableHead>Subcategoria</TableHead>
                 <TableHead>Marca</TableHead>
+                <TableHead>Stock</TableHead>
                 <TableHead>Acción</TableHead>
               </TableRow>
             </TableHeader>
@@ -96,6 +98,7 @@ export default function Index() {
                     {producto.subcategoria?.nombre ?? '---'}
                   </TableCell>
                   <TableCell>{producto.marca?.nombre ?? '---'}</TableCell>
+                  <TableCell>{producto.stock ?? '---'}</TableCell>
                   <TableCell>
                     <Link href={`/productos/${producto.id}/edit`}>
                       <Button className="" size="icon" variant="outline">

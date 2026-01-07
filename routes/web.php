@@ -88,7 +88,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('certificados', CertificadosController::class);
 
     /// ********** CONTABILIDAD *****************    
+    Route::post('/cuentasporcobrar/{id}/cobrar', [CuentasPorCobrarController::class, 'cobrar'])->name('cuentasporcobrar.cobrar');
+    Route::post('/cuentasporcobrar/{id}/cuotas', [CuentasPorCobrarController::class, 'cuotas'])->name('cuentasporcobrar.cuotas');
     Route::resource('cuentasporcobrar', CuentasPorCobrarController::class);
+    Route::post('/cuentasporpagar/{id}/pagar', [CuentasPorPagarController::class, 'pagar'])->name('cuentasporpagar.pagar');
+    Route::post('/cuentasporpagar/{id}/cuotas', [CuentasPorPagarController::class, 'cuotas'])->name('cuentasporpagar.cuotas');
     Route::resource('cuentasporpagar', CuentasPorPagarController::class);
     Route::resource('compras', ComprasController::class);
     Route::resource('ventas', VentasController::class);

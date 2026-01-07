@@ -27,7 +27,7 @@ class ProductosController extends Controller
 
   public function index()
   {
-    $productos = Producto::select('id', 'nombre', 'categoria_id', 'marca_id')
+    $productos = Producto::select('id', 'nombre', 'categoria_id', 'marca_id', 'stock')
       ->with(['categoria' => function ($query) {
         $query->select('id', 'nombre');
       }])
