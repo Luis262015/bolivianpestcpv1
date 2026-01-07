@@ -17,6 +17,12 @@ return new class extends Migration
       $table->foreignId('almacen_id')->constrained('almacenes');
       $table->foreignId('user_id')->constrained('users');
       $table->foreignId('tipo_seguimiento_id')->nullable()->constrained('tipo_seguimientos');
+
+      $table->string('encargado_nombre')->nullable();
+      $table->string('encargado_cargo')->nullable();
+      $table->string('firma_encargado')->nullable();
+      $table->string('firma_supervisor')->nullable();
+
       $table->string('paredes_internas')->nullable();
       $table->string('cantidad_pisos')->nullable();
       $table->string('cantidad_trampas')->nullable();

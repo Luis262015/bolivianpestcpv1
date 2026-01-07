@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -86,9 +87,31 @@ interface Especie {
   nombre: string;
 }
 
+interface EspecieCantidad {
+  especie_id: number;
+  nombre: string;
+  cantidad: number;
+}
+
 interface TipoSeguimiento {
   id: number;
   nombre: string;
+}
+
+interface Aplicacion {
+  paredes_internas: number;
+  oficinas: number;
+  pisos: number;
+  banos: number;
+  cocinas: number;
+  almacenes: number;
+  porteria: number;
+  policial: number;
+  trampas: number;
+  trampas_cambiar: number;
+  internas: number;
+  externas: number;
+  roedores: number;
 }
 
 interface ModalSeguimientoProps {
@@ -103,6 +126,7 @@ interface ModalSeguimientoProps {
   signos: Signo[];
   especies: Especie[];
   tipoSeguimiento: TipoSeguimiento[];
+  // aplicacion: Aplicacion;
 }
 
 export default function ModalSeguimiento({
@@ -126,9 +150,41 @@ export default function ModalSeguimiento({
   const [eppsSel, setEppsSel] = useState<number[]>([]);
   const [proteccionesSel, setProteccionesSel] = useState<number[]>([]);
   const [signosSel, setSignosSel] = useState<number[]>([]);
-  const [especiesSel, setEspeciesSel] = useState<number[]>([]);
 
-  const [labores, setLabores] = useState<string[]>(Array(11).fill(''));
+  // const [especiesSel, setEspeciesSel] = useState<number[]>([]);
+  const [especiesCantidad, setEspeciesCantidad] = useState<EspecieCantidad[]>(
+    especies.map((e) => ({
+      especie_id: e.id,
+      nombre: e.nombre,
+      cantidad: 0,
+    })),
+  );
+
+  const updateEspecieCantidad = (id: number, value: string) => {
+    const cantidad = value === '' ? 0 : Number(value);
+
+    setEspeciesCantidad((prev) =>
+      prev.map((e) => (e.especie_id === id ? { ...e, cantidad } : e)),
+    );
+  };
+
+  // const [labores, setLabores] = useState<string[]>(Array(11).fill(''));
+  const emptyAplicacion: Aplicacion = {
+    paredes_internas: 0,
+    oficinas: 0,
+    pisos: 0,
+    banos: 0,
+    cocinas: 0,
+    almacenes: 0,
+    porteria: 0,
+    policial: 0,
+    trampas: 0,
+    trampas_cambiar: 0,
+    internas: 0,
+    externas: 0,
+    roedores: 0,
+  };
+  const [aplicacion, setAplicacion] = useState<Aplicacion>(emptyAplicacion);
   const [productos, setProductos] = useState<ProductoUsado[]>([]);
 
   // Estados para búsqueda de productos
@@ -143,13 +199,18 @@ export default function ModalSeguimiento({
     empresa_id: '',
     almacen_id: '',
     tipo_seguimiento_id: '',
-    labores: Array(11).fill(''),
+    // labores: Array(11).fill(''),
+    aplicacion_data: aplicacion,
     biologicos_ids: [] as number[],
     metodos_ids: [] as number[],
     epps_ids: [] as number[],
     protecciones_ids: [] as number[],
     signos_ids: [] as number[],
-    especies_ids: [] as number[],
+    // especies_ids: [] as number[],
+    especies_ids: [] as {
+      especie_id: number;
+      cantidad: number;
+    }[],
     productos_usados: [] as ProductoUsado[],
     observaciones_especificas: '',
     encargado_nombre: '',
@@ -159,6 +220,17 @@ export default function ModalSeguimiento({
     observaciones_generales: '',
     imagenes: [] as File[],
   });
+
+  console.log(errors);
+
+  const updateAplicacion = (field: keyof Aplicacion, value: string) => {
+    const numericValue = value === '' ? 0 : Number(value);
+
+    setAplicacion((prev) => ({
+      ...prev,
+      [field]: numericValue,
+    }));
+  };
 
   // Búsqueda de productos con debounce
   useEffect(() => {
@@ -198,14 +270,25 @@ export default function ModalSeguimiento({
       (!data.empresa_id || !data.almacen_id || !data.tipo_seguimiento_id)
     )
       return;
-    if (step === 2) setData('labores', labores);
+    if (step === 2) setData('aplicacion_data', aplicacion);
     if (step === 3) setData('metodos_ids', metodosSel);
     if (step === 4) setData('productos_usados', productos);
     if (step === 5) setData('epps_ids', eppsSel);
     if (step === 6) setData('protecciones_ids', proteccionesSel);
     if (step === 7) setData('biologicos_ids', biologicosSel);
     if (step === 8) setData('signos_ids', signosSel);
-    if (step === 9) setData('especies_ids', especiesSel);
+    // if (step === 9) setData('especies_ids', especiesSel);
+    if (step === 9) {
+      setData(
+        'especies_ids',
+        especiesCantidad
+          .filter((e) => e.cantidad > 0)
+          .map((e) => ({
+            especie_id: e.especie_id,
+            cantidad: e.cantidad,
+          })),
+      );
+    }
     if (step === 10)
       setData('observaciones_especificas', data.observaciones_especificas);
 
@@ -216,17 +299,35 @@ export default function ModalSeguimiento({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setData({
+
+    // Actualizar todos los datos antes de enviar
+    const finalData = {
       ...data,
       biologicos_ids: biologicosSel,
       metodos_ids: metodosSel,
       epps_ids: eppsSel,
       protecciones_ids: proteccionesSel,
       signos_ids: signosSel,
-      especies_ids: especiesSel,
+      // especies_ids: especiesSel,
+      especies_ids: especiesCantidad
+        .filter((e) => e.cantidad > 0)
+        .map((e) => ({
+          especie_id: e.especie_id,
+          cantidad: e.cantidad,
+        })),
       productos_usados: productos,
+      firma_encargado: firmaEncargado, // base64
+      firma_supervisor: firmaSupervisor, // base64
+      aplicacion_data: aplicacion,
+    };
+
+    // Primero actualizar el estado
+    setData(finalData);
+
+    // Luego enviar (Inertia enviará el estado actual de 'data')
+    post('/seguimientos', {
+      onSuccess: handleClose,
     });
-    post('/seguimientos', { onSuccess: handleClose });
   };
 
   const handleClose = () => {
@@ -237,8 +338,9 @@ export default function ModalSeguimiento({
     setEppsSel([]);
     setProteccionesSel([]);
     setSignosSel([]);
-    setEspeciesSel([]);
-    setLabores(Array(11).fill(''));
+    // setEspeciesSel([]);
+    setEspeciesCantidad([]);
+    setAplicacion(emptyAplicacion);
     setProductos([]);
     setSelectedProduct(null);
     setQuery('');
@@ -291,6 +393,19 @@ export default function ModalSeguimiento({
 
   const [firmaEncargado, setFirmaEncargado] = useState<string>('');
   const [firmaSupervisor, setFirmaSupervisor] = useState<string>('');
+
+  // En el paso 11, actualiza el useEffect o maneja las firmas así:
+  useEffect(() => {
+    if (firmaEncargado) {
+      setData('firma_encargado', firmaEncargado);
+    }
+  }, [firmaEncargado]);
+
+  useEffect(() => {
+    if (firmaSupervisor) {
+      setData('firma_supervisor', firmaSupervisor);
+    }
+  }, [firmaSupervisor]);
 
   return (
     <Dialog
@@ -396,63 +511,98 @@ export default function ModalSeguimiento({
                 <Input
                   placeholder="Cantidad Oficinas"
                   type="number"
-                  step={'0.01'}
+                  value={aplicacion.oficinas}
+                  onChange={(e) => updateAplicacion('oficinas', e.target.value)}
                 />
+
                 <Input
                   placeholder="Cantidad Pisos"
                   type="number"
-                  step={'0.01'}
+                  value={aplicacion.pisos}
+                  onChange={(e) => updateAplicacion('pisos', e.target.value)}
                 />
+
                 <Input
                   placeholder="Cantidad Baños"
                   type="number"
-                  step={'0.01'}
+                  value={aplicacion.banos}
+                  onChange={(e) => updateAplicacion('banos', e.target.value)}
                 />
+
                 <Input
                   placeholder="Cantidad Cocinas"
                   type="number"
-                  step={'0.01'}
+                  value={aplicacion.cocinas}
+                  onChange={(e) => updateAplicacion('cocinas', e.target.value)}
                 />
+
                 <Input
                   placeholder="Cantidad Almacenes"
                   type="number"
-                  step={'0.01'}
+                  value={aplicacion.almacenes}
+                  onChange={(e) =>
+                    updateAplicacion('almacenes', e.target.value)
+                  }
                 />
-                <Input placeholder="Porteria" type="number" step={'0.01'} />
+
+                <Input
+                  placeholder="Portería"
+                  type="number"
+                  value={aplicacion.porteria}
+                  onChange={(e) => updateAplicacion('porteria', e.target.value)}
+                />
+
                 <Input
                   placeholder="Dormitorio Policial"
                   type="number"
-                  step={'0.01'}
+                  value={aplicacion.policial}
+                  onChange={(e) => updateAplicacion('policial', e.target.value)}
                 />
+
                 <Input
-                  placeholder="Cant. Paredes Internas"
+                  placeholder="Paredes Internas"
                   type="number"
-                  step={'0.01'}
+                  value={aplicacion.paredes_internas}
+                  onChange={(e) =>
+                    updateAplicacion('paredes_internas', e.target.value)
+                  }
                 />
+
                 <Input
-                  placeholder="Cant. Trampas"
+                  placeholder="Cantidad Trampas"
                   type="number"
-                  step={'0.01'}
+                  value={aplicacion.trampas}
+                  onChange={(e) => updateAplicacion('trampas', e.target.value)}
                 />
+
                 <Input
                   placeholder="Trampas Cambiadas"
                   type="number"
-                  step={'0.01'}
+                  value={aplicacion.trampas_cambiar}
+                  onChange={(e) =>
+                    updateAplicacion('trampas_cambiar', e.target.value)
+                  }
                 />
-                <Input
-                  placeholder="Roedores encontrados"
-                  type="number"
-                  step={'0.01'}
-                />
+
                 <Input
                   placeholder="Trampas Internas"
                   type="number"
-                  step={'0.01'}
+                  value={aplicacion.internas}
+                  onChange={(e) => updateAplicacion('internas', e.target.value)}
                 />
+
                 <Input
                   placeholder="Trampas Externas"
                   type="number"
-                  step={'0.01'}
+                  value={aplicacion.externas}
+                  onChange={(e) => updateAplicacion('externas', e.target.value)}
+                />
+
+                <Input
+                  placeholder="Roedores encontrados"
+                  type="number"
+                  value={aplicacion.roedores}
+                  onChange={(e) => updateAplicacion('roedores', e.target.value)}
                 />
               </div>
             </div>
@@ -725,23 +875,50 @@ export default function ModalSeguimiento({
               <Label className="text-lg font-semibold">
                 Especies Encontradas
               </Label>
-              <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
-                {especies.map((e) => (
-                  <label
-                    key={e.id}
-                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+
+              <div className="space-y-3">
+                {especiesCantidad.map((e) => (
+                  <div
+                    key={e.especie_id}
+                    className="flex items-center justify-between gap-4 rounded-lg border p-4"
                   >
-                    <Checkbox
-                      checked={especiesSel.includes(e.id)}
-                      onCheckedChange={() =>
-                        toggle(especiesSel, setEspeciesSel, e.id)
+                    <span className="font-medium">{e.nombre}</span>
+
+                    <Input
+                      type="number"
+                      min={0}
+                      className="w-28"
+                      value={e.cantidad}
+                      onChange={(ev) =>
+                        updateEspecieCantidad(e.especie_id, ev.target.value)
                       }
                     />
-                    <span>{e.nombre}</span>
-                  </label>
+                  </div>
                 ))}
               </div>
             </div>
+
+            // <div className="space-y-5 py-6">
+            //   <Label className="text-lg font-semibold">
+            //     Especies Encontradas
+            //   </Label>
+            //   <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+            //     {especies.map((e) => (
+            //       <label
+            //         key={e.id}
+            //         className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+            //       >
+            //         <Checkbox
+            //           checked={especiesSel.includes(e.id)}
+            //           onCheckedChange={() =>
+            //             toggle(especiesSel, setEspeciesSel, e.id)
+            //           }
+            //         />
+            //         <span>{e.nombre}</span>
+            //       </label>
+            //     ))}
+            //   </div>
+            // </div>
           )}
 
           {/* PASO 10: Observaciones Específicas */}
@@ -776,6 +953,7 @@ export default function ModalSeguimiento({
                       setData('encargado_nombre', e.target.value)
                     }
                   />
+                  <InputError message={errors.encargado_nombre} />
                 </div>
                 <div className="space-y-2">
                   <Label>Cargo</Label>
@@ -783,6 +961,7 @@ export default function ModalSeguimiento({
                     value={data.encargado_cargo}
                     onChange={(e) => setData('encargado_cargo', e.target.value)}
                   />
+                  <InputError message={errors.encargado_cargo} />
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">

@@ -1,8 +1,16 @@
 import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import ModalSeguimiento from './ModalSeguimiento';
 
@@ -100,20 +108,66 @@ export default function Lista({
               </div>
               <div className="space-y-4">
                 {seguimientos?.data && seguimientos.data.length > 0 ? (
-                  seguimientos.data.map((seguimiento: any) => (
-                    <div key={seguimiento.id} className="rounded-lg p-4">
-                      <h3 className="font-medium">
-                        {seguimiento.empresa?.nombre}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {seguimiento.almacen?.nombre}
-                      </p>
-                      <p className="mt-2 text-sm">
-                        {seguimiento.observaciones}
-                      </p>
-                    </div>
-                  ))
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12"></TableHead>
+                        <TableHead>Empresa</TableHead>
+                        <TableHead>Almacen</TableHead>
+                        <TableHead>Usuario</TableHead>
+                        <TableHead>Acciones</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {seguimientos.data.map((seguimiento: any) => (
+                        <TableRow key={seguimiento.id}>
+                          <TableCell className="font-medium">
+                            {seguimiento.id}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {seguimiento.empresa?.nombre}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {seguimiento.almacen?.nombre}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {seguimiento.user?.name}
+                          </TableCell>
+                          <TableCell className="flex gap-2">
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              // onClick={() => openEditModal(seguimiento)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              // onClick={() => handleDelete(seguimiento.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 ) : (
+                  // seguimientos.data.map((seguimiento: any) => (
+
+                  //   <div key={seguimiento.id} className="rounded-lg p-4">
+                  //     <h3 className="font-medium">
+                  //       {seguimiento.empresa?.nombre}
+                  //     </h3>
+                  //     <p className="text-sm text-gray-600">
+                  //       {seguimiento.almacen?.nombre}
+                  //     </p>
+                  //     <p className="mt-2 text-sm">
+                  //       {seguimiento.observaciones}
+                  //     </p>
+                  //   </div>
+                  // ))
                   <p className="py-8 text-center text-gray-500">
                     No hay seguimientos registrados
                   </p>

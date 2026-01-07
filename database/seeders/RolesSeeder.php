@@ -107,6 +107,12 @@ class RolesSeeder extends Seeder
             ['nombre' => 'Otros'],
         ]);
 
+        DB::table('especies')->insert([
+            ['nombre' => 'Moscas'],
+            ['nombre' => 'Polillas'],
+            ['nombre' => 'Mosquitos'],
+        ]);
+
         DB::table('cuenta_financieros')->insert([
             ['nombre' => 'Sueldos administrativos'],
             ['nombre' => 'Honorarios profesionales'],
@@ -144,6 +150,11 @@ class RolesSeeder extends Seeder
             ['nombre' => 'C.C.'],
             ['nombre' => 'Unidad'],
             ['nombre' => 'Litros'],
+        ]);
+
+        DB::table('tipo_seguimientos')->insert([
+            ['nombre' => 'Desinfeccion'],
+            ['nombre' => 'Control de plagas'],
         ]);
     }
 }
