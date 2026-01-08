@@ -13,4 +13,9 @@ class Empresa extends Model
     {
         return $this->hasMany(Almacen::class);
     }
+
+    public function certificados()
+    {
+        return $this->hasMany(Certificado::class);
+    }
 }

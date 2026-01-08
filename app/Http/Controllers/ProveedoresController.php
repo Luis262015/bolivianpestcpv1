@@ -74,18 +74,20 @@ class ProveedoresController extends Controller
     ]);
     $proveedor = Proveedor::create($validated);
     // Cargamos TODOS los proveedores actualizados
-    $proveedores = Proveedor::all(['id', 'nombre'])->map(function ($p) {
-      return [
-        'id' => $p->id,
-        'nombre' => $p->nombre,
-      ];
-    });
-    // Devolvemos solo los datos necesarios (sin redirección completa)
-    return back()->with([
-      'proveedor' => $proveedor,           // 👈 ESTE ES EL QUE FALTABA
-      'proveedor_nuevo_id' => $proveedor->id,   // ← Para seleccionarlo automáticamente
-      'proveedores' => $proveedores,           // ← Esto actualiza el select
-      'success' => 'Proveedor creado correctamente',
-    ]);
+    // $proveedores = Proveedor::all(['id', 'nombre'])->map(function ($p) {
+    //   return [
+    //     'id' => $p->id,
+    //     'nombre' => $p->nombre,
+    //   ];
+    // });
+    // // Devolvemos solo los datos necesarios (sin redirección completa)
+    // return back()->with([
+    //   'proveedor' => $proveedor,           // 👈 ESTE ES EL QUE FALTABA
+    //   'proveedor_nuevo_id' => $proveedor->id,   // ← Para seleccionarlo automáticamente
+    //   'proveedores' => $proveedores,           // ← Esto actualiza el select
+    //   'success' => 'Proveedor creado correctamente',
+    // ]);
+
+    return response()->json($proveedor);
   }
 }

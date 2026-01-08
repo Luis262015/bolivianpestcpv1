@@ -13,7 +13,7 @@ class AgendaController extends Controller
   private $toValidated = [
     'title' => 'sometimes|required|string|max:255',
     'date' => 'sometimes|required|date_format:Y-m-d',
-    'color' => 'sometimes|required|string|in:bg-red-500,bg-blue-500,bg-green-500,bg-yellow-500,bg-purple-500',
+    'color' => 'sometimes|required|string|in:bg-red-500,bg-blue-500,bg-green-500,bg-yellow-500,bg-purple-500,bg-pink-600,bg-teal-500',
     'status' => 'sometimes|required|in:pendiente,postergado,completado',
   ];
 

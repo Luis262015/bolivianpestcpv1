@@ -1,5 +1,3 @@
-// resources/js/Pages/Compras/Compra.tsx
-
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -9,6 +7,13 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -34,7 +39,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
 import { Check, ChevronsUpDown, Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -47,6 +52,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface Proveedor {
   id: number;
   nombre: string;
+  direccion: string;
+  telefono: string;
+  email: string;
+  contacto: string;
 }
 
 interface Producto {
@@ -67,11 +76,6 @@ interface ItemCompra {
 
 interface CompraFormData {
   proveedor_id: number | null;
-  // numero: string;
-  // autorizacion: string;
-  // control: string;
-  // observaciones: string;
-  // abonado: number;
   items: Array<{
     producto_id: number;
     cantidad: number;
@@ -94,7 +98,56 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
   const [items, setItems] = useState<ItemCompra[]>([]);
   const [proveedorId, setProveedorId] = useState<string>(''); // ← string para Select
   // const [proveedorId, setProveedorId] = useState<number | null>(null);
-  const [abonadoInput, setAbonadoInput] = useState(0);
+  // const [abonadoInput, setAbonadoInput] = useState(0);
+
+  const [savingProveedor, setSavingProveedor] = useState(false);
+
+  const [proveedorForm, setProveedorForm] = useState({
+    nombre: '',
+    direccion: '',
+    telefono: '',
+    email: '',
+    contacto: '',
+  });
+  const guardarProveedor = async () => {
+    if (!proveedorForm.nombre) {
+      alert('El nombre del proveedor es obligatorio');
+      return;
+    }
+
+    try {
+      setSavingProveedor(true);
+
+      const response = await axios.post(
+        '/proveedores/storemodal',
+        proveedorForm,
+      );
+
+      const nuevoProveedor: Proveedor = response.data;
+
+      // Actualiza la lista
+      setProveedores((prev) => [...prev, nuevoProveedor]);
+
+      // Selecciona el nuevo proveedor
+      setProveedorId(String(nuevoProveedor.id));
+
+      // Limpia formulario y cierra modal
+      setProveedorForm({
+        nombre: '',
+        direccion: '',
+        telefono: '',
+        email: '',
+        contacto: '',
+      });
+
+      setModalOpen(false);
+    } catch (error) {
+      console.error(error);
+      alert('Error al guardar proveedor');
+    } finally {
+      setSavingProveedor(false);
+    }
+  };
 
   // Estado para la lista de proveedores (se actualizará al crear uno nuevo)
   const [proveedores, setProveedores] =
@@ -103,21 +156,16 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
 
   // Callback cuando se crea el proveedor
-  const handleProveedorCreado = (nuevo: { id: number; nombre: string }) => {
-    console.log('************************ CREADO ********************');
-    setProveedores((prev) => [...prev, nuevo]);
-    setProveedorId(String(nuevo.id)); // lo selecciona automáticamente
-  };
+  // const handleProveedorCreado = (nuevo: { id: number; nombre: string }) => {
+  //   console.log('************************ CREADO ********************');
+  //   setProveedores((prev) => [...prev, nuevo]);
+  //   setProveedorId(String(nuevo.id)); // lo selecciona automáticamente
+  // };
 
-  const { data, setData, errors } = useForm<CompraFormData>({
-    proveedor_id: null,
-    // numero: '',
-    // autorizacion: '',
-    // control: '',
-    // observaciones: '',
-    // abonado: 0,
-    items: [],
-  });
+  // const { data, setData, errors } = useForm<CompraFormData>({
+  //   proveedor_id: null,
+  //   items: [],
+  // });
 
   //   // === Búsqueda con debounce ===
   useEffect(() => {
@@ -141,20 +189,15 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
     return () => clearTimeout(delayDebounce);
   }, [query]);
 
-  // === Sincronizar abonado ===
-  // useEffect(() => {
-  //   setData('abonado', abonadoInput);
-  // }, [abonadoInput, setData]);
-
   // === Cálculos ===
   const totalCompra = useMemo(
     () => items.reduce((sum, i) => sum + i.costo_total, 0),
     [items],
   );
-  const saldo = useMemo(
-    () => Math.max(0, totalCompra - abonadoInput),
-    [totalCompra, abonadoInput],
-  );
+  // const saldo = useMemo(
+  //   () => Math.max(0, totalCompra - abonadoInput),
+  //   [totalCompra, abonadoInput],
+  // );
 
   //   // === Agregar producto ===
   const agregarItem = () => {
@@ -216,11 +259,6 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
 
     const payload = {
       proveedor_id: proveedorId,
-      // numero: data.numero,
-      // autorizacion: data.autorizacion,
-      // control: data.control,
-      // observaciones: data.observaciones,
-      // abonado: abonadoInput,
       total: totalCompra,
       items: items.map((i) => ({
         producto_id: i.producto_id,
@@ -451,17 +489,6 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
                   ${totalCompra.toFixed(2)}
                 </span>
               </div>
-              {/* <div>
-                Abonado:{' '}
-                <span className="text-blue-600">
-                  ${abonadoInput.toFixed(2)}
-                </span>
-              </div>
-              <div
-                className={cn(saldo > 0 ? 'text-red-600' : 'text-green-600')}
-              >
-                Saldo: ${saldo.toFixed(2)}
-              </div> */}
             </div>
           )}
 
@@ -473,6 +500,39 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
           </div>
         </form>
       </div>
+      {/* ===== MODAL PROVEEDOR ===== */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nuevo Proveedor</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            {Object.entries(proveedorForm).map(([key, value]) => (
+              <Input
+                key={key}
+                placeholder={key}
+                value={value}
+                onChange={(e) =>
+                  setProveedorForm({
+                    ...proveedorForm,
+                    [key]: e.target.value,
+                  })
+                }
+              />
+            ))}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={guardarProveedor} disabled={savingProveedor}>
+              {savingProveedor ? 'Guardando...' : 'Guardar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

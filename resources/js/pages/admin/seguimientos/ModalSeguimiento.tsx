@@ -186,6 +186,7 @@ export default function ModalSeguimiento({
   };
   const [aplicacion, setAplicacion] = useState<Aplicacion>(emptyAplicacion);
   const [productos, setProductos] = useState<ProductoUsado[]>([]);
+  // const [tareaNumero, setTareaNumero] = useState(0);
 
   // Estados para búsqueda de productos
   const [openP, setOpenP] = useState(false);
@@ -219,6 +220,7 @@ export default function ModalSeguimiento({
     firma_supervisor: '',
     observaciones_generales: '',
     imagenes: [] as File[],
+    numero_tarea: 0,
   });
 
   console.log(errors);
@@ -299,6 +301,8 @@ export default function ModalSeguimiento({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // console.log('tareaNumero: ' + tareaNumero);
 
     // Actualizar todos los datos antes de enviar
     const finalData = {
@@ -429,6 +433,16 @@ export default function ModalSeguimiento({
           {/* PASO 1: Empresa, Almacén y Tipo de Seguimiento */}
           {step === 1 && (
             <div className="space-y-6 py-6">
+              <div className="space-y-2">
+                <Label>Numero de Tarea en Cronograma *</Label>
+                <Input
+                  type="number"
+                  value={data.numero_tarea}
+                  onChange={(e) =>
+                    setData('numero_tarea', Number(e.target.value))
+                  }
+                />
+              </div>
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Empresa *</Label>

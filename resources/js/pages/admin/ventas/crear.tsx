@@ -294,7 +294,7 @@ export default function Venta() {
             </div>
 
             {/* BUSCADOR DE CLIENTE */}
-            <div className="flex items-end gap-2 pb-4">
+            {/* <div className="flex items-end gap-2 pb-4">
               <div className="flex-grow">
                 <Label>Buscar Cliente *</Label>
                 <Popover open={openCliente} onOpenChange={setOpenCliente}>
@@ -365,7 +365,7 @@ export default function Venta() {
                   <X className="h-4 w-4" />
                 </Button>
               )}
-            </div>
+            </div> */}
           </div>
 
           {/* 2. Detalle de Venta */}

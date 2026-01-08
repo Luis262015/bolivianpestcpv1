@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Almacen;
 use App\Models\Aplicacion;
 use App\Models\Biologico;
+use App\Models\Cronograma;
 use App\Models\Empresa;
 use App\Models\Epp;
 use App\Models\Especie;
@@ -30,6 +31,7 @@ class SeguimientoController extends Controller
     'empresa_id' => 'required|integer',
     'almacen_id' => 'required|integer',
     'tipo_seguimiento_id' => 'required|integer',
+    'numero_tarea' => 'required|integer',
     // 'labores' => 'required|array|min:1',
     'biologicos_ids' => 'nullable|array',
     'metodos_ids' => 'nullable|array',
@@ -42,7 +44,7 @@ class SeguimientoController extends Controller
     'encargado_cargo' => 'required|string',
     'observaciones_generales' => 'nullable|string',
     'aplicacion_data' => 'array|min:1',
-    'especies_ids' => 'array|min:1'
+    'especies_ids' => 'nullable|array'
   ];
   public function index()
   {
@@ -134,6 +136,11 @@ class SeguimientoController extends Controller
 
     $seguimiento->save();
 
+    // Actualizacion de la tarea en cronograma
+    $tarea = Cronograma::find($validated['numero_tarea']);
+    $tarea->status = 'completado';
+    $tarea->update();
+
     // Aplicacion
     $aplicacion = new Aplicacion();
     $aplicacion->seguimiento_id = $seguimiento->id;
@@ -220,4 +227,6 @@ class SeguimientoController extends Controller
   public function update(Request $request, string $id) {}
 
   public function destroy(string $id) {}
+
+  public function pdf(Request $request) {}
 }

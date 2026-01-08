@@ -43,7 +43,7 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
-    return Inertia::render('welcome', [
+    return Inertia::render('landing', [
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('home');
@@ -70,11 +70,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     /// ********** EMPRESAS *****************
+    Route::post('/empresas/{id}/certificados', [EmpresaController::class, 'certificados'])->name('empresas.certificados');
     Route::resource('empresas', EmpresaController::class);
     Route::resource('contratos', ContratoController::class);
     Route::resource('cotizaciones', CotizacionController::class);
     Route::resource('cronogramas', CronogramaController::class);
     Route::resource('mapas', MapaController::class);
+    Route::get('/seguimientos/pdf', [SeguimientoController::class, 'pdf'])->name('seguimientos.pdf');
     Route::resource('seguimientos', SeguimientoController::class);
     Route::resource('biologicos', BiologicosController::class);
     Route::resource('epps', EppsController::class);
@@ -116,7 +118,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('inventarios', InventarioController::class);
 
-    Route::post('/proveedores/storemodal', [ProveedoresController::class, 'storeModal']);
+    Route::post('/proveedores/storemodal', [ProveedoresController::class, 'storeModal'])->name('proveedores.storemodal');
     Route::resource('proveedores', ProveedoresController::class);
 
     /// ********** USUARIO ************************

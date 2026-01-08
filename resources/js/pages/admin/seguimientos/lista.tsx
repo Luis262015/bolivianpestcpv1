@@ -10,7 +10,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
-import { Edit, Plus, Trash2 } from 'lucide-react';
+import { FileChartColumn, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import ModalSeguimiento from './ModalSeguimiento';
 
@@ -75,6 +75,11 @@ interface Props {
   seguimientos: any; // Aquí puedes definir el tipo completo
 }
 
+const handlePDF = (id: number) => {
+  console.log('Imprimir PDF');
+  window.open(`/seguimientos/pdf?id=${id}`, '_blank');
+};
+
 export default function Lista({
   empresas,
   almacenes,
@@ -134,19 +139,26 @@ export default function Lista({
                             {seguimiento.user?.name}
                           </TableCell>
                           <TableCell className="flex gap-2">
-                            <Button
+                            {/* <Button
                               size="icon"
                               variant="outline"
                               // onClick={() => openEditModal(seguimiento)}
                             >
                               <Edit className="h-4 w-4" />
-                            </Button>
+                            </Button> */}
                             <Button
                               size="icon"
                               variant="outline"
                               // onClick={() => handleDelete(seguimiento.id)}
                             >
                               <Trash2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              onClick={() => handlePDF(seguimiento.id)}
+                            >
+                              <FileChartColumn className="h-4 w-4" />
                             </Button>
                           </TableCell>
                         </TableRow>

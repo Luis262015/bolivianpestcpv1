@@ -108,7 +108,7 @@ class CertificadosController extends Controller
     // Cargar la vista Blade con los datos
     $pdf = Pdf::loadView('pdf.certificado', compact('certificado'));
     // Opcional: configurar tamaño, orientación, etc.
-    $pdf->setPaper('a4', 'landscape');
+    $pdf->setPaper('letter', 'landscape');
     return $pdf->stream('certificado-' . now()->format('Y-m-d') . '.pdf');
     // o ->download() si quieres forzar descarga
   }
