@@ -231,12 +231,12 @@ class SeguimientoController extends Controller
 
   public function pdf(Request $request, string $id)
   {
-    $seguimiento = Seguimiento::find($id);
+    $seguimiento = Seguimiento::with(['empresa', 'almacen', 'user', 'tipoSeguimiento', 'aplicacion', 'metodos', 'epps', 'proteccions', 'biologicos', 'signos', 'images'])->find($id);
     // Cargar la vista Blade con los datos
     $pdf = Pdf::loadView('pdf.seguimiento', compact('seguimiento'));
     // Opcional: configurar tamaño, orientación, etc. ('portrait' -> vertical, 'landscape' -> horizontal)
     $pdf->setPaper('legal', 'portrait');
-    return $pdf->stream('certificado-' . now()->format('Y-m-d') . '.pdf');
+    return $pdf->stream(filename: 'seguimiento-' . now()->format('Y-m-d') . '.pdf');
     // o ->download() si quieres forzar descarga
   }
 }

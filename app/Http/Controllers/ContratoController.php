@@ -12,6 +12,7 @@ use App\Models\ContratoDetalles;
 use App\Models\Cronograma;
 use App\Models\CuentaCobrar;
 use App\Models\Empresa;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -460,5 +461,17 @@ class ContratoController extends Controller
     //
     $contrato->delete();
     return redirect()->route('contratos.index');
+  }
+
+  public function pdf(Request $request, string $id)
+  {
+    $contrato = Contrato::with(['empresa'])->find($id);
+    $almacenes = Almacen::with(['almacenTrampa', 'almacenArea', 'almacenInsectocutor', 'tareas'])->where('empresa_id', $contrato->empresa_id)->get();
+    // Cargar la vista Blade con los datos
+    $pdf = Pdf::loadView('pdf.contrato', compact(['contrato', 'almacenes']));
+    // Opcional: configurar tamaño, orientación, etc. ('portrait' -> vertical, 'landscape' -> horizontal)
+    $pdf->setPaper('letter', 'portrait');
+    return $pdf->stream('contrato-' . now()->format('Y-m-d') . '.pdf');
+    // o ->download() si quieres forzar descarga
   }
 }

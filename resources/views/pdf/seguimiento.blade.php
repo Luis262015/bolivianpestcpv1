@@ -88,6 +88,16 @@
     td {
       border: 1px solid #0D3347;
       border-collapse: collapse;
+
+    }
+
+    td {
+      padding: 3px;
+    }
+
+    span {
+      font-weight: bold;
+      font-size: .8rem;
     }
   </style>
 </head>
@@ -121,7 +131,9 @@
       <tr>
         <th rowspan="2" style="width: 12%;"><img src="{{ public_path('images/LogoFC.png') }}" alt=""
             width="75"></th> <!-- Esta celda ocupará 2 filas -->
-        <td style="width: 76%; text-align: center; height: 30px;">SEGUIMIENTO</td>
+        <td style="width: 76%; text-align: center; height: 30px;">SEGUIMIENTO
+          <span>{{ $seguimiento->tipoSeguimiento->nombre }}</span>
+        </td>
         <td rowspan="2" style="width: 12%;"></td>
       </tr>
       <tr>
@@ -137,16 +149,16 @@
       </tr>
       <tr>
         <td colspan="3">
-          NOMBRE DE LA EMPRESA:
+          NOMBRE DE LA EMPRESA: <span>{{ $seguimiento->empresa->nombre }}</span>
         </td>
       </tr>
       <tr>
-        <td>CUIDAD:</td>
-        <td>ALMACEN:</td>
-        <td style="width: 40%">FECHA:</td>
+        <td>CUIDAD: <span>{{ $seguimiento->almacen->ciudad }}</span></td>
+        <td>ALMACEN: <span>{{ $seguimiento->almacen->nombre }}</span></td>
+        <td style="width: 40%">FECHA: <span>{{ $seguimiento->created_at }}</span></td>
       </tr>
       <tr>
-        <td colspan="2">DIRECCION:</td>
+        <td colspan="2">DIRECCION: <span>{{ $seguimiento->almacen->direccion }}</span></td>
         <td>PROXIMA EVALUACION:</td>
       </tr>
     </table>
@@ -160,12 +172,28 @@
         <td>
           <table>
             <tr>
-              <td>PAREDES INTERNAS:</td>
-              <td>....... UNDADES</td>
+              <td>PAREDES INTERNAS: <span>{{ $seguimiento->aplicacion->paredes_internas }}</span></td>
+              <td>OFICINAS: <span>{{ $seguimiento->aplicacion->oficinas }}</span></td>
+              <td>PISOS: <span>{{ $seguimiento->aplicacion->pisos }}</span></td>
+              <td>BAÑOS: <span>{{ $seguimiento->aplicacion->banos }}</span></td>
             </tr>
             <tr>
-              <td>PISOS:</td>
-              <td>........ UNIDADES</td>
+              <td>COCINAS: <span>{{ $seguimiento->aplicacion->cocinas }}</span></td>
+              <td>ALMACENES: <span>{{ $seguimiento->aplicacion->almacenes }}</span></td>
+              <td>PORTERIA: <span>{{ $seguimiento->aplicacion->porteria }}</span></td>
+              <td>POLICIAL: <span>{{ $seguimiento->aplicacion->policial }}</span></td>
+            </tr>
+            <tr>
+              <td>TRAMPAS: <span>{{ $seguimiento->aplicacion->trampas }}</span></td>
+              <td>CAMBIAR TRAMPAS: <span>{{ $seguimiento->aplicacion->trampas_cambiar }}</span></td>
+              <td>INTERNAS: <span>{{ $seguimiento->aplicacion->internas }}</span></td>
+              <td>EXTERNAS: <span>{{ $seguimiento->aplicacion->externas }}</span></td>
+            </tr>
+            <tr>
+              <td>ROEDORES: <span>{{ $seguimiento->aplicacion->roedores }}</span></td>
+              <td></td>
+              <td></td>
+              <td></td>
             </tr>
           </table>
         </td>
@@ -176,7 +204,11 @@
         <td>METODO UTILIZADO</td>
       </tr>
       <tr>
-        <td></td>
+        <td>
+          @foreach ($seguimiento->metodos as $metodo)
+            {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $metodo->nombre }}</span>
+          @endforeach
+        </td>
       </tr>
     </table>
     <table>
@@ -194,7 +226,11 @@
         </td>
       </tr>
       <tr>
-        <td></td>
+        <td>
+          @foreach ($seguimiento->epps as $epp)
+            {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $epp->nombre }}</span>
+          @endforeach
+        </td>
       </tr>
     </table>
     <table>
@@ -202,7 +238,11 @@
         <td>MEDIDAS DE PROTECCION ADOPTADAS PARA TERCEROS</td>
       </tr>
       <tr>
-        <td></td>
+        <td>
+          @foreach ($seguimiento->proteccions as $proteccion)
+            {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $proteccion->nombre }}</span>
+          @endforeach
+        </td>
       </tr>
     </table>
     <table>
@@ -210,7 +250,23 @@
         <td>OBSERVACIONES DE CICLO BIOLOGICO</td>
       </tr>
       <tr>
-        <td></td>
+        <td>
+          @foreach ($seguimiento->biologicos as $biologico)
+            {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $biologico->nombre }}</span>
+          @endforeach
+        </td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td>OBSERVACIONES DE SIGNOS DE ROEDORES</td>
+      </tr>
+      <tr>
+        <td>
+          @foreach ($seguimiento->signos as $signo)
+            {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $signo->nombre }}</span>
+          @endforeach
+        </td>
       </tr>
     </table>
     <table>
@@ -218,7 +274,7 @@
         <td>OBSERVACIONES BOLIVIAN PEST</td>
       </tr>
       <tr>
-        <td></td>
+        <td>{{ $seguimiento->observacionesp }}</td>
       </tr>
     </table>
     <table>
@@ -226,7 +282,11 @@
         <td>EVIDENCIAS</td>
       </tr>
       <tr>
-        <td></td>
+        <td>
+          @foreach ($seguimiento->images as $image)
+            <img src="{{ public_path('storage/' . $image->imagen) }}" alt="" width="150px">
+          @endforeach
+        </td>
       </tr>
     </table>
     <table>
@@ -234,7 +294,25 @@
         <td>OBSERVACIONES</td>
       </tr>
       <tr>
-        <td></td>
+        <td>{{ $seguimiento->observaciones }}</td>
+      </tr>
+    </table>
+
+    <table>
+      <tr>
+        <td style="width: 50%; text-align: center;">
+          <div><img src="{{ public_path('storage/' . $seguimiento->firma_encargado) }}" alt="" width="150px">
+          </div>
+          <div>ENCARGADO</div>
+          <div>Nombre del encargado</div>
+        </td>
+        <td style="width: 50%; text-align: center;">
+          <div><img src="{{ public_path('storage/' . $seguimiento->firma_supervisor) }}" alt="" width="150px">
+          </div>
+          <div>TECNICO</div>
+          <div>Nombre del tecnico</div>
+          <div>BOLIVIAN PEST</div>
+        </td>
       </tr>
     </table>
 

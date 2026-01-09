@@ -25,6 +25,11 @@ class Seguimiento extends Model
         return $this->belongsTo(Almacen::class);
     }
 
+    public function aplicacion()
+    {
+        return $this->hasOne(Aplicacion::class);
+    }
+
     public function biologicos()
     {
         return $this->belongsToMany(
@@ -56,7 +61,7 @@ class Seguimiento extends Model
     {
         return $this->belongsToMany(
             Proteccion::class,
-            'seguimiento_proteccions', // ← AQUÍ ESPECIFICAMOS TU TABLA
+            'seguimiento_protecciones', // ← AQUÍ ESPECIFICAMOS TU TABLA
             'seguimiento_id',
             'proteccion_id'
         );
@@ -69,5 +74,15 @@ class Seguimiento extends Model
             'seguimiento_id',
             'signo_id'
         );
+    }
+
+    public function tipoSeguimiento()
+    {
+        return $this->belongsTo(TipoSeguimiento::class);
+    }
+
+    public function images()
+    {
+        return $this->hasMany(SeguimientoImage::class);
     }
 }

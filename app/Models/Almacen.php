@@ -23,4 +23,9 @@ class Almacen extends Model
     {
         return $this->hasOne(AlmancenInsectocutor::class);
     }
+
+    public function tareas()
+    {
+        return $this->hasMany(Cronograma::class);
+    }
 }

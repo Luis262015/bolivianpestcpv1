@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cotizacion;
 use App\Models\CotizacionDetalles;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class CotizacionController extends Controller
@@ -187,5 +188,16 @@ class CotizacionController extends Controller
   {
     $cotizacion->delete();
     return redirect()->route('cotizaciones.index');
+  }
+
+  public function pdf(Request $request, string $id)
+  {
+    $cotizacion = Cotizacion::with(['detalles'])->find($id);
+    // Cargar la vista Blade con los datos
+    $pdf = Pdf::loadView('pdf.cotizacion', compact(['cotizacion']));
+    // Opcional: configurar tamaño, orientación, etc. ('portrait' -> vertical, 'landscape' -> horizontal)
+    $pdf->setPaper('letter', 'portrait');
+    return $pdf->stream('cotizacion-' . now()->format('Y-m-d') . '.pdf');
+    // o ->download() si quieres forzar descarga
   }
 }

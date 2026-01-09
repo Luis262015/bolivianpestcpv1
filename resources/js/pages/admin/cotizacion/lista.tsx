@@ -11,7 +11,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { Edit, Plus, Trash2 } from 'lucide-react';
+import { Edit, File, Plus, Trash2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -32,6 +32,15 @@ interface Cotizacion {
 interface Props {
   cotizaciones: Cotizacion[];
 }
+
+const handleDelete = (id: number) => {
+  console.log('Eliminar contrato nro ' + id);
+};
+
+const handlePDF = (id: number) => {
+  console.log('Imprimir PDF');
+  window.open(`/cotizaciones/${id}/pdf`, '_blank');
+};
 
 export default function Lista({ cotizaciones }: Props) {
   const { processing, delete: destroy } = useForm();
@@ -93,6 +102,14 @@ export default function Lista({ cotizaciones }: Props) {
                     onClick={() => handleDelete(cot.id)}
                   >
                     <Trash2 className="h-4 w-4" />
+                  </Button>
+
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={() => handlePDF(cot.id)}
+                  >
+                    <File className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
