@@ -24,6 +24,7 @@ use App\Models\TipoSeguimiento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SeguimientoController extends Controller
 {
@@ -228,5 +229,14 @@ class SeguimientoController extends Controller
 
   public function destroy(string $id) {}
 
-  public function pdf(Request $request) {}
+  public function pdf(Request $request, string $id)
+  {
+    $seguimiento = Seguimiento::find($id);
+    // Cargar la vista Blade con los datos
+    $pdf = Pdf::loadView('pdf.seguimiento', compact('seguimiento'));
+    // Opcional: configurar tamaño, orientación, etc. ('portrait' -> vertical, 'landscape' -> horizontal)
+    $pdf->setPaper('legal', 'portrait');
+    return $pdf->stream('certificado-' . now()->format('Y-m-d') . '.pdf');
+    // o ->download() si quieres forzar descarga
+  }
 }

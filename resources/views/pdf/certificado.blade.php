@@ -11,7 +11,7 @@
       margin: 0;
     }
 
-    body {
+    /* body {
       margin: 0;
       padding: 0;
       width: 100%;
@@ -23,9 +23,18 @@
       background-repeat: no-repeat;
 
       font-family: DejaVu Sans, sans-serif;
+    }  */
+
+    body {
+      background-image: url('{{ public_path('images/certificado/Certificado.png') }}');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      font-family: Arial, sans-serif;
+      font-size: .8rem;
     }
 
-    .contenido {
+    /* .contenido {
       position: relative;
       width: 100%;
       height: 100%;
@@ -57,19 +66,121 @@
 
     th {
       background-color: #f3f4f6;
+    } */
+
+    .titulo {
+      font-size: 2rem;
+      text-align: center;
+      color: #0D3347;
+      margin-top: 9rem;
+      font-weight: bold;
+      margin-left: 3.5rem;
+    }
+
+    .establecimiento {
+      margin-top: 2.5rem;
+      margin-left: 9rem;
+      font-style: italic;
+    }
+
+    .establecimiento span {
+      font-weight: bold;
+      font-size: 1.3rem;
+      margin-left: 1rem;
+      font-style: normal;
+    }
+
+    .contenido {
+      margin-left: 8rem;
+      margin-top: 1rem;
+    }
+
+    .contenido div {
+      margin-top: 1.5rem;
+    }
+
+    .resaltado {
+      font-size: .9rem;
+      font-weight: bold;
+      margin-left: 1.1rem;
+      margin-right: 1.1rem;
+    }
+
+    .firma {
+      margin-top: 6rem;
+      font-size: .7rem;
+      margin-left: 16rem;
+    }
+
+    .firmanombre {
+      color: #0D3347;
+    }
+
+    .firmacargo,
+    .firmaempresa {
+      color: red;
     }
   </style>
 </head>
 
 <body>
-  <div class="contenido">
+  <div>
+
+    <div class="titulo">
+      CERTIFICADO DE CONTROL DE VECTORES
+    </div>
+    <div class="establecimiento">
+      Al Establecimiento: <span class="">{{ $certificado->titulo }}</span>
+    </div>
+    <div class="contenido">
+      <div>
+        ACTIVIDAD DEL SOLICITANTE: <span class="resaltado">{{ $certificado->actividad }}</span> FECHA:
+        <span class="resaltado">{{ $certificado->created_at }}</span>
+      </div>
+      <div>
+        VALIDEZ DE LA CERTIFICACION: <span class="resaltado">{{ $certificado->validez }}</span>
+      </div>
+      <div>
+        DIRECCION: <span class="resaltado">{{ $certificado->direccion }}</span>
+      </div>
+      <div>
+        DIAGNOSTICO: <span class="resaltado">{{ $certificado->diagnostico }}</span>
+      </div>
+      <div>
+        CONDICION SANITARIA DE LA ZONA CIRCULANTE: <span class="resaltado">{{ $certificado->condicion }}</span>
+      </div>
+      <div>
+        TRABAJOS REALIZADOS: <span class="resaltado">{{ $certificado->trabajo }}</span>
+      </div>
+      <div>
+        PLAGUICIDAS UTILIZADOS: <span class="resaltado">{{ $certificado->plaguicidas }}</span> REGISTRO: <span
+          class="resaltado">{{ $certificado->registro }}</span>
+      </div>
+      <div>
+        AREA TRATADA: <span class="resaltado">{{ $certificado->area }}</span> ACCIONES CORRECTIVAS: <span
+          class="resaltado">{{ $certificado->acciones }}</span>
+      </div>
+    </div>
+
+    <div class="firma">
+      <div class="firmanombre">
+        Ing. Agr. Freddy Montero Castillo
+      </div>
+      <div class="firmacargo">
+        GERENTE PROPIETARIO
+      </div>
+      <div class="firmaempresa">
+        BOLIVIAN PEST HIGIENE AMBIENTAL
+      </div>
+    </div>
+
 
     {{-- <div class="text-center mb-8">
       <h1 class="text-3xl font-bold">CERTIFICADO XXX</h1>
       <p class="text-gray-600">Generado el {{ now()->format('d/m/Y H:i') }}</p>
-    </div>
+    </div> --}}
 
-    <table>
+    {{-- <table>
       <thead>
         <tr class="bg-gray-100">
           <th class="px-4 py-2">ID</th>

@@ -71,12 +71,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     /// ********** EMPRESAS *****************
     Route::post('/empresas/{id}/certificados', [EmpresaController::class, 'certificados'])->name('empresas.certificados');
+    Route::get('/empresas/{id}/certificadopdf', [EmpresaController::class, 'certificadopdf'])->name('empresas.certificadopdf');
+    Route::get('/empresas/certificadoultimo', [EmpresaController::class, 'certificadoultimo'])->name('empresas.certificadoultimo');
     Route::resource('empresas', EmpresaController::class);
     Route::resource('contratos', ContratoController::class);
     Route::resource('cotizaciones', CotizacionController::class);
     Route::resource('cronogramas', CronogramaController::class);
     Route::resource('mapas', MapaController::class);
-    Route::get('/seguimientos/pdf', [SeguimientoController::class, 'pdf'])->name('seguimientos.pdf');
+    Route::get('/seguimientos/{id}/pdf', [SeguimientoController::class, 'pdf'])->name('seguimientos.pdf');
     Route::resource('seguimientos', SeguimientoController::class);
     Route::resource('biologicos', BiologicosController::class);
     Route::resource('epps', EppsController::class);

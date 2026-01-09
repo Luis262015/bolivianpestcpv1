@@ -522,102 +522,170 @@ export default function ModalSeguimiento({
                 Labores Desarrolladas
               </Label>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Input
-                  placeholder="Cantidad Oficinas"
-                  type="number"
-                  value={aplicacion.oficinas}
-                  onChange={(e) => updateAplicacion('oficinas', e.target.value)}
-                />
+                <div className="flex items-center justify-between">
+                  <Label>Cantidad Oficinas</Label>
+                  <Input
+                    className="w-auto"
+                    placeholder="Cantidad Oficinas"
+                    type="number"
+                    value={aplicacion.oficinas}
+                    onChange={(e) =>
+                      updateAplicacion('oficinas', e.target.value)
+                    }
+                  />
+                </div>
 
-                <Input
-                  placeholder="Cantidad Pisos"
-                  type="number"
-                  value={aplicacion.pisos}
-                  onChange={(e) => updateAplicacion('pisos', e.target.value)}
-                />
+                <div className="flex items-center justify-between">
+                  <Label>Cantidad Pisos</Label>
+                  <Input
+                    className="w-auto"
+                    placeholder="Cantidad Pisos"
+                    type="number"
+                    value={aplicacion.pisos}
+                    onChange={(e) => updateAplicacion('pisos', e.target.value)}
+                  />
+                </div>
 
-                <Input
-                  placeholder="Cantidad Baños"
-                  type="number"
-                  value={aplicacion.banos}
-                  onChange={(e) => updateAplicacion('banos', e.target.value)}
-                />
+                <div className="flex items-center justify-between">
+                  <Label>Cantidad Baños</Label>
+                  <Input
+                    className="w-auto"
+                    placeholder="Cantidad Baños"
+                    type="number"
+                    value={aplicacion.banos}
+                    onChange={(e) => updateAplicacion('banos', e.target.value)}
+                  />
+                </div>
 
-                <Input
-                  placeholder="Cantidad Cocinas"
-                  type="number"
-                  value={aplicacion.cocinas}
-                  onChange={(e) => updateAplicacion('cocinas', e.target.value)}
-                />
+                <div className="flex items-center justify-between">
+                  <Label>Cantidad Cocinas</Label>
+                  <Input
+                    className="w-auto"
+                    placeholder="Cantidad Cocinas"
+                    type="number"
+                    value={aplicacion.cocinas}
+                    onChange={(e) =>
+                      updateAplicacion('cocinas', e.target.value)
+                    }
+                  />
+                </div>
 
-                <Input
-                  placeholder="Cantidad Almacenes"
-                  type="number"
-                  value={aplicacion.almacenes}
-                  onChange={(e) =>
-                    updateAplicacion('almacenes', e.target.value)
-                  }
-                />
+                <div className="flex items-center justify-between">
+                  <Label>Cantidad Almacenes</Label>
+                  <Input
+                    className="w-auto"
+                    placeholder="Cantidad Almacenes"
+                    type="number"
+                    value={aplicacion.almacenes}
+                    onChange={(e) =>
+                      updateAplicacion('almacenes', e.target.value)
+                    }
+                  />
+                </div>
 
-                <Input
-                  placeholder="Portería"
-                  type="number"
-                  value={aplicacion.porteria}
-                  onChange={(e) => updateAplicacion('porteria', e.target.value)}
-                />
+                <div className="flex items-center justify-between">
+                  <Label>Portería</Label>
+                  <Input
+                    className="w-auto"
+                    placeholder="Portería"
+                    type="number"
+                    value={aplicacion.porteria}
+                    onChange={(e) =>
+                      updateAplicacion('porteria', e.target.value)
+                    }
+                  />
+                </div>
 
-                <Input
-                  placeholder="Dormitorio Policial"
-                  type="number"
-                  value={aplicacion.policial}
-                  onChange={(e) => updateAplicacion('policial', e.target.value)}
-                />
+                <div className="flex items-center justify-between">
+                  <Label>Dormitorio Policial</Label>
+                  <Input
+                    className="w-auto"
+                    placeholder="Dormitorio Policial"
+                    type="number"
+                    value={aplicacion.policial}
+                    onChange={(e) =>
+                      updateAplicacion('policial', e.target.value)
+                    }
+                  />
+                </div>
 
-                <Input
-                  placeholder="Paredes Internas"
-                  type="number"
-                  value={aplicacion.paredes_internas}
-                  onChange={(e) =>
-                    updateAplicacion('paredes_internas', e.target.value)
-                  }
-                />
+                <div className="flex items-center justify-between">
+                  <Label>Paredes Internas</Label>
+                  <Input
+                    className="w-auto"
+                    placeholder="Paredes Internas"
+                    type="number"
+                    value={aplicacion.paredes_internas}
+                    onChange={(e) =>
+                      updateAplicacion('paredes_internas', e.target.value)
+                    }
+                  />
+                </div>
 
-                <Input
-                  placeholder="Cantidad Trampas"
-                  type="number"
-                  value={aplicacion.trampas}
-                  onChange={(e) => updateAplicacion('trampas', e.target.value)}
-                />
+                <div className="flex items-center justify-between">
+                  <Label>Cantidad Trampas</Label>
+                  <Input
+                    className="w-auto"
+                    placeholder="Cantidad Trampas"
+                    type="number"
+                    value={aplicacion.trampas}
+                    onChange={(e) =>
+                      updateAplicacion('trampas', e.target.value)
+                    }
+                  />
+                </div>
 
-                <Input
-                  placeholder="Trampas Cambiadas"
-                  type="number"
-                  value={aplicacion.trampas_cambiar}
-                  onChange={(e) =>
-                    updateAplicacion('trampas_cambiar', e.target.value)
-                  }
-                />
+                <div className="flex items-center justify-between">
+                  <Label>Trampas Cambiadas</Label>
+                  <Input
+                    className="w-auto"
+                    placeholder="Trampas Cambiadas"
+                    type="number"
+                    value={aplicacion.trampas_cambiar}
+                    onChange={(e) =>
+                      updateAplicacion('trampas_cambiar', e.target.value)
+                    }
+                  />
+                </div>
 
-                <Input
-                  placeholder="Trampas Internas"
-                  type="number"
-                  value={aplicacion.internas}
-                  onChange={(e) => updateAplicacion('internas', e.target.value)}
-                />
+                <div className="flex items-center justify-between">
+                  <Label>Trampas Internas</Label>
+                  <Input
+                    className="w-auto"
+                    placeholder="Trampas Internas"
+                    type="number"
+                    value={aplicacion.internas}
+                    onChange={(e) =>
+                      updateAplicacion('internas', e.target.value)
+                    }
+                  />
+                </div>
 
-                <Input
-                  placeholder="Trampas Externas"
-                  type="number"
-                  value={aplicacion.externas}
-                  onChange={(e) => updateAplicacion('externas', e.target.value)}
-                />
+                <div className="flex items-center justify-between">
+                  <Label>Trampas Externas</Label>
+                  <Input
+                    className="w-auto"
+                    placeholder="Trampas Externas"
+                    type="number"
+                    value={aplicacion.externas}
+                    onChange={(e) =>
+                      updateAplicacion('externas', e.target.value)
+                    }
+                  />
+                </div>
 
-                <Input
-                  placeholder="Roedores encontrados"
-                  type="number"
-                  value={aplicacion.roedores}
-                  onChange={(e) => updateAplicacion('roedores', e.target.value)}
-                />
+                <div className="flex items-center justify-between">
+                  <Label>Roedores encontrados</Label>
+                  <Input
+                    className="w-auto"
+                    placeholder="Roedores encontrados"
+                    type="number"
+                    value={aplicacion.roedores}
+                    onChange={(e) =>
+                      updateAplicacion('roedores', e.target.value)
+                    }
+                  />
+                </div>
               </div>
             </div>
           )}

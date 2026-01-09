@@ -77,7 +77,7 @@ interface Props {
 
 const handlePDF = (id: number) => {
   console.log('Imprimir PDF');
-  window.open(`/seguimientos/pdf?id=${id}`, '_blank');
+  window.open(`/seguimientos/${id}/pdf`, '_blank');
 };
 
 export default function Lista({

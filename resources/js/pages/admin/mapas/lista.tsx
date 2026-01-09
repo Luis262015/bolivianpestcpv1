@@ -48,7 +48,7 @@ type TextItem = {
 
 type Trap = {
   id: string;
-  type: 'mouse' | 'insect';
+  type: 'mouse' | 'insect' | 'caja' | 'viva' | 'pegajosa';
   x: number;
   y: number;
 };
@@ -76,11 +76,21 @@ export default function MapaEditor(props: Props): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const backgroundImageRef = useRef<HTMLImageElement | null>(null);
-  const mouseTrapImageRef = useRef<HTMLImageElement>(new Image());
+
   const insectTrapImageRef = useRef<HTMLImageElement>(new Image());
+  const mouseTrapImageRef = useRef<HTMLImageElement>(new Image());
+  const cajaTrapImageRef = useRef<HTMLImageElement>(new Image());
+  const vivaTrapImageRef = useRef<HTMLImageElement>(new Image());
+  const pegajosaTrapImageRef = useRef<HTMLImageElement>(new Image());
 
   const [mode, setMode] = useState<
-    'text' | 'textListed' | 'mouseTrap' | 'insectTrap'
+    | 'text'
+    | 'textListed'
+    | 'mouseTrap'
+    | 'insectTrap'
+    | 'cajaTrap'
+    | 'vivaTrap'
+    | 'pegajosaTrap'
   >('text');
   const [textOrientation, setTextOrientation] = useState<
     'horizontal' | 'vertical'
@@ -129,6 +139,9 @@ export default function MapaEditor(props: Props): JSX.Element {
   useEffect(() => {
     mouseTrapImageRef.current.src = '/images/trampas/trampa_raton.jpg';
     insectTrapImageRef.current.src = '/images/trampas/trampa_insecto.jpg';
+    cajaTrapImageRef.current.src = '/images/trampas/caja_negra.jpg';
+    vivaTrapImageRef.current.src = '/images/trampas/captura_viva.jpg';
+    pegajosaTrapImageRef.current.src = '/images/trampas/pegajosa.png';
   }, []);
 
   useEffect(() => {
@@ -286,10 +299,30 @@ export default function MapaEditor(props: Props): JSX.Element {
     trap: Trap,
     index: number,
   ) => {
+    // const img =
+    //   trap.type === 'mouse'
+    //     ? mouseTrapImageRef.current
+    //     : insectTrapImageRef.current;
+
+    // const trapImageRefs = {
+    //   mouse: mouseTrapImageRef,
+    //   insect: insectTrapImageRef,
+    //   caja: cajaTrapImageRef,
+    //   viva: vivaTrapImageRef,
+    //   pegajosa: pegajosaTrapImageRef
+    // }
+    // const img = trapImageRefs[trap.type]?.current;
+
     const img =
       trap.type === 'mouse'
         ? mouseTrapImageRef.current
-        : insectTrapImageRef.current;
+        : trap.type === 'insect'
+          ? insectTrapImageRef.current
+          : trap.type === 'caja'
+            ? cajaTrapImageRef.current
+            : trap.type === 'viva'
+              ? vivaTrapImageRef.current
+              : pegajosaTrapImageRef.current;
 
     // Dibujo de la trampa
     if (img.complete) {
@@ -304,11 +337,13 @@ export default function MapaEditor(props: Props): JSX.Element {
     // Fondo circular
     ctx.beginPath();
     ctx.arc(trap.x, trap.y - 22, 10, 0, Math.PI * 2);
-    ctx.fillStyle = '#111827'; // gris oscuro
+    // ctx.fillStyle = '#111827'; // gris oscuro
+    ctx.fillStyle = '#0f0'; // gris oscuro
     ctx.fill();
 
     // Texto del índice
-    ctx.fillStyle = '#ffffff';
+    // ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = '#f00';
     ctx.font = '12px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -376,12 +411,28 @@ export default function MapaEditor(props: Props): JSX.Element {
           fontSize: textFontSize,
         },
       ]);
-    } else if (mode === 'mouseTrap' || mode === 'insectTrap') {
+    } else if (
+      mode === 'mouseTrap' ||
+      mode === 'insectTrap' ||
+      mode === 'cajaTrap' ||
+      mode === 'vivaTrap' ||
+      mode === 'pegajosaTrap'
+    ) {
       setTraps((prev) => [
         ...prev,
         {
           id: uuidv4(),
-          type: mode === 'mouseTrap' ? 'mouse' : 'insect',
+          // type: mode === 'mouseTrap' ? 'mouse' : 'insect',
+          type:
+            mode === 'mouseTrap'
+              ? 'mouse'
+              : mode === 'insectTrap'
+                ? 'insect'
+                : mode === 'cajaTrap'
+                  ? 'caja'
+                  : mode === 'vivaTrap'
+                    ? 'viva'
+                    : 'pegajosa',
           x: pos.x,
           y: pos.y,
         },
@@ -554,6 +605,9 @@ export default function MapaEditor(props: Props): JSX.Element {
               </SelectItem>
               <SelectItem value="mouseTrap">Trampa para ratones</SelectItem>
               <SelectItem value="insectTrap">Trampa para insectos</SelectItem>
+              <SelectItem value="cajaTrap">Trampa Caja</SelectItem>
+              <SelectItem value="vivaTrap">Trampa viva</SelectItem>
+              <SelectItem value="pegajosaTrap">Trampa Pegajosa</SelectItem>
             </SelectContent>
           </Select>
 

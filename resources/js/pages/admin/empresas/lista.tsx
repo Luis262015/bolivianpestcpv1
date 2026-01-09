@@ -103,11 +103,23 @@ export default function Lista() {
 
     post(`/empresas/${empresaSeleccionada.id}/certificados`, {
       forceFormData: true,
+
       onSuccess: () => {
+        console.log('SUCCESS');
+        window.open(`/empresas/certificadoultimo`, '_blank');
         reset();
         setOpenCreate(false);
       },
+      onError: (errors) => {
+        console.log('ERROR');
+        console.log(errors);
+      },
     });
+  };
+
+  const handleDownloadPDF = (id: number) => {
+    console.log('Print PDF id=' + id);
+    window.open(`/empresas/${id}/certificadopdf`, '_blank');
   };
 
   return (
@@ -238,7 +250,11 @@ export default function Lista() {
                     <TableCell>{c.titulo}</TableCell>
                     <TableCell>{c.validez}</TableCell>
                     <TableCell>
-                      <Button size="sm" variant="outline">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDownloadPDF(c.id)}
+                      >
                         <FileText className="mr-1 h-4 w-4" />
                         Generar PDF
                       </Button>

@@ -6,11 +6,14 @@ use App\Models\Certificado;
 use App\Models\Empresa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class EmpresaController extends Controller
 {
 
-  private $toValidated = [
+  private $toValidatedCert = [
     'titulo' => 'required|string',
     'actividad' => 'required|string',
     'validez' => 'required|string',
@@ -36,86 +39,121 @@ class EmpresaController extends Controller
     return inertia('admin/empresas/crear');
   }
 
-  public function store(Request $request)
-  {
-    $validated = $request->validate([
-      'nombre' => 'required',
-      'direccion' => 'required',
-      'telefono' => 'nullable',
-      'email' => 'required|email',
-      'ciudad' => 'required',
-      'activo' => 'boolean',
-    ]);
-
-    Empresa::create($validated);
-    return redirect()->route('empresas.index');
-  }
+  public function store(Request $request) {}
 
   public function show(string $id) {}
 
-  public function edit(Empresa $empresa)
-  {
-    dd("LLEGO INFORMACION " . $empresa);
-    return inertia('admin/empresas/editar', ['empresa' => $empresa]);
-  }
+  public function edit(Empresa $empresa) {}
 
-  public function update(Request $request, Empresa $empresa)
-  {
-    $validated = $request->validate([
-      'nombre' => 'required',
-      'direccion' => 'required',
-      'telefono' => 'nullable',
-      'email' => 'required|email',
-      'ciudad' => 'required',
-      'activo' => 'boolean',
-    ]);
-    $empresa->update($validated);
-    return redirect()->route('empresas.index');
-  }
+  public function update(Request $request, Empresa $empresa) {}
 
-  public function destroy(string $id)
-  {
-    Empresa::find($id)->delete();
-    return redirect()->route('empresas.index');
-  }
+  public function destroy(string $id) {}
 
   public function certificados(Request $request, string $id)
   {
-    // dd($request);
-    // dd($id);
+    $validated = $request->validate($this->toValidatedCert);
 
-    $validated = $request->validate($this->toValidated);
+    try {
+      // Generar QR Code
 
-    // dd($validated);
+      // Guardar informacion del certificado
+      $certificado = new Certificado();
+      $certificado->empresa_id = $id;
+      $certificado->user_id = Auth::id();
+      $certificado->qrcode = '';
+      $certificado->firmadigital = '';
+      $certificado->titulo = $validated['titulo'];
+      $certificado->actividad = $validated['actividad'];
+      $certificado->validez = $validated['validez'];
+      $certificado->direccion = $validated['direccion'];
+      $certificado->diagnostico = $validated['diagnostico'];
+      $certificado->condicion = $validated['condicion'];
+      $certificado->trabajo = $validated['trabajo'];
+      $certificado->plaguicidas = $validated['plaguicidas'];
+      $certificado->registro = $validated['registro'];
+      $certificado->area = $validated['area'];
+      $certificado->acciones = $validated['acciones'];
 
-    // Generar QR Code
+      $path = '';
+      if ($request->hasFile('logo')) {
+        $path = $request->file('logo')->store('logos', 'public');
+      }
 
-    // Guardar informacion del certificado
-    $certificado = new Certificado();
-    $certificado->empresa_id = $id;
-    $certificado->user_id = Auth::id();
-    $certificado->qrcode = '';
-    $certificado->firmadigital = '';
-    $certificado->titulo = $validated['titulo'];
-    $certificado->actividad = $validated['actividad'];
-    $certificado->validez = $validated['validez'];
-    $certificado->direccion = $validated['direccion'];
-    $certificado->diagnostico = $validated['diagnostico'];
-    $certificado->condicion = $validated['condicion'];
-    $certificado->trabajo = $validated['trabajo'];
-    $certificado->plaguicidas = $validated['plaguicidas'];
-    $certificado->registro = $validated['registro'];
-    $certificado->area = $validated['area'];
-    $certificado->acciones = $validated['acciones'];
+      $certificado->logo = $path;
 
+      $certificado->save();
 
-    $path = '';
-    if ($request->hasFile('logo')) {
-      $path = $request->file('logo')->store('logos', 'public');
+      // // Cargar la vista Blade con los datos
+      // $pdf = Pdf::loadView('pdf.certificado', compact('certificado'));
+      // // Opcional: configurar tamaño, orientación, etc. -> paper: a4 <- por defecto
+      // $pdf->setPaper('letter', 'landscape');
+      // // return $pdf->stream('certificado-' . now()->format('Y-m-d') . '.pdf');
+      // // o ->download() si quieres forzar descarga
+      // return $pdf->download('certificado-' . now()->format('Y-m-d') . '.pdf');
+      // ---------------------------------
+      // $certificado->save();      
+      // $pdf = Pdf::loadView('pdf.certificado', compact('certificado'));      
+      // $pdf->setPaper('letter', 'landscape');
+      // return $pdf->download('certificado-' . now()->format('Y-m-d') . '.pdf');
+      // ----------------------------------
+
+      // return redirect()->back()->with([
+      //   'certificado_id' => $certificado->id,
+      //   'success' => 'Certificado creado exitosamente'
+      // ]);
+
+      return redirect()->back()->with('success', 'Certificado creado exitosamente');
+
+      // return redirect()->back()->with([
+      //   'certificado_id' => $certificado->id,
+      //   'flash' => [
+      //     'success' => 'Certificado creado exitosamente'
+      //   ]
+      // ]);
+
+      // return response()->json([
+      //   'certificado_id' => $certificado->id,
+      //   'success' => true
+      // ]);
+    } catch (\Error $e) {
+      // return redirect()->back()->with([
+      //   'error' => 'Certificado no creado ' . $e->getMessage()
+      // ]);
+      Log::info("ERROR ******************** " . $e->getMessage());
+      return redirect()->back()
+        ->withInput()
+        ->withErrors('error', 'Error crítico al crear el certificado. Contacte al administrador.');
+    } catch (\Exception $e) {
+      Log::info("EXCEPTION ******************** " . $e->getMessage());
+      return redirect()->back()
+        ->withInput()
+        ->withErrors('error', 'Error crítico al crear el certificado. Contacte al administrador.');
+      // return redirect()->back()->with([
+      //   'error' => 'Certificado no creado ' . $e->getMessage()
+      // ]);
     }
+  }
 
-    $certificado->logo = $path;
+  public function certificadopdf(Request $request, string $id)
+  {
+    // $certificado = Certificado::find($request->id);
+    $certificado = Certificado::find($id);
+    // Cargar la vista Blade con los datos
+    $pdf = Pdf::loadView('pdf.certificado', compact('certificado'));
+    // Opcional: configurar tamaño, orientación, etc.
+    $pdf->setPaper('letter', 'landscape');
+    return $pdf->stream('certificado-' . now()->format('Y-m-d') . '.pdf');
+    // o ->download() si quieres forzar descarga
+  }
 
-    $certificado->save();
+  public function certificadoultimo()
+  {
+    $certificado = Certificado::latest()->first();
+    // Cargar la vista Blade con los datos
+    $pdf = Pdf::loadView('pdf.certificado', compact('certificado'));
+    // Opcional: configurar tamaño, orientación, etc.
+    $pdf->setPaper('letter', 'landscape');
+    return $pdf->stream('certificado-' . now()->format('Y-m-d') . '.pdf');
+    // o ->download() si quieres forzar descarga
   }
 }
