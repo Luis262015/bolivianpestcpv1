@@ -256,12 +256,6 @@ export default function CotizacionForm({ contrato }: Props) {
     const updated = [...data.almacenes];
     const insectocutor = { ...updated[index].almacen_insectocutor };
 
-    // if (field === 'descripcion') {
-    //   insectocutor.descripcion = value as string;
-    // } else {
-    //   (insectocutor[field] as number) = Number(value);
-    // }
-
     (insectocutor[field] as number) = Number(value);
 
     insectocutor.total = calcularTotalInsectocutor(
@@ -559,30 +553,6 @@ export default function CotizacionForm({ contrato }: Props) {
                               placeholder="Ej. 76543211"
                             />
                           </div>
-                          {/* <div>
-                            <Label>Contacto responsable</Label>
-                            <Select
-                              value={String(almacen.contacto_id)}
-                              onValueChange={(value) =>
-                                setData(
-                                  `almacenes.${index}.contacto_id` as any,
-                                  Number(value),
-                                )
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Seleccionar contacto" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {contactos.map((c) => (
-                                  <SelectItem key={c.id} value={String(c.id)}>
-                                    {c.nombre}{' '}
-                                    {c.telefono ? `— ${c.telefono}` : ''}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div> */}
                         </div>
 
                         {/* === SERVICIO POR TRAMPAS === */}
@@ -591,19 +561,6 @@ export default function CotizacionForm({ contrato }: Props) {
                             Servicio por Trampas
                           </h4>
                           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                            {/* <div className="">
-                              <Label>Descripción</Label>
-                              <Input
-                                value={almacen.almacen_trampa.descripcion}
-                                onChange={(e) =>
-                                  updateTrampaField(
-                                    index,
-                                    'descripcion',
-                                    e.target.value,
-                                  )
-                                }
-                              />
-                            </div> */}
                             <div>
                               <Label>Cantidad</Label>
                               <Input
@@ -669,6 +626,7 @@ export default function CotizacionForm({ contrato }: Props) {
                                     </Label>
                                     <Input
                                       type="date"
+                                      required
                                       value={
                                         almacen.almacen_trampa.fechas_visitas?.[
                                           visitaIndex
@@ -696,25 +654,11 @@ export default function CotizacionForm({ contrato }: Props) {
                         </div>
 
                         {/* === SERVICIO POR ÁREA === */}
-                        {/* <div className="rounded-lg border bg-muted/40 p-4"> */}
                         <div className="rounded-lg border bg-blue-500/10 p-4">
                           <h4 className="mb-4 font-semibold text-primary">
                             Servicio por Área (m²)
                           </h4>
                           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                            {/* <div className="">
-                              <Label>Descripción</Label>
-                              <Input
-                                value={almacen.almacen_area.descripcion}
-                                onChange={(e) =>
-                                  updateAreaField(
-                                    index,
-                                    'descripcion',
-                                    e.target.value,
-                                  )
-                                }
-                              />
-                            </div> */}
                             <div>
                               <Label>Área (m²)</Label>
                               <Input
@@ -804,25 +748,11 @@ export default function CotizacionForm({ contrato }: Props) {
                         </div>
 
                         {/* === SERVICIO POR INSECTOCUTOR === */}
-                        {/* <div className="rounded-lg border bg-muted/40 p-4"> */}
                         <div className="rounded-lg border bg-red-700/10 p-4">
                           <h4 className="mb-4 font-semibold text-primary">
                             Servicio por Insectocutores
                           </h4>
                           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                            {/* <div className="">
-                              <Label>Descripción</Label>
-                              <Input
-                                value={almacen.almacen_insectocutor.descripcion}
-                                onChange={(e) =>
-                                  updateInsectocutorField(
-                                    index,
-                                    'descripcion',
-                                    e.target.value,
-                                  )
-                                }
-                              />
-                            </div> */}
                             <div>
                               <Label>Cantidad: </Label>
                               <Input
@@ -889,25 +819,6 @@ export default function CotizacionForm({ contrato }: Props) {
                       <div className="text-2xl font-bold text-primary">
                         TOTAL DEL CONTRATO: Bs. {granTotal.toFixed(2)}
                       </div>
-
-                      {/* <div className="flex items-center justify-end gap-8">
-                        <Label className="text-lg">A cuenta:</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          className="w-64 text-lg"
-                          value={data.acuenta || ''}
-                          onChange={(e) =>
-                            setData('acuenta', Number(e.target.value) || 0)
-                          }
-                        />
-                        <span className="text-lg font-medium">Saldo:</span>
-                        <span
-                          className={`text-2xl font-bold ${saldoCalculado < 0 ? 'text-red-600' : 'text-green-600'}`}
-                        >
-                          Bs. {saldoCalculado.toFixed(2)}
-                        </span>
-                      </div> */}
                     </div>
                   </CardContent>
                 </Card>

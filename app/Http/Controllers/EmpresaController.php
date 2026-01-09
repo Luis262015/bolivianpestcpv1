@@ -8,11 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
-use Inertia\Inertia;
 
 class EmpresaController extends Controller
 {
-
   private $toValidatedCert = [
     'titulo' => 'required|string',
     'actividad' => 'required|string',
@@ -83,42 +81,8 @@ class EmpresaController extends Controller
 
       $certificado->save();
 
-      // // Cargar la vista Blade con los datos
-      // $pdf = Pdf::loadView('pdf.certificado', compact('certificado'));
-      // // Opcional: configurar tamaño, orientación, etc. -> paper: a4 <- por defecto
-      // $pdf->setPaper('letter', 'landscape');
-      // // return $pdf->stream('certificado-' . now()->format('Y-m-d') . '.pdf');
-      // // o ->download() si quieres forzar descarga
-      // return $pdf->download('certificado-' . now()->format('Y-m-d') . '.pdf');
-      // ---------------------------------
-      // $certificado->save();      
-      // $pdf = Pdf::loadView('pdf.certificado', compact('certificado'));      
-      // $pdf->setPaper('letter', 'landscape');
-      // return $pdf->download('certificado-' . now()->format('Y-m-d') . '.pdf');
-      // ----------------------------------
-
-      // return redirect()->back()->with([
-      //   'certificado_id' => $certificado->id,
-      //   'success' => 'Certificado creado exitosamente'
-      // ]);
-
       return redirect()->back()->with('success', 'Certificado creado exitosamente');
-
-      // return redirect()->back()->with([
-      //   'certificado_id' => $certificado->id,
-      //   'flash' => [
-      //     'success' => 'Certificado creado exitosamente'
-      //   ]
-      // ]);
-
-      // return response()->json([
-      //   'certificado_id' => $certificado->id,
-      //   'success' => true
-      // ]);
     } catch (\Error $e) {
-      // return redirect()->back()->with([
-      //   'error' => 'Certificado no creado ' . $e->getMessage()
-      // ]);
       Log::info("ERROR ******************** " . $e->getMessage());
       return redirect()->back()
         ->withInput()
@@ -128,9 +92,6 @@ class EmpresaController extends Controller
       return redirect()->back()
         ->withInput()
         ->withErrors('error', 'Error crítico al crear el certificado. Contacte al administrador.');
-      // return redirect()->back()->with([
-      //   'error' => 'Certificado no creado ' . $e->getMessage()
-      // ]);
     }
   }
 

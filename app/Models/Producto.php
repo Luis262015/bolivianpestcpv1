@@ -33,4 +33,14 @@ class Producto extends Model
             'etiqueta_id'
         );
     }
+
+    public function vencimientos()
+    {
+        return $this->hasMany(ProductoVencimiento::class);
+    }
+
+    public function hojasTecnicas()
+    {
+        return $this->hasMany(HojaTecnica::class);
+    }
 }

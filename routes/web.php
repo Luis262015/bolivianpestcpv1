@@ -21,12 +21,14 @@ use App\Http\Controllers\GastosController;
 use App\Http\Controllers\GastosExController;
 use App\Http\Controllers\GastosFinController;
 use App\Http\Controllers\GastosOpController;
+use App\Http\Controllers\HojaTecnicaController;
 use App\Http\Controllers\IngresosController;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\MapaController;
 use App\Http\Controllers\MarcasController;
 use App\Http\Controllers\MetodosController;
 use App\Http\Controllers\ProductosController;
+use App\Http\Controllers\ProductoVencimientoController;
 use App\Http\Controllers\ProteccionesController;
 use App\Http\Controllers\ProveedoresController;
 use App\Http\Controllers\RetirosController;
@@ -119,6 +121,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/productos/subcategorias/{categoria}', [ProductosController::class, 'getSubcategorias'])->name('productos.subcategorias');
     Route::get('/productos/search', [ProductosController::class, 'search'])->name('productos.search');
     Route::resource('productos', ProductosController::class);
+
+    Route::prefix('productos/{producto}')->group(function () {
+        // Vencimientos
+        Route::get('vencimientos', [ProductoVencimientoController::class, 'index'])
+            ->name('productos.vencimientos.index');
+
+        Route::post('vencimientos', [ProductoVencimientoController::class, 'store'])
+            ->name('productos.vencimientos.store');
+
+        Route::delete('vencimientos/{vencimiento}', [ProductoVencimientoController::class, 'destroy'])
+            ->name('productos.vencimientos.destroy');
+
+        // Hojas técnicas
+        Route::get('hojas-tecnicas', [HojaTecnicaController::class, 'index'])
+            ->name('productos.hojas-tecnicas.index');
+
+        Route::post('hojas-tecnicas', [HojaTecnicaController::class, 'store'])
+            ->name('productos.hojas-tecnicas.store');
+
+        Route::delete('hojas-tecnicas/{hojaTecnica}', [HojaTecnicaController::class, 'destroy'])
+            ->name('productos.hojas-tecnicas.destroy');
+    });
 
     Route::resource('inventarios', InventarioController::class);
 

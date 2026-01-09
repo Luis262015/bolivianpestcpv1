@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Categoria;
 use App\Models\Etiqueta;
+use App\Models\HojaTecnica;
 use App\Models\Marca;
 use App\Models\Producto;
+use App\Models\ProductoVencimiento;
 use App\Models\Subcategoria;
 use App\Models\Unidad;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductosController extends Controller
 {
@@ -133,5 +136,65 @@ class ProductosController extends Controller
   public function getSubcategorias(Categoria $categoria)
   {
     return response()->json(['subcategorias' => $categoria->subcategorias()->select('id', 'nombre')->get()]);
+  }
+
+  public function storeVencimiento(Request $request, Producto $producto)
+  {
+    $validated = $request->validate([
+      'codigo'      => 'required|string|max:50',
+      'vencimiento' => 'required|date|after_or_equal:today',
+    ]);
+
+    // $producto->vencimientos()->create($validated);
+    $producto_vencimiento = new ProductoVencimiento();
+    $producto_vencimiento->producto_id = $producto->id;
+    $producto_vencimiento->codigo = $validated['codigo'];
+    $producto_vencimiento->vencimiento = $validated['vencimiento'];
+    $producto_vencimiento->save();
+
+    return back()->with('success', 'Fecha de vencimiento registrada correctamente');
+  }
+  public function deleteVencimiento(Producto $producto, ProductoVencimiento $vencimiento)
+  {
+    // Seguridad adicional: verificar que pertenece al producto
+    if ($vencimiento->producto_id !== $producto->id) {
+      abort(403);
+    }
+    $vencimiento->delete();
+    return back()->with('success', 'Vencimiento eliminado');
+  }
+  public function storeHojaTecnica(Request $request, Producto $producto)
+  {
+    $validated = $request->validate([
+      'titulo'  => 'required|string|max:255',
+      'archivo' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB
+    ]);
+
+    // Guardar archivo
+    $path = $request->file('archivo')->store('hojas-tecnicas', 'public');
+
+    $producto->hojasTecnicas()->create([
+      'titulo'  => $validated['titulo'],
+      'archivo' => $path,
+      // 'imagen'  => $this->generateThumbnailIfImage($path) // opcional
+    ]);
+
+    return back()
+      ->with('success', 'Hoja técnica cargada correctamente');
+  }
+  public function deleteHojaTecnica(Producto $producto, HojaTecnica $hojaTecnica)
+  {
+    if ($hojaTecnica->producto_id !== $producto->id) {
+      abort(403);
+    }
+
+    // Eliminar archivo físico
+    if ($hojaTecnica->archivo) {
+      Storage::disk('public')->delete($hojaTecnica->archivo);
+    }
+
+    $hojaTecnica->delete();
+
+    return back()->with('success', 'Hoja técnica eliminada');
   }
 }

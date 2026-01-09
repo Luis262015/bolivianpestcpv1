@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Edit, File, Plus, Trash2 } from 'lucide-react';
 
@@ -35,6 +35,9 @@ interface Props {
 
 const handleDelete = (id: number) => {
   console.log('Eliminar contrato nro ' + id);
+  if (confirm('¿Estás seguro?')) {
+    router.delete(`/cotizaciones/${id}`);
+  }
 };
 
 const handlePDF = (id: number) => {

@@ -76,6 +76,16 @@ class Seguimiento extends Model
         );
     }
 
+    public function especies()
+    {
+        return $this->belongsToMany(
+            Especie::class,
+            'seguimiento_especies', // ← AQUÍ ESPECIFICAMOS TU TABLA
+            'seguimiento_id',
+            'especie_id'
+        );
+    }
+
     public function tipoSeguimiento()
     {
         return $this->belongsTo(TipoSeguimiento::class);

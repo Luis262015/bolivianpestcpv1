@@ -25,6 +25,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SeguimientoController extends Controller
 {
@@ -227,11 +230,53 @@ class SeguimientoController extends Controller
 
   public function update(Request $request, string $id) {}
 
-  public function destroy(string $id) {}
+  public function destroy(string $id)
+  {
+
+
+
+    try {
+      DB::beginTransaction();
+
+      $seguimiento = Seguimiento::find($id);
+
+      // Eliminar imagenes
+      SeguimientoImage::where('seguimiento_id', $seguimiento->id)->delete();
+
+      // Eliminar especies
+      SeguimientoEspecie::where('seguimiento_id', $seguimiento->id)->delete();
+      // Eliminar signos
+      SeguimientoSigno::where('seguimiento_id', $seguimiento->id)->delete();
+      // Eliminar protecciones
+      SeguimientoProteccion::where('seguimiento_id', $seguimiento->id)->delete();
+      // Eliminar epps
+      SeguimientoEpp::where('seguimiento_id', $seguimiento->id)->delete();
+      // Eliminar metodos
+      SeguimientoMetodo::where('seguimiento_id', $seguimiento->id)->delete();
+      // Eliminar biologicos
+      SeguimientoBiologico::where('seguimiento_id', $seguimiento->id)->delete();
+      // Eliminar aplicaciones
+      Aplicacion::where('seguimiento_id', $seguimiento->id)->delete();
+
+      // Eliminar seguimiento
+      $seguimiento->delete();
+
+      // Transacciones .....
+      DB::commit();
+      // return redirect()->back()->with('success', "Mensaje");
+      return redirect()->route('seguimientos.index');
+    } catch (\Exception | \Error | QueryException $e) {
+      DB::rollBack();
+      Log::error('Error:', ['error' => $e->getMessage()]);
+      return redirect()->back()
+        ->withInput()
+        ->with('error', 'Error ' . $e->getMessage());
+    }
+  }
 
   public function pdf(Request $request, string $id)
   {
-    $seguimiento = Seguimiento::with(['empresa', 'almacen', 'user', 'tipoSeguimiento', 'aplicacion', 'metodos', 'epps', 'proteccions', 'biologicos', 'signos', 'images'])->find($id);
+    $seguimiento = Seguimiento::with(['empresa', 'almacen', 'user', 'tipoSeguimiento', 'aplicacion', 'metodos', 'epps', 'proteccions', 'biologicos', 'signos', 'images', 'especies'])->find($id);
     // Cargar la vista Blade con los datos
     $pdf = Pdf::loadView('pdf.seguimiento', compact('seguimiento'));
     // Opcional: configurar tamaño, orientación, etc. ('portrait' -> vertical, 'landscape' -> horizontal)

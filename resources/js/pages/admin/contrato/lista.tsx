@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Edit, File, Plus, Trash2 } from 'lucide-react';
 
@@ -45,6 +45,10 @@ interface ContratosPaginate {
 
 const handleDelete = (id: number) => {
   console.log('Eliminar contrato nro ' + id);
+
+  if (confirm('¿Estás seguro?')) {
+    router.delete(`/contratos/${id}`);
+  }
 };
 
 const handlePDF = (id: number) => {

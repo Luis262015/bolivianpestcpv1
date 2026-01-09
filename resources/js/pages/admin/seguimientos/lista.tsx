@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { FileChartColumn, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import ModalSeguimiento from './ModalSeguimiento';
@@ -75,6 +75,12 @@ interface Props {
   seguimientos: any; // Aquí puedes definir el tipo completo
 }
 
+const handleDelete = (id: number) => {
+  if (confirm('¿Estás seguro?')) {
+    router.delete(`/seguimientos/${id}`);
+  }
+};
+
 const handlePDF = (id: number) => {
   console.log('Imprimir PDF');
   window.open(`/seguimientos/${id}/pdf`, '_blank');
@@ -106,9 +112,13 @@ export default function Lista({
                 <h2 className="me-5 text-2xl font-semibold">
                   Gestión de Seguimientos
                 </h2>
-                <Button onClick={() => setModalOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
+                <Button onClick={() => setModalOpen(true)} className="me-3">
+                  <Plus className="h-4 w-4" />
                   Nuevo
+                </Button>
+                <Button>
+                  <Plus className="h-4 w-4" />
+                  Reporte Trampas
                 </Button>
               </div>
               <div className="space-y-4">
@@ -149,7 +159,7 @@ export default function Lista({
                             <Button
                               size="icon"
                               variant="outline"
-                              // onClick={() => handleDelete(seguimiento.id)}
+                              onClick={() => handleDelete(seguimiento.id)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

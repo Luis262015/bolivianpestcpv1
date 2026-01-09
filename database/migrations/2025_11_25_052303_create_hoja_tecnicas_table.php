@@ -15,6 +15,8 @@ return new class extends Migration
       $table->id();
       $table->foreignId('producto_id')->constrained('productos');
       $table->string('titulo');
+      $table->string('archivo')->nullable();
+      $table->string('url')->nullable();
       $table->string('imagen')->nullable();
       $table->string('ruta')->nullable();
       $table->timestamp('created_at')->useCurrent();
