@@ -78,6 +78,7 @@ export default function Index() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [selectedCuentaId, setSelectedCuentaId] = useState<number | null>(null);
   // const [cuotas, setCuotas] = useState Omit < CobrarCuota, 'id' | 'cuenta_cobrar_id' > [] > []));
+  const [totalCobrar, setTotalCobrar] = useState<number | null>(null);
 
   const [cuotas, setCuotas] = useState<
     Omit<CobrarCuota, 'id' | 'cuenta_cobrar_id'>[]
@@ -195,8 +196,10 @@ export default function Index() {
   };
 
   // Funciones para gestionar cuotas
-  const handleOpenCuotas = (cuentaId: number) => {
-    setSelectedCuentaId(cuentaId);
+  // const handleOpenCuotas = (cuentaId: number) => {
+  const handleOpenCuotas = (cuenta: CuentaCobrar) => {
+    setTotalCobrar(cuenta.total);
+    setSelectedCuentaId(cuenta.id);
     setCuotas([]);
     setOpenCuotas(true);
   };
@@ -684,6 +687,9 @@ export default function Index() {
               <DialogTitle>Plan de Pagos - Cuotas</DialogTitle>
               <DialogDescription>
                 Gestiona las cuotas de pago para esta cuenta por cobrar
+                <p className="mt-3 text-[1rem] font-bold text-black">
+                  TOTAL A COBRAR: {totalCobrar}
+                </p>
               </DialogDescription>
             </DialogHeader>
 
@@ -1038,7 +1044,8 @@ export default function Index() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleOpenCuotas(cuenta.id)}
+                            // onClick={() => handleOpenCuotas(cuenta.id)}
+                            onClick={() => handleOpenCuotas(cuenta)}
                           >
                             <ClipboardList className="mr-1 h-4 w-4" /> Plan
                             Pagos

@@ -63,6 +63,9 @@ class VentasController extends Controller
         ]);
 
         $producto = Producto::find($item['producto_id']);
+
+        $producto_stock = $producto->stock;
+
         $producto->update([
           'stock' => $producto->stock - $item['cantidad'],
         ]);
@@ -74,7 +77,7 @@ class VentasController extends Controller
           'producto_id' => $producto->id,
           'tipo' => 'Salida',
           'cantidad' => $item['cantidad'],
-          'cantidad_saldo' => $producto->stock - $item['cantidad'],
+          'cantidad_saldo' => $producto_stock - $item['cantidad'],
           'costo_unitario' => $item['precio_unitario'],
         ]);
       }
