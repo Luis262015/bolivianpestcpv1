@@ -66,8 +66,11 @@ class HojaTecnicaController extends Controller
             // 'imagen'  => $this->generateThumbnailIfImage($path) // opcional
         ]);
 
-        return back()
-            ->with('success', 'Hoja técnica cargada correctamente');
+        // return back()
+        //     ->with('success', 'Hoja técnica cargada correctamente');
+
+        return redirect('/productos')
+            ->with('success', 'Hoja técnica guardada correctamente');
     }
 
     /**
@@ -110,6 +113,9 @@ class HojaTecnicaController extends Controller
 
         $hojaTecnica->delete();
 
-        return back()->with('success', 'Hoja técnica eliminada');
+        // return back()->with('success', 'Hoja técnica eliminada');
+
+        return redirect('/productos')
+            ->with('success', 'Hoja técnica eliminada correctamente');
     }
 }

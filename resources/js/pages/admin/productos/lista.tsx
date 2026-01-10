@@ -143,8 +143,30 @@ export default function Index() {
       onSuccess: () => {
         toast.success('Vencimiento registrado');
         vencimientoForm.reset();
-        // Recargar lista
-        router.reload({ only: ['vencimientos'] });
+
+        // // Recargar lista
+        // router.reload({ only: ['vencimientos'] });
+
+        // Recarga inteligente
+        // router.reload({
+        //   only: ['vencimientos'],
+        //   // preserveState: true,
+        //   // preserveScroll: true,
+        //   preserveUrl: true,
+        //   onSuccess: (page: any) => {
+        //     setVencimientos(page.props.vencimientos || []);
+        //   },
+        //   onError: () => {
+        //     toast.error('Error al recargar vencimientos');
+        //   },
+        // });
+
+        // Cerramos modal y redirigimos a la lista principal
+        setOpenVencimientos(false);
+        router.visit('/productos', {
+          preserveState: false, // ← importante para recarga completa
+          preserveScroll: false,
+        });
       },
       onError: () => toast.error('Error al guardar vencimiento'),
     });
@@ -158,6 +180,12 @@ export default function Index() {
       onSuccess: () => {
         toast.success('Vencimiento eliminado');
         setVencimientos((prev) => prev.filter((v) => v.id !== id));
+        // Cerramos modal y redirigimos a la lista principal
+        setOpenVencimientos(false);
+        router.visit('/productos', {
+          preserveState: false, // ← importante para recarga completa
+          preserveScroll: false,
+        });
       },
     });
   };
@@ -187,7 +215,14 @@ export default function Index() {
         toast.success('Hoja técnica guardada');
         hojaForm.reset();
         setSelectedFileName('');
-        router.reload({ only: ['hojas_tecnicas'] });
+
+        // router.reload({ only: ['hojas_tecnicas'] });
+
+        setOpenHojas(false);
+        router.visit('/productos', {
+          preserveState: false, // ← importante para recarga completa
+          preserveScroll: false,
+        });
       },
       onError: () => toast.error('Error al guardar hoja técnica'),
     });
@@ -201,6 +236,12 @@ export default function Index() {
       onSuccess: () => {
         toast.success('Hoja técnica eliminada');
         setHojasTecnicas((prev) => prev.filter((h) => h.id !== id));
+
+        setOpenHojas(false);
+        router.visit('/productos', {
+          preserveState: false, // ← importante para recarga completa
+          preserveScroll: false,
+        });
       },
     });
   };

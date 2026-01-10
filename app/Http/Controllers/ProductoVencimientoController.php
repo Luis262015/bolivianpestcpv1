@@ -56,7 +56,17 @@ class ProductoVencimientoController extends Controller
 
         $producto->vencimientos()->create($validated);
 
-        return back()->with('success', 'Fecha de vencimiento registrada correctamente');
+        // return back()->with('success', 'Fecha de vencimiento registrada correctamente');
+        // return redirect()->route('productos.index');
+
+        // return response()->noContent();
+
+        // return redirect()->back()
+        //     ->with('success', 'Fecha de vencimiento registrada correctamente');
+
+        // Redirección simple - Inertia la manejará correctamente
+        return redirect('/productos')
+            ->with('success', 'Vencimiento registrado correctamente');
     }
 
     /**
@@ -95,6 +105,8 @@ class ProductoVencimientoController extends Controller
 
         $vencimiento->delete();
 
-        return back()->with('success', 'Vencimiento eliminado');
+        // return back()->with('success', 'Vencimiento eliminado');
+        return redirect('/productos')
+            ->with('success', 'Vencimiento registrado correctamente');
     }
 }
