@@ -110,6 +110,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('gastosop', GastosOpController::class);
     Route::resource('gastosfin', GastosFinController::class);
     Route::resource('gastosex', GastosExController::class);
+    Route::get('/estados/obtener', [EstadosController::class, 'obtenerEstado'])->name('estados.obtener');
+    Route::post('/estados/cierre', [EstadosController::class, 'cierre'])->name('estados.cierre');
     Route::resource('estados', EstadosController::class);
 
     Route::resource('categorias', CategoriasController::class);

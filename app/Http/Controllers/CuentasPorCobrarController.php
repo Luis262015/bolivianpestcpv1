@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\CobrarCuota;
 use App\Models\CobrarPago;
 use App\Models\CuentaCobrar;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Database\QueryException;
 
 use function Symfony\Component\Clock\now;
 
@@ -81,7 +85,31 @@ class CuentasPorCobrarController extends Controller
 
   public function update(Request $request, string $id) {}
 
-  public function destroy(string $id) {}
+  public function destroy(string $id)
+  {
+    try {
+      DB::beginTransaction();
+      // Transacciones .....
+      $cuenta = CuentaCobrar::find($id);
+      $pagos = CobrarPago::where('cuenta_cobrar_id', $cuenta->id)->get();
+      if (count($pagos) > 0) {
+        throw new Exception('No se puede eliminar el registro');
+      }
+
+      CobrarCuota::where('cuenta_cobrar_id', $cuenta->id)->delete();
+
+      $cuenta->delete();
+
+      DB::commit();
+      return redirect()->back()->with('success', "Mensaje");
+    } catch (Exception | \Error | QueryException $e) {
+      DB::rollBack();
+      Log::error('Error:', ['error' => $e->getMessage()]);
+      return redirect()->back()
+        ->withInput()
+        ->withErrors(['error', 'ERROR:' . $e->getMessage()]);
+    }
+  }
 
   public function cobrar(Request $request, string $id)
   {

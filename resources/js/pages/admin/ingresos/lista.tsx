@@ -202,7 +202,7 @@ export default function Index() {
                       disabled={processing}
                       className="ml-1"
                       size="icon"
-                      variant="outline"
+                      variant="destructive"
                       onClick={() => handleDelete(gasto.id)}
                     >
                       <Trash2 />

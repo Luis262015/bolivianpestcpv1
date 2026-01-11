@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\CuentaPagar;
 use App\Models\PagarCuota;
 use App\Models\PagarPago;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CuentasPorPagarController extends Controller
 {
@@ -83,7 +87,31 @@ class CuentasPorPagarController extends Controller
 
   public function update(Request $request, string $id) {}
 
-  public function destroy(string $id) {}
+  public function destroy(string $id)
+  {
+    try {
+      DB::beginTransaction();
+      // Transacciones .....
+      $cuenta = CuentaPagar::find($id);
+      $pagos = PagarPago::where('cuenta_pagar_id', $cuenta->id)->get();
+      if (count($pagos) > 0) {
+        throw new Exception('No se puede eliminar el registro');
+      }
+
+      PagarCuota::where('cuenta_pagar_id', $cuenta->id)->delete();
+
+      $cuenta->delete();
+
+      DB::commit();
+      return redirect()->back()->with('success', "Mensaje");
+    } catch (Exception | \Error | QueryException $e) {
+      DB::rollBack();
+      Log::error('Error:', ['error' => $e->getMessage()]);
+      return redirect()->back()
+        ->withInput()
+        ->withErrors(['error', 'ERROR:' . $e->getMessage()]);
+    }
+  }
 
   public function pagar(Request $request, string $id)
   {

@@ -33,6 +33,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Banknote, ClipboardList, Edit, Plus, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -102,7 +103,7 @@ export default function Index() {
     cuotas: [] as Omit<PagarCuota, 'id' | 'cuenta_pagar_id'>[],
   });
 
-  console.log(errors);
+  // console.log(errors);
 
   const {
     data: cuotaData,
@@ -132,7 +133,19 @@ export default function Index() {
 
   const handleDelete = (id: number) => {
     if (confirm('¿Estás seguro de eliminar el registro?')) {
-      destroy(`/cuentasporpagar/${id}`);
+      // destroy(`/cuentasporpagar/${id}`);
+      destroy(`/cuentasporpagar/${id}`, {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => {
+          console.log('Eliminado sin recargar estado');
+          toast.success('Eliminado con exito');
+        },
+        onError: (errors) => {
+          console.log('Error al eliminar: ' + errors[0] + ' : ' + errors[1]);
+          toast.error(errors[1]);
+        },
+      });
     }
   };
 
@@ -667,7 +680,14 @@ export default function Index() {
                   >
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={processing}>
+                  <Button
+                    type="submit"
+                    disabled={
+                      processing ||
+                      cuotas.reduce((sum, cuota) => sum + cuota.monto, 0) !=
+                        Number(data.total)
+                    }
+                  >
                     {processing ? 'Guardando...' : 'Guardar'}
                   </Button>
                 </DialogFooter>
@@ -1054,7 +1074,7 @@ export default function Index() {
                         <Button
                           disabled={processing}
                           size="icon"
-                          variant="outline"
+                          variant="destructive"
                           onClick={() => handleDelete(cuenta.id)}
                         >
                           <Trash2 className="h-4 w-4" />

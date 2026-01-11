@@ -277,7 +277,7 @@ export default function GastosFin() {
                       <Button
                         disabled={processing}
                         size="icon"
-                        variant="outline"
+                        variant="destructive"
                         onClick={() => handleDelete(gasto.id)}
                       >
                         <Trash2 className="h-4 w-4" />
