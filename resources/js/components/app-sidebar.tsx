@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { type MainNavItem, NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
   Apple,
   CalendarDays,
@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
-// const { hasPermission } = usePermissions();
+import { usePermissions } from '@/hooks/usePermissions';
 
 const mainNavItems: NavItem[] = [
   {
@@ -157,47 +157,6 @@ const mainNavItems3: MainNavItem[] = [
     ],
   },
 
-  // {
-  //   title: 'Ingresos',
-  //   icon: TrendingUp,
-  //   down: true,
-  //   subItems: [
-  //     {
-  //       title: 'Cuentas por Cobrar',
-  //       icon: TrendingUp,
-  //       href: '/cuentasporcobrar',
-  //     },
-  //     {
-  //       title: 'Ingresos',
-  //       icon: HandCoins,
-  //       href: '/ingresos',
-  //     },
-  //   ],
-  // },
-
-  // {
-  //   title: 'Egresos',
-  //   icon: TrendingDown,
-  //   down: false,
-  //   subItems: [
-  //     {
-  //       title: 'Cuentas por Pagar',
-  //       icon: TrendingDown,
-  //       href: '/cuentasporpagar',
-  //     },
-  //     // {
-  //     //   title: 'Retiros',
-  //     //   icon: HandHelping,
-  //     //   href: '/retiros',
-  //     // },
-  //     // {
-  //     //   title: 'Gastos',
-  //     //   icon: TicketPercent,
-  //     //   href: '/gastos',
-  //     // },
-  //   ],
-  // },
-
   {
     title: 'Estados Financieros',
     icon: ChartCandlestick,
@@ -220,11 +179,6 @@ const mainNavItems3: MainNavItem[] = [
     icon: HandCoins,
     href: '/ingresos',
   },
-  // {
-  //   title: 'Retiros',
-  //   icon: HandHelping,
-  //   href: '/retiros',
-  // },
   {
     title: 'Gastos',
     icon: TicketPercent,
@@ -332,6 +286,34 @@ const mainNavItems4: MainNavItem[] = [
   },
 ];
 
+const mainNavItemsCliente: MainNavItem[] = [
+  {
+    title: 'Empresa',
+    icon: Factory,
+    href: '/empresas',
+  },
+
+  {
+    title: 'Cronogramas',
+    icon: CalendarDays,
+    href: '/cronogramas',
+  },
+
+  {
+    title: 'Mapas',
+    icon: Locate,
+    href: '/mapas',
+  },
+
+  {
+    title: 'Seguimientos',
+    icon: NotebookPen,
+    href: '/seguimientos',
+  },
+];
+
+const mainNavItemsEmpty: MainNavItem[] = [];
+
 const footerNavItems: NavItem[] = [
   // {
   //     title: 'Repository',
@@ -346,6 +328,12 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+  const { hasRole, hasAnyRole, hasPermission } = usePermissions();
+
+  const { props } = usePage();
+  console.log(props.auth);
+  console.log(hasRole('superadmin'));
+
   return (
     <Sidebar collapsible="icon" variant="inset">
       <SidebarHeader>
@@ -361,12 +349,32 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain
+        {hasRole('admin') ||
+          (hasRole('superadmin') && (
+            <NavMain
+              items={mainNavItems}
+              items2={mainNavItems2}
+              items3={mainNavItems3}
+              items4={mainNavItems4}
+            />
+          ))}
+
+        {hasRole('cliente') ||
+          (hasRole('tecnico') && (
+            <NavMain
+              items={mainNavItems}
+              items2={mainNavItemsCliente}
+              items3={mainNavItemsEmpty}
+              items4={mainNavItemsEmpty}
+            />
+          ))}
+
+        {/* <NavMain
           items={mainNavItems}
           items2={mainNavItems2}
           items3={mainNavItems3}
           items4={mainNavItems4}
-        />
+        /> */}
       </SidebarContent>
 
       <SidebarFooter>

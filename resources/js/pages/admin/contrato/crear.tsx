@@ -74,8 +74,6 @@ interface Props {
 }
 
 export default function CotizacionForm({ contrato }: Props) {
-  console.log(contrato);
-
   const { data, setData, post, put, processing, errors } = useForm<Contrato>({
     nombre: contrato?.nombre ?? '',
     direccion: contrato?.direccion ?? '',
@@ -836,7 +834,7 @@ export default function CotizacionForm({ contrato }: Props) {
                       ? 'Guardando...'
                       : contrato
                         ? 'Actualizar'
-                        : 'Crear Contrato'}
+                        : 'Guardar'}
                   </Button>
                 </div>
               </form>

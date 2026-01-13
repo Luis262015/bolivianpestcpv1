@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { usePermissions } from '@/hooks/usePermissions';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
@@ -70,6 +71,8 @@ interface Props {
 }
 
 export default function MapaEditor(props: Props): JSX.Element {
+  const { hasRole, hasAnyRole, hasPermission } = usePermissions();
+
   const CANVAS_WIDTH = 1000;
   const CANVAS_HEIGHT = 700;
 
@@ -361,6 +364,8 @@ export default function MapaEditor(props: Props): JSX.Element {
   };
 
   const handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
+    if (!hasRole('admin') || !hasRole('superadmin')) return;
+
     if (!selectedAlmacen) return;
 
     const pos = getMousePos(e);
@@ -593,54 +598,55 @@ export default function MapaEditor(props: Props): JSX.Element {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Select value={mode} onValueChange={(v) => setMode(v as any)}>
-            <SelectTrigger className="w-64">
-              <SelectValue placeholder="Herramienta" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="text">Agregar texto</SelectItem>
-              <SelectItem value="textListed">
-                Agregar texto (listado)
-              </SelectItem>
-              <SelectItem value="mouseTrap">Trampa para ratones</SelectItem>
-              <SelectItem value="insectTrap">Trampa para insectos</SelectItem>
-              <SelectItem value="cajaTrap">Trampa Caja</SelectItem>
-              <SelectItem value="vivaTrap">Trampa viva</SelectItem>
-              <SelectItem value="pegajosaTrap">Trampa Pegajosa</SelectItem>
-            </SelectContent>
-          </Select>
+        {(hasRole('superadmin') || hasRole('admin')) && (
+          <div className="flex flex-wrap items-center gap-3">
+            <Select value={mode} onValueChange={(v) => setMode(v as any)}>
+              <SelectTrigger className="w-64">
+                <SelectValue placeholder="Herramienta" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="text">Agregar texto</SelectItem>
+                <SelectItem value="textListed">
+                  Agregar texto (listado)
+                </SelectItem>
+                <SelectItem value="mouseTrap">Trampa para ratones</SelectItem>
+                <SelectItem value="insectTrap">Trampa para insectos</SelectItem>
+                <SelectItem value="cajaTrap">Trampa Caja</SelectItem>
+                <SelectItem value="vivaTrap">Trampa viva</SelectItem>
+                <SelectItem value="pegajosaTrap">Trampa Pegajosa</SelectItem>
+              </SelectContent>
+            </Select>
 
-          {(mode === 'text' || mode === 'textListed') && (
-            <>
-              <Select
-                value={textOrientation}
-                onValueChange={(v) => setTextOrientation(v as any)}
-              >
-                <SelectTrigger className="w-36">
-                  <SelectValue placeholder="Orientación" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="horizontal">Horizontal</SelectItem>
-                  <SelectItem value="vertical">Vertical</SelectItem>
-                </SelectContent>
-              </Select>
+            {(mode === 'text' || mode === 'textListed') && (
+              <>
+                <Select
+                  value={textOrientation}
+                  onValueChange={(v) => setTextOrientation(v as any)}
+                >
+                  <SelectTrigger className="w-36">
+                    <SelectValue placeholder="Orientación" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="horizontal">Horizontal</SelectItem>
+                    <SelectItem value="vertical">Vertical</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <div className="flex items-center gap-2">
-                <Label>Tamaño:</Label>
-                <Input
-                  type="number"
-                  value={textFontSize}
-                  onChange={(e) => setTextFontSize(Number(e.target.value))}
-                  className="w-20"
-                  min={8}
-                  max={48}
-                />
-              </div>
-            </>
-          )}
+                <div className="flex items-center gap-2">
+                  <Label>Tamaño:</Label>
+                  <Input
+                    type="number"
+                    value={textFontSize}
+                    onChange={(e) => setTextFontSize(Number(e.target.value))}
+                    className="w-20"
+                    min={8}
+                    max={48}
+                  />
+                </div>
+              </>
+            )}
 
-          {/* <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
             <span>Grid:</span>
             <Input
               type="number"
@@ -652,38 +658,39 @@ export default function MapaEditor(props: Props): JSX.Element {
             />
           </div> */}
 
-          <div className="flex items-center gap-3">
-            <Label>Fondo:</Label>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={handleBackgroundUpload}
-              className="w-64"
-              disabled={!selectedAlmacen}
-            />
-            {background && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setBackground(null)}
-              >
-                Quitar fondo
-              </Button>
-            )}
-          </div>
+            <div className="flex items-center gap-3">
+              <Label>Fondo:</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleBackgroundUpload}
+                className="w-64"
+                disabled={!selectedAlmacen}
+              />
+              {background && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setBackground(null)}
+                >
+                  Quitar fondo
+                </Button>
+              )}
+            </div>
 
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={undo}>
-              Deshacer
-            </Button>
-            <Button variant="outline" onClick={clearCanvas}>
-              Limpiar
-            </Button>
-            <Button onClick={saveDrawing} disabled={!selectedAlmacen}>
-              Guardar mapa
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={undo}>
+                Deshacer
+              </Button>
+              <Button variant="outline" onClick={clearCanvas}>
+                Limpiar
+              </Button>
+              <Button onClick={saveDrawing} disabled={!selectedAlmacen}>
+                Guardar mapa
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
         <Card className="rounded-none border-muted py-2 shadow-muted">
           <CardContent className="overflow-auto p-0">

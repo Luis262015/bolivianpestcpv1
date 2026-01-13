@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { usePermissions } from '@/hooks/usePermissions';
 import { cn } from '@/lib/utils';
 import {
   addMonths,
@@ -114,6 +115,7 @@ const STATUS_CONFIG: Record<
 };
 
 export default function Lista() {
+  const { hasRole, hasAnyRole, hasPermission } = usePermissions();
   const { props } = usePage<any>();
   const {
     empresas,
@@ -226,29 +228,31 @@ export default function Lista() {
   };
 
   const openTaskDialog = (date?: Date, task?: Task) => {
-    if (!task && !puedeCrearTarea) {
-      alert('Selecciona un almacén para poder crear tareas.');
-      return;
-    }
+    if (hasRole('admin') || hasRole('superadmin')) {
+      if (!task && !puedeCrearTarea) {
+        alert('Selecciona un almacén para poder crear tareas.');
+        return;
+      }
 
-    console.log(task);
+      console.log(task);
 
-    if (task) {
-      setEditingTask(task);
-      setTaskTitle(task.title);
-      setTaskColor(task.color);
-      setTaskStatus(task.status);
-      setSelectedUserId(task.user_id);
-      setSelectedDate(new Date(task.date + 'T00:00:00'));
-    } else {
-      setEditingTask(null);
-      setTaskTitle('');
-      setTaskColor(COLORS[0]);
-      setTaskStatus('pendiente');
-      setSelectedUserId('');
-      setSelectedDate(date || null);
+      if (task) {
+        setEditingTask(task);
+        setTaskTitle(task.title);
+        setTaskColor(task.color);
+        setTaskStatus(task.status);
+        setSelectedUserId(task.user_id);
+        setSelectedDate(new Date(task.date + 'T00:00:00'));
+      } else {
+        setEditingTask(null);
+        setTaskTitle('');
+        setTaskColor(COLORS[0]);
+        setTaskStatus('pendiente');
+        setSelectedUserId('');
+        setSelectedDate(date || null);
+      }
+      setIsDialogOpen(true);
     }
-    setIsDialogOpen(true);
   };
 
   const saveTask = () => {
@@ -285,33 +289,41 @@ export default function Lista() {
   };
 
   const deleteTask = (id: number) => {
-    if (confirm('¿Seguro que quieres eliminar esta tarea?')) {
-      router.delete(`/cronogramas/${id}`);
+    if (hasRole('admin') || hasRole('superadmin')) {
+      if (confirm('¿Seguro que quieres eliminar esta tarea?')) {
+        router.delete(`/cronogramas/${id}`);
+      }
     }
   };
 
   const handleDragStart = (e: React.DragEvent, task: Task) => {
-    setDraggedTask(task);
-    e.dataTransfer.effectAllowed = 'move';
+    if (hasRole('admin') || hasRole('superadmin')) {
+      setDraggedTask(task);
+      e.dataTransfer.effectAllowed = 'move';
+    }
   };
 
   const handleDragOver = (e: React.DragEvent, dateStr: string) => {
-    e.preventDefault();
-    dragOverRef.current = dateStr;
+    if (hasRole('admin') || hasRole('superadmin')) {
+      e.preventDefault();
+      dragOverRef.current = dateStr;
+    }
   };
 
   const handleDrop = (e: React.DragEvent, dateStr: string) => {
-    e.preventDefault();
-    if (!draggedTask) return;
+    if (hasRole('admin') || hasRole('superadmin')) {
+      e.preventDefault();
+      if (!draggedTask) return;
 
-    router.patch(
-      `/cronogramas/${draggedTask.id}`,
-      { date: dateStr },
-      { preserveState: true },
-    );
+      router.patch(
+        `/cronogramas/${draggedTask.id}`,
+        { date: dateStr },
+        { preserveState: true },
+      );
 
-    setDraggedTask(null);
-    dragOverRef.current = null;
+      setDraggedTask(null);
+      dragOverRef.current = null;
+    }
   };
 
   const MonthlyView = () => {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Almacen;
 use App\Models\Empresa;
 use App\Models\Mapa;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -13,8 +14,21 @@ class MapaController extends Controller
 {
   public function index(Request $request)
   {
-    $empresas = Empresa::all();
-    $allAlmacenes = Almacen::all();
+
+    $user = $request->user();
+    // dd($user);
+
+    if ($user->HasRole('cliente')) {
+      $empresasUser = User::with('empresas')->find($user->id);
+      $empresaUser = $empresasUser->empresas[0];
+
+      $empresas = Empresa::select()->where('id', $empresaUser->id)->get();
+      // dd($empresas);
+      $allAlmacenes = Almacen::select()->where('empresa_id', $empresaUser->id)->get();
+    } else {
+      $empresas = Empresa::all();
+      $allAlmacenes = Almacen::all();
+    }
 
     $selectedEmpresa = $request->input('empresa_id');
     $selectedAlmacen = $request->input('almacen_id');

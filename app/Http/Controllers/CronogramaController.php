@@ -31,12 +31,31 @@ class CronogramaController extends Controller
   public function index(Request $request)
   {
 
-    // dd($request);    
+    $user = $request->user();
+
+    // dd($user);
+
 
     $filters = $request->only(['empresa_id', 'almacen_id']);
 
-    $empresas = Empresa::all(['id', 'nombre']);
-    $almacenes = Almacen::all(['id', 'nombre', 'empresa_id']);
+    if ($user->HasRole('cliente')) {
+      $empresasUser = User::with('empresas')->find($user->id);
+      // dd($empresasUser);
+      // dd($empresas->empresas[0]);
+      $empresaUser = $empresasUser->empresas[0];
+      // dd($empresaUser);
+      // dd($empresaUser->id);
+
+      $empresas = Empresa::select(['id', 'nombre'])->where('id', $empresaUser->id)->get();
+      // dd($empresas);
+
+      $almacenes = Almacen::select(['id', 'nombre', 'empresa_id'])->where('empresa_id', $empresaUser->id)->get();
+      // dd($almacenes);
+    } else {
+      $empresas = Empresa::all(['id', 'nombre']);
+      $almacenes = Almacen::all(['id', 'nombre', 'empresa_id']);
+    }
+
     $usuarios = User::all(['id', 'name as nombre']); // Ajusta si el campo es 'nombre' en lugar de 'name'
 
     $tareas = [];

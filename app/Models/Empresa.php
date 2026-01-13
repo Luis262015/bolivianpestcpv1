@@ -18,4 +18,8 @@ class Empresa extends Model
     {
         return $this->hasMany(Certificado::class);
     }
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'usuario_empresa', 'empresa_id', 'user_id');
+    }
 }

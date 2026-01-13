@@ -75,6 +75,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/empresas/{id}/certificados', [EmpresaController::class, 'certificados'])->name('empresas.certificados');
     Route::get('/empresas/{id}/certificadopdf', [EmpresaController::class, 'certificadopdf'])->name('empresas.certificadopdf');
     Route::get('/empresas/certificadoultimo', [EmpresaController::class, 'certificadoultimo'])->name('empresas.certificadoultimo');
+    Route::get('/empresas/{empresa}/almacenes', [EmpresaController::class, 'getByEmpresa']);
     Route::resource('empresas', EmpresaController::class);
     Route::get('/contratos/{id}/pdf', [ContratoController::class, 'pdf'])->name('contratos.pdf');
     Route::resource('contratos', ContratoController::class);

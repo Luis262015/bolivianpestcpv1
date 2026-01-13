@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { usePermissions } from '@/hooks/usePermissions';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
@@ -67,6 +68,7 @@ interface EmpresaPagination {
 
 export default function Lista() {
   const { empresas } = usePage<{ empresas: EmpresaPagination }>().props;
+  const { hasRole, hasAnyRole, hasPermission } = usePermissions();
 
   const [openCreate, setOpenCreate] = useState(false);
   const [openList, setOpenList] = useState(false);
@@ -151,23 +153,29 @@ export default function Lista() {
                 <TableCell>{empresa.activo ? 'Activo' : 'Inactivo'}</TableCell>
 
                 <TableCell className="space-x-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => openCrearCertificado(empresa)}
-                  >
-                    <File className="mr-1 h-4 w-4" />
-                    Crear
-                  </Button>
+                  {(hasRole('superadmin') || hasRole('admin')) && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openCrearCertificado(empresa)}
+                    >
+                      <File className="mr-1 h-4 w-4" />
+                      Crear
+                    </Button>
+                  )}
 
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => openListaCertificados(empresa)}
-                  >
-                    <Eye className="mr-1 h-4 w-4" />
-                    Ver Certificados
-                  </Button>
+                  {(hasRole('superadmin') ||
+                    hasRole('admin') ||
+                    hasRole('tecnico')) && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => openListaCertificados(empresa)}
+                    >
+                      <Eye className="mr-1 h-4 w-4" />
+                      Ver Certificados
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

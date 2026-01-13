@@ -151,6 +151,9 @@ export default function ModalSeguimiento({
   const [proteccionesSel, setProteccionesSel] = useState<number[]>([]);
   const [signosSel, setSignosSel] = useState<number[]>([]);
 
+  const [almacenesFiltrados, setAlmacenesFiltrados] =
+    useState<Almacen[]>(almacenes);
+
   // const [especiesSel, setEspeciesSel] = useState<number[]>([]);
   const [especiesCantidad, setEspeciesCantidad] = useState<EspecieCantidad[]>(
     especies.map((e) => ({
@@ -446,9 +449,30 @@ export default function ModalSeguimiento({
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Empresa *</Label>
-                  <Select
+                  {/* <Select
                     value={data.empresa_id}
                     onValueChange={(v) => setData('empresa_id', v)}
+                  > */}
+                  <Select
+                    value={data.empresa_id}
+                    onValueChange={async (v) => {
+                      setData('empresa_id', v);
+                      setData('almacen_id', ''); // resetear almacén seleccionado
+
+                      if (v) {
+                        try {
+                          const response = await axios.get(
+                            `/empresas/${v}/almacenes`,
+                          );
+                          setAlmacenesFiltrados(response.data);
+                        } catch (error) {
+                          console.error('Error al cargar almacenes:', error);
+                          setAlmacenesFiltrados([]);
+                        }
+                      } else {
+                        setAlmacenesFiltrados([]);
+                      }
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar empresa" />
@@ -477,6 +501,21 @@ export default function ModalSeguimiento({
                       <SelectValue placeholder="Seleccionar almacén" />
                     </SelectTrigger>
                     <SelectContent>
+                      {almacenesFiltrados.map((a) => (
+                        <SelectItem key={a.id} value={a.id.toString()}>
+                          {a.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {/* <Select
+                    value={data.almacen_id}
+                    onValueChange={(v) => setData('almacen_id', v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar almacén" />
+                    </SelectTrigger>
+                    <SelectContent>
                       {almacenes.map((a) => (
                         <SelectItem key={a.id} value={a.id.toString()}>
                           {a.nombre}
@@ -486,7 +525,7 @@ export default function ModalSeguimiento({
                   </Select>
                   {errors.almacen_id && (
                     <p className="text-sm text-red-500">{errors.almacen_id}</p>
-                  )}
+                  )} */}
                 </div>
               </div>
               <div className="space-y-2">

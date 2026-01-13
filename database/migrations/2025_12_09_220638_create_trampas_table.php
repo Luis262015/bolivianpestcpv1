@@ -18,6 +18,7 @@ return new class extends Migration
       $table->foreignId('trampa_tipo_id')->constrained('trampa_tipos');
       $table->integer('posx');
       $table->integer('posy');
+      $table->boolean('estado');
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();
       // $table->timestamps();

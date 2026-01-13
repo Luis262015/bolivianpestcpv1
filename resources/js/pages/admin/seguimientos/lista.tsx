@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { usePermissions } from '@/hooks/usePermissions';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
@@ -100,6 +101,8 @@ export default function Lista({
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
 
+  const { hasRole, hasAnyRole, hasPermission } = usePermissions();
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Seguimientos" />
@@ -112,14 +115,20 @@ export default function Lista({
                 <h2 className="me-5 text-2xl font-semibold">
                   Gestión de Seguimientos
                 </h2>
-                <Button onClick={() => setModalOpen(true)} className="me-3">
-                  <Plus className="h-4 w-4" />
-                  Nuevo
-                </Button>
-                <Button>
-                  <Plus className="h-4 w-4" />
-                  Reporte Trampas
-                </Button>
+                {(hasRole('tecnico') ||
+                  hasRole('superadmin') ||
+                  hasRole('admin')) && (
+                  <>
+                    <Button onClick={() => setModalOpen(true)} className="me-3">
+                      <Plus className="h-4 w-4" />
+                      Nuevo
+                    </Button>
+                    <Button>
+                      <Plus className="h-4 w-4" />
+                      Reporte Trampas
+                    </Button>
+                  </>
+                )}
               </div>
               <div className="space-y-4">
                 {seguimientos?.data && seguimientos.data.length > 0 ? (

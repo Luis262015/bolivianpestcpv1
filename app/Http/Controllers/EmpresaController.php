@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Almacen;
 use App\Models\Certificado;
 use App\Models\Empresa;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -26,9 +28,23 @@ class EmpresaController extends Controller
     'logo' => 'nullable|image|max:2048',
   ];
 
-  public function index()
+  public function index(Request $request)
   {
-    $empresas = Empresa::with(['certificados'])->paginate(10);
+
+    $user = $request->user();
+
+    if ($user->HasRole('cliente')) {
+      $empresas = User::with('empresas')->find($user->id);
+      // dd($empresas->empresas[0]);
+      $empresa = $empresas->empresas[0];
+      // dd($empresa);
+      // dd($user->hasRole('cliente'));
+      $empresas = Empresa::with(['certificados'])->where('id', $empresa->id)->paginate(10);
+    } else {
+
+      $empresas = Empresa::with(['certificados'])->paginate(10);
+    }
+
     return inertia('admin/empresas/lista', ['empresas' => $empresas]);
   }
 
@@ -116,5 +132,11 @@ class EmpresaController extends Controller
     $pdf->setPaper('letter', 'landscape');
     return $pdf->stream('certificado-' . now()->format('Y-m-d') . '.pdf');
     // o ->download() si quieres forzar descarga
+  }
+
+  public function getByEmpresa($empresaId)
+  {
+    $almacenes = Almacen::where('empresa_id', $empresaId)->get(['id', 'nombre']);
+    return response()->json($almacenes);
   }
 }

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Empresa;
 use App\Models\User;
+use App\Models\UsuarioEmpresa;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
@@ -17,7 +19,8 @@ class UsersController extends Controller
     $usuarios = User::select('id', 'name', 'email')->with('roles')->paginate(20);
     // dd($usuarios);
     $roles = Role::select('id', 'name')->where('name', '!=', 'superadmin')->get();
-    return inertia('admin/usuarios/index', ['users' => $usuarios, 'roles' => $roles]);
+    $empresas = Empresa::select('id', 'nombre')->get();
+    return inertia('admin/usuarios/index', ['users' => $usuarios, 'roles' => $roles, 'empresas' => $empresas]);
   }
 
   public function create()
@@ -37,6 +40,7 @@ class UsersController extends Controller
       'password' => ['required', 'confirmed', Rules\Password::defaults()],
       'role' => ['required', Rule::exists('roles', 'id')->whereNot('name', 'superadmin')],
       'enable' => 'sometimes|boolean', // Acepta true/false, 1/0, "1"/"0"
+      'empresa' => 'sometimes|integer',
     ]);
     $user = User::create(
       [
@@ -46,6 +50,16 @@ class UsersController extends Controller
         'enable' => $validated['enable'] ?? false, // Por defecto false
       ]
     );
+
+    if ($validated['empresa']) {
+      UsuarioEmpresa::create(
+        [
+          'user_id' => $user->id,
+          'empresa_id' => $validated['empresa']
+        ]
+      );
+    }
+
     $role = Role::findById($validated['role']);
     $user->assignRole($role);
     return redirect()->route('usuarios.index')->with('success', 'Usuario creado y rol asignado correctamente.');

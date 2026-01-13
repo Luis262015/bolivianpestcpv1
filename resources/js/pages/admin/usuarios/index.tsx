@@ -40,11 +40,17 @@ interface Role {
   name: string;
 }
 
+interface Empresa {
+  id: number;
+  nombre: string;
+}
+
 interface Item {
   id: number;
   name: string;
   email: string;
   roles: Role[];
+  empresas: Empresa[];
 }
 
 interface ItemsPaginate {
@@ -62,9 +68,10 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: titlePage, href: urlPage }];
 // ------ PRINCIPAL
 
 export default function Index() {
-  const { users, roles } = usePage<{
+  const { users, roles, empresas } = usePage<{
     users: ItemsPaginate;
     roles: Role[];
+    empresas: Empresa[];
   }>().props;
 
   const { errors } = usePage().props as { errors: Record<string, string> };
@@ -75,6 +82,7 @@ export default function Index() {
   const [itemPassword, setItemPassword] = useState('');
   const [itemConfPassword, setItemConfPassword] = useState('');
   const [itemRole, setItemRole] = useState(0);
+  const [itemEmpresa, setItemEmpresa] = useState(0);
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -91,6 +99,7 @@ export default function Index() {
         password: itemPassword,
         password_confirmation: itemConfPassword,
         role: itemRole,
+        empresa: itemEmpresa,
       },
       {
         onSuccess: () => {
@@ -113,6 +122,7 @@ export default function Index() {
         password: itemPassword,
         password_confirmation: itemConfPassword,
         role: itemRole,
+        empresa: itemEmpresa,
       },
       {
         onSuccess: () => {
@@ -265,6 +275,34 @@ export default function Index() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div>
+                  <Label>Selección de EMPRESA</Label>
+                  <Select
+                    onValueChange={(value) => setItemEmpresa(Number(value))}
+                    value={String(itemEmpresa)}
+                    // disabled={processing}
+                  >
+                    <SelectTrigger>
+                      <SelectValue></SelectValue>
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Empresas</SelectLabel>
+                        {empresas.map((empresa) => (
+                          <SelectItem
+                            key={empresa.id}
+                            value={String(empresa.id)}
+                          >
+                            {empresa.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <DialogFooter>
                   <Button type="submit" className="w-full">
                     {editItem ? 'Actualizar' : 'Crear'}

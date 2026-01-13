@@ -21,6 +21,7 @@ use App\Models\SeguimientoProteccion;
 use App\Models\SeguimientoSigno;
 use App\Models\Signo;
 use App\Models\TipoSeguimiento;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -50,7 +51,7 @@ class SeguimientoController extends Controller
     'aplicacion_data' => 'array|min:1',
     'especies_ids' => 'nullable|array'
   ];
-  public function index()
+  public function index(Request $request)
   {
     $empresas = Empresa::select('id', 'nombre')->get();
     $almacenes = Almacen::select('id', 'nombre')->get();
@@ -62,7 +63,16 @@ class SeguimientoController extends Controller
     $tiposSeguimiento = TipoSeguimiento::orderBy('nombre')->get();
     $especies = Especie::orderBy('nombre')->get();
 
-    $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen'])->paginate(20);
+    $user = $request->user();
+    if ($user->HasRole('cliente')) {
+      $empresasUser = User::with('empresas')->find($user->id);
+      $empresaUser = $empresasUser->empresas[0];
+      $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen'])->where('empresa_id', $empresaUser->id)->paginate(20);
+    } else {
+
+      $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen'])->paginate(20);
+    }
+
 
     return inertia('admin/seguimientos/lista', [
       'empresas' => $empresas,
@@ -232,17 +242,11 @@ class SeguimientoController extends Controller
 
   public function destroy(string $id)
   {
-
-
-
     try {
       DB::beginTransaction();
-
       $seguimiento = Seguimiento::find($id);
-
       // Eliminar imagenes
       SeguimientoImage::where('seguimiento_id', $seguimiento->id)->delete();
-
       // Eliminar especies
       SeguimientoEspecie::where('seguimiento_id', $seguimiento->id)->delete();
       // Eliminar signos
@@ -257,7 +261,6 @@ class SeguimientoController extends Controller
       SeguimientoBiologico::where('seguimiento_id', $seguimiento->id)->delete();
       // Eliminar aplicaciones
       Aplicacion::where('seguimiento_id', $seguimiento->id)->delete();
-
       // Eliminar seguimiento
       $seguimiento->delete();
 

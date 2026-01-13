@@ -14,6 +14,8 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles;
 
+    protected $guard_name = 'web'; // MUY IMPORTANTE
+
     /**
      * The attributes that are mass assignable.
      *
@@ -57,5 +59,10 @@ class User extends Authenticatable
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function empresas()
+    {
+        return $this->belongsToMany(Empresa::class, 'usuario_empresas', 'user_id', 'empresa_id');
     }
 }
