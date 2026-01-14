@@ -17,19 +17,20 @@ return new class extends Migration
       $table->foreignId('almacen_id')->constrained('almacenes');
       $table->foreignId('user_id')->constrained('users');
       $table->foreignId('tipo_seguimiento_id')->nullable()->constrained('tipo_seguimientos');
+      $table->foreignId('contacto_id')->nullable()->constrained('contactos');
 
       $table->string('encargado_nombre')->nullable();
       $table->string('encargado_cargo')->nullable();
       $table->string('firma_encargado')->nullable();
       $table->string('firma_supervisor')->nullable();
 
-      $table->string('paredes_internas')->nullable();
-      $table->string('cantidad_pisos')->nullable();
-      $table->string('cantidad_trampas')->nullable();
-      $table->string('cambiar_trampas')->nullable();
-      $table->string('internas_trampas')->nullable();
-      $table->string('externas_trampas')->nullable();
-      $table->string('roedores')->nullable();
+      // $table->string('paredes_internas')->nullable();
+      // $table->string('cantidad_pisos')->nullable();
+      // $table->string('cantidad_trampas')->nullable();
+      // $table->string('cambiar_trampas')->nullable();
+      // $table->string('internas_trampas')->nullable();
+      // $table->string('externas_trampas')->nullable();
+      // $table->string('roedores')->nullable();
       $table->text('observaciones')->nullable();
       $table->text('observacionesp')->nullable();
       $table->timestamp('created_at')->useCurrent();

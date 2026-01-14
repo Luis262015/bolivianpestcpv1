@@ -13,12 +13,9 @@ return new class extends Migration
   {
     Schema::create('gastos', function (Blueprint $table) {
       $table->id();
-
       $table->foreignId('user_id')->constrained('users');
-
       $table->string('concepto');
       $table->double('total');
-
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();
       // $table->timestamps();

@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class SeguimientoImage extends Model
 {
     //
+    protected $guarded = [];
 }

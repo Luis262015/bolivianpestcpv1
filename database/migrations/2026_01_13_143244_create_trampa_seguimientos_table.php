@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('trampa_seguimientos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('trampa_id')->constrained('trampas');
+            $table->foreignId('almacen_id')->constrained('almacenes');
+            $table->foreignId('mapa_id')->constrained('mapas');
+            $table->foreignId('user_id')->constrained('users');
+            $table->text('observaciones');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();

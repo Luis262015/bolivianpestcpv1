@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class TrampaTipo extends Model
 {
     //
+    protected $guarded = [];
 }

@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class EstadoResultado extends Model
 {
     //
+    protected $guarded = [];
 }

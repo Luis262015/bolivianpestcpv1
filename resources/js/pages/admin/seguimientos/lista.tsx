@@ -14,6 +14,7 @@ import { Head, router } from '@inertiajs/react';
 import { FileChartColumn, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import ModalSeguimiento from './ModalSeguimiento';
+import ModalTrampas from './ModalTrampas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -100,6 +101,7 @@ export default function Lista({
   tipoSeguimiento,
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalTrapsOpen, setModalTrapsOpen] = useState(false);
 
   const { hasRole, hasAnyRole, hasPermission } = usePermissions();
 
@@ -123,7 +125,10 @@ export default function Lista({
                       <Plus className="h-4 w-4" />
                       Nuevo
                     </Button>
-                    <Button>
+                    <Button
+                      onClick={() => setModalTrapsOpen(true)}
+                      className="me-3"
+                    >
                       <Plus className="h-4 w-4" />
                       Reporte Trampas
                     </Button>
@@ -221,6 +226,10 @@ export default function Lista({
         signos={signos}
         especies={especies}
         tipoSeguimiento={tipoSeguimiento}
+      />
+      <ModalTrampas
+        open={modalTrapsOpen}
+        onClose={() => setModalTrapsOpen(false)}
       />
     </AppLayout>
   );

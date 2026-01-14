@@ -8,4 +8,6 @@ class Insectocutor extends Model
 {
     //
     protected $table = 'insectocutores';
+
+    protected $guarded = [];
 }

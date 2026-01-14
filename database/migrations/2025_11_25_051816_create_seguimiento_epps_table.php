@@ -13,8 +13,8 @@ return new class extends Migration
   {
     Schema::create('seguimiento_epps', function (Blueprint $table) {
       $table->id();
-      $table->foreignId('epp_id')->constrained('epps');
       $table->foreignId('seguimiento_id')->constrained('seguimientos');
+      $table->foreignId('epp_id')->constrained('epps');
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();
       // $table->timestamps();

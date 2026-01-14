@@ -149,7 +149,7 @@ export default function Index() {
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
               <Button onClick={openCreateModal}>
-                <Plus className="mr-2 h-4 w-4" /> Nuevo Usuario
+                <Plus className="mr-2 h-4 w-4" /> Nueva Subcategoria
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md" aria-describedby="uu">

@@ -13,21 +13,16 @@ return new class extends Migration
   {
     Schema::create('kardexes', function (Blueprint $table) {
       $table->id();
-      $table->unsignedBigInteger('venta_id')->nullable();
-      $table->unsignedBigInteger('compra_id')->nullable();
-      $table->unsignedBigInteger('producto_id');
-
+      $table->foreignId('venta_id')->nullable()->constrained('ventas');
+      $table->foreignId('compra_id')->nullable()->constrained('compras');
+      $table->foreignId('producto_id')->nullable()->constrained('productos');
       $table->enum('tipo', ['Entrada', 'Salida']);
       $table->integer('cantidad');
       $table->integer('cantidad_saldo');
       $table->double('costo_unitario');
-
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();
-      // $table->timestamps();            
-      $table->foreign('venta_id')->references('id')->on('ventas');
-      $table->foreign('compra_id')->references('id')->on('compras');
-      $table->foreign('producto_id')->references('id')->on('productos');
+      // $table->timestamps();                  
     });
   }
 

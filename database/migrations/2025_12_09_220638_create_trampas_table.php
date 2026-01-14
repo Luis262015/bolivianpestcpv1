@@ -16,9 +16,11 @@ return new class extends Migration
       $table->foreignId('almacen_id')->constrained('almacenes');
       $table->foreignId('mapa_id')->constrained('mapas');
       $table->foreignId('trampa_tipo_id')->constrained('trampa_tipos');
+      $table->integer('numero');
+      $table->string('tipo')->nullable();
       $table->integer('posx');
       $table->integer('posy');
-      $table->boolean('estado');
+      $table->string('estado');
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();
       // $table->timestamps();

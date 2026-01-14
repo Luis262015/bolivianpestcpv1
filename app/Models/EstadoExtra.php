@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class EstadoExtra extends Model
 {
     //
+    protected $guarded = [];
 }

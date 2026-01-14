@@ -25,6 +25,7 @@ import { useState } from 'react';
 interface EstadoResultados {
   ingresos: {
     ventas: number;
+    cobros: number;
     otros_ingresos: number;
   };
   costos: {
@@ -35,6 +36,7 @@ interface EstadoResultados {
     financieros: number;
     extraordinarios: number;
     caja_chica: number;
+    pagos: number;
   };
   fecha_inicio: string;
   fecha_fin: string;
@@ -58,7 +60,9 @@ export default function Lista() {
 
   // Calcular totales
   const ingresosTotales = estado
-    ? estado.ingresos.ventas + estado.ingresos.otros_ingresos
+    ? estado.ingresos.ventas +
+      estado.ingresos.otros_ingresos +
+      estado.ingresos.cobros
     : 0;
 
   const costosTotales = estado ? estado.costos.compras : 0;
@@ -69,7 +73,8 @@ export default function Lista() {
     ? estado.gastos.operativos +
       estado.gastos.financieros +
       estado.gastos.extraordinarios +
-      estado.gastos.caja_chica
+      estado.gastos.caja_chica +
+      estado.gastos.pagos
     : 0;
 
   const utilidadNeta = utilidadBruta - gastosTotales;
@@ -245,6 +250,12 @@ export default function Lista() {
                     </span>
                   </div>
                   <div className="flex justify-between">
+                    <span>Cobrado (x Cobrar)</span>
+                    <span className="font-mono">
+                      {formatCurrency(estado.ingresos.cobros)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
                     <span>Otros ingresos</span>
                     <span className="font-mono">
                       {formatCurrency(estado.ingresos.otros_ingresos)}
@@ -320,6 +331,12 @@ export default function Lista() {
                   </div>
                   <div className="flex justify-between">
                     <span>Caja chica</span>
+                    <span className="font-mono text-red-600">
+                      -{formatCurrency(estado.gastos.caja_chica)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Pagos (x Pagar)</span>
                     <span className="font-mono text-red-600">
                       -{formatCurrency(estado.gastos.caja_chica)}
                     </span>

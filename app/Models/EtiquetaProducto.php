@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class EtiquetaProducto extends Model
 {
     //
+    protected $guarded = [];
 }

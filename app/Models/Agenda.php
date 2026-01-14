@@ -12,6 +12,7 @@ class Agenda extends Model
         'user_id',
         'title',
         'date',
+        'hour',
         'color',
         'status',
     ];

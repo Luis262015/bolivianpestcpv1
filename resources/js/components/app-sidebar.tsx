@@ -349,25 +349,23 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {hasRole('admin') ||
-          (hasRole('superadmin') && (
-            <NavMain
-              items={mainNavItems}
-              items2={mainNavItems2}
-              items3={mainNavItems3}
-              items4={mainNavItems4}
-            />
-          ))}
+        {(hasRole('admin') || hasRole('superadmin')) && (
+          <NavMain
+            items={mainNavItems}
+            items2={mainNavItems2}
+            items3={mainNavItems3}
+            items4={mainNavItems4}
+          />
+        )}
 
-        {hasRole('cliente') ||
-          (hasRole('tecnico') && (
-            <NavMain
-              items={mainNavItems}
-              items2={mainNavItemsCliente}
-              items3={mainNavItemsEmpty}
-              items4={mainNavItemsEmpty}
-            />
-          ))}
+        {(hasRole('cliente') || hasRole('tecnico')) && (
+          <NavMain
+            items={mainNavItems}
+            items2={mainNavItemsCliente}
+            items3={mainNavItemsEmpty}
+            items4={mainNavItemsEmpty}
+          />
+        )}
 
         {/* <NavMain
           items={mainNavItems}

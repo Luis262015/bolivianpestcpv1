@@ -61,6 +61,7 @@ interface Task {
   user_id: number;
   title: string;
   date: string;
+  hour: string;
   color: string;
   status: TaskStatus;
 }
@@ -106,6 +107,7 @@ export default function Lista() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedHour, setSelectedHour] = useState('');
   const [taskTitle, setTaskTitle] = useState('');
   const [taskColor, setTaskColor] = useState(COLORS[0]);
   const [taskStatus, setTaskStatus] = useState<TaskStatus>('pendiente');
@@ -159,12 +161,14 @@ export default function Lista() {
       setTaskColor(task.color);
       setTaskStatus(task.status);
       setSelectedDate(new Date(task.date + 'T00:00:00'));
+      setSelectedHour(task.hour);
     } else {
       setEditingTask(null);
       setTaskTitle('');
       setTaskColor(COLORS[0]);
       setTaskStatus('pendiente');
       setSelectedDate(date || null);
+      setSelectedHour('');
     }
     setIsDialogOpen(true);
   };
@@ -173,10 +177,12 @@ export default function Lista() {
     if (!selectedDate || !taskTitle.trim()) return;
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    // const dateHour = format(selectedHour, 'HH:mm:ss');
 
     const data = {
       title: taskTitle.trim(),
       date: dateStr,
+      hour: selectedHour,
       color: taskColor,
       status: taskStatus,
     };
@@ -526,6 +532,17 @@ export default function Lista() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Hora</Label>
+              <Input
+                type="time"
+                id="hour"
+                value={selectedHour}
+                onChange={(e) => setSelectedHour(e.target.value)}
+                autoFocus
+              />
+            </div>
+
             <div>
               <Label htmlFor="title">Título</Label>
               <Input

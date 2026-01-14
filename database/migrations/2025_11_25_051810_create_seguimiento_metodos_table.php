@@ -13,8 +13,8 @@ return new class extends Migration
   {
     Schema::create('seguimiento_metodos', function (Blueprint $table) {
       $table->id();
-      $table->foreignId('metodo_id')->constrained('metodos');
       $table->foreignId('seguimiento_id')->constrained('seguimientos');
+      $table->foreignId('metodo_id')->constrained('metodos');
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();
       // $table->timestamps();

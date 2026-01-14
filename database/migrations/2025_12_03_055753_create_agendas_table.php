@@ -13,9 +13,11 @@ return new class extends Migration
   {
     Schema::create('agendas', function (Blueprint $table) {
       $table->id();
-      $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Para que cada usuario tenga sus tareas
+      // $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Para que cada usuario tenga sus tareas
+      $table->foreignId('user_id')->constrained(); // Para que cada usuario tenga sus tareas
       $table->string('title');
       $table->date('date');                    // fecha de la tarea (yyyy-MM-dd)
+      $table->time('hour')->nullable();
       $table->string('color')->default('bg-blue-500');
       $table->enum('status', ['pendiente', 'postergado', 'completado'])->default('pendiente');
       $table->timestamp('created_at')->useCurrent();

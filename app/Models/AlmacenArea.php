@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class AlmacenArea extends Model
 {
     //
+    protected $guarded = [];
 }

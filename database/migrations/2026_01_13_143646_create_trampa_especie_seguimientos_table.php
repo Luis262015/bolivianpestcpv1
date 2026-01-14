@@ -14,11 +14,9 @@ return new class extends Migration
         Schema::create('trampa_especie_seguimientos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('trampa_seguimiento_id')->constrained('trampa_seguimientos');
+            $table->foreignId('trampa_id')->constrained('trampas');
             $table->foreignId('especie_id')->constrained('especies');
             $table->integer('cantidad');
-            $table->double('inicial');
-            $table->double('merma');
-            $table->double('actual');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
             // $table->timestamps();

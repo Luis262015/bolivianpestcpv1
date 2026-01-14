@@ -2,6 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CobrarPago;
+use App\Models\Compra;
+use App\Models\Gasto;
+use App\Models\GastoExtra;
+use App\Models\GastoFinanciero;
+use App\Models\GastoOperativo;
+use App\Models\Ingreso;
+use App\Models\PagarPago;
+use App\Models\Venta;
 use Illuminate\Http\Request;
 
 class EstadosController extends Controller
@@ -75,6 +84,7 @@ class EstadosController extends Controller
     $estado = [
       'ingresos' => [
         'ventas' => $this->calcularVentas($request->fecha_inicio, $request->fecha_fin),
+        'cobros' => $this->calcularCobros($request->fecha_inicio, $request->fecha_fin),
         'otros_ingresos' => $this->calcularOtrosIngresos($request->fecha_inicio, $request->fecha_fin),
       ],
       'costos' => [
@@ -85,6 +95,7 @@ class EstadosController extends Controller
         'financieros' => $this->calcularGastosFinancieros($request->fecha_inicio, $request->fecha_fin),
         'extraordinarios' => $this->calcularGastosExtraordinarios($request->fecha_inicio, $request->fecha_fin),
         'caja_chica' => $this->calcularCajaChica($request->fecha_inicio, $request->fecha_fin),
+        'pagos' => $this->calcularPagos($request->fecha_inicio, $request->fecha_fin),
       ],
       'fecha_inicio' => $request->fecha_inicio,
       'fecha_fin' => $request->fecha_fin,
@@ -113,40 +124,87 @@ class EstadosController extends Controller
       ->with('success', 'Estado financiero cerrado correctamente');
   }
 
+  // ------------------------
+  // - INGRESOS
+  // ------------------------
+
   // Métodos auxiliares para cálculos (reemplaza con tu lógica real)
   private function calcularVentas($inicio, $fin)
   {
-    // return Venta::whereBetween('fecha', [$inicio, $fin])->sum('total');
-    return 150000.00; // Ejemplo
+    $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
+    $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
+
+    return Venta::whereBetween('created_at', [$f_inicio, $f_fin])->sum('total');
+    // return 150000.00; // Ejemplo
+  }
+  private function calcularCobros($inicio, $fin)
+  {
+    $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
+    $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
+
+    return CobrarPago::whereBetween('created_at', [$f_inicio, $f_fin])->sum('monto');
+    // return 150000.00; // Ejemplo
   }
 
   private function calcularOtrosIngresos($inicio, $fin)
   {
-    return 5000.00; // Ejemplo
+    $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
+    $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
+    return Ingreso::whereBetween('created_at', [$f_inicio, $f_fin])->sum('total');
+    // return 5000.00; // Ejemplo
   }
 
+  // ------------------------
+  // - COSTOS
+  // ------------------------
   private function calcularCompras($inicio, $fin)
   {
-    return 80000.00; // Ejemplo
+    $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
+    $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
+    return Compra::whereBetween('created_at', [$f_inicio, $f_fin])->sum('total');
+    // return 80000.00; // Ejemplo
   }
+
+  // ------------------------
+  // - GASTOS
+  // ------------------------
 
   private function calcularGastosOperativos($inicio, $fin)
   {
-    return 20000.00; // Ejemplo
+    $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
+    $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
+    return GastoOperativo::whereBetween('created_at', [$f_inicio, $f_fin])->sum('total');
+    // return 20000.00; // Ejemplo
   }
 
   private function calcularGastosFinancieros($inicio, $fin)
   {
-    return 3000.00; // Ejemplo
+    $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
+    $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
+    return GastoFinanciero::whereBetween('created_at', [$f_inicio, $f_fin])->sum('total');
+    // return 3000.00; // Ejemplo
   }
 
   private function calcularGastosExtraordinarios($inicio, $fin)
   {
-    return 2000.00; // Ejemplo
+    $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
+    $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
+    return GastoExtra::whereBetween('created_at', [$f_inicio, $f_fin])->sum('total');
+    // return 2000.00; // Ejemplo
   }
 
   private function calcularCajaChica($inicio, $fin)
   {
-    return 1500.00; // Ejemplo
+    $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
+    $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
+    return Gasto::whereBetween('created_at', [$f_inicio, $f_fin])->sum('total');
+    // return 1500.00; // Ejemplo
+  }
+  private function calcularPagos($inicio, $fin)
+  {
+    $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
+    $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
+    return PagarPago::whereBetween('created_at', [$f_inicio, $f_fin])->sum('monto');
+    // return 1500.00; // Ejemplo
   }
 }

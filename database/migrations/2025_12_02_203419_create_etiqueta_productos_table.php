@@ -13,17 +13,11 @@ return new class extends Migration
   {
     Schema::create('etiqueta_productos', function (Blueprint $table) {
       $table->id();
-
-      $table->unsignedBigInteger('etiqueta_id');
-      $table->unsignedBigInteger('producto_id');
-
+      $table->foreignId('etiqueta_id')->constrained('etiquetas');
+      $table->foreignId('producto_id')->constrained('productos');
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();
-      // $table->timestamps();
-
-      $table->foreign('etiqueta_id')->references('id')->on('etiquetas');
-      $table->foreign('producto_id')->references('id')->on('productos');
-      // $table->timestamps();
+      // $table->timestamps();      
     });
   }
 

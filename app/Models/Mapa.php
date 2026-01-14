@@ -36,6 +36,12 @@ class Mapa extends Model
         'updated_at' => 'datetime',
     ];
 
+
+    public function empresa()
+    {
+        return $this->belongsTo(Empresa::class);
+    }
+
     /**
      * Relación con el almacén
      */
@@ -78,5 +84,10 @@ class Mapa extends Model
         $data = $this->data ?? [];
         $data['traps'] = $traps;
         $this->data = $data;
+    }
+
+    public function trampas()
+    {
+        return $this->hasMany(Trampa::class);
     }
 }

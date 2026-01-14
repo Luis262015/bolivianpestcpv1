@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class TrampaSeguimiento extends Model
 {
     //
+    protected $guarded = [];
 }

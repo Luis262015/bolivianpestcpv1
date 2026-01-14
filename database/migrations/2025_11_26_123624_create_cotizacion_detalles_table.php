@@ -14,9 +14,7 @@ return new class extends Migration
     Schema::create('cotizacion_detalles', function (Blueprint $table) {
       $table->id();
       $table->foreignId('cotizacion_id')->constrained('cotizaciones');
-
       $table->string('nombre');
-
       // Almacen trampas
       $table->integer('t_cantidad');
       $table->integer('t_visitas');

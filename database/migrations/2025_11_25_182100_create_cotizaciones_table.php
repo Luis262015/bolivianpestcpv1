@@ -14,13 +14,9 @@ return new class extends Migration
     Schema::create('cotizaciones', function (Blueprint $table) {
       $table->id();
       $table->string('nombre');
-      // $table->string('direccion');
       $table->string('telefono');
       $table->string('email');
-      // $table->string('ciudad');
-
       $table->decimal('total', 10, 2);
-
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();
       // $table->timestamps();
