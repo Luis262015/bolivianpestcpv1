@@ -437,7 +437,7 @@ export default function Index() {
                         </span>
                       )}
                     </div>
-                    <div className="grid gap-2">
+                    {/* <div className="grid gap-2">
                       <Label htmlFor="saldo">Saldo</Label>
                       <Input
                         id="saldo"
@@ -451,10 +451,10 @@ export default function Index() {
                           {errors.saldo}
                         </span>
                       )}
-                    </div>
+                    </div> */}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
                       <Label htmlFor="estado">Estado</Label>
                       <Select
@@ -474,22 +474,8 @@ export default function Index() {
                           {errors.estado}
                         </span>
                       )}
-                    </div>
-                    {/* <div className="grid gap-2">
-                      <Label htmlFor="fecha_pago">Fecha de Pago</Label>
-                      <Input
-                        id="fecha_pago"
-                        type="date"
-                        value={data.fecha_pago}
-                        onChange={(e) => setData('fecha_pago', e.target.value)}
-                      />
-                      {errors.fecha_pago && (
-                        <span className="text-sm text-red-500">
-                          {errors.fecha_pago}
-                        </span>
-                      )}
-                    </div> */}
-                  </div>
+                    </div>                    
+                  </div> */}
 
                   {/* Checkbox para plan de pagos */}
                   {!editingId && (

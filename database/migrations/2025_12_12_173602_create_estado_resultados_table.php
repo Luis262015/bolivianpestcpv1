@@ -13,18 +13,20 @@ return new class extends Migration
   {
     Schema::create('estado_resultados', function (Blueprint $table) {
       $table->id();
-      $table->double('cuentascobrar');
-      $table->double('pagos');
+      $table->timestamp('fecha_inicio')->nullable();
+      $table->timestamp('fecha_fin')->nullable();
       $table->double('ventas');
-      $table->double('ingresos');
-      $table->double('total_utilidad');
-      $table->double('cuentaspagar');
+      $table->double('cobrado');
+      $table->double('otros_ingresos');
+      $table->double('ingresos_totales');
       $table->double('compras');
+      $table->double('costo_total');
+      $table->double('utilidad_bruta');
       $table->double('gastosop');
       $table->double('gastosfin');
       $table->double('gastosext');
       $table->double('gastos');
-      $table->double('retiros');
+      $table->double('pagos');
       $table->double('total_gastos');
       $table->double('utilidad_neta');
       $table->timestamp('created_at')->useCurrent();

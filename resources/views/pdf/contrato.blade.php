@@ -100,6 +100,21 @@
       font-size: .9rem;
       font-weight: bold;
     }
+
+    .totalcontrato {
+      text-align: right;
+      font-size: .8rem;
+      margin: 10px 0;
+      font-style: italic;
+      text-decoration: underline;
+      font-weight: bold;
+    }
+
+    .totalcontrato span {
+      font-size: 1rem;
+      font-weight: bold;
+      font-style: normal;
+    }
   </style>
 </head>
 
@@ -231,13 +246,22 @@
         </tr>
         @foreach ($almacen['tareas'] as $tarea)
           <tr>
-            <td>{{ $tarea->id }}</td>
-            <td>{{ $tarea->date }}</td>
-            <td>{{ $tarea->title }}</td>
+            <td style="text-align: center">{{ $tarea->id }}</td>
+            {{-- <td>{{ $tarea->date }}</td> --}}
+            {{-- <td>{{ \Carbon\Carbon::parse($tarea->date)->format('d/m/Y H:i:s') }}</td> --}}
+            <td style="text-align: center">{{ \Carbon\Carbon::parse($tarea->date)->format('d/m/Y') }}</td>
+            {{-- <td>{{ \Carbon\Carbon::parse($tarea->date)->format('d \d\e F \d\e Y') }}</td> --}}
+            {{-- <td>{{ \Carbon\Carbon::parse($tarea->date)->locale('es')->format('d \d\e F \d\e Y') }}</td> --}}
+            <td style="text-align: center">{{ $tarea->title }}</td>
           </tr>
         @endforeach
       </table>
     @endforeach
+
+    <hr>
+    <div class="totalcontrato">Precio Total Contrato: (Bs.)
+      <span>{{ number_format($contrato['total'], 2) }}</span>
+    </div>
 
 
 

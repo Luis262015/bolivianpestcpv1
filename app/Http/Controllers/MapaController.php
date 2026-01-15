@@ -357,7 +357,7 @@ class MapaController extends Controller
         // Si se quitó el fondo → eliminarlo
         // if ($mapa->background) {
         if ($validated['background'] === null) {
-          Storage::disk('public')->delete($mapa->background);
+          // Storage::disk('public')->delete($mapa->background);
           $mapa->background = null;
           $mapa->save();
         }
@@ -390,10 +390,14 @@ class MapaController extends Controller
 
       DB::commit();
 
-      return response()->json([
-        'message' => 'Mapa actualizado correctamente',
-        'mapa' => $mapa->fresh(['trampas']),
-      ]);
+      // return response()->json([
+      //   'message' => 'Mapa actualizado correctamente',
+      //   'mapa' => $mapa->fresh(['trampas']),
+      // ]);
+
+      return redirect()
+        ->route('mapas.index')
+        ->with('success', 'Mapa creado correctamente');
     } catch (\Exception $e) {
       DB::rollBack();
       return response()->json([

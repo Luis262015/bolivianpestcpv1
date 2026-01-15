@@ -11,13 +11,13 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { ChevronDown, ChevronUp, SquarePen, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: 'Compras',
-    href: '/Compras',
+    title: 'Ventas',
+    href: '/Ventas',
   },
 ];
 
@@ -64,13 +64,13 @@ export default function Index() {
 
   const handleDelete = (id: number) => {
     if (confirm('Estas seguro de eliminar el registro')) {
-      destroy(`/compras/${id}`);
+      destroy(`/ventas/${id}`);
     }
   };
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Compras | List" />
+      <Head title="Ventas | Lista" />
 
       <div className="m-4">
         <div className="flex">
@@ -120,11 +120,11 @@ export default function Index() {
                     <TableCell>{venta.tipo}</TableCell>
                     <TableCell>{venta.metodo}</TableCell>
                     <TableCell className="flex gap-1">
-                      <Link href={`/ventas/edit/${venta.id}`}>
+                      {/* <Link href={`/ventas/edit/${venta.id}`}>
                         <Button size="icon" variant="outline">
                           <SquarePen className="h-4 w-4" />
                         </Button>
-                      </Link>
+                      </Link> */}
                       <Button
                         disabled={processing}
                         size="icon"

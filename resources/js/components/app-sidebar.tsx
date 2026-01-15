@@ -92,6 +92,10 @@ const mainNavItems2: MainNavItem[] = [
         href: '/seguimientos',
       },
       {
+        title: 'Trampas',
+        href: '/trampaseguimientos',
+      },
+      {
         title: 'Tipos',
         href: '/tipos',
       },
@@ -309,6 +313,11 @@ const mainNavItemsCliente: MainNavItem[] = [
     title: 'Seguimientos',
     icon: NotebookPen,
     href: '/seguimientos',
+  },
+  {
+    title: 'Trampas',
+    icon: NotebookPen,
+    href: '/trampaseguimientos',
   },
 ];
 

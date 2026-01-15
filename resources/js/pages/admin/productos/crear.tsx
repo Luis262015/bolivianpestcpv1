@@ -167,34 +167,6 @@ export default function Create() {
               </div>
             )}
           </div>
-          {/* ORDEN */}
-          {/* <div className="gap-1.5">
-            <Label>Orden:</Label>
-            <Input
-              type="number"
-              placeholder="Orden"
-              value={data.orden}
-              onChange={(e) => setData('orden', e.target.value)}
-            ></Input>
-            {errors.orden && (
-              <div className="mt-1 flex items-center text-sm text-red-500">
-                {errors.orden}
-              </div>
-            )}
-          </div> */}
-          {/* CODIGO */}
-          {/* <div className="gap-1.5">
-            <Input
-              placeholder="Codigo"
-              value={data.codigo}
-              onChange={(e) => setData('codigo', e.target.value)}
-            ></Input>
-            {errors.codigo && (
-              <div className="mt-1 flex items-center text-sm text-red-500">
-                {errors.codigo}
-              </div>
-            )}
-          </div> */}
 
           {/* DESCRIPCION */}
           <div className="gap-1.5">

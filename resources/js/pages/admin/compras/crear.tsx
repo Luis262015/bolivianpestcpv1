@@ -452,7 +452,7 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
                       />
                     </TableCell>
                     <TableCell className="font-medium">
-                      $ {item.costo_total.toFixed(2)}
+                      Bs. {item.costo_total.toFixed(2)}
                     </TableCell>
                     <TableCell>
                       <Input
@@ -484,9 +484,9 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
           {items.length > 0 && (
             <div className="space-y-2 border-t pt-4 text-right text-lg font-bold">
               <div>
-                Total Compra:{' '}
-                <span className="text-green-600">
-                  ${totalCompra.toFixed(2)}
+                Total Compra (Bs.):{' '}
+                <span className="ms-3 text-green-600">
+                  {totalCompra.toFixed(2)}
                 </span>
               </div>
             </div>

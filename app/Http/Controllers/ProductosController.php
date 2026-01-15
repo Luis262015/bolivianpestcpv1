@@ -88,27 +88,36 @@ class ProductosController extends Controller
 
   public function edit(string $id)
   {
+    // $categorias = Categoria::all('id', 'nombre');
+    // $subcategorias = Subcategoria::all('id', 'nombre');
+    // $marcas = Marca::all('id', 'nombre');
+    $producto = Producto::find($id);
+    // $etiquetas = Etiqueta::all('id', 'nombre');
+
     $categorias = Categoria::all('id', 'nombre');
     $subcategorias = Subcategoria::all('id', 'nombre');
     $marcas = Marca::all('id', 'nombre');
-    $producto = Producto::find($id);
     $etiquetas = Etiqueta::all('id', 'nombre');
-    return inertia('admin/productos/editar', ['producto' => $producto, 'categorias' => $categorias, 'subcategorias' => $subcategorias, 'marcas' => $marcas, 'etiquetas' => $etiquetas, 'etiquetas_seleccionadas' => $producto->etiquetas->pluck('id')->toArray() ?? [],]);
+    $unidades = Unidad::all('id', 'nombre');
+    return inertia('admin/productos/editar', ['producto' => $producto, 'categorias' => $categorias, 'subcategorias' => $subcategorias, 'unidades' => $unidades, 'marcas' => $marcas, 'etiquetas' => $etiquetas, 'etiquetas_seleccionadas' => $producto->etiquetas->pluck('id')->toArray() ?? [],]);
   }
 
   public function update(Request $request, string $id)
   {
+
+    // dd($request);
+
     $validated = $request->validate($this->validate);
+
     $producto = Producto::find($id);
-    $producto->nombre = $validated['nombre'];
-    // $producto->imagen = $validated['imagen'];
-    $producto->orden = $validated['orden'];
-    $producto->codigo = $validated['codigo'];
-    $producto->descripcion = $validated['descripcion'];
-    // $producto->ruta = $validated['ruta'];
-    $producto->marca_id = $validated['marca_id'];
     $producto->categoria_id = $validated['categoria_id'];
-    $producto->subcategoria_id = $validated['subcategoria_id'];
+    $producto->marca_id = $validated['marca_id'];
+    $producto->unidad_id = $validated['unidad_id'];
+    $producto->nombre = $validated['nombre'];
+    $producto->descripcion = $validated['descripcion'];
+    $producto->unidad_valor = $validated['unidad_valor'];
+    $producto->stock_min = $validated['stock_min'];
+    // $producto->subcategoria_id = $validated['subcategoria_id'];
     $producto->update();
     // Sincronizar etiquetas
     $producto->etiquetas()->sync($request->etiqueta_ids ?? []);

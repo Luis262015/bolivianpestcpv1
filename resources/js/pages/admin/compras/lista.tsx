@@ -11,7 +11,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { ChevronDown, ChevronUp, SquarePen, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -131,11 +131,11 @@ export default function Index() {
                     <TableCell>{compra.saldo}</TableCell> */}
                     <TableCell>{compra.tipo}</TableCell>
                     <TableCell className="flex gap-1">
-                      <Link href={`/compras/edit/${compra.id}`}>
+                      {/* <Link href={`/compras/edit/${compra.id}`}>
                         <Button size="icon" variant="outline">
                           <SquarePen className="h-4 w-4" />
                         </Button>
-                      </Link>
+                      </Link> */}
                       <Button
                         disabled={processing}
                         size="icon"

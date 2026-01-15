@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -40,17 +41,22 @@ interface Etiqueta {
   nombre: string;
 }
 
+interface Unidad {
+  id: number;
+  nombre: string;
+}
+
 interface Producto {
   id: number;
   nombre: string;
-  imagen: string;
-  orden: string;
-  codigo: string;
   descripcion: string;
-  ruta: string;
+  stock_min: number;
+  unidad_valor: string;
+  unidad_id: number;
   marca_id: string;
   categoria_id: string;
   subcategoria_id: string;
+  etiqueta_ids: number[];
 }
 
 interface PageProps {
@@ -76,6 +82,7 @@ export default function Edit() {
     subcategorias: initialSubcategorias = [],
     etiquetas,
     etiquetas_seleccionadas,
+    unidades,
   } = usePage<{
     producto: Producto;
     categorias: Categoria[];
@@ -83,13 +90,15 @@ export default function Edit() {
     subcategorias: Subcategoria[];
     etiquetas: Etiqueta[];
     etiquetas_seleccionadas: number[];
+    unidades: Unidad[];
   }>().props;
 
   const { data, setData, put, processing, errors, reset } = useForm({
     nombre: producto.nombre || '',
-    orden: producto.orden || '',
-    codigo: producto.codigo || '',
     descripcion: producto.descripcion || '',
+    stock_min: producto.stock_min ? producto.stock_min : '0',
+    unidad_valor: producto.unidad_valor ? producto.unidad_valor : '0',
+    unidad_id: producto.unidad_id ? String(producto.unidad_id) : '',
     categoria_id: producto.categoria_id ? String(producto.categoria_id) : '',
     subcategoria_id: producto.subcategoria_id
       ? String(producto.subcategoria_id)
@@ -164,11 +173,12 @@ export default function Edit() {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Productos | Edit" />
 
-      <div className="w-8/12 p-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Todos los campos igual que antes... */}
+      <div className="mx-auto w-8/12 p-4">
+        <div className="my-2 text-2xl font-bold">Editar Producto</div>
+        <form onSubmit={handleSubmit} method="post" className="space-y-4">
           {/* NOMBRE */}
           <div className="gap-1.5">
+            <Label>Nombre:</Label>
             <Input
               placeholder="Nombre"
               value={data.nombre}
@@ -180,36 +190,10 @@ export default function Edit() {
               </div>
             )}
           </div>
-          {/* ORDEN */}
-          <div className="gap-1.5">
-            <Input
-              type="number"
-              placeholder="Orden"
-              value={data.orden}
-              onChange={(e) => setData('orden', e.target.value)}
-            ></Input>
-            {errors.orden && (
-              <div className="mt-1 flex items-center text-sm text-red-500">
-                {errors.orden}
-              </div>
-            )}
-          </div>
-          {/* CODIGO */}
-          <div className="gap-1.5">
-            <Input
-              placeholder="Codigo"
-              value={data.codigo}
-              onChange={(e) => setData('codigo', e.target.value)}
-            ></Input>
-            {errors.codigo && (
-              <div className="mt-1 flex items-center text-sm text-red-500">
-                {errors.codigo}
-              </div>
-            )}
-          </div>
 
           {/* DESCRIPCION */}
           <div className="gap-1.5">
+            <Label>Descripción</Label>
             <Input
               placeholder="Descripcion"
               value={data.descripcion}
@@ -221,11 +205,67 @@ export default function Edit() {
               </div>
             )}
           </div>
+          {/* STOCK MIN */}
+          <div className="gap-1.5">
+            <Label>Stock minimo</Label>
+            <Input
+              type="number"
+              placeholder="Stock Minimo"
+              value={data.stock_min}
+              onChange={(e) => setData('stock_min', Number(e.target.value))}
+            ></Input>
+            {errors.stock_min && (
+              <div className="mt-1 flex items-center text-sm text-red-500">
+                {errors.stock_min}
+              </div>
+            )}
+          </div>
+          {/* UNIDAD */}
+          <div className="gap-1.5">
+            <Label>Unidad: </Label>
+            <div className="flex items-center">
+              <Input
+                type="number"
+                placeholder="Cantidad"
+                value={data.unidad_valor}
+                onChange={(e) => setData('unidad_valor', e.target.value)}
+              ></Input>
+              {errors.unidad_valor && (
+                <div className="mt-1 flex items-center text-sm text-red-500">
+                  {errors.unidad_valor}
+                </div>
+              )}
+              <Select
+                onValueChange={(value) => setData('unidad_id', value)}
+                value={data.unidad_id}
+                disabled={processing}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione una unidad"></SelectValue>
+                </SelectTrigger>
 
-          {/* ... (código, codigobarras, unidad, tipo, descripcion) ... */}
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Unidad</SelectLabel>
+                    {unidades.map((marca) => (
+                      <SelectItem key={marca.id} value={String(marca.id)}>
+                        {marca.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              {errors.marca_id && (
+                <div className="mt-1 flex items-center text-sm text-red-500">
+                  {errors.marca_id}
+                </div>
+              )}
+            </div>
+          </div>
 
-          {/* Categoría */}
-          <div>
+          {/* CATEGORIA */}
+          <div className="gap-1.5">
+            <Label>Selección de categoria</Label>
             <Select
               value={data.categoria_id}
               onValueChange={(value) => setData('categoria_id', value)}
@@ -249,9 +289,9 @@ export default function Edit() {
               <p className="mt-1 text-sm text-red-500">{errors.categoria_id}</p>
             )}
           </div>
-
-          {/* Subcategoría */}
-          <div>
+          {/* SUBCATEGORIAS */}
+          <div className="gap-1.5">
+            <Label>Selección de subcategoria</Label>
             <Select
               value={data.subcategoria_id}
               onValueChange={(value) => setData('subcategoria_id', value)}
@@ -263,9 +303,9 @@ export default function Edit() {
                 <SelectValue
                   placeholder={
                     loadingSubcategorias
-                      ? 'Cargando...'
+                      ? 'Cargando subcategorías...'
                       : !data.categoria_id
-                        ? 'Selecciona una categoría'
+                        ? 'Selecciona una categoría primero'
                         : subcategorias.length === 0
                           ? 'No hay subcategorías'
                           : 'Selecciona una subcategoría'
@@ -295,17 +335,18 @@ export default function Edit() {
               </p>
             )}
           </div>
-
-          {/* Marca */}
-          <div>
+          {/* MARCA */}
+          <div className="gap-1.5">
+            <Label>Selección de marca</Label>
             <Select
-              value={data.marca_id}
               onValueChange={(value) => setData('marca_id', value)}
+              value={data.marca_id}
               disabled={processing}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona una marca" />
+                <SelectValue placeholder="Seleccione una marca"></SelectValue>
               </SelectTrigger>
+
               <SelectContent>
                 <SelectGroup>
                   <SelectLabel>Marcas</SelectLabel>
@@ -318,15 +359,17 @@ export default function Edit() {
               </SelectContent>
             </Select>
             {errors.marca_id && (
-              <p className="mt-1 text-sm text-red-500">{errors.marca_id}</p>
+              <div className="mt-1 flex items-center text-sm text-red-500">
+                {errors.marca_id}
+              </div>
             )}
           </div>
 
-          {/* Etiquetas */}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+          <div className="gap-1.5">
+            {/* <label className="mb-1 block text-sm font-medium text-gray-700">
               Etiquetas
-            </label>
+            </label> */}
+            <Label>Selecion de etiquetas</Label>
             <MultiSelect
               opciones={etiquetas}
               seleccionadas={data.etiqueta_ids}
@@ -337,11 +380,9 @@ export default function Edit() {
             )}
           </div>
 
-          <div className="flex gap-2">
-            <Button type="submit" disabled={processing}>
-              {processing ? 'Guardando...' : 'Guardar Producto'}
-            </Button>
-          </div>
+          <Button type="submit" disabled={processing}>
+            {processing ? 'Guardando...' : 'Guardar Producto'}
+          </Button>
         </form>
       </div>
     </AppLayout>

@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\QueryException;
 
 class VentasController extends Controller
 {
@@ -100,5 +101,40 @@ class VentasController extends Controller
 
   public function update(Request $request, string $id) {}
 
-  public function destroy(string $id) {}
+  public function destroy(string $id)
+  {
+    // dd($id);
+    // Conseguir venta
+    try {
+      DB::beginTransaction();
+
+      $venta = Venta::find($id);
+      // Conseguimos detalles de venta
+      $ventadetalles = VentaDetalle::where('venta_id', $id)->get();
+
+      foreach ($ventadetalles as $detalle) {
+        $producto = Producto::find($detalle['producto_id']);
+        $producto->stock = $producto->stock + $detalle['cantidad'];
+        $producto->update();
+      }
+
+      // Eliminar registros de kardex
+      Kardex::where('venta_id', $id)->delete();
+
+      // Eliminar detalles
+      VentaDetalle::where('venta_id', $id)->delete();
+
+      $venta->delete();
+      DB::commit();
+
+      return redirect()->route('ventas.index')->with('success', "Venta eliminada correctamente.");
+    } catch (\Exception | \Error | QueryException $e) {
+      DB::rollBack();
+      Log::error('Error al eliminar venta:', ['error' => $e->getMessage()]);
+
+      return redirect()->back()
+        ->withInput()
+        ->with('error', 'Error al eliminar la venta: ' . $e->getMessage());
+    }
+  }
 }

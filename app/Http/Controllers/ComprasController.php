@@ -74,6 +74,7 @@ class ComprasController extends Controller
         //     ->where('tienda_id', session('tienda_id'))
         //     ->first();
         $producto = Producto::find($item['producto_id']);
+        $stock_producto = $producto->stock;
 
         $producto->update([
           'stock' => $producto->stock + $item['cantidad'],
@@ -88,14 +89,15 @@ class ComprasController extends Controller
           'producto_id' => $producto->id,
           'tipo' => 'Entrada',
           'cantidad' => $item['cantidad'],
-          'cantidad_saldo' => $producto->stock + $item['cantidad'],
+          'cantidad_saldo' => $stock_producto + $item['cantidad'],
           'costo_unitario' => $item['costo_unitario'],
         ]);
       }
 
       DB::commit();
 
-      return redirect()->back()->with('success', "Compra guardada correctamente. Total: \${$validated['total']}");
+      // return redirect()->back()->with('success', "Compra guardada correctamente. Total: \${$validated['total']}");
+      return redirect()->route('compras.index')->with('success', "Compra guardada correctamente. Total: \${$validated['total']}");
     } catch (\Exception | \Error | QueryException $e) {
       DB::rollBack();
       Log::error('Error al guardar compra:', ['error' => $e->getMessage()]);
@@ -112,5 +114,43 @@ class ComprasController extends Controller
 
   public function update(Request $request, string $id) {}
 
-  public function destroy(string $id) {}
+  public function destroy(string $id)
+  {
+
+    try {
+      DB::beginTransaction();
+      $compra = Compra::find($id);
+      // Conseguir compra detalles
+      $compradetalles = CompraDetalle::where('compra_id', $id)->get();
+
+      // dd($compradetalles);
+
+      foreach ($compradetalles as $detalle) {
+        // Actualizacion de stock de producto
+        $producto = Producto::find($detalle['producto_id']);
+        $producto->stock = $producto->stock - $detalle['cantidad'];
+        $producto->update();
+      }
+
+      // Eliminar Kardex
+      Kardex::where('compra_id', $id)->delete();
+
+      // Eliminar Compra Detalles
+      CompraDetalle::where('compra_id', $id)->delete();
+
+      // Eliminar compra
+      $compra->delete();
+
+      DB::commit();
+
+      return redirect()->route('compras.index')->with('success', "Compra eliminada correctamente.");
+    } catch (\Exception | \Error | QueryException $e) {
+      DB::rollBack();
+      Log::error('Error al eliminar compra:', ['error' => $e->getMessage()]);
+
+      return redirect()->back()
+        ->withInput()
+        ->with('error', 'Error al eliminar la compra: ' . $e->getMessage());
+    }
+  }
 }

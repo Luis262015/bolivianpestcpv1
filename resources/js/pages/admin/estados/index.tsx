@@ -1,3 +1,9 @@
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,10 +19,14 @@ import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import {
   AlertCircle,
   Calendar,
   CheckCircle2,
+  ChevronDown,
+  File,
   FileText,
   Loader2,
 } from 'lucide-react';
@@ -42,6 +52,24 @@ interface EstadoResultados {
   fecha_fin: string;
 }
 
+// Tipo del registro guardado (ajusta según tu modelo real)
+interface EstadoGuardado {
+  id: number;
+  fecha_inicio: string;
+  fecha_fin: string;
+  ingresos_totales: number;
+  costo_total: number;
+  utilidad_bruta: number;
+  total_gastos: number;
+  utilidad_neta: number;
+  // Puedes agregar más campos si los tienes...
+  created_at?: string;
+}
+
+interface Props {
+  estados: EstadoGuardado[];
+}
+
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Estados',
@@ -49,7 +77,7 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-export default function Lista() {
+export default function Lista({ estados }: Props) {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [estado, setEstado] = useState<EstadoResultados | null>(null);
@@ -57,12 +85,18 @@ export default function Lista() {
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [hacerCierre, setHacerCierre] = useState(false);
 
   // Calcular totales
+  // const ingresosTotales = estado
+  //   ? estado.ingresos.ventas +
+  //     estado.ingresos.otros_ingresos +
+  //     estado.ingresos.cobros
+  //   : 0;
   const ingresosTotales = estado
-    ? estado.ingresos.ventas +
-      estado.ingresos.otros_ingresos +
-      estado.ingresos.cobros
+    ? Number(estado.ingresos.ventas) +
+      Number(estado.ingresos.otros_ingresos) +
+      Number(estado.ingresos.cobros)
     : 0;
 
   const costosTotales = estado ? estado.costos.compras : 0;
@@ -70,14 +104,48 @@ export default function Lista() {
   const utilidadBruta = ingresosTotales - costosTotales;
 
   const gastosTotales = estado
-    ? estado.gastos.operativos +
-      estado.gastos.financieros +
-      estado.gastos.extraordinarios +
-      estado.gastos.caja_chica +
-      estado.gastos.pagos
+    ? Number(estado.gastos.operativos) +
+      Number(estado.gastos.financieros) +
+      Number(estado.gastos.extraordinarios) +
+      Number(estado.gastos.caja_chica) +
+      Number(estado.gastos.pagos)
     : 0;
 
   const utilidadNeta = utilidadBruta - gastosTotales;
+
+  const handleHacerCierre = async () => {
+    // if (!fechaInicio || !fechaFin) {
+    //   setError('Por favor selecciona ambas fechas');
+    //   setSuccess(null);
+    //   return;
+    // }
+
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await fetch(`/estados/obtenercierre`);
+
+      console.log(response);
+
+      if (!response.ok) {
+        throw new Error('Error al cargar los datos');
+      }
+
+      const data = await response.json();
+      setEstado(data);
+      setHacerCierre(true);
+      setSuccess('Datos cargados correctamente');
+    } catch (err) {
+      setError(
+        'No se pudieron cargar los datos. Por favor intenta nuevamente.',
+      );
+      setEstado(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCargarDatos = async () => {
     if (!fechaInicio || !fechaFin) {
@@ -86,6 +154,7 @@ export default function Lista() {
       return;
     }
 
+    setHacerCierre(false);
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -101,6 +170,7 @@ export default function Lista() {
 
       const data = await response.json();
       setEstado(data);
+
       setSuccess('Datos cargados correctamente');
     } catch (err) {
       setError(
@@ -124,10 +194,24 @@ export default function Lista() {
       {
         fecha_inicio: estado.fecha_inicio,
         fecha_fin: estado.fecha_fin,
+
+        ventas: estado.ingresos.ventas,
+        cobros: Number(estado.ingresos.cobros),
+        otros_ingresos: estado.ingresos.otros_ingresos,
         ingresos_totales: ingresosTotales,
+
+        compras: estado.costos.compras,
         costos_totales: costosTotales,
+
         utilidad_bruta: utilidadBruta,
+
+        operativos: estado.gastos.operativos,
+        financieros: estado.gastos.financieros,
+        extras: estado.gastos.extraordinarios,
+        caja_chica: estado.gastos.caja_chica,
+        pagos: estado.gastos.pagos,
         gastos_totales: gastosTotales,
+
         utilidad_neta: utilidadNeta,
       },
       {
@@ -155,9 +239,156 @@ export default function Lista() {
     }).format(value);
   };
 
+  const formatDate = (date: string) =>
+    format(new Date(date), 'dd MMM yyyy', { locale: es });
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Estados Financieros" />
+
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Estados de Resultados Guardados
+            </CardTitle>
+            <CardDescription>
+              Lista de cierres mensuales realizados
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            {estados.length === 0 ? (
+              <div className="py-12 text-center text-muted-foreground">
+                <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                <p>Aún no hay estados de resultados guardados</p>
+              </div>
+            ) : (
+              <Accordion type="single" collapsible className="w-full">
+                {estados.map((estado) => (
+                  <AccordionItem
+                    key={estado.id}
+                    value={estado.id.toString()}
+                    className="border-b last:border-0"
+                  >
+                    <AccordionTrigger className="py-4 hover:no-underline">
+                      <div className="flex w-full items-center justify-between gap-4">
+                        <div className="flex flex-1 items-center gap-4">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                            <FileText className="h-5 w-5 text-primary" />
+                          </div>
+
+                          <div className="text-left">
+                            <p className="font-medium">Cierre #{estado.id}</p>
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Calendar className="h-3.5 w-3.5" />
+                              {formatDate(estado.fecha_inicio)} →{' '}
+                              {formatDate(estado.fecha_fin)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-6">
+                          <div className="text-right">
+                            <p className="text-sm text-muted-foreground">
+                              Utilidad Neta
+                            </p>
+                            <p
+                              className={`font-semibold ${
+                                estado.utilidad_neta >= 0
+                                  ? 'text-green-600'
+                                  : 'text-red-600'
+                              }`}
+                            >
+                              {formatCurrency(estado.utilidad_neta)}
+                            </p>
+                          </div>
+
+                          <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200" />
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+
+                    <AccordionContent className="pt-2 pb-6">
+                      <div className="rounded-lg border bg-card p-6 shadow-sm">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Ingresos Totales
+                            </p>
+                            <p className="text-lg font-semibold">
+                              {formatCurrency(estado.ingresos_totales)}
+                            </p>
+                          </div>
+
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Costos Totales
+                            </p>
+                            <p className="text-lg font-semibold text-red-600">
+                              -{formatCurrency(estado.costo_total)}
+                            </p>
+                          </div>
+
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Utilidad Bruta
+                            </p>
+                            <p
+                              className={`text-lg font-semibold ${
+                                estado.utilidad_bruta >= 0
+                                  ? 'text-green-600'
+                                  : 'text-red-600'
+                              }`}
+                            >
+                              {formatCurrency(estado.utilidad_bruta)}
+                            </p>
+                          </div>
+
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Gastos Totales
+                            </p>
+                            <p className="text-lg font-semibold text-red-600">
+                              -{formatCurrency(estado.total_gastos)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="mb-1 text-sm text-muted-foreground">
+                              Descargar:
+                            </p>
+                            <Button size="icon">
+                              <File />
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="mt-8">
+                          <h4 className="mb-4 text-lg font-semibold">
+                            Utilidad Neta Final
+                          </h4>
+                          <div
+                            className={`rounded-lg p-6 text-center text-2xl font-bold ${
+                              estado.utilidad_neta >= 0
+                                ? 'bg-green-50 text-green-700'
+                                : 'bg-red-50 text-red-700'
+                            }`}
+                          >
+                            {formatCurrency(estado.utilidad_neta)}
+                          </div>
+                        </div>
+
+                        {/* Si tienes más detalle (ventas, operativos, etc) puedes mostrarlo aquí */}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="space-y-6">
         {/* Alertas */}
@@ -189,7 +420,7 @@ export default function Lista() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <div className="space-y-2">
                 <Label htmlFor="fecha_inicio">Fecha Inicio</Label>
                 <Input
@@ -215,10 +446,21 @@ export default function Lista() {
                 <Button
                   onClick={handleCargarDatos}
                   disabled={loading}
+                  variant="outline"
                   className="w-full"
                 >
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Cargar Datos
+                </Button>
+              </div>
+              <div className="flex items-end">
+                <Button
+                  onClick={handleHacerCierre}
+                  disabled={loading}
+                  className="w-full"
+                >
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Hacer Cierre
                 </Button>
               </div>
             </div>
@@ -338,7 +580,7 @@ export default function Lista() {
                   <div className="flex justify-between">
                     <span>Pagos (x Pagar)</span>
                     <span className="font-mono text-red-600">
-                      -{formatCurrency(estado.gastos.caja_chica)}
+                      -{formatCurrency(estado.gastos.pagos)}
                     </span>
                   </div>
                 </div>
@@ -367,7 +609,11 @@ export default function Lista() {
               <div className="pt-4">
                 <Button
                   onClick={handleCierre}
-                  disabled={procesando}
+                  disabled={
+                    procesando ||
+                    !hacerCierre ||
+                    ingresosTotales + costosTotales + gastosTotales == 0
+                  }
                   className="w-full"
                   size="lg"
                 >

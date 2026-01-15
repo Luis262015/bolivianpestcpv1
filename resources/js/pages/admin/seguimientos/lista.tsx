@@ -11,10 +11,10 @@ import { usePermissions } from '@/hooks/usePermissions';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
+import { format } from 'date-fns';
 import { FileChartColumn, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import ModalSeguimiento from './ModalSeguimiento';
-import ModalTrampas from './ModalTrampas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -125,13 +125,13 @@ export default function Lista({
                       <Plus className="h-4 w-4" />
                       Nuevo
                     </Button>
-                    <Button
+                    {/* <Button
                       onClick={() => setModalTrapsOpen(true)}
                       className="me-3"
                     >
                       <Plus className="h-4 w-4" />
                       Reporte Trampas
-                    </Button>
+                    </Button> */}
                   </>
                 )}
               </div>
@@ -144,6 +144,7 @@ export default function Lista({
                         <TableHead>Empresa</TableHead>
                         <TableHead>Almacen</TableHead>
                         <TableHead>Usuario</TableHead>
+                        <TableHead className="text-center">Fecha</TableHead>
                         <TableHead>Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -161,6 +162,12 @@ export default function Lista({
                           </TableCell>
                           <TableCell className="font-medium">
                             {seguimiento.user?.name}
+                          </TableCell>
+                          <TableCell className="text-center font-mono text-xs text-muted-foreground sm:text-sm">
+                            {format(
+                              seguimiento.created_at,
+                              'dd/MM/yyyy HH:mm:ss',
+                            )}
                           </TableCell>
                           <TableCell className="flex gap-2">
                             {/* <Button
@@ -227,10 +234,12 @@ export default function Lista({
         especies={especies}
         tipoSeguimiento={tipoSeguimiento}
       />
-      <ModalTrampas
+      {/* <ModalTrampas
         open={modalTrapsOpen}
         onClose={() => setModalTrapsOpen(false)}
-      />
+        empresas={empresas}
+        almacenes={almacenes}
+      /> */}
     </AppLayout>
   );
 }

@@ -10,6 +10,8 @@ use App\Models\Empresa;
 use App\Models\Epp;
 use App\Models\Especie;
 use App\Models\Metodo;
+use App\Models\Producto;
+use App\Models\ProductoUso;
 use App\Models\Proteccion;
 use App\Models\Seguimiento;
 use App\Models\SeguimientoBiologico;
@@ -21,6 +23,7 @@ use App\Models\SeguimientoProteccion;
 use App\Models\SeguimientoSigno;
 use App\Models\Signo;
 use App\Models\TipoSeguimiento;
+use App\Models\Trampa;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -209,13 +212,31 @@ class SeguimientoController extends Controller
     }
 
     // Guardar especies
-    foreach ($validated['especies_ids'] as $espec) {
-      $especie = new SeguimientoEspecie();
-      $especie->seguimiento_id = $seguimiento->id;
-      $especie->especie_id = $espec['especie_id'];
-      $especie->cantidad = $espec['cantidad'];
-      $especie->save();
+    // if($validated['especies_ids']){
+    //   foreach ($validated['especies_ids'] as $espec) {
+    //     $especie = new SeguimientoEspecie();
+    //     $especie->seguimiento_id = $seguimiento->id;
+    //     $especie->especie_id = $espec['especie_id'];
+    //     $especie->cantidad = $espec['cantidad'];
+    //     $especie->save();
+    //   }
+    // }
+
+    // Guardar USO DE PRODUCTO
+    foreach ($validated['productos_usados'] as $prod) {
+      $producto = Producto::find($prod['producto_id']);
+      $producto_usado = new ProductoUso();
+      $producto_usado->producto_id = $prod['producto_id'];
+      $producto_usado->seguimiento_id = $seguimiento->id;
+      $producto_usado->unidad_id = $producto->unidad_id;
+      $producto_usado->cantidad = $prod['cantidad'];
+      $producto_usado->save();
+
+      // Logica para descuento de stock
+
+
     }
+
 
     // Guardar imágenes adicionales
     if ($request->hasFile('imagenes')) {
@@ -286,5 +307,17 @@ class SeguimientoController extends Controller
     $pdf->setPaper('legal', 'portrait');
     return $pdf->stream(filename: 'seguimiento-' . now()->format('Y-m-d') . '.pdf');
     // o ->download() si quieres forzar descarga
+  }
+
+  public function trampas(Request $request, string $id)
+  {
+    $trampas = Trampa::with(['trampa_tipo', 'almacen'])->where('almacen_id', $id)->get();
+    return response()->json($trampas);
+  }
+
+  public function especies(Request $request)
+  {
+    $especies = Especie::all(['id', 'nombre']);
+    return response()->json($especies);
   }
 }

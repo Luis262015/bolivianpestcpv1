@@ -100,6 +100,21 @@
       font-size: .9rem;
       font-weight: bold;
     }
+
+    .totalcotizacion {
+      text-align: right;
+      font-size: .8rem;
+      margin: 10px 0;
+      font-style: italic;
+      text-decoration: underline;
+      font-weight: bold;
+    }
+
+    .totalcotizacion span {
+      font-size: 1rem;
+      font-weight: bold;
+      font-style: normal;
+    }
   </style>
 </head>
 
@@ -195,9 +210,14 @@
         </tr>
       </table>
       <div class="total">Total este almacen: (Bs.)
-        <span>{{ number_format($detalles['total'], 2) }}</span>
+        <span>{{ number_format($detalles['t_total'] + $detalles['a_total'] + $detalles['i_total'], 2) }}</span>
       </div>
     @endforeach
+
+    <hr>
+    <div class="totalcotizacion">Precio Total Cotizacion: (Bs.)
+      <span>{{ number_format($cotizacion['total'], 2) }}</span>
+    </div>
 
 
 

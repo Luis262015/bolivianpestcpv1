@@ -20,8 +20,8 @@ class CuentasPorCobrarController extends Controller
     'concepto' => ['required', 'string', 'max:255'],
     'detalles' => ['required', 'string', 'max:255'],
     'total' => ['required', 'numeric', 'min:0'],
-    'saldo' => ['required', 'numeric', 'min:0'],
-    'estado' => 'required|in:Pendiente,Cancelado',
+    // 'saldo' => ['required', 'numeric', 'min:0'],
+    // 'estado' => 'required|in:Pendiente,Cancelado',
     'cuotas' => 'array',
     'cuotas.*.id' => 'integer',
     'cuotas.*.numero_cuota' => 'integer',
@@ -52,6 +52,8 @@ class CuentasPorCobrarController extends Controller
 
   public function store(Request $request)
   {
+    // dd($request);
+
     $validated = $request->validate($this->toValidated);
 
     $cuenta = new CuentaCobrar();
@@ -59,8 +61,9 @@ class CuentasPorCobrarController extends Controller
     $cuenta->concepto = $validated['concepto'];
     $cuenta->detalles = $validated['detalles'];
     $cuenta->total = $validated['total'];
-    $cuenta->saldo = $validated['saldo'];
-    $cuenta->estado = $validated['estado'];
+    $cuenta->saldo = $validated['total'];
+    // $cuenta->estado = $validated['estado'];
+    $cuenta->estado = 'Pendiente';
     $cuenta->plan_pagos = $request['con_plan_pagos'];
     $cuenta->save();
 
@@ -87,10 +90,20 @@ class CuentasPorCobrarController extends Controller
 
   public function destroy(string $id)
   {
+    $cuenta = CuentaCobrar::find($id);
+    // dd($cuenta->contrato_id);
+    // dd($cuenta->contrato_id != null);
+    if ($cuenta->contrato_id != null) {
+      return redirect()->back()
+        ->withInput()
+        ->withErrors(['error', 'No se puede eliminar el registro']);
+    }
+
+
     try {
       DB::beginTransaction();
       // Transacciones .....
-      $cuenta = CuentaCobrar::find($id);
+
       $pagos = CobrarPago::where('cuenta_cobrar_id', $cuenta->id)->get();
       if (count($pagos) > 0) {
         throw new Exception('No se puede eliminar el registro');

@@ -18,7 +18,7 @@ class CuentasPorPagarController extends Controller
     'concepto' => ['required', 'string', 'max:255'],
     'detalles' => ['required', 'string', 'max:255'],
     'total' => ['required', 'numeric', 'min:0'],
-    'saldo' => ['required', 'numeric', 'min:0'],
+    // 'saldo' => ['required', 'numeric', 'min:0'],
     'estado' => 'required|in:Pendiente,Cancelado',
     'cuotas' => 'array',
     'cuotas.*.id' => 'integer',
@@ -61,7 +61,7 @@ class CuentasPorPagarController extends Controller
     $cuenta->concepto = $validated['concepto'];
     $cuenta->detalles = $validated['detalles'];
     $cuenta->total = $validated['total'];
-    $cuenta->saldo = $validated['saldo'];
+    $cuenta->saldo = $validated['total'];
     $cuenta->estado = $validated['estado'];
     $cuenta->plan_pagos = $request['con_plan_pagos'];
     $cuenta->save();

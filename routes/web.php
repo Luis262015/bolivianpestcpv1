@@ -37,6 +37,7 @@ use App\Http\Controllers\SeguimientoController;
 use App\Http\Controllers\SignosController;
 use App\Http\Controllers\SubcategoriasController;
 use App\Http\Controllers\TiposController;
+use App\Http\Controllers\TrampaSeguimientoController;
 use App\Http\Controllers\UnidadesController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VentasController;
@@ -84,7 +85,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('cronogramas', CronogramaController::class);
     Route::resource('mapas', MapaController::class);
     Route::get('/seguimientos/{id}/pdf', [SeguimientoController::class, 'pdf'])->name('seguimientos.pdf');
+    Route::get('/seguimientos/{id}/trampas', [SeguimientoController::class, 'trampas'])->name('seguimientos.trampas');
+    Route::get('/seguimientos/especies', [SeguimientoController::class, 'especies'])->name('seguimientos.especies');
     Route::resource('seguimientos', SeguimientoController::class);
+    Route::get('/trampaseguimientos/{id}/trampas', [TrampaSeguimientoController::class, 'trampas'])->name('trampaseguimientos.trampas');
+    Route::get('/trampaseguimientos/especies', [TrampaSeguimientoController::class, 'especies'])->name('trampaseguimientos.especies');
+    Route::resource('trampaseguimientos', TrampaSeguimientoController::class);
     Route::resource('biologicos', BiologicosController::class);
     Route::resource('epps', EppsController::class);
     Route::resource('metodos', MetodosController::class);
@@ -111,6 +117,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('gastosop', GastosOpController::class);
     Route::resource('gastosfin', GastosFinController::class);
     Route::resource('gastosex', GastosExController::class);
+    Route::get('/estados/obtenercierre', [EstadosController::class, 'obtenerCierre'])->name('estados.obtenercierre');
     Route::get('/estados/obtener', [EstadosController::class, 'obtenerEstado'])->name('estados.obtener');
     Route::post('/estados/cierre', [EstadosController::class, 'cierre'])->name('estados.cierre');
     Route::resource('estados', EstadosController::class);

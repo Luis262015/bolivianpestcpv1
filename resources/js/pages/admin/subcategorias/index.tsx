@@ -155,7 +155,7 @@ export default function Index() {
             <DialogContent className="max-w-md" aria-describedby="uu">
               <DialogHeader>
                 <DialogTitle>
-                  {editItem ? 'Editar Usuario' : 'Nuevo Usuario'}
+                  {editItem ? 'Editar Subcategoria' : 'Nueva Subcategoria'}
                 </DialogTitle>
               </DialogHeader>
               <form
@@ -227,7 +227,7 @@ export default function Index() {
                 )} */}
 
                 <div>
-                  <Label>Selección de rol</Label>
+                  <Label>Selección de categoria</Label>
                   <Select
                     onValueChange={(value) => setItemRole(Number(value))}
                     value={String(itemRole)}

@@ -262,7 +262,7 @@ export default function Venta() {
                                   : 'opacity-0',
                               )}
                             />
-                            {p.nombre} — ${Number(p.precio_venta).toFixed(2)}
+                            {p.nombre} — Bs. {Number(p.precio_venta).toFixed(2)}
                           </CommandItem>
                         ))}
                       </CommandGroup>
@@ -383,8 +383,8 @@ export default function Venta() {
                     <div>
                       <p className="font-medium">{item.nombre}</p>
                       <p className="text-sm text-gray-600">
-                        {item.quantity} × $
-                        {Number(item.precio_venta).toFixed(2)} = $
+                        {item.quantity} × Bs.
+                        {Number(item.precio_venta).toFixed(2)} = Bs.
                         {(item.quantity * Number(item.precio_venta)).toFixed(2)}
                       </p>
                     </div>
@@ -465,7 +465,7 @@ export default function Venta() {
               <div>
                 <Label>Total</Label>
                 <p className="text-lg font-bold text-green-600">
-                  ${total.toFixed(2)}
+                  Bs. {total.toFixed(2)}
                 </p>
               </div>
               {/* <div>
