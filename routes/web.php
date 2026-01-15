@@ -89,6 +89,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/seguimientos/especies', [SeguimientoController::class, 'especies'])->name('seguimientos.especies');
     Route::resource('seguimientos', SeguimientoController::class);
     Route::get('/trampaseguimientos/{id}/trampas', [TrampaSeguimientoController::class, 'trampas'])->name('trampaseguimientos.trampas');
+    Route::get('/trampaseguimientos/{id}/pdf', [TrampaSeguimientoController::class, 'pdf'])->name('trampaseguimientos.pdf');
     Route::get('/trampaseguimientos/especies', [TrampaSeguimientoController::class, 'especies'])->name('trampaseguimientos.especies');
     Route::resource('trampaseguimientos', TrampaSeguimientoController::class);
     Route::resource('biologicos', BiologicosController::class);
@@ -120,6 +121,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/estados/obtenercierre', [EstadosController::class, 'obtenerCierre'])->name('estados.obtenercierre');
     Route::get('/estados/obtener', [EstadosController::class, 'obtenerEstado'])->name('estados.obtener');
     Route::post('/estados/cierre', [EstadosController::class, 'cierre'])->name('estados.cierre');
+    Route::get('/estados/{id}/pdf', [EstadosController::class, 'pdf'])->name('estados.pdf');
     Route::resource('estados', EstadosController::class);
 
     Route::resource('categorias', CategoriasController::class);

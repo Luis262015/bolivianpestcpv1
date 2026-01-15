@@ -9,6 +9,7 @@ use App\Models\Trampa;
 use App\Models\TrampaEspecieSeguimiento;
 use App\Models\TrampaRoedorSeguimiento;
 use App\Models\TrampaSeguimiento;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -164,5 +165,16 @@ class TrampaSeguimientoController extends Controller
     {
         $especies = Especie::all(['id', 'nombre']);
         return response()->json($especies);
+    }
+
+    public function pdf(Request $request, string $id)
+    {
+        $seguimiento = TrampaSeguimiento::with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos', 'user', 'almacen'])->find($id);
+        // Cargar la vista Blade con los datos
+        $pdf = Pdf::loadView('pdf.trampas', compact('seguimiento'));
+        // Opcional: configurar tamaño, orientación, etc. ('portrait' -> vertical, 'landscape' -> horizontal)
+        $pdf->setPaper('legal', 'portrait');
+        return $pdf->stream(filename: 'seguimiento-trampas-' . now()->format('Y-m-d') . '.pdf');
+        // o ->download() si quieres forzar descarga
     }
 }

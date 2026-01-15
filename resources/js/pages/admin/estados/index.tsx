@@ -231,6 +231,11 @@ export default function Lista({ estados }: Props) {
     );
   };
 
+  const handlePDF = (id: number) => {
+    console.log('Imprimir PDF');
+    window.open(`/estados/${id}/pdf`, '_blank');
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-BO', {
       style: 'currency',
@@ -358,7 +363,10 @@ export default function Lista({ estados }: Props) {
                             <p className="mb-1 text-sm text-muted-foreground">
                               Descargar:
                             </p>
-                            <Button size="icon">
+                            <Button
+                              size="icon"
+                              onClick={() => handlePDF(estado.id)}
+                            >
                               <File />
                             </Button>
                           </div>

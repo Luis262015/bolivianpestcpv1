@@ -11,7 +11,7 @@ class TrampaSeguimiento extends Model
 
     public function trampaEspeciesSeguimientos()
     {
-        return $this->hasMany(TrampaEspecieSeguimiento::class);
+        return $this->hasMany(TrampaEspecieSeguimiento::class)->with('especie');
     }
 
     public function trampaRoedoresSeguimientos()

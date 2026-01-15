@@ -13,8 +13,10 @@ use App\Models\Ingreso;
 use App\Models\PagarPago;
 use App\Models\User;
 use App\Models\Venta;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class EstadosController extends Controller
 {
@@ -130,8 +132,8 @@ class EstadosController extends Controller
       'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
     ]);
 
-    $f_inicio = \Carbon\Carbon::parse($request->fecha_inicio)->startOfDay(); // Establece a 00:00:00
-    $f_fin = \Carbon\Carbon::parse($request->fecha_fin)->endOfDay(); // Establece a 23:59:59
+    $f_inicio = Carbon::parse($request->fecha_inicio)->startOfDay(); // Establece a 00:00:00
+    $f_fin = Carbon::parse($request->fecha_fin)->endOfDay(); // Establece a 23:59:59
 
     // Aquí deberías obtener los datos reales de tu base de datos
     // Este es un ejemplo de estructura de datos
@@ -191,8 +193,10 @@ class EstadosController extends Controller
     // Por ejemplo:
     // CierreFinanciero::create($request->all());
     $estado = new EstadoResultado();
-    $estado->fecha_inicio = $validated['fecha_inicio'];
-    $estado->fecha_fin = $validated['fecha_fin'];
+    // $estado->fecha_inicio = $validated['fecha_inicio'];
+    $estado->fecha_inicio = Carbon::parse($validated['fecha_inicio']);
+    // $estado->fecha_fin = $validated['fecha_fin'];
+    $estado->fecha_fin =  Carbon::parse($validated['fecha_fin']);
     $estado->ventas = $validated['ventas'];
     $estado->cobrado = $validated['cobros'];
     $estado->otros_ingresos = $validated['otros_ingresos'];
@@ -295,5 +299,16 @@ class EstadosController extends Controller
     // $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
     return PagarPago::whereBetween('created_at', [$inicio, $fin])->sum('monto');
     // return 1500.00; // Ejemplo
+  }
+
+  public function pdf(Request $request, string $id)
+  {
+    $estado = EstadoResultado::find($id);
+    // Cargar la vista Blade con los datos
+    $pdf = Pdf::loadView('pdf.cierre', compact('estado'));
+    // Opcional: configurar tamaño, orientación, etc. ('portrait' -> vertical, 'landscape' -> horizontal)
+    $pdf->setPaper('letter', 'portrait');
+    return $pdf->stream(filename: 'cierre-' . now()->format('Y-m-d') . '.pdf');
+    // o ->download() si quieres forzar descarga
   }
 }
