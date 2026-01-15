@@ -304,13 +304,14 @@
           <div><img src="{{ public_path('storage/' . $seguimiento->firma_encargado) }}" alt="" width="150px">
           </div>
           <div>ENCARGADO</div>
-          <div>Nombre del encargado</div>
+          <div>{{ $seguimiento->encargado_nombre }}</div>
+          <div>{{ $seguimiento->encargado_cargo }}</div>
         </td>
         <td style="width: 50%; text-align: center;">
           <div><img src="{{ public_path('storage/' . $seguimiento->firma_supervisor) }}" alt="" width="150px">
           </div>
           <div>TECNICO</div>
-          <div>Nombre del tecnico</div>
+          <div>{{ $seguimiento->user->name }}</div>
           <div>BOLIVIAN PEST</div>
         </td>
       </tr>
