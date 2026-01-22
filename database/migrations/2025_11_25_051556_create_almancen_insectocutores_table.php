@@ -16,6 +16,7 @@ return new class extends Migration
       $table->foreignId('almacen_id')->constrained('almacenes');
       $table->string('descripcion')->nullable();
       $table->integer('cantidad');
+      $table->integer('visitas');
       $table->double('precio');
       $table->double('total');
       $table->timestamp('created_at')->useCurrent();

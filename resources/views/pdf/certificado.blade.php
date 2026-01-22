@@ -72,13 +72,13 @@
       font-size: 2rem;
       text-align: center;
       color: #0D3347;
-      margin-top: 9rem;
+      margin-top: 8rem;
       font-weight: bold;
       margin-left: 3.5rem;
     }
 
     .establecimiento {
-      margin-top: 2.5rem;
+      margin-top: 1.5rem;
       margin-left: 9rem;
       font-style: italic;
     }
@@ -96,7 +96,7 @@
     }
 
     .contenido div {
-      margin-top: 1.5rem;
+      margin-top: 1.1rem;
     }
 
     .resaltado {
@@ -120,6 +120,24 @@
     .firmaempresa {
       color: red;
     }
+
+    /* .firma {
+      background-image: url('{{ public_path('images/certificado/firma.png') }}');
+
+    } */
+
+    .sello {
+      position: absolute;
+      width: 150px;
+      margin-top: -150px;
+      margin-left: 480px;
+    }
+
+    .logo {
+      position: absolute;
+      margin-top: -550px;
+      margin-left: 650px;
+    }
   </style>
 </head>
 
@@ -127,10 +145,10 @@
   <div>
 
     <div class="titulo">
-      CERTIFICADO DE CONTROL DE VECTORES
+      CERTIFICADO DE {{ $certificado->titulo }}
     </div>
     <div class="establecimiento">
-      Al Establecimiento: <span class="">{{ $certificado->titulo }}</span>
+      Al Establecimiento: <span class="">{{ $certificado->establecimiento }}</span>
     </div>
     <div class="contenido">
       <div>
@@ -150,12 +168,47 @@
         CONDICION SANITARIA DE LA ZONA CIRCULANTE: <span class="resaltado">{{ $certificado->condicion }}</span>
       </div>
       <div>
-        TRABAJOS REALIZADOS: <span class="resaltado">{{ $certificado->trabajo }}</span>
+        TRABAJOS REALIZADOS:
+        <span class="resaltado">
+          @foreach (explode(',', $certificado->trabajo) as $item)
+            {{ trim($item) }}<br>
+          @endforeach
+        </span>
       </div>
-      <div>
-        PLAGUICIDAS UTILIZADOS: <span class="resaltado">{{ $certificado->plaguicidas }}</span> REGISTRO: <span
-          class="resaltado">{{ $certificado->registro }}</span>
-      </div>
+
+      <table>
+        <tr>
+          <td>PLAGUICIDAS UTILIZADOS:</td>
+          <td>
+            @foreach (explode(',', $certificado->plaguicidas) as $item)
+              <span class="resaltado">{{ trim($item) }}</span><br>
+            @endforeach
+          </td>
+          <td>REGISTRO:</td>
+          <td>
+            @foreach (explode(',', $certificado->registro) as $item)
+              <span class="resaltado">{{ trim($item) }}</span><br>
+            @endforeach
+          </td>
+        </tr>
+        <tr>
+
+        </tr>
+      </table>
+      {{-- PLAGUICIDAS UTILIZADOS: --}}
+      {{-- <span class="resaltado">          
+          @foreach (explode(',', $certificado->plaguicidas) as $item)
+            {{ trim($item) }}<br>
+          @endforeach
+        </span> --}}
+
+      {{-- REGISTRO: --}}
+      {{-- <span class="resaltado">          
+          @foreach (explode(',', $certificado->registro) as $item)
+            {{ trim($item) }}<br>
+          @endforeach
+        </span> --}}
+
       <div>
         AREA TRATADA: <span class="resaltado">{{ $certificado->area }}</span> ACCIONES CORRECTIVAS: <span
           class="resaltado">{{ $certificado->acciones }}</span>
@@ -163,6 +216,9 @@
     </div>
 
     <div class="firma">
+      <div>
+        <img src="{{ public_path('images/certificado/firma.png') }}" alt="" width="150px">
+      </div>
       <div class="firmanombre">
         Ing. Agr. Freddy Montero Castillo
       </div>
@@ -173,6 +229,22 @@
         BOLIVIAN PEST HIGIENE AMBIENTAL
       </div>
     </div>
+
+    <div class="sello">
+      <img src="{{ public_path('images/certificado/sello.png') }}" alt="" width="150px">
+    </div>
+
+    <div class="logo">
+      <img src="{{ public_path($certificado->logo) }}" alt="" width="60px">
+    </div>
+
+    {{-- <div class="firma">
+
+    </div> --}}
+
+    {{-- <div class="sello">
+
+    </div> --}}
 
 
     {{-- <div class="text-center mb-8">

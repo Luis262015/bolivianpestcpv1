@@ -44,7 +44,7 @@ class TrampaSeguimientoController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request);
+        dd($request);
         $trampa_seguimiento = new TrampaSeguimiento();
         $trampa_seguimiento->almacen_id = $request->almacen_id;
         $trampa_seguimiento->mapa_id = $request->mapa_id;

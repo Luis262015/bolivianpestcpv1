@@ -153,8 +153,10 @@ class RolesSeeder extends Seeder
         ]);
 
         DB::table('tipo_seguimientos')->insert([
-            ['nombre' => 'Desinfeccion'],
-            ['nombre' => 'Control de plagas'],
+            ['nombre' => 'DESINFECCION'],
+            ['nombre' => 'DESRATIZACION'],
+            ['nombre' => 'DESINSECTACION'],
+            ['nombre' => 'CONTROL DE AVES'],
         ]);
 
         // Carga de Tipos de Trampas
@@ -162,7 +164,7 @@ class RolesSeeder extends Seeder
             ['nombre' => 'golpe', 'imagen' => '/images/trampas/trampa_raton.jpg'],
             ['nombre' => 'insecto', 'imagen' => '/images/trampas/trampa_insecto.jpg'],
             ['nombre' => 'caja', 'imagen' => '/images/trampas/caja_negra.jpg'],
-            ['nombre' => 'vida', 'imagen' => '/images/trampas/captura_viva.jpg'],
+            ['nombre' => 'viva', 'imagen' => '/images/trampas/captura_viva.jpg'],
             ['nombre' => 'pegajosa', 'imagen' => '/images/trampas/pegajosa.png'],
         ]);
     }

@@ -114,7 +114,7 @@ class SeguimientoController extends Controller
 
   public function store(Request $request)
   {
-    // dd($request);
+    dd($request);
 
     $validated = $request->validate($this->toValidated);
 
@@ -162,13 +162,14 @@ class SeguimientoController extends Controller
     $aplicacion = new Aplicacion();
     $aplicacion->seguimiento_id = $seguimiento->id;
     $aplicacion->paredes_internas = $validated['aplicacion_data']['paredes_internas'];
-    $aplicacion->oficinas = $validated['aplicacion_data']['oficinas'];
     $aplicacion->pisos = $validated['aplicacion_data']['pisos'];
-    $aplicacion->banos = $validated['aplicacion_data']['banos'];
-    $aplicacion->cocinas = $validated['aplicacion_data']['cocinas'];
-    $aplicacion->almacenes = $validated['aplicacion_data']['almacenes'];
-    $aplicacion->porteria = $validated['aplicacion_data']['porteria'];
-    $aplicacion->policial = $validated['aplicacion_data']['policial'];
+    $aplicacion->ambientes = $validated['aplicacion_data']['ambientes'];
+    // $aplicacion->oficinas = $validated['aplicacion_data']['oficinas'];
+    // $aplicacion->banos = $validated['aplicacion_data']['banos'];
+    // $aplicacion->cocinas = $validated['aplicacion_data']['cocinas'];
+    // $aplicacion->almacenes = $validated['aplicacion_data']['almacenes'];
+    // $aplicacion->porteria = $validated['aplicacion_data']['porteria'];
+    // $aplicacion->policial = $validated['aplicacion_data']['policial'];
     $aplicacion->trampas = $validated['aplicacion_data']['trampas'];
     $aplicacion->trampas_cambiar = $validated['aplicacion_data']['trampas_cambiar'];
     $aplicacion->internas = $validated['aplicacion_data']['internas'];

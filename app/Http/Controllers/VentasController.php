@@ -27,8 +27,6 @@ class VentasController extends Controller
 
   public function store(Request $request)
   {
-    // dd($request);
-
     $validated = $request->validate([
       'cliente_id' => 'nullable|exists:clientes.id',
       'metodo_pago' => 'required|string',
@@ -38,9 +36,6 @@ class VentasController extends Controller
       'items.*.cantidad' => 'required|numeric|min:1',
       'items.*.precio_unitario' => 'required|numeric',
     ]);
-
-    // dd($validated);
-
 
     try {
       DB::beginTransaction();

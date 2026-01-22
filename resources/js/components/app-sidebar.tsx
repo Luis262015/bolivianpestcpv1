@@ -18,6 +18,7 @@ import {
   CalendarDays,
   ChartCandlestick,
   Factory,
+  FileChartColumn,
   Files,
   HandCoins,
   Handshake,
@@ -88,13 +89,13 @@ const mainNavItems2: MainNavItem[] = [
     down: true,
     subItems: [
       {
-        title: 'Lista',
+        title: 'Seguimientos',
         href: '/seguimientos',
       },
-      {
-        title: 'Trampas',
-        href: '/trampaseguimientos',
-      },
+      // {
+      //   title: 'Trampas',
+      //   href: '/trampaseguimientos',
+      // },
       {
         title: 'Tipos',
         href: '/tipos',
@@ -124,6 +125,11 @@ const mainNavItems2: MainNavItem[] = [
         href: '/especies',
       },
     ],
+  },
+  {
+    title: 'Informes',
+    icon: FileChartColumn,
+    href: '/informes',
   },
 ];
 
@@ -314,11 +320,11 @@ const mainNavItemsCliente: MainNavItem[] = [
     icon: NotebookPen,
     href: '/seguimientos',
   },
-  {
-    title: 'Trampas',
-    icon: NotebookPen,
-    href: '/trampaseguimientos',
-  },
+  // {
+  //   title: 'Trampas',
+  //   icon: NotebookPen,
+  //   href: '/trampaseguimientos',
+  // },
 ];
 
 const mainNavItemsEmpty: MainNavItem[] = [];

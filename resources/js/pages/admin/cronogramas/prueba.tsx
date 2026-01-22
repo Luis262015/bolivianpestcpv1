@@ -148,6 +148,9 @@ export default function Lista() {
   const puedeCrearTarea = !!selectedAlmacenId;
   const noHayAlmacenSeleccionado = selectedAlmacenId === null;
 
+  // Controlar guardado de tarea
+  const [savingTask, setSavingTask] = useState(false);
+
   // 1. Limpiar tareas si se deselecciona el almacén
   useEffect(() => {
     if (noHayAlmacenSeleccionado) {
@@ -264,6 +267,8 @@ export default function Lista() {
     )
       return;
 
+    setSavingTask(true);
+
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
     const data = {
@@ -279,13 +284,21 @@ export default function Lista() {
 
     if (editingTask) {
       router.patch(`/cronogramas/${editingTask.id}`, data, {
-        onSuccess: () => setIsDialogOpen(false),
+        onSuccess: () => {
+          setIsDialogOpen(false);
+          setSavingTask(false);
+        },
       });
     } else {
       router.post('/cronogramas', data, {
-        onSuccess: () => setIsDialogOpen(false),
+        onSuccess: () => {
+          setIsDialogOpen(false);
+          setSavingTask(false);
+        },
       });
     }
+
+    // setSavingTask(false);
   };
 
   const deleteTask = (id: number) => {
@@ -778,7 +791,7 @@ export default function Lista() {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={saveTask}>
+            <Button onClick={saveTask} disabled={savingTask}>
               {editingTask ? 'Actualizar' : 'Guardar'}
             </Button>
           </DialogFooter>

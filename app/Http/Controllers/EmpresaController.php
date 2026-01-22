@@ -15,6 +15,7 @@ class EmpresaController extends Controller
 {
   private $toValidatedCert = [
     'titulo' => 'required|string',
+    'establecimiento' => 'required|string',
     'actividad' => 'required|string',
     'validez' => 'required|string',
     'direccion' => 'required|string',
@@ -30,21 +31,14 @@ class EmpresaController extends Controller
 
   public function index(Request $request)
   {
-
     $user = $request->user();
-
     if ($user->HasRole('cliente')) {
       $empresas = User::with('empresas')->find($user->id);
-      // dd($empresas->empresas[0]);
       $empresa = $empresas->empresas[0];
-      // dd($empresa);
-      // dd($user->hasRole('cliente'));
       $empresas = Empresa::with(['certificados'])->where('id', $empresa->id)->paginate(10);
     } else {
-
       $empresas = Empresa::with(['certificados'])->paginate(10);
     }
-
     return inertia('admin/empresas/lista', ['empresas' => $empresas]);
   }
 
@@ -53,18 +47,9 @@ class EmpresaController extends Controller
     return inertia('admin/empresas/crear');
   }
 
-  public function store(Request $request) {}
-
-  public function show(string $id) {}
-
-  public function edit(Empresa $empresa) {}
-
-  public function update(Request $request, Empresa $empresa) {}
-
-  public function destroy(string $id) {}
-
   public function certificados(Request $request, string $id)
   {
+    // dd($request);
     $validated = $request->validate($this->toValidatedCert);
 
     try {
@@ -77,6 +62,7 @@ class EmpresaController extends Controller
       $certificado->qrcode = '';
       $certificado->firmadigital = '';
       $certificado->titulo = $validated['titulo'];
+      $certificado->establecimiento = $validated['establecimiento'];
       $certificado->actividad = $validated['actividad'];
       $certificado->validez = $validated['validez'];
       $certificado->direccion = $validated['direccion'];
@@ -90,7 +76,19 @@ class EmpresaController extends Controller
 
       $path = '';
       if ($request->hasFile('logo')) {
-        $path = $request->file('logo')->store('logos', 'public');
+        // GUARDAR NORMAL A STORAGE
+        // $path = $request->file('logo')->store('logos', 'public');
+
+        // GUARDAR IMAGEN A PUBLIC
+        $file = $request->file('logo');
+        $filename = uniqid() . '_' . $file->getClientOriginalName();
+
+        $file->move(
+          public_path('images/certificado'),
+          $filename
+        );
+
+        $path = 'images/certificado/' . $filename;
       }
 
       $certificado->logo = $path;
@@ -139,4 +137,15 @@ class EmpresaController extends Controller
     $almacenes = Almacen::where('empresa_id', $empresaId)->get(['id', 'nombre']);
     return response()->json($almacenes);
   }
+
+  /* FUNCIONES NO UTILIZADAS */
+  public function store(Request $request) {}
+
+  public function show(string $id) {}
+
+  public function edit(Empresa $empresa) {}
+
+  public function update(Request $request, Empresa $empresa) {}
+
+  public function destroy(string $id) {}
 }

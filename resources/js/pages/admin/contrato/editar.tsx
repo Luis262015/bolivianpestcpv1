@@ -58,6 +58,7 @@ interface AlmacenArea {
 
 interface AlmacenInsectocutor {
   cantidad: number;
+  visitas: number;
   precio: number;
   total: number;
 }
@@ -136,6 +137,7 @@ export default function CotizacionForm({ contrato, almacenes }: Props) {
               },
               almacen_insectocutor: {
                 cantidad: 0,
+                visitas: 0,
                 precio: 0,
                 total: 0,
               },
@@ -213,7 +215,7 @@ export default function CotizacionForm({ contrato, almacenes }: Props) {
     const i = { ...updated[index].almacen_insectocutor };
 
     (i[field] as number) = Number(value);
-    i.total = i.cantidad * i.precio;
+    i.total = i.visitas * i.precio;
 
     updated[index].almacen_insectocutor = i;
     setData('almacenes', updated);
@@ -245,6 +247,7 @@ export default function CotizacionForm({ contrato, almacenes }: Props) {
         },
         almacen_insectocutor: {
           cantidad: 0,
+          visitas: 0,
           precio: 0,
           total: 0,
         },
@@ -694,6 +697,17 @@ export default function CotizacionForm({ contrato, almacenes }: Props) {
                             value={a.almacen_insectocutor.cantidad}
                             onChange={(e) =>
                               updateInsectocutor(i, 'cantidad', e.target.value)
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label>Visitas: </Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={a.almacen_insectocutor.visitas}
+                            onChange={(e) =>
+                              updateInsectocutor(i, 'visitas', e.target.value)
                             }
                           />
                         </div>

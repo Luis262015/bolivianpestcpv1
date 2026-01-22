@@ -65,8 +65,10 @@ interface AlmacenArea {
 interface AlmancenInsectocutor {
   // descripcion: string;
   cantidad: number;
+  visitas: number;
   precio: number;
   total: number;
+  fechas_visitas?: string[];
 }
 
 interface Props {
@@ -117,8 +119,11 @@ export default function CotizacionForm({ contrato }: Props) {
               // descripcion:
               //   a.almacen_insectocutor?.descripcion ?? 'Insectocutores',
               cantidad: a.almacen_insectocutor?.cantidad ?? 0,
+              visitas: a.almacen_insectocutor?.visitas ?? 1,
               precio: a.almacen_insectocutor?.precio ?? 0,
               total: a.almacen_insectocutor?.total ?? 0,
+              fechas_visitas:
+                a.almacen_insectocutor?.fechas_visitas ?? Array(1).fill(''),
             },
           }))
         : [
@@ -149,8 +154,10 @@ export default function CotizacionForm({ contrato }: Props) {
               almacen_insectocutor: {
                 // descripcion: 'Insectocutores',
                 cantidad: 0,
+                visitas: 1,
                 precio: 0,
                 total: 0,
+                fechas_visitas: Array(1).fill(''),
               },
             },
           ],
@@ -169,8 +176,8 @@ export default function CotizacionForm({ contrato }: Props) {
     return area * visitas * precio;
   };
 
-  const calcularTotalInsectocutor = (cantidad: number, precio: number) => {
-    return cantidad * precio;
+  const calcularTotalInsectocutor = (visitas: number, precio: number) => {
+    return visitas * precio;
   };
 
   // Actualizar totales cuando cambian los campos
@@ -254,10 +261,26 @@ export default function CotizacionForm({ contrato }: Props) {
     const updated = [...data.almacenes];
     const insectocutor = { ...updated[index].almacen_insectocutor };
 
-    (insectocutor[field] as number) = Number(value);
+    if (field === 'visitas') {
+      const newVisitas = Number(value);
+      insectocutor.visitas = newVisitas;
+      const currentFechas = insectocutor.fechas_visitas || [];
+      if (newVisitas > currentFechas.length) {
+        insectocutor.fechas_visitas = [
+          ...currentFechas,
+          ...Array(newVisitas - currentFechas.length).fill(''),
+        ];
+      } else {
+        insectocutor.fechas_visitas = currentFechas.slice(0, newVisitas);
+      }
+    } else if (field !== 'fechas_visitas') {
+      (insectocutor[field] as number) = Number(value);
+    }
+
+    // (insectocutor[field] as number) = Number(value);
 
     insectocutor.total = calcularTotalInsectocutor(
-      insectocutor.cantidad,
+      insectocutor.visitas,
       insectocutor.precio,
     );
     updated[index].almacen_insectocutor = insectocutor;
@@ -290,6 +313,20 @@ export default function CotizacionForm({ contrato }: Props) {
     ];
     fechas[visitaIndex] = fecha;
     updated[almacenIndex].almacen_area.fechas_visitas = fechas;
+    setData('almacenes', updated);
+  };
+
+  const updateInsectocutorFechaVisita = (
+    almacenIndex: number,
+    visitaIndex: number,
+    fecha: string,
+  ) => {
+    const updated = [...data.almacenes];
+    const fechas = [
+      ...(updated[almacenIndex].almacen_insectocutor.fechas_visitas || []),
+    ];
+    fechas[visitaIndex] = fecha;
+    updated[almacenIndex].almacen_insectocutor.fechas_visitas = fechas;
     setData('almacenes', updated);
   };
 
@@ -337,6 +374,7 @@ export default function CotizacionForm({ contrato }: Props) {
         almacen_insectocutor: {
           // descripcion: 'Insectocutores',
           cantidad: 0,
+          visitas: 1,
           precio: 0,
           total: 0,
         },
@@ -768,6 +806,22 @@ export default function CotizacionForm({ contrato }: Props) {
                             </div>
 
                             <div>
+                              <Label>Visitas/año</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                value={almacen.almacen_insectocutor.visitas}
+                                onChange={(e) =>
+                                  updateInsectocutorField(
+                                    index,
+                                    'visitas',
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </div>
+
+                            <div>
                               <Label>Precio: </Label>
                               <Input
                                 type="number"
@@ -783,6 +837,45 @@ export default function CotizacionForm({ contrato }: Props) {
                               />
                             </div>
                           </div>
+
+                          {/* Fechas de visitas para trampas */}
+                          {almacen.almacen_insectocutor.visitas > 0 && (
+                            <div className="mt-6 space-y-3">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-primary" />
+                                <Label className="text-sm font-semibold">
+                                  Fechas programadas de visitas
+                                </Label>
+                              </div>
+                              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                                {Array.from({
+                                  length: almacen.almacen_insectocutor.visitas,
+                                }).map((_, visitaIndex) => (
+                                  <div key={visitaIndex}>
+                                    <Label className="text-xs">
+                                      Visita {visitaIndex + 1}
+                                    </Label>
+                                    <Input
+                                      type="date"
+                                      required
+                                      value={
+                                        almacen.almacen_insectocutor
+                                          .fechas_visitas?.[visitaIndex] || ''
+                                      }
+                                      onChange={(e) =>
+                                        updateInsectocutorFechaVisita(
+                                          index,
+                                          visitaIndex,
+                                          e.target.value,
+                                        )
+                                      }
+                                      className="text-sm"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
 
                           <p className="mt-4 text-right text-lg font-bold">
                             Total anual: Bs.{' '}

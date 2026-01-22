@@ -29,6 +29,7 @@ return new class extends Migration
       $table->string('a_total');
       // Almacen insectocutores
       $table->string('i_cantidad');
+      $table->string('i_visitas');
       $table->string('i_precio');
       $table->string('i_total');
 

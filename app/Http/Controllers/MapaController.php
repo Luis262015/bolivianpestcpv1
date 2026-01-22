@@ -177,22 +177,45 @@ class MapaController extends Controller
           return back()->withErrors(['background' => 'Formato de imagen inválido']);
         }
 
-        // $path = "mapas/{$mapa->almacen_id}_" . time() . ".{$extension}";
-        $path = "mapas/{$mapa->almacen_id}_" . time() . ".{$extension}";
-        Storage::disk('public')->put($path, $imageData);
-
-        // Eliminar fondo anterior si existía
-        if ($mapa->background) {
-          Storage::disk('public')->delete($mapa->background);
+        // 📁 Carpeta destino (PUBLICA)
+        $directory = public_path('images/mapas');
+        // Crear carpeta si no existe
+        if (!file_exists($directory)) {
+          mkdir($directory, 0755, true);
         }
 
-        $mapa->background = "/storage/" . $path;
+        // 📝 Nombre del archivo
+        $filename = $mapa->almacen_id . '_' . time() . '.' . $extension;
+
+        // 📍 Ruta completa
+        $fullPath = $directory . '/' . $filename;
+
+        // 💾 Guardar archivo
+        file_put_contents($fullPath, $imageData);
+
+        // 🗑 Eliminar fondo anterior
+        // if ($mapa->background && file_exists(public_path($mapa->background))) {
+        //   unlink(public_path($mapa->background));
+        // }
+
+        // 💾 Guardar ruta en BD (RELATIVA)
+        $mapa->background = 'images/mapas/' . $filename;
         $mapa->save();
+
+        // // $path = "mapas/{$mapa->almacen_id}_" . time() . ".{$extension}";
+        // $path = "mapas/{$mapa->almacen_id}_" . time() . ".{$extension}";
+        // Storage::disk('public')->put($path, $imageData);
+        // // Eliminar fondo anterior si existía
+        // if ($mapa->background) {
+        //   Storage::disk('public')->delete($mapa->background);
+        // }
+        // $mapa->background = "/storage/" . $path;
+        // $mapa->save();
       }
     } else {
       // Si se quitó el fondo → eliminarlo
       if ($mapa->background) {
-        Storage::disk('public')->delete($mapa->background);
+        // Storage::disk('public')->delete($mapa->background);
         $mapa->background = null;
         $mapa->save();
       }

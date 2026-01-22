@@ -30,6 +30,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface Certificado {
   titulo: string;
+  establecimiento: string;
   actividad: string;
   validez: string;
   direccion: string;
@@ -77,6 +78,7 @@ export default function Lista() {
 
   const { data, setData, post, processing, reset } = useForm<Certificado>({
     titulo: '',
+    establecimiento: '',
     actividad: '',
     validez: '',
     direccion: '',
@@ -187,7 +189,10 @@ export default function Lista() {
 
       {/* DIALOG CREAR CERTIFICADO */}
       <Dialog open={openCreate} onOpenChange={setOpenCreate}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent
+          className="max-w-3xl"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>
               Crear Certificado – {empresaSeleccionada?.nombre}

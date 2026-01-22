@@ -223,7 +223,9 @@ export default function Lista({
 
       <ModalSeguimiento
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+        }}
         empresas={empresas}
         almacenes={almacenes}
         metodos={metodos}

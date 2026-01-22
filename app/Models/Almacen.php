@@ -28,4 +28,14 @@ class Almacen extends Model
     {
         return $this->hasMany(Cronograma::class);
     }
+
+    public function empresa()
+    {
+        return $this->belongsTo(Empresa::class);
+    }
+
+    public function seguimientos()
+    {
+        return $this->hasMany(Seguimiento::class);
+    }
 }

@@ -22,6 +22,7 @@ use App\Http\Controllers\GastosExController;
 use App\Http\Controllers\GastosFinController;
 use App\Http\Controllers\GastosOpController;
 use App\Http\Controllers\HojaTecnicaController;
+use App\Http\Controllers\InformesController;
 use App\Http\Controllers\IngresosController;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\MapaController;
@@ -100,8 +101,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('tipos', TiposController::class);
     Route::resource('especies', EspeciesController::class);
     Route::resource('unidades', UnidadesController::class);
-    Route::get('/certificados/pdf', [CertificadosController::class, 'pdf'])->name('certificados.pdf');
-    Route::resource('certificados', CertificadosController::class);
+    Route::get('/informes/obtener', [InformesController::class, 'obtenerEstado'])->name('estados.obtener');
+    Route::get('/informes/empresas', [InformesController::class, 'getEmpresas'])->name('estados.empresas');
+    Route::get('/informes/almacenes/{empresa}', [InformesController::class, 'getAlmacen'])->name('estados.almacenes');
+    Route::get('/informes/seguimientos/{almacen}', [InformesController::class, 'getSeguimientos'])->name('estados.seguimiento');
+    Route::resource('informes', InformesController::class);
+    // Route::get('/certificados/pdf', [CertificadosController::class, 'pdf'])->name('certificados.pdf');
+    // Route::resource('certificados', CertificadosController::class);
 
     /// ********** CONTABILIDAD *****************    
     Route::post('/cuentasporcobrar/{id}/cobrar', [CuentasPorCobrarController::class, 'cobrar'])->name('cuentasporcobrar.cobrar');

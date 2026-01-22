@@ -13,10 +13,7 @@ class CategoriasController extends Controller
     return inertia('admin/categorias/index', ['items' => $categorias]);
   }
 
-  public function create()
-  {
-    return inertia('admin/categorias/crear');
-  }
+  public function create() {}
 
   public function store(Request $request)
   {
@@ -29,10 +26,7 @@ class CategoriasController extends Controller
 
   public function show(string $id) {}
 
-  public function edit(Categoria $categoria)
-  {
-    return inertia('admin/categorias/editar', ['categoria' => $categoria]);
-  }
+  public function edit(Categoria $categoria) {}
 
   public function update(Request $request, Categoria $categoria)
   {

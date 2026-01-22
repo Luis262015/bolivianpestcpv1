@@ -62,6 +62,7 @@ interface TrampaRoedoresSeguimiento {
   id?: number;
   trampa_seguimiento_id?: number;
   trampa_id: number;
+  observacion: string;
   cantidad: number;
   inicial: number;
   merma: number;
@@ -173,6 +174,7 @@ export default function ModalTrampas({
           } else {
             roedoresInit[trampa.id] = {
               trampa_id: trampa.id,
+              observacion: '',
               cantidad: 0,
               inicial: 0,
               merma: 0,
@@ -246,8 +248,8 @@ export default function ModalTrampas({
       const updated = { ...current, [field]: value };
 
       // Calcular "actual" automáticamente
-      if (field === 'inicial' || field === 'merma') {
-        updated.actual = updated.inicial - updated.merma;
+      if (field === 'inicial' || field === 'actual') {
+        updated.merma = updated.inicial - updated.actual;
       }
 
       return {
@@ -277,13 +279,6 @@ export default function ModalTrampas({
           preserveState: true,
         });
       }
-
-      // if (isEditMode) {
-      //   await axios.put(`/trampaseguimientos/${seguimiento.id}`, payload);
-      // } else {
-      //   await axios.post('/trampaseguimientos', payload);
-      // }
-
       reset();
       setSeguimientosInsectos({});
       setSeguimientosRoedores({});
@@ -482,6 +477,25 @@ export default function ModalTrampas({
                   ) : (
                     <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                       <div className="space-y-1">
+                        <Label className="text-xs">Obs.</Label>
+                        <Input
+                          value={
+                            seguimientosRoedores[trampa.id]?.observacion || ''
+                          }
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            setSeguimientosRoedores((prev) => ({
+                              ...prev,
+                              [trampa.id]: {
+                                ...prev[trampa.id],
+                                observacion: newValue,
+                              },
+                            }));
+                          }}
+                        />
+                      </div>
+
+                      <div className="space-y-1">
                         <Label className="text-xs">Cantidad</Label>
                         <Input
                           type="number"
@@ -514,28 +528,28 @@ export default function ModalTrampas({
                       </div>
 
                       <div className="space-y-1">
-                        <Label className="text-xs">Merma</Label>
+                        <Label className="text-xs">Actual</Label>
                         <Input
                           type="number"
-                          min="0"
-                          value={seguimientosRoedores[trampa.id]?.merma || 0}
+                          value={seguimientosRoedores[trampa.id]?.actual || 0}
                           onChange={(e) =>
                             actualizarRoedor(
                               trampa.id,
-                              'merma',
-                              parseInt(e.target.value) || 0,
+                              'actual',
+                              parseInt(e.target.value),
                             )
                           }
                         />
                       </div>
 
                       <div className="space-y-1">
-                        <Label className="text-xs">Actual</Label>
+                        <Label className="text-xs">Merma</Label>
                         <Input
-                          type="number"
-                          value={seguimientosRoedores[trampa.id]?.actual || 0}
-                          disabled
                           className="bg-gray-100"
+                          type="number"
+                          min="0"
+                          value={seguimientosRoedores[trampa.id]?.merma || 0}
+                          disabled
                         />
                       </div>
                     </div>
@@ -575,213 +589,3 @@ export default function ModalTrampas({
     </Dialog>
   );
 }
-// ----------------------------------------------------
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogHeader,
-//   DialogTitle,
-// } from '@/components/ui/dialog';
-// import { Label } from '@/components/ui/label';
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from '@/components/ui/select';
-// import { useForm } from '@inertiajs/react';
-// import axios from 'axios';
-// import { useState } from 'react';
-
-// interface Empresa {
-//   id: number;
-//   nombre: string;
-// }
-// interface Almacen {
-//   id: number;
-//   nombre: string;
-// }
-
-// interface TrampaTipo {
-//   id: number;
-//   nombre: string;
-// }
-
-// interface Trampa {
-//   id: number;
-//   almacen_id: number;
-//   mapa_id: number;
-//   trampa_tipo_id: number;
-//   numero: number;
-//   tipo: string;
-//   posx: number;
-//   posy: number;
-//   estado: string;
-//   trampa_tipo: TrampaTipo;
-// }
-
-// interface Especie {
-//   id: number;
-//   nombre: string;
-// }
-
-// interface TrampaEspecieSeguimientos {
-//   id: number;
-//   trampa_seguimiento_id: number;
-//   trampa_id: number;
-//   especie_id: number;
-//   cantidad: number;
-// }
-
-// interface TrampaRoedoresSeguimiento {
-//   id: number;
-//   trampa_seguimiento_id: number;
-//   trampa_id: number;
-//   cantidad: number;
-//   inicial: number;
-//   merma: number;
-//   actual: number;
-// }
-
-// interface TrampaSeguimiento {
-//   id: number;
-//   almacen_id: number;
-//   mapa_id: number;
-// }
-
-// interface ModalTrampasProps {
-//   open: boolean;
-//   onClose: () => void;
-//   empresas: Empresa[];
-//   almacenes: Almacen[];
-// }
-
-// export default function ModalTrampas({
-//   open,
-//   onClose,
-//   empresas,
-//   almacenes,
-// }: ModalTrampasProps) {
-//   const { data, setData, post, processing, errors, reset } = useForm({
-//     empresa_id: '',
-//     almacen_id: '',
-//   });
-//   const [almacenesFiltrados, setAlmacenesFiltrados] =
-//     useState<Almacen[]>(almacenes);
-//   const [trampasFiltrados, setTrampasFiltrados] = useState<Trampa[]>();
-
-//   const [especies, setEspecies] = useState<Especie[]>();
-
-//   return (
-//     <Dialog
-//       open={open}
-//       onOpenChange={(isOpen) => {
-//         if (!isOpen) onClose();
-//       }}
-//     >
-//       <DialogContent>
-//         <DialogHeader>
-//           <DialogTitle>Nuevo seguimiento de trampas</DialogTitle>
-//         </DialogHeader>
-//         <div className="space-y-4">
-//           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-//             <div className="space-y-2">
-//               <Label>Empresa *</Label>
-//               {/* <Select
-//                     value={data.empresa_id}
-//                     onValueChange={(v) => setData('empresa_id', v)}
-//                   > */}
-//               <Select
-//                 value={data.empresa_id}
-//                 onValueChange={async (v) => {
-//                   setData('empresa_id', v);
-//                   setData('almacen_id', ''); // resetear almacén seleccionado
-
-//                   if (v) {
-//                     try {
-//                       const response = await axios.get(
-//                         `/empresas/${v}/almacenes`,
-//                       );
-//                       setAlmacenesFiltrados(response.data);
-//                     } catch (error) {
-//                       console.error('Error al cargar almacenes:', error);
-//                       setAlmacenesFiltrados([]);
-//                     }
-//                   } else {
-//                     setAlmacenesFiltrados([]);
-//                   }
-//                 }}
-//               >
-//                 <SelectTrigger>
-//                   <SelectValue placeholder="Seleccionar empresa" />
-//                 </SelectTrigger>
-//                 <SelectContent>
-//                   {empresas.map((e) => (
-//                     <SelectItem key={e.id} value={e.id.toString()}>
-//                       {e.nombre}
-//                     </SelectItem>
-//                   ))}
-//                 </SelectContent>
-//               </Select>
-//               {errors.empresa_id && (
-//                 <p className="text-sm text-red-500">
-//                   {errors.empresa_id || 'Error en empresa'}
-//                 </p>
-//               )}
-//             </div>
-//             <div className="space-y-2">
-//               <Label>Almacén *</Label>
-//               <Select
-//                 value={data.almacen_id}
-//                 onValueChange={async (v) => {
-//                   setData('almacen_id', v);
-//                   if (v) {
-//                     try {
-//                       const response = await axios.get(
-//                         `/seguimientos/${v}/trampas`,
-//                       );
-//                       console.log('RESPONSE *****');
-//                       console.log(response.data);
-//                       setTrampasFiltrados(response.data);
-
-//                       const responseA = await axios.get(
-//                         `/seguimientos/especies`,
-//                       );
-//                       console.log(responseA);
-//                       setEspecies(responseA.data);
-//                     } catch (error) {
-//                       console.error('Error al cargar almacenes:', error);
-//                       setTrampasFiltrados([]);
-//                     }
-//                   } else {
-//                     setTrampasFiltrados([]);
-//                   }
-//                 }}
-//               >
-//                 <SelectTrigger>
-//                   <SelectValue placeholder="Seleccionar almacén" />
-//                 </SelectTrigger>
-//                 <SelectContent>
-//                   {almacenesFiltrados.map((a) => (
-//                     <SelectItem key={a.id} value={a.id.toString()}>
-//                       {a.nombre}
-//                     </SelectItem>
-//                   ))}
-//                 </SelectContent>
-//               </Select>
-//             </div>
-//             <div>
-//               {trampasFiltrados?.map((a) => (
-//                 <>
-//                   <div>{a.numero}</div>
-//                   <div>{a.trampa_tipo.nombre}</div>
-//                 </>
-//               ))}
-//             </div>
-//           </div>
-//         </div>
-//       </DialogContent>
-//     </Dialog>
-//   );
-// }

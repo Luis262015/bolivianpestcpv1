@@ -13,10 +13,7 @@ class BiologicosController extends Controller
     return inertia('admin/biologicos/index', ['items' => $biologicos]);
   }
 
-  public function create()
-  {
-    return inertia('admin/biologicos/crear', ['biologico' => new Biologico()]);
-  }
+  public function create() {}
 
   public function store(Request $request)
   {
@@ -27,11 +24,7 @@ class BiologicosController extends Controller
 
   public function show(string $id) {}
 
-  public function edit(string $id)
-  {
-    $biologico = Biologico::find($id);
-    return inertia('admin/biologicos/editar', ['biologico' => $biologico]);
-  }
+  public function edit(string $id) {}
 
   public function update(Request $request, string $id)
   {

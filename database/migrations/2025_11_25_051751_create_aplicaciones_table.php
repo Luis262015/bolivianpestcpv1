@@ -14,18 +14,22 @@ return new class extends Migration
     Schema::create('aplicaciones', function (Blueprint $table) {
       $table->id();
       $table->foreignId('seguimiento_id')->constrained('seguimientos');
-      $table->integer('paredes_internas');
-      $table->integer('oficinas');
+      // Fumigaciones
       $table->integer('pisos');
-      $table->integer('banos');
-      $table->integer('cocinas');
-      $table->integer('almacenes');
-      $table->integer('porteria');
-      $table->integer('policial');
-      $table->integer('trampas');
-      $table->integer('trampas_cambiar');
+      $table->integer('paredes_internas');
+      // Desinfeccion
+      $table->integer('ambientes');
+      // $table->integer('oficinas');
+      // $table->integer('banos');
+      // $table->integer('cocinas');
+      // $table->integer('almacenes');
+      // $table->integer('porteria');
+      // $table->integer('policial');
+      // Control de roedores
       $table->integer('internas');
       $table->integer('externas');
+      $table->integer('trampas');
+      $table->integer('trampas_cambiar');
       $table->integer('roedores');
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();

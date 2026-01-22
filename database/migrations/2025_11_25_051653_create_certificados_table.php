@@ -18,6 +18,7 @@ return new class extends Migration
       $table->string('qrcode');
       $table->string('firmadigital');
       $table->string('titulo');
+      $table->string('establecimiento');
       $table->string('actividad');
       // $table->date('validez');
       $table->string('validez');

@@ -61,8 +61,10 @@ class ContratoController extends Controller
     'almacenes.*.almacen_insectocutor' => 'required|array|min:1',
     'almacenes.*.almacen_insectocutor.id' => 'integer',
     'almacenes.*.almacen_insectocutor.cantidad' => 'required|numeric|min:0',
+    'almacenes.*.almacen_insectocutor.visitas' => 'required|numeric|min:0',
     'almacenes.*.almacen_insectocutor.precio' => 'required|numeric|min:0',
     'almacenes.*.almacen_insectocutor.total' => 'required|numeric|min:0',
+    'almacenes.*.almacen_insectocutor.fechas_visitas' => 'sometimes|required|array|min:1',
   ];
 
   public function index()
@@ -83,7 +85,12 @@ class ContratoController extends Controller
   public function store(Request $request)
   {
 
+
+    // dd($request);
+
     $validated = $request->validate($this->toValidated);
+
+    // dd($validated);
 
     try {
 
@@ -145,6 +152,7 @@ class ContratoController extends Controller
         $insect = new AlmancenInsectocutor();
         $insect->almacen_id = $almacendb->id;
         $insect->cantidad = $almacen['almacen_insectocutor']['cantidad'];
+        $insect->visitas = $almacen['almacen_insectocutor']['visitas'];
         $insect->precio = $almacen['almacen_insectocutor']['precio'];
         $insect->total = $almacen['almacen_insectocutor']['total'];
         $insect->save();
@@ -162,6 +170,7 @@ class ContratoController extends Controller
         $detalles->a_precio = $almacen['almacen_area']['precio'];
         $detalles->a_total = $almacen['almacen_area']['total'];
         $detalles->i_cantidad = $almacen['almacen_insectocutor']['cantidad'];
+        $detalles->i_visitas = $almacen['almacen_insectocutor']['visitas'];
         $detalles->i_precio = $almacen['almacen_insectocutor']['precio'];
         $detalles->i_total = $almacen['almacen_insectocutor']['total'];
         $detalles->total = 0;
@@ -174,7 +183,7 @@ class ContratoController extends Controller
           $cronograma->almacen_id = $almacendb->id;
           $cronograma->user_id = Auth::id();
           $cronograma->tecnico_id = Auth::id();
-          $cronograma->title = 'Trampas';
+          $cronograma->title = 'Desratización';
           $cronograma->date = $fecha;
           $cronograma->color = 'bg-yellow-500';
           $cronograma->status = 'pendiente';
@@ -186,9 +195,21 @@ class ContratoController extends Controller
           $cronograma->almacen_id = $almacendb->id;
           $cronograma->user_id = Auth::id();
           $cronograma->tecnico_id = Auth::id();
-          $cronograma->title = 'Fumigacion';
+          $cronograma->title = 'Fumigación';
           $cronograma->date = $fecha;
           $cronograma->color = 'bg-blue-500';
+          $cronograma->status = 'pendiente';
+          $cronograma->save();
+        }
+        // -- Fechas insectocutores
+        foreach ($almacen['almacen_insectocutor']['fechas_visitas'] as $fecha) {
+          $cronograma = new Cronograma();
+          $cronograma->almacen_id = $almacendb->id;
+          $cronograma->user_id = Auth::id();
+          $cronograma->tecnico_id = Auth::id();
+          $cronograma->title = 'Insectocutores';
+          $cronograma->date = $fecha;
+          $cronograma->color = 'bg-pink-600';
           $cronograma->status = 'pendiente';
           $cronograma->save();
         }
@@ -298,6 +319,7 @@ class ContratoController extends Controller
           // -- Actualizacion de insectocutores
           $insect = AlmancenInsectocutor::where('almacen_id', $almacen['id'])->first();
           $insect->cantidad = $almacen['almacen_insectocutor']['cantidad'];
+          $insect->visitas = $almacen['almacen_insectocutor']['visitas'];
           $insect->precio = $almacen['almacen_insectocutor']['precio'];
           $insect->total = $almacen['almacen_insectocutor']['total'];
           $insect->update();
@@ -313,6 +335,7 @@ class ContratoController extends Controller
           $detalles->a_precio = $almacen['almacen_area']['precio'];
           $detalles->a_total = $almacen['almacen_area']['total'];
           $detalles->i_cantidad = $almacen['almacen_insectocutor']['cantidad'];
+          $detalles->i_visitas = $almacen['almacen_insectocutor']['visitas'];
           $detalles->i_precio = $almacen['almacen_insectocutor']['precio'];
           $detalles->i_total = $almacen['almacen_insectocutor']['total'];
           $detalles->update();
@@ -348,6 +371,7 @@ class ContratoController extends Controller
           $insect = new AlmancenInsectocutor();
           $insect->almacen_id = $almacendb->id;
           $insect->cantidad = $almacen['almacen_insectocutor']['cantidad'];
+          $insect->visitas = $almacen['almacen_insectocutor']['visitas'];
           $insect->precio = $almacen['almacen_insectocutor']['precio'];
           $insect->total = $almacen['almacen_insectocutor']['total'];
           $insect->save();
