@@ -42,7 +42,7 @@ class IngresosController extends Controller
     return redirect()->route('ingresos.index');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(string $id)
   {
@@ -76,4 +76,7 @@ class IngresosController extends Controller
     $ingreso->delete();
     return redirect()->route('ingresos.index');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function show(string $id) {}
 }

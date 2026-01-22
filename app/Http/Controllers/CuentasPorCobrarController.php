@@ -48,7 +48,7 @@ class CuentasPorCobrarController extends Controller
     return inertia('admin/cuentasporcobrar/lista', ['cuentascobrar' =>  $cuentascobrar]);
   }
 
-  public function create() {}
+
 
   public function store(Request $request)
   {
@@ -82,11 +82,7 @@ class CuentasPorCobrarController extends Controller
     return redirect()->route('cuentasporcobrar.index');
   }
 
-  public function show(string $id) {}
 
-  public function edit(string $id) {}
-
-  public function update(Request $request, string $id) {}
 
   public function destroy(string $id)
   {
@@ -172,4 +168,11 @@ class CuentasPorCobrarController extends Controller
     }
     return redirect()->route('cuentasporcobrar.index');
   }
+
+  /** FUNCIONES NO USADAS */
+
+  public function create() {}
+  public function show(string $id) {}
+  public function edit(string $id) {}
+  public function update(Request $request, string $id) {}
 }

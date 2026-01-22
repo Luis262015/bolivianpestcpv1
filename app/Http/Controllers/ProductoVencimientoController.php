@@ -9,9 +9,6 @@ use Inertia\Inertia;
 
 class ProductoVencimientoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Producto $producto)
     {
         $vencimientos = $producto->vencimientos()
@@ -36,17 +33,8 @@ class ProductoVencimientoController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+
     public function store(Request $request, Producto $producto)
     {
         $validated = $request->validate([
@@ -69,33 +57,8 @@ class ProductoVencimientoController extends Controller
             ->with('success', 'Vencimiento registrado correctamente');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Producto $producto, ProductoVencimiento $vencimiento)
     {
         // Seguridad adicional: verificar que pertenece al producto
@@ -109,4 +72,12 @@ class ProductoVencimientoController extends Controller
         return redirect('/productos')
             ->with('success', 'Vencimiento registrado correctamente');
     }
+
+    /** FUNCIONES NO USADAS */
+    public function create() {}
+    public function show(string $id) {}
+
+    public function edit(string $id) {}
+
+    public function update(Request $request, string $id) {}
 }

@@ -81,11 +81,6 @@ class CuentasPorPagarController extends Controller
     return redirect()->route('cuentasporpagar.index');
   }
 
-  public function show(string $id) {}
-
-  public function edit(string $id) {}
-
-  public function update(Request $request, string $id) {}
 
   public function destroy(string $id)
   {
@@ -161,4 +156,12 @@ class CuentasPorPagarController extends Controller
     }
     return redirect()->route('cuentasporpagar.index');
   }
+
+  /** FUNCIONES NO USADAS */
+
+  public function show(string $id) {}
+
+  public function edit(string $id) {}
+
+  public function update(Request $request, string $id) {}
 }

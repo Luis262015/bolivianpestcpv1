@@ -127,7 +127,7 @@ class MapaController extends Controller
     // ]);
   }
 
-  public function create() {}
+
 
   public function store(Request $request)
   {
@@ -304,9 +304,7 @@ class MapaController extends Controller
     return back()->with('success', 'Mapa guardado correctamente');
   }
 
-  public function show(string $id) {}
 
-  public function edit(string $id) {}
 
   public function update(Request $request, string $id)
   {
@@ -430,5 +428,10 @@ class MapaController extends Controller
     }
   }
 
+
+  /** FUNCIONES NO USADAS */
+  public function create() {}
+  public function show(string $id) {}
+  public function edit(string $id) {}
   public function destroy(string $id) {}
 }

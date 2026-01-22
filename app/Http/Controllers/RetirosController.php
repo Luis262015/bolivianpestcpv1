@@ -37,7 +37,7 @@ class RetirosController extends Controller
     return redirect()->route('retiros.index');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(string $id)
   {
@@ -70,4 +70,8 @@ class RetirosController extends Controller
     $retiro->delete();
     return redirect()->route('retiros.index');
   }
+
+  /** FUNCIONES NO USADAS */
+
+  public function show(string $id) {}
 }

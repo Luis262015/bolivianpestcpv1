@@ -108,12 +108,6 @@ class ComprasController extends Controller
     }
   }
 
-  public function show(string $id) {}
-
-  public function edit(string $id) {}
-
-  public function update(Request $request, string $id) {}
-
   public function destroy(string $id)
   {
 
@@ -153,4 +147,11 @@ class ComprasController extends Controller
         ->with('error', 'Error al eliminar la compra: ' . $e->getMessage());
     }
   }
+
+  /** FUNCIONES NO USADAS */
+  public function show(string $id) {}
+
+  public function edit(string $id) {}
+
+  public function update(Request $request, string $id) {}
 }

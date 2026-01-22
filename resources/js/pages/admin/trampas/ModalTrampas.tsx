@@ -302,7 +302,11 @@ export default function ModalTrampas({
         }
       }}
     >
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+      <DialogContent
+        className="max-h-[90vh] max-w-4xl overflow-y-auto"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>
             {isEditMode ? 'Editar' : 'Nuevo'} seguimiento de trampas

@@ -22,7 +22,7 @@ class GastosOpController extends Controller
     return inertia('admin/gastosOp/index', ['gastos' => $gastosop, 'cuentas' => $cuentas]);
   }
 
-  public function create() {}
+
 
   public function store(Request $request)
   {
@@ -31,9 +31,7 @@ class GastosOpController extends Controller
     return redirect()->route('gastosop.index');
   }
 
-  public function show(string $id) {}
 
-  public function edit(string $id) {}
 
   public function update(Request $request, string $id)
   {
@@ -49,4 +47,10 @@ class GastosOpController extends Controller
     $gasto->delete();
     return redirect()->route('gastosop.index');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function create() {}
+  public function show(string $id) {}
+
+  public function edit(string $id) {}
 }

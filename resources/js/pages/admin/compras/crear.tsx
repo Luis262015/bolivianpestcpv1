@@ -502,7 +502,10 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
       </div>
       {/* ===== MODAL PROVEEDOR ===== */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Nuevo Proveedor</DialogTitle>
           </DialogHeader>

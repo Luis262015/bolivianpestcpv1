@@ -65,7 +65,7 @@ class UsersController extends Controller
     return redirect()->route('usuarios.index')->with('success', 'Usuario creado y rol asignado correctamente.');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(User $usuario)
   {
@@ -116,4 +116,7 @@ class UsersController extends Controller
     $user->deleteOrFail();
     return redirect()->route('usuarios.index')->with('success', 'Usuario eliminado');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function show(string $id) {}
 }

@@ -13,7 +13,7 @@ class EspeciesController extends Controller
     return inertia('admin/especies/index', ['items' => $especies]);
   }
 
-  public function create() {}
+
 
   public function store(Request $request)
   {
@@ -22,9 +22,7 @@ class EspeciesController extends Controller
     return redirect()->route('especies.index');
   }
 
-  public function show(string $id) {}
 
-  public function edit(string $id) {}
 
   public function update(Request $request, string $id)
   {
@@ -40,4 +38,10 @@ class EspeciesController extends Controller
     $metodo->delete();
     return redirect()->route('especies.index');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function create() {}
+  public function show(string $id) {}
+
+  public function edit(string $id) {}
 }

@@ -178,7 +178,12 @@ export default function Index() {
                 <Plus className="mr-2 h-4 w-4" /> Nuevo Usuario
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md" aria-describedby="uu">
+            <DialogContent
+              className="max-w-md"
+              aria-describedby="uu"
+              onInteractOutside={(e) => e.preventDefault()}
+              onEscapeKeyDown={(e) => e.preventDefault()}
+            >
               <DialogHeader>
                 <DialogTitle>
                   {editItem ? 'Editar Usuario' : 'Nuevo Usuario'}

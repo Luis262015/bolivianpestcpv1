@@ -34,7 +34,7 @@ class ProveedoresController extends Controller
     return redirect()->route('proveedores.index');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(string $id)
   {
@@ -90,4 +90,7 @@ class ProveedoresController extends Controller
 
     return response()->json($proveedor);
   }
+
+  /** FUNCIONES NO USADAS */
+  public function show(string $id) {}
 }

@@ -379,7 +379,11 @@ export default function Index() {
                 <Plus className="mr-2 h-4 w-4" /> Nuevo
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+            <DialogContent
+              className="max-h-[90vh] max-w-3xl overflow-y-auto"
+              onInteractOutside={(e) => e.preventDefault()}
+              onEscapeKeyDown={(e) => e.preventDefault()}
+            >
               <DialogHeader>
                 <DialogTitle>
                   {editingId ? 'Editar' : 'Crear'} Cuenta por Pagar
@@ -684,7 +688,11 @@ export default function Index() {
 
         {/* Dialog para gestionar cuotas (plan de pagos existente) */}
         <Dialog open={openCuotas} onOpenChange={setOpenCuotas}>
-          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+          <DialogContent
+            className="max-h-[90vh] max-w-4xl overflow-y-auto"
+            onInteractOutside={(e) => e.preventDefault()}
+            onEscapeKeyDown={(e) => e.preventDefault()}
+          >
             <DialogHeader>
               <DialogTitle>Plan de Pagos - Cuotas</DialogTitle>
               <DialogDescription>
@@ -847,7 +855,11 @@ export default function Index() {
 
         {/* Dialog para cobrar */}
         <Dialog open={openCobrar} onOpenChange={setOpenCobrar}>
-          <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+          <DialogContent
+            className="max-h-[90vh] max-w-3xl overflow-y-auto"
+            onInteractOutside={(e) => e.preventDefault()}
+            onEscapeKeyDown={(e) => e.preventDefault()}
+          >
             <DialogHeader>
               <DialogTitle>Registrar Pago</DialogTitle>
               <DialogDescription>

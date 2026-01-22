@@ -25,7 +25,7 @@ class EtiquetasController extends Controller
     return redirect()->route('etiquetas.index');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(string $id)
   {
@@ -47,4 +47,7 @@ class EtiquetasController extends Controller
     $etiqueta->delete();
     return redirect()->route('etiquetas.index');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function show(string $id) {}
 }

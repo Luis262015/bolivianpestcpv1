@@ -25,7 +25,7 @@ class SignosController extends Controller
     return redirect()->route('signos.index');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(string $id)
   {
@@ -47,4 +47,7 @@ class SignosController extends Controller
     $signo->delete();
     return redirect()->route('signos.index');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function show(string $id) {}
 }

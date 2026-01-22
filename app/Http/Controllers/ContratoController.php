@@ -85,12 +85,7 @@ class ContratoController extends Controller
   public function store(Request $request)
   {
 
-
-    // dd($request);
-
     $validated = $request->validate($this->toValidated);
-
-    // dd($validated);
 
     try {
 
@@ -241,14 +236,6 @@ class ContratoController extends Controller
     }
   }
 
-  /**
-   * Display the specified resource.
-   */
-  public function show(string $id) {}
-
-  /**
-   * Show the form for editing the specified resource.
-   */
   public function edit(string $id)
   {
     $contrato = Contrato::with(['detalles', 'empresa'])->findOrFail($id);
@@ -256,9 +243,6 @@ class ContratoController extends Controller
     return inertia('admin/contrato/editar', ['contrato' => $contrato, 'almacenes' => $almacenes]);
   }
 
-  /**
-   * Update the specified resource in storage.
-   */
   public function update(Request $request, string $id)
   {
 
@@ -415,9 +399,6 @@ class ContratoController extends Controller
     }
   }
 
-  /**
-   * Remove the specified resource from storage.
-   */
   public function destroy(string $id)
   {
     try {
@@ -478,4 +459,7 @@ class ContratoController extends Controller
     return $pdf->stream('contrato-' . now()->format('Y-m-d') . '.pdf');
     // o ->download() si quieres forzar descarga
   }
+
+  /** FUNCIONES NO USADAS */
+  public function show(string $id) {}
 }

@@ -13,18 +13,12 @@ class BiologicosController extends Controller
     return inertia('admin/biologicos/index', ['items' => $biologicos]);
   }
 
-  public function create() {}
-
   public function store(Request $request)
   {
     $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
     Biologico::create($validated);
     return redirect()->route('biologicos.index');
   }
-
-  public function show(string $id) {}
-
-  public function edit(string $id) {}
 
   public function update(Request $request, string $id)
   {
@@ -40,4 +34,9 @@ class BiologicosController extends Controller
     $biologico->delete();
     return redirect()->route('biologicos.index');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function create() {}
+  public function show(string $id) {}
+  public function edit(string $id) {}
 }

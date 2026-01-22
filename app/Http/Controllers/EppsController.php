@@ -25,7 +25,7 @@ class EppsController extends Controller
     return redirect()->route('epps.index');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(string $id)
   {
@@ -47,4 +47,7 @@ class EppsController extends Controller
     $epp->delete();
     return redirect()->route('epps.index');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function show(string $id) {}
 }

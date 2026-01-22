@@ -26,8 +26,6 @@ class AgendaController extends Controller
     ]);
   }
 
-  public function create() {}
-
   public function store(Request $request)
   {
     $validated = $request->validate($this->toValidated);
@@ -37,10 +35,6 @@ class AgendaController extends Controller
     ]);
     return redirect()->route('agendas.index')->with('success', 'Tarea creada correctamente');
   }
-
-  public function show(string $id) {}
-
-  public function edit(string $id) {}
 
   public function update(Request $request, Agenda $agenda)
   {
@@ -64,4 +58,9 @@ class AgendaController extends Controller
       abort(403);
     }
   }
+
+  /** FUNCIONES NO USADAS */
+  public function create() {}
+  public function show(string $id) {}
+  public function edit(string $id) {}
 }

@@ -81,17 +81,7 @@ class InformesController extends Controller
         ]);
     }
 
-    public function create() {}
 
-    public function store(Request $request) {}
-
-    public function show(string $id) {}
-
-    public function edit(string $id) {}
-
-    public function update(Request $request, string $id) {}
-
-    public function destroy(string $id) {}
 
     public function obtenerEstado(Request $request)
     {
@@ -164,4 +154,17 @@ class InformesController extends Controller
         $seguimientos = Seguimiento::where('almacen_id', $id)->select('id', 'created_at')->latest()->get();
         return response()->json($seguimientos);
     }
+
+    /** FUNCIONES NO USADAS */
+    public function create() {}
+
+    public function store(Request $request) {}
+
+    public function show(string $id) {}
+
+    public function edit(string $id) {}
+
+    public function update(Request $request, string $id) {}
+
+    public function destroy(string $id) {}
 }

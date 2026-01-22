@@ -19,7 +19,7 @@ class RolePermissionController extends Controller
     ]);
   }
 
-  public function create() {}
+
 
   public function store(Request $request)
   {
@@ -33,9 +33,7 @@ class RolePermissionController extends Controller
     return redirect()->back()->with('success', 'Rol creado exitosamente.');
   }
 
-  public function show(string $id) {}
 
-  public function edit(string $id) {}
 
   public function update(Request $request, Role $role)
   {
@@ -64,4 +62,10 @@ class RolePermissionController extends Controller
     $user->assignRole($role->name);
     return redirect()->back()->with('success', 'Rol asignado al usuario.');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function create() {}
+  public function show(string $id) {}
+
+  public function edit(string $id) {}
 }

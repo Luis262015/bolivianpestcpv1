@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('seguimiento_id')->constrained('seguimientos');
             $table->foreignId('trampa_id')->constrained('trampas');
-            $table->string('observacion');
+            $table->string('observacion')->nullable();
             $table->integer('cantidad');
             $table->double('inicial');
             $table->double('merma');

@@ -103,7 +103,7 @@ class GastosController extends Controller
     return redirect()->route('gastos.index');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(string $id)
   {
@@ -137,4 +137,7 @@ class GastosController extends Controller
     $gasto->delete();
     return redirect()->route('gastos.index');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function show(string $id) {}
 }

@@ -25,7 +25,7 @@ class MetodosController extends Controller
     return redirect()->route('metodos.index');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(string $id)
   {
@@ -47,4 +47,7 @@ class MetodosController extends Controller
     $metodo->delete();
     return redirect()->route('metodos.index');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function show(string $id) {}
 }

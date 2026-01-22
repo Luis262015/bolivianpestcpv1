@@ -25,7 +25,7 @@ class ProteccionesController extends Controller
     return redirect()->route('protecciones.index');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(string $id)
   {
@@ -47,4 +47,7 @@ class ProteccionesController extends Controller
     $proteccion->delete();
     return redirect()->route('protecciones.index');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function show(string $id) {}
 }

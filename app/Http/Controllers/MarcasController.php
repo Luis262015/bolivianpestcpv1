@@ -28,7 +28,7 @@ class MarcasController extends Controller
     return redirect()->route('marcas.index');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(Marca $marca)
   {
@@ -51,4 +51,8 @@ class MarcasController extends Controller
     $marca->delete();
     return redirect()->route('marcas.index');
   }
+
+  /** FUNCIONES NO USADAS */
+
+  public function show(string $id) {}
 }

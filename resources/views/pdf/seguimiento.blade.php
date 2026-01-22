@@ -172,29 +172,44 @@
         <td>
           <table>
             <tr>
-              <td>PAREDES INTERNAS: <span>{{ $seguimiento->aplicacion->paredes_internas }}</span></td>
-              <td>OFICINAS: <span>{{ $seguimiento->aplicacion->oficinas }}</span></td>
-              <td>PISOS: <span>{{ $seguimiento->aplicacion->pisos }}</span></td>
-              <td>BAÑOS: <span>{{ $seguimiento->aplicacion->banos }}</span></td>
+              <td rowspan="5">FUMIGACIONES</td>
             </tr>
             <tr>
-              <td>COCINAS: <span>{{ $seguimiento->aplicacion->cocinas }}</span></td>
+              <td>PAREDES INTERNAS: <span>{{ $seguimiento->aplicacion->paredes_internas ?? 'No disponible' }}</span>
+              </td>
+              <td>PISOS: <span>{{ $seguimiento->aplicacion->pisos ?? 'No disponible' }}</span></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              {{-- <td>OFICINAS: <span>{{ $seguimiento->aplicacion->oficinas }}</span></td>
+              <td>BAÑOS: <span>{{ $seguimiento->aplicacion->banos }}</span></td> --}}
+            </tr>
+            <tr>
+              <td rowspan="5">DESINFECCION</td>
+            </tr>
+            <tr>
+              <td>PISOS: <span>{{ $seguimiento->aplicacion->ambientes ?? 'No disponible' }}</span></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              {{-- <td>COCINAS: <span>{{ $seguimiento->aplicacion->cocinas }}</span></td>
               <td>ALMACENES: <span>{{ $seguimiento->aplicacion->almacenes }}</span></td>
               <td>PORTERIA: <span>{{ $seguimiento->aplicacion->porteria }}</span></td>
-              <td>POLICIAL: <span>{{ $seguimiento->aplicacion->policial }}</span></td>
+              <td>POLICIAL: <span>{{ $seguimiento->aplicacion->policial }}</span></td> --}}
+
             </tr>
             <tr>
-              <td>TRAMPAS: <span>{{ $seguimiento->aplicacion->trampas }}</span></td>
-              <td>CAMBIAR TRAMPAS: <span>{{ $seguimiento->aplicacion->trampas_cambiar }}</span></td>
-              <td>INTERNAS: <span>{{ $seguimiento->aplicacion->internas }}</span></td>
-              <td>EXTERNAS: <span>{{ $seguimiento->aplicacion->externas }}</span></td>
+              <td rowspan="5">CONTROL DE ROEDORES</td>
             </tr>
             <tr>
-              <td>ROEDORES: <span>{{ $seguimiento->aplicacion->roedores }}</span></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td>TRAMPAS: <span>{{ $seguimiento->aplicacion->trampas ?? 'No disponible' }}</span></td>
+              <td>CAMBIAR TRAMPAS: <span>{{ $seguimiento->aplicacion->trampas_cambiar ?? 'No disponible' }}</span></td>
+              <td>INTERNAS: <span>{{ $seguimiento->aplicacion->internas ?? 'No disponible' }}</span></td>
+              <td>EXTERNAS: <span>{{ $seguimiento->aplicacion->externas ?? 'No disponible' }}</span></td>
+              <td>ROEDORES: <span>{{ $seguimiento->aplicacion->roedores ?? 'No disponible' }}</span></td>
             </tr>
+
           </table>
         </td>
       </tr>

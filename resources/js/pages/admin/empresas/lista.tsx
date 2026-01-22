@@ -239,7 +239,11 @@ export default function Lista() {
 
       {/* DIALOG LISTA CERTIFICADOS */}
       <Dialog open={openList} onOpenChange={setOpenList}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent
+          className="max-w-2xl"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>
               Certificados – {empresaSeleccionada?.nombre}

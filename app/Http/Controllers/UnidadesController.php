@@ -13,7 +13,7 @@ class UnidadesController extends Controller
     return inertia('admin/unidades/index', ['items' => $unidades]);
   }
 
-  public function create() {}
+
 
 
   public function store(Request $request)
@@ -23,9 +23,7 @@ class UnidadesController extends Controller
     return redirect()->route('unidades.index');
   }
 
-  public function show(string $id) {}
 
-  public function edit(string $id) {}
 
   public function update(Request $request, string $id)
   {
@@ -41,4 +39,11 @@ class UnidadesController extends Controller
     $metodo->delete();
     return redirect()->route('unidades.index');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function create() {}
+
+  public function show(string $id) {}
+
+  public function edit(string $id) {}
 }

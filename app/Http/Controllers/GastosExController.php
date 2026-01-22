@@ -20,7 +20,7 @@ class GastosExController extends Controller
     return inertia('admin/gastosEx/index', ['gastos' => $gastosex, 'cuentas' => $cuentas]);
   }
 
-  public function create() {}
+
 
   public function store(Request $request)
   {
@@ -29,9 +29,7 @@ class GastosExController extends Controller
     return redirect()->route('gastosex.index');
   }
 
-  public function show(string $id) {}
 
-  public function edit(string $id) {}
 
   public function update(Request $request, string $id)
   {
@@ -47,4 +45,10 @@ class GastosExController extends Controller
     $gasto->delete();
     return redirect()->route('gastosex.index');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function create() {}
+  public function show(string $id) {}
+
+  public function edit(string $id) {}
 }

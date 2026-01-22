@@ -339,7 +339,11 @@ export default function Index() {
 
       {/* ── Diálogo Vencimientos ──────────────────────────────────────── */}
       <Dialog open={openVencimientos} onOpenChange={setOpenVencimientos}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent
+          className="sm:max-w-[600px]"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Vencimientos del producto</DialogTitle>
             <DialogDescription>
@@ -426,7 +430,11 @@ export default function Index() {
 
       {/* ── Diálogo Hojas Técnicas ────────────────────────────────────── */}
       <Dialog open={openHojas} onOpenChange={setOpenHojas}>
-        <DialogContent className="sm:max-w-[700px]">
+        <DialogContent
+          className="sm:max-w-[700px]"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Hojas Técnicas / Fichas técnicas</DialogTitle>
             <DialogDescription>

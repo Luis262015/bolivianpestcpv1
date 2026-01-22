@@ -40,7 +40,7 @@ class SubcategoriasController extends Controller
     return redirect()->route('subcategorias.index');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(string $id)
   {
@@ -64,4 +64,7 @@ class SubcategoriasController extends Controller
     $subcategoria->delete();
     return redirect()->route('subcategorias.index');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function show(string $id) {}
 }

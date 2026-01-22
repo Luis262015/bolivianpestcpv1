@@ -121,7 +121,11 @@ export default function Index() {
                 <Plus className="mr-2 h-4 w-4" /> Nuevo
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent
+              className="max-w-md"
+              onInteractOutside={(e) => e.preventDefault()}
+              onEscapeKeyDown={(e) => e.preventDefault()}
+            >
               <DialogHeader>
                 <DialogTitle>{editItem ? 'Editar' : 'Crear'}</DialogTitle>
               </DialogHeader>

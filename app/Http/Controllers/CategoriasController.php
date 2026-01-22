@@ -13,8 +13,6 @@ class CategoriasController extends Controller
     return inertia('admin/categorias/index', ['items' => $categorias]);
   }
 
-  public function create() {}
-
   public function store(Request $request)
   {
     $validated = $request->validate([
@@ -23,10 +21,6 @@ class CategoriasController extends Controller
     Categoria::create($validated);
     return redirect()->route('categorias.index');
   }
-
-  public function show(string $id) {}
-
-  public function edit(Categoria $categoria) {}
 
   public function update(Request $request, Categoria $categoria)
   {
@@ -43,4 +37,9 @@ class CategoriasController extends Controller
     Categoria::find($id)->delete();
     return redirect()->route('categorias.index');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function create() {}
+  public function show(string $id) {}
+  public function edit(Categoria $categoria) {}
 }

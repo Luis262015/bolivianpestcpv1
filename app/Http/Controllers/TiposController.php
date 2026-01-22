@@ -25,7 +25,7 @@ class TiposController extends Controller
     return redirect()->route('tipos.index');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(string $id)
   {
@@ -47,4 +47,8 @@ class TiposController extends Controller
     $tipo->delete();
     return redirect()->route('tipos.index');
   }
+
+  /** FUNCIONES NO USADAS */
+
+  public function show(string $id) {}
 }

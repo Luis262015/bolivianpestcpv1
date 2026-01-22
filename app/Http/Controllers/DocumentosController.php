@@ -58,7 +58,7 @@ class DocumentosController extends Controller
     return redirect()->route('documentos.index')->with('success', 'Documento subido correctamente');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(Documento $documento)
   {
@@ -128,4 +128,7 @@ class DocumentosController extends Controller
       $documento->nombre . '.' . pathinfo($documento->ruta, PATHINFO_EXTENSION)
     );
   }
+
+  /** FUNCIONES NO USADAS */
+  public function show(string $id) {}
 }

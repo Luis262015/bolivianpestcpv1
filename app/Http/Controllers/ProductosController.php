@@ -84,7 +84,7 @@ class ProductosController extends Controller
     return redirect()->route('productos.index')->with('success', 'Producto creado con éxito');
   }
 
-  public function show(string $id) {}
+
 
   public function edit(string $id)
   {
@@ -206,4 +206,7 @@ class ProductosController extends Controller
 
     return back()->with('success', 'Hoja técnica eliminada');
   }
+
+  /** FUNCIONES NO USADAS */
+  public function show(string $id) {}
 }
