@@ -284,7 +284,7 @@
       <tr>
         <td>
           @foreach ($seguimiento->images as $image)
-            <img src="{{ public_path('storage/' . $image->imagen) }}" alt="" width="150px">
+            <img src="{{ public_path($image->imagen) }}" alt="" width="150px">
           @endforeach
         </td>
       </tr>
@@ -301,14 +301,14 @@
     <table>
       <tr>
         <td style="width: 50%; text-align: center;">
-          <div><img src="{{ public_path('storage/' . $seguimiento->firma_encargado) }}" alt="" width="150px">
+          <div><img src="{{ public_path($seguimiento->firma_encargado) }}" alt="" width="150px">
           </div>
           <div>ENCARGADO</div>
           <div>{{ $seguimiento->encargado_nombre }}</div>
           <div>{{ $seguimiento->encargado_cargo }}</div>
         </td>
         <td style="width: 50%; text-align: center;">
-          <div><img src="{{ public_path('storage/' . $seguimiento->firma_supervisor) }}" alt="" width="150px">
+          <div><img src="{{ public_path($seguimiento->firma_supervisor) }}" alt="" width="150px">
           </div>
           <div>TECNICO</div>
           <div>{{ $seguimiento->user->name }}</div>

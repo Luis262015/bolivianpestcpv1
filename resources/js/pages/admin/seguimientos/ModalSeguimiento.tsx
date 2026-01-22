@@ -424,8 +424,8 @@ export default function ModalSeguimiento({
     >
       <DialogContent
         className="max-h-[90vh] overflow-y-auto sm:max-w-[800px]"
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
+        // onInteractOutside={(e) => e.preventDefault()}
+        // onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
           <DialogTitle>Nuevo Seguimiento - Paso {step} de 13</DialogTitle>

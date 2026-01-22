@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('trampa_especie_seguimientos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('trampa_seguimiento_id')->constrained('trampa_seguimientos');
+            $table->foreignId('seguimiento_id')->constrained('seguimientos');
             $table->foreignId('trampa_id')->constrained('trampas');
             $table->foreignId('especie_id')->constrained('especies');
             $table->integer('cantidad');

@@ -24,6 +24,8 @@ use App\Models\SeguimientoSigno;
 use App\Models\Signo;
 use App\Models\TipoSeguimiento;
 use App\Models\Trampa;
+use App\Models\TrampaEspecieSeguimiento;
+use App\Models\TrampaRoedorSeguimiento;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -52,7 +54,9 @@ class SeguimientoController extends Controller
     'encargado_cargo' => 'required|string',
     'observaciones_generales' => 'nullable|string',
     'aplicacion_data' => 'array|min:1',
-    'especies_ids' => 'nullable|array'
+    'especies_ids' => 'nullable|array',
+    'trampa_especies_seguimientos' => 'nullable|array',
+    'trampa_roedores_seguimientos' => 'nullable|array'
   ];
   public function index(Request $request)
   {
@@ -90,31 +94,9 @@ class SeguimientoController extends Controller
       'seguimientos' => $seguimientos,
     ]);
   }
-
-  public function create()
-  {
-
-    $empresas = Empresa::select('id', 'nombre')->get();
-    $almacenes = Almacen::select('id', 'nombre')->get();
-    $biologicos = Biologico::orderBy('nombre')->get();
-    $epps = Epp::orderBy('nombre')->get();
-    $metodos = Metodo::orderBy('nombre')->get();
-    $protecciones = Proteccion::orderBy('nombre')->get();
-    $signos = Signo::orderBy('nombre')->get();
-    return inertia('admin/seguimientos/crear', [
-      'empresas' => $empresas,
-      'almacenes' => $almacenes,
-      'biologicos' => $biologicos,
-      'epps' => $epps,
-      'metodos' => $metodos,
-      'protecciones' => $protecciones,
-      'signos' => $signos,
-    ]);
-  }
-
   public function store(Request $request)
   {
-    dd($request);
+    // dd($request);
 
     $validated = $request->validate($this->toValidated);
 
@@ -135,10 +117,25 @@ class SeguimientoController extends Controller
       $image = $request->firma_encargado;
       $image = str_replace('data:image/png;base64,', '', $image);
       $image = str_replace(' ', '+', $image);
+      // 📝 Nombre del archivo
       $imageName = 'firma_encargado_' . time() . '.png';
 
-      Storage::disk('public')->put('firmas/' . $imageName, base64_decode($image));
-      $seguimiento['firma_encargado'] = 'firmas/' . $imageName;
+      // 📁 Carpeta destino (PUBLICA)
+      $directory = public_path('images/firmas');
+
+      // Crear carpeta si no existe
+      if (!file_exists($directory)) {
+        mkdir($directory, 0755, true);
+      }
+
+      // 📍 Ruta completa
+      $fullPath = $directory . '/' . $imageName;
+
+      // 💾 Guardar archivo
+      file_put_contents($fullPath, base64_decode($image));
+
+      // Storage::disk('public')->put('firmas/' . $imageName, base64_decode($image));
+      $seguimiento['firma_encargado'] = 'images/firmas/' . $imageName;
     }
 
     if ($request->firma_supervisor) {
@@ -147,8 +144,22 @@ class SeguimientoController extends Controller
       $image = str_replace(' ', '+', $image);
       $imageName = 'firma_supervisor_' . time() . '.png';
 
-      Storage::disk('public')->put('firmas/' . $imageName, base64_decode($image));
-      $seguimiento['firma_supervisor'] = 'firmas/' . $imageName;
+      // 📁 Carpeta destino (PUBLICA)
+      $directory = public_path('images/firmas');
+
+      // Crear carpeta si no existe
+      if (!file_exists($directory)) {
+        mkdir($directory, 0755, true);
+      }
+
+      // 📍 Ruta completa
+      $fullPath = $directory . '/' . $imageName;
+
+      // 💾 Guardar archivo
+      file_put_contents($fullPath, base64_decode($image));
+
+      // Storage::disk('public')->put('firmas/' . $imageName, base64_decode($image));
+      $seguimiento['firma_supervisor'] = 'images/firmas/' . $imageName;
     }
 
     $seguimiento->save();
@@ -177,91 +188,129 @@ class SeguimientoController extends Controller
     $aplicacion->roedores = $validated['aplicacion_data']['roedores'];
     $aplicacion->save();
 
-    foreach ($validated['biologicos_ids'] as $ind) {
-      $biologicos = new SeguimientoBiologico();
-      $biologicos->seguimiento_id = $seguimiento->id;
-      $biologicos->biologico_id = $ind;
-      $biologicos->save();
+    if (isset($validated['biologicos_ids'])) {
+      foreach ($validated['biologicos_ids'] as $ind) {
+        $biologicos = new SeguimientoBiologico();
+        $biologicos->seguimiento_id = $seguimiento->id;
+        $biologicos->biologico_id = $ind;
+        $biologicos->save();
+      }
     }
 
-    foreach ($validated['metodos_ids'] as $ind) {
-      $metodos = new SeguimientoMetodo();
-      $metodos->seguimiento_id = $seguimiento->id;
-      $metodos->metodo_id = $ind;
-      $metodos->save();
+    if (isset($validated['metodos_ids'])) {
+      foreach ($validated['metodos_ids'] as $ind) {
+        $metodos = new SeguimientoMetodo();
+        $metodos->seguimiento_id = $seguimiento->id;
+        $metodos->metodo_id = $ind;
+        $metodos->save();
+      }
     }
 
-    foreach ($validated['epps_ids'] as $ind) {
-      $epps = new SeguimientoEpp();
-      $epps->seguimiento_id = $seguimiento->id;
-      $epps->epp_id = $ind;
-      $epps->save();
+    if (isset($validated['epps_ids'])) {
+      foreach ($validated['epps_ids'] as $ind) {
+        $epps = new SeguimientoEpp();
+        $epps->seguimiento_id = $seguimiento->id;
+        $epps->epp_id = $ind;
+        $epps->save();
+      }
     }
 
-    foreach ($validated['protecciones_ids'] as $ind) {
-      $proteccion = new SeguimientoProteccion();
-      $proteccion->seguimiento_id = $seguimiento->id;
-      $proteccion->proteccion_id = $ind;
-      $proteccion->save();
+    if (isset($validated['protecciones_ids'])) {
+      foreach ($validated['protecciones_ids'] as $ind) {
+        $proteccion = new SeguimientoProteccion();
+        $proteccion->seguimiento_id = $seguimiento->id;
+        $proteccion->proteccion_id = $ind;
+        $proteccion->save();
+      }
     }
 
-    foreach ($validated['signos_ids'] as $ind) {
-      $signo = new SeguimientoSigno();
-      $signo->seguimiento_id = $seguimiento->id;
-      $signo->signo_id = $ind;
-      $signo->save();
+    if (isset($validated['signos_ids'])) {
+      foreach ($validated['signos_ids'] as $ind) {
+        $signo = new SeguimientoSigno();
+        $signo->seguimiento_id = $seguimiento->id;
+        $signo->signo_id = $ind;
+        $signo->save();
+      }
     }
-
-    // Guardar especies
-    // if($validated['especies_ids']){
-    //   foreach ($validated['especies_ids'] as $espec) {
-    //     $especie = new SeguimientoEspecie();
-    //     $especie->seguimiento_id = $seguimiento->id;
-    //     $especie->especie_id = $espec['especie_id'];
-    //     $especie->cantidad = $espec['cantidad'];
-    //     $especie->save();
-    //   }
-    // }
 
     // Guardar USO DE PRODUCTO
-    foreach ($validated['productos_usados'] as $prod) {
-      $producto = Producto::find($prod['producto_id']);
-      $producto_usado = new ProductoUso();
-      $producto_usado->producto_id = $prod['producto_id'];
-      $producto_usado->seguimiento_id = $seguimiento->id;
-      $producto_usado->unidad_id = $producto->unidad_id;
-      $producto_usado->cantidad = $prod['cantidad'];
-      $producto_usado->save();
+    if (isset($validated['productos_usados'])) {
+      foreach ($validated['productos_usados'] as $prod) {
+        $producto = Producto::find($prod['producto_id']);
+        $producto_usado = new ProductoUso();
+        $producto_usado->producto_id = $prod['producto_id'];
+        $producto_usado->seguimiento_id = $seguimiento->id;
+        $producto_usado->unidad_id = $producto->unidad_id;
+        $producto_usado->cantidad = $prod['cantidad'];
+        $producto_usado->save();
+        // Logica para descuento de stock  
+        // *******************************************
+      }
+    }
 
-      // Logica para descuento de stock
+    // GUARDAR TRAMPAS
+    // Trampas especies
+    if (isset($validated['trampa_especies_seguimientos'])) {
+      foreach ($validated['trampa_especies_seguimientos'] as $tramp) {
+        $trampa = new TrampaEspecieSeguimiento();
+        $trampa->seguimiento_id = $seguimiento->id;
+        $trampa->trampa_id = $tramp['trampa_id'];
+        $trampa->especie_id = $tramp['especie_id'];
+        $trampa->cantidad = $tramp['cantidad'];
+        $trampa->save();
+      }
+    }
 
-
+    // Trampas roedores
+    if (isset($validated['trampa_roedores_seguimientos'])) {
+      foreach ($validated['trampa_roedores_seguimientos'] as $tramp) {
+        $trampa = new TrampaRoedorSeguimiento();
+        $trampa->seguimiento_id = $seguimiento->id;
+        $trampa->trampa_id = $tramp['trampa_id'];
+        $trampa->observacion = $tramp['observacion'];
+        $trampa->cantidad = $tramp['cantidad'];
+        $trampa->inicial = $tramp['inicial'];
+        $trampa->actual = $tramp['actual'];
+        $trampa->merma = $tramp['merma'];
+        $trampa->save();
+      }
     }
 
 
     // Guardar imágenes adicionales
     if ($request->hasFile('imagenes')) {
-      // $imagenes = [];
       foreach ($request->file('imagenes') as $imagen) {
-        // $imagenes[] = $imagen->store('seguimientos', 'public');
-        $imagen = $imagen->store('seguimientos', 'public');
+        // Carpeta publica
+        $directory = public_path('images/seguimientos');
+
+        // Crear carpeta si no existe
+        if (!file_exists($directory)) {
+          mkdir($directory, 0755, true);
+        }
+
+        // 📝 Nombre único
+        $filename = uniqid() . '_' . $imagen->getClientOriginalName();
+
+        // 💾 Mover imagen a carpeta pública
+        $imagen->move($directory, $filename);
+
+        // 💾 Guardar en BD (ruta relativa)
         $imagenDB = new SeguimientoImage();
         $imagenDB->seguimiento_id = $seguimiento->id;
-        $imagenDB->imagen = $imagen;
+        $imagenDB->imagen = 'images/seguimientos/' . $filename;
         $imagenDB->save();
+
+        // Guardar imagenes al STORAGE ---
+        // $imagen = $imagen->store('seguimientos', 'public');
+        // $imagenDB = new SeguimientoImage();
+        // $imagenDB->seguimiento_id = $seguimiento->id;
+        // $imagenDB->imagen = $imagen;
+        // $imagenDB->save();
       }
-      // $validated['imagenes'] = json_encode($imagenes);
     }
 
     return redirect()->route('seguimientos.index');
   }
-
-  public function show(string $id) {}
-
-  public function edit(string $id) {}
-
-  public function update(Request $request, string $id) {}
-
   public function destroy(string $id)
   {
     try {
@@ -298,7 +347,6 @@ class SeguimientoController extends Controller
         ->with('error', 'Error ' . $e->getMessage());
     }
   }
-
   public function pdf(Request $request, string $id)
   {
     $seguimiento = Seguimiento::with(['empresa', 'almacen', 'user', 'tipoSeguimiento', 'aplicacion', 'metodos', 'epps', 'proteccions', 'biologicos', 'signos', 'images', 'especies'])->find($id);
@@ -309,16 +357,43 @@ class SeguimientoController extends Controller
     return $pdf->stream(filename: 'seguimiento-' . now()->format('Y-m-d') . '.pdf');
     // o ->download() si quieres forzar descarga
   }
-
   public function trampas(Request $request, string $id)
   {
     $trampas = Trampa::with(['trampa_tipo', 'almacen'])->where('almacen_id', $id)->get();
     return response()->json($trampas);
   }
-
   public function especies(Request $request)
   {
     $especies = Especie::all(['id', 'nombre']);
     return response()->json($especies);
   }
+
+  /** FUNCIONES NO USADAS */
+
+  public function create()
+  {
+
+    // $empresas = Empresa::select('id', 'nombre')->get();
+    // $almacenes = Almacen::select('id', 'nombre')->get();
+    // $biologicos = Biologico::orderBy('nombre')->get();
+    // $epps = Epp::orderBy('nombre')->get();
+    // $metodos = Metodo::orderBy('nombre')->get();
+    // $protecciones = Proteccion::orderBy('nombre')->get();
+    // $signos = Signo::orderBy('nombre')->get();
+    // return inertia('admin/seguimientos/crear', [
+    //   'empresas' => $empresas,
+    //   'almacenes' => $almacenes,
+    //   'biologicos' => $biologicos,
+    //   'epps' => $epps,
+    //   'metodos' => $metodos,
+    //   'protecciones' => $protecciones,
+    //   'signos' => $signos,
+    // ]);
+  }
+
+  public function show(string $id) {}
+
+  public function edit(string $id) {}
+
+  public function update(Request $request, string $id) {}
 }
