@@ -13,17 +13,12 @@ class UnidadesController extends Controller
     return inertia('admin/unidades/index', ['items' => $unidades]);
   }
 
-
-
-
   public function store(Request $request)
   {
     $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
     Unidad::create($validated);
     return redirect()->route('unidades.index');
   }
-
-
 
   public function update(Request $request, string $id)
   {
@@ -41,9 +36,7 @@ class UnidadesController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function create() {}
-
-  public function show(string $id) {}
-
-  public function edit(string $id) {}
+  // public function create() {}
+  // public function show(string $id) {}
+  // public function edit(string $id) {}
 }

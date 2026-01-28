@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class CompraDetalle extends Model
 {
-    //
     protected $guarded = [];
 
     public function producto()

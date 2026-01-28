@@ -15,24 +15,14 @@ class UsersController extends Controller
 {
   public function index()
   {
-    // $roles = Role::select('id', 'name')->where('name', '!=', 'superadmin')->get();
     $usuarios = User::select('id', 'name', 'email')->with('roles')->paginate(20);
-    // dd($usuarios);
     $roles = Role::select('id', 'name')->where('name', '!=', 'superadmin')->get();
     $empresas = Empresa::select('id', 'nombre')->get();
     return inertia('admin/usuarios/index', ['users' => $usuarios, 'roles' => $roles, 'empresas' => $empresas]);
   }
 
-  public function create()
-  {
-    $roles = Role::select('id', 'name')->where('name', '!=', 'superadmin')->get();
-    return inertia('admin/usuarios/crear', ['usuario' => new User(), 'roles' => $roles]);
-  }
-
   public function store(Request $request)
   {
-
-    // dd($request);
 
     $validated = $request->validate([
       'name' => 'required|string|min:5|max:255',
@@ -42,6 +32,7 @@ class UsersController extends Controller
       'enable' => 'sometimes|boolean', // Acepta true/false, 1/0, "1"/"0"
       'empresa' => 'sometimes|integer',
     ]);
+
     $user = User::create(
       [
         'name' => $validated['name'],
@@ -63,23 +54,6 @@ class UsersController extends Controller
     $role = Role::findById($validated['role']);
     $user->assignRole($role);
     return redirect()->route('usuarios.index')->with('success', 'Usuario creado y rol asignado correctamente.');
-  }
-
-
-
-  public function edit(User $usuario)
-  {
-    $usuario->load('roles');
-    return inertia('admin/usuarios/editar', [
-      'user' => [
-        'id' => $usuario->id,
-        'name' => $usuario->name,
-        'email' => $usuario->email,
-        'role' => $usuario->roles->first(),
-        'enable' => $usuario->enable,
-      ],
-      'roles' => Role::all(['id', 'name']),
-    ]);
   }
 
   public function update(Request $request, User $usuario)
@@ -113,10 +87,30 @@ class UsersController extends Controller
   public function destroy(string $id)
   {
     $user = User::find($id);
+    UsuarioEmpresa::where('user_id', $id)->delete();
     $user->deleteOrFail();
     return redirect()->route('usuarios.index')->with('success', 'Usuario eliminado');
   }
 
   /** FUNCIONES NO USADAS */
-  public function show(string $id) {}
+  // public function create()
+  // {
+  //   $roles = Role::select('id', 'name')->where('name', '!=', 'superadmin')->get();
+  //   return inertia('admin/usuarios/crear', ['usuario' => new User(), 'roles' => $roles]);
+  // }
+  // public function edit(User $usuario)
+  // {
+  //   $usuario->load('roles');
+  //   return inertia('admin/usuarios/editar', [
+  //     'user' => [
+  //       'id' => $usuario->id,
+  //       'name' => $usuario->name,
+  //       'email' => $usuario->email,
+  //       'role' => $usuario->roles->first(),
+  //       'enable' => $usuario->enable,
+  //     ],
+  //     'roles' => Role::all(['id', 'name']),
+  //   ]);
+  // }
+  // public function show(string $id) {}
 }

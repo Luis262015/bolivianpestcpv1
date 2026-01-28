@@ -14,6 +14,7 @@ use App\Models\CuentaCobrar;
 use App\Models\Empresa;
 use App\Models\Mapa;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -84,16 +85,12 @@ class ContratoController extends Controller
 
   public function store(Request $request)
   {
-
     $validated = $request->validate($this->toValidated);
-
     try {
-
       DB::beginTransaction();
 
       $totalSuma = 0;
       foreach ($validated['almacenes'] as $almacen) {
-        // $totalSuma += $detalle['total'];
         $totalSuma += $almacen['almacen_trampa']['total'] + $almacen['almacen_area']['total'] + $almacen['almacen_insectocutor']['total'];
       }
 
@@ -222,14 +219,12 @@ class ContratoController extends Controller
       $cuenta->estado = 'Pendiente';
       $cuenta->plan_pagos = false;
       $cuenta->save();
-
       DB::commit();
 
       return redirect()->route('contratos.index');
-    } catch (\Exception | \Error | QueryException $e) {
+    } catch (Exception | \Error | QueryException $e) {
       DB::rollBack();
       Log::error('Error al guardar compra:', ['error' => $e->getMessage()]);
-
       return redirect()->back()
         ->withInput()
         ->with('error', 'Error al guardar la compra: ' . $e->getMessage());
@@ -250,7 +245,6 @@ class ContratoController extends Controller
 
     try {
       DB::beginTransaction();
-      // Transacciones .....
 
       $totalSuma = 0;
       foreach ($validated['almacenes'] as $almacen) {
@@ -272,7 +266,6 @@ class ContratoController extends Controller
         'email' => $validated['email'],
         'ciudad' => $validated['ciudad'],
       ]);
-
 
       foreach ($validated['almacenes'] as $almacen) {
 
@@ -390,7 +383,7 @@ class ContratoController extends Controller
       DB::commit();
 
       return redirect()->route('contratos.index');
-    } catch (\Exception | \Error | QueryException $e) {
+    } catch (Exception | \Error | QueryException $e) {
       DB::rollBack();
       Log::error('Error:', ['error' => $e->getMessage()]);
       return redirect()->back()
@@ -423,9 +416,9 @@ class ContratoController extends Controller
         Cronograma::where('almacen_id', $almacen->id)->delete();
 
         // Eliminar datos de almacenes
-        AlmacenTrampa::where('almacen_id', $almacen['id'])->delete();
-        AlmacenArea::where('almacen_id', $almacen['id'])->delete();
-        AlmancenInsectocutor::where('almacen_id', $almacen['id'])->delete();
+        AlmacenTrampa::where('almacen_id', $almacen->id)->delete();
+        AlmacenArea::where('almacen_id', $almacen->id)->delete();
+        AlmancenInsectocutor::where('almacen_id', $almacen->id)->delete();
       }
 
       // Eliminar almacenes
@@ -439,7 +432,7 @@ class ContratoController extends Controller
 
       DB::commit();
       return redirect()->route('contratos.index');
-    } catch (\Exception | \Error | QueryException $e) {
+    } catch (Exception | \Error | QueryException $e) {
       DB::rollBack();
       Log::error('Error:', ['error' => $e->getMessage()]);
       return redirect()->back()
@@ -452,14 +445,11 @@ class ContratoController extends Controller
   {
     $contrato = Contrato::with(['empresa'])->find($id);
     $almacenes = Almacen::with(['almacenTrampa', 'almacenArea', 'almacenInsectocutor', 'tareas'])->where('empresa_id', $contrato->empresa_id)->get();
-    // Cargar la vista Blade con los datos
     $pdf = Pdf::loadView('pdf.contrato', compact(['contrato', 'almacenes']));
-    // Opcional: configurar tamaño, orientación, etc. ('portrait' -> vertical, 'landscape' -> horizontal)
     $pdf->setPaper('letter', 'portrait');
     return $pdf->stream('contrato-' . now()->format('Y-m-d') . '.pdf');
-    // o ->download() si quieres forzar descarga
   }
 
   /** FUNCIONES NO USADAS */
-  public function show(string $id) {}
+  // public function show(string $id) {}
 }

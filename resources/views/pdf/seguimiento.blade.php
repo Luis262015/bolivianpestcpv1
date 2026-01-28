@@ -96,8 +96,13 @@
     }
 
     span {
-      font-weight: bold;
-      font-size: .8rem;
+      /* font-weight: bold; */
+      font-size: .9rem;
+      font-weight: normal;
+    }
+
+    .titulo {
+      font-weight: bolder;
     }
   </style>
 </head>
@@ -131,40 +136,40 @@
       <tr>
         <th rowspan="2" style="width: 12%;"><img src="{{ public_path('images/LogoFC.png') }}" alt=""
             width="75"></th> <!-- Esta celda ocupará 2 filas -->
-        <td style="width: 76%; text-align: center; height: 30px;">SEGUIMIENTO
-          <span>{{ $seguimiento->tipoSeguimiento->nombre }}</span>
+        <td style="width: 76%; text-align: center; height: 30px; font-weight: bolder;">SEGUIMIENTO
+          {{ $seguimiento->tipoSeguimiento->nombre }}
         </td>
         <td rowspan="2" style="width: 12%;"></td>
       </tr>
       <tr>
         <!-- No se necesita una celda para "Encabezado Largo" aquí -->
-        <td style="width: 60%; text-align: center;">FORMULARIO DE CONFORMIDAD</td>
+        <td style="width: 60%; text-align: center; font-weight: bolder;">FORMULARIO DE CONFORMIDAD</td>
         {{-- <td>Dato Fila 2, Col 2</td> --}}
       </tr>
     </table>
 
     <table>
       <tr>
-        <td colspan="3">DATOS DEL SERVICIO</td>
+        <td colspan="3" class="titulo">DATOS DEL SERVICIO</td>
       </tr>
       <tr>
-        <td colspan="3">
+        <td colspan="3" class="titulo">
           NOMBRE DE LA EMPRESA: <span>{{ $seguimiento->empresa->nombre }}</span>
         </td>
       </tr>
       <tr>
-        <td>CUIDAD: <span>{{ $seguimiento->almacen->ciudad }}</span></td>
-        <td>ALMACEN: <span>{{ $seguimiento->almacen->nombre }}</span></td>
-        <td style="width: 40%">FECHA: <span>{{ $seguimiento->created_at }}</span></td>
+        <td class="titulo">CUIDAD: <span>{{ $seguimiento->almacen->ciudad }}</span></td>
+        <td class="titulo">ALMACEN: <span>{{ $seguimiento->almacen->nombre }}</span></td>
+        <td style="width: 40%" class="titulo">FECHA: <span>{{ $seguimiento->created_at }}</span></td>
       </tr>
       <tr>
-        <td colspan="2">DIRECCION: <span>{{ $seguimiento->almacen->direccion }}</span></td>
-        <td>PROXIMA EVALUACION:</td>
+        <td colspan="2" class="titulo">DIRECCION: <span>{{ $seguimiento->almacen->direccion }}</span></td>
+        <td class="titulo">PROXIMA EVALUACION:</td>
       </tr>
     </table>
     <table>
       <tr>
-        <td>
+        <td class="titulo">
           LABORES DESARROLLADAS
         </td>
       </tr>
@@ -172,12 +177,13 @@
         <td>
           <table>
             <tr>
-              <td rowspan="5">FUMIGACIONES</td>
+              <td colspan="5" class="titulo">FUMIGACIONES</td>
             </tr>
             <tr>
-              <td>PAREDES INTERNAS: <span>{{ $seguimiento->aplicacion->paredes_internas ?? 'No disponible' }}</span>
+              <td class="titulo">PAREDES INTERNAS:
+                <span>{{ $seguimiento->aplicacion->paredes_internas ?? 'No disponible' }}</span>
               </td>
-              <td>PISOS: <span>{{ $seguimiento->aplicacion->pisos ?? 'No disponible' }}</span></td>
+              <td class="titulo">PISOS: <span>{{ $seguimiento->aplicacion->pisos ?? 'No disponible' }}</span></td>
               <td></td>
               <td></td>
               <td></td>
@@ -185,10 +191,10 @@
               <td>BAÑOS: <span>{{ $seguimiento->aplicacion->banos }}</span></td> --}}
             </tr>
             <tr>
-              <td rowspan="5">DESINFECCION</td>
+              <td colspan="5" class="titulo">DESINFECCION</td>
             </tr>
             <tr>
-              <td>PISOS: <span>{{ $seguimiento->aplicacion->ambientes ?? 'No disponible' }}</span></td>
+              <td class="titulo">PISOS: <span>{{ $seguimiento->aplicacion->ambientes ?? 'No disponible' }}</span></td>
               <td></td>
               <td></td>
               <td></td>
@@ -200,14 +206,19 @@
 
             </tr>
             <tr>
-              <td rowspan="5">CONTROL DE ROEDORES</td>
+              <td colspan="5" class="titulo">CONTROL DE ROEDORES</td>
             </tr>
             <tr>
-              <td>TRAMPAS: <span>{{ $seguimiento->aplicacion->trampas ?? 'No disponible' }}</span></td>
-              <td>CAMBIAR TRAMPAS: <span>{{ $seguimiento->aplicacion->trampas_cambiar ?? 'No disponible' }}</span></td>
-              <td>INTERNAS: <span>{{ $seguimiento->aplicacion->internas ?? 'No disponible' }}</span></td>
-              <td>EXTERNAS: <span>{{ $seguimiento->aplicacion->externas ?? 'No disponible' }}</span></td>
-              <td>ROEDORES: <span>{{ $seguimiento->aplicacion->roedores ?? 'No disponible' }}</span></td>
+              <td class="titulo">TRAMPAS: <span>{{ $seguimiento->aplicacion->trampas ?? 'No disponible' }}</span></td>
+              <td class="titulo">CAMBIAR TRAMPAS:
+                <span>{{ $seguimiento->aplicacion->trampas_cambiar ?? 'No disponible' }}</span>
+              </td>
+              <td class="titulo">INTERNAS: <span>{{ $seguimiento->aplicacion->internas ?? 'No disponible' }}</span>
+              </td>
+              <td class="titulo">EXTERNAS: <span>{{ $seguimiento->aplicacion->externas ?? 'No disponible' }}</span>
+              </td>
+              <td class="titulo">ROEDORES: <span>{{ $seguimiento->aplicacion->roedores ?? 'No disponible' }}</span>
+              </td>
             </tr>
 
           </table>
@@ -216,7 +227,7 @@
     </table>
     <table>
       <tr>
-        <td>METODO UTILIZADO</td>
+        <td class="titulo">METODO UTILIZADO</td>
       </tr>
       <tr>
         <td>
@@ -228,15 +239,21 @@
     </table>
     <table>
       <tr>
-        <td>PRODUCTO UTILIZADO</td>
+        <td class="titulo">PRODUCTO UTILIZADO</td>
       </tr>
       <tr>
-        <td></td>
+        <td>
+          @foreach ($seguimiento->productoUsos as $productoUso)
+            {{ $loop->iteration }} : <span> {{ $productoUso->producto->nombre }} : {{ $productoUso->cantidad }}
+              {{ $productoUso->unidad->nombre }} </span><br>
+          @endforeach
+
+        </td>
       </tr>
     </table>
     <table>
       <tr>
-        <td>
+        <td class="titulo">
           EPP UTILIZADO
         </td>
       </tr>
@@ -250,7 +267,7 @@
     </table>
     <table>
       <tr>
-        <td>MEDIDAS DE PROTECCION ADOPTADAS PARA TERCEROS</td>
+        <td class="titulo">MEDIDAS DE PROTECCION ADOPTADAS PARA TERCEROS</td>
       </tr>
       <tr>
         <td>
@@ -262,7 +279,7 @@
     </table>
     <table>
       <tr>
-        <td>OBSERVACIONES DE CICLO BIOLOGICO</td>
+        <td class="titulo">OBSERVACIONES DE CICLO BIOLOGICO</td>
       </tr>
       <tr>
         <td>
@@ -274,7 +291,7 @@
     </table>
     <table>
       <tr>
-        <td>OBSERVACIONES DE SIGNOS DE ROEDORES</td>
+        <td class="titulo">OBSERVACIONES DE SIGNOS DE ROEDORES</td>
       </tr>
       <tr>
         <td>
@@ -284,17 +301,77 @@
         </td>
       </tr>
     </table>
+
     <table>
       <tr>
-        <td>OBSERVACIONES BOLIVIAN PEST</td>
+        <td class="titulo">TRAMPAS ROEDORES</td>
       </tr>
       <tr>
-        <td>{{ $seguimiento->observacionesp }}</td>
+        <td>
+          <table>
+            <tr>
+              <td>#</td>
+              <td>ID</td>
+              <td>Observación</td>
+              <td>Inicial</td>
+              <td>Actual</td>
+              <td>Merma</td>
+            </tr>
+            @foreach ($seguimiento->roedores as $roedor)
+              <tr>
+                <td>{{ $loop->iteration }}</td>
+                <td>{{ $roedor->trampa_id }}</td>
+                <td>{{ $roedor->observacion }}</td>
+                <td>{{ $roedor->inicial }}</td>
+                <td>{{ $roedor->actual }}</td>
+                <td> {{ $roedor->merma }}</td>
+              </tr>
+            @endforeach
+
+          </table>
+
+        </td>
+      </tr>
+    </table>
+
+    <table>
+      <tr>
+        <td class="titulo">INSECTOCUTORES</td>
+      </tr>
+      <tr>
+        <td>
+          <table>
+            <tr>
+              <td>#</td>
+              <td>ID</td>
+              <td>Especie</td>
+              <td>Cantidad</td>
+            </tr>
+
+            @foreach ($seguimiento->insectocutores as $insect)
+              <tr>
+                <td>{{ $loop->iteration }}</td>
+                <td>{{ $insect->trampa_id }}</td>
+                <td>{{ $insect->especie->nombre }}</td>
+                <td>{{ $insect->cantidad }}</td>
+              </tr>
+            @endforeach
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <table>
+      <tr>
+        <td class="titulo">OBSERVACIONES BOLIVIAN PEST</td>
+      </tr>
+      <tr>
+        <td><span>{{ $seguimiento->observacionesp }}</span></td>
       </tr>
     </table>
     <table>
       <tr>
-        <td>EVIDENCIAS</td>
+        <td class="titulo">EVIDENCIAS</td>
       </tr>
       <tr>
         <td>
@@ -306,10 +383,10 @@
     </table>
     <table>
       <tr>
-        <td>OBSERVACIONES</td>
+        <td class="titulo">OBSERVACIONES</td>
       </tr>
       <tr>
-        <td>{{ $seguimiento->observaciones }}</td>
+        <td><span>{{ $seguimiento->observaciones }}</span></td>
       </tr>
     </table>
 

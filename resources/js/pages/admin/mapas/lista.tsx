@@ -103,6 +103,8 @@ export default function MapaEditor(props: Props) {
   >([]);
   const [dragging, setDragging] = useState<Dragging | null>(null);
 
+  const [trapSize, setTrapSize] = useState<number>(30); // tamaño base en px
+
   // Estados para zoom y pan
   const [zoom, setZoom] = useState<number>(100);
   const [panMode, setPanMode] = useState<boolean>(false);
@@ -270,16 +272,24 @@ export default function MapaEditor(props: Props) {
       }
     });
 
+    const size = trapSize; //******************************* */
+    const half = size / 2; //******************************* */
+
     // Trampas con índice
     traps.forEach((trap, index) => {
       const img = trapImagesRef.current[trap.trampa_tipo_id];
       if (img?.complete) {
         // ctx.drawImage(img, trap.posx - 22, trap.posy - 22, 40, 40);
-        ctx.drawImage(img, trap.posx - 22, trap.posy - 22, 30, 30);
+        // ctx.drawImage(img, trap.posx - 22, trap.posy - 22, 30, 30); //*************************************** */
+
+        ctx.drawImage(img, trap.posx - half, trap.posy - half, size, size);
       } else {
         ctx.fillStyle = '#9ca3af';
         // ctx.fillRect(trap.posx - 22, trap.posy - 22, 40, 40);
-        ctx.fillRect(trap.posx - 22, trap.posy - 22, 30, 30);
+        // ctx.fillRect(trap.posx - 22, trap.posy - 22, 30, 30); //************************************** */
+
+        ctx.fillRect(trap.posx - half, trap.posy - half, size, size);
+
         ctx.fillStyle = '#ef4444';
         ctx.font = 'bold 10px sans-serif';
         ctx.textAlign = 'center';
@@ -363,7 +373,8 @@ export default function MapaEditor(props: Props) {
     }
 
     const clickedTrap = traps.find(
-      (t) => Math.hypot(t.posx - pos.x, t.posy - pos.y) < 15,
+      // (t) => Math.hypot(t.posx - pos.x, t.posy - pos.y) < 15,
+      (t) => Math.hypot(t.posx - pos.x, t.posy - pos.y) < trapSize / 2,
     );
     if (clickedTrap) {
       setDragging({
@@ -653,6 +664,20 @@ export default function MapaEditor(props: Props) {
                   </div>
                 </>
               )}
+
+              <div className="flex items-center gap-3">
+                <Label className="whitespace-nowrap">
+                  Tamaño trampa: {trapSize}px
+                </Label>
+                <Slider
+                  value={[trapSize]}
+                  onValueChange={(v) => setTrapSize(v[0])}
+                  min={10}
+                  max={80}
+                  step={2}
+                  className="w-48"
+                />
+              </div>
 
               <div className="flex items-center gap-3">
                 <Label>Fondo:</Label>

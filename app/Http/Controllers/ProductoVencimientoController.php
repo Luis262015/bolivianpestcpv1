@@ -9,75 +9,51 @@ use Inertia\Inertia;
 
 class ProductoVencimientoController extends Controller
 {
-    public function index(Producto $producto)
-    {
-        $vencimientos = $producto->vencimientos()
-            ->latest('vencimiento')  // ordenar por fecha de vencimiento más reciente primero
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'id'          => $item->id,
-                    'codigo'      => $item->codigo,
-                    // 'vencimiento' => $item->vencimiento->format('Y-m-d'),
-                    'vencimiento' => $item->vencimiento,
-                    // opcional: puedes agregar más campos útiles
-                    // 'dias_restantes' => now()->diffInDays($item->vencimiento, false),
-                ];
-            });
+  public function index(Producto $producto)
+  {
+    $vencimientos = $producto->vencimientos()
+      ->latest('vencimiento')  // ordenar por fecha de vencimiento más reciente primero
+      ->get()
+      ->map(function ($item) {
+        return [
+          'id'          => $item->id,
+          'codigo'      => $item->codigo,
+          'vencimiento' => $item->vencimiento,
+        ];
+      });
+    return inertia('admin/productos/lista', [
+      'vencimientos' => $vencimientos,
+    ]);
+  }
 
-        // return Inertia::render('Productos/Index', [
-        //     'vencimientos' => $vencimientos,
-        // ]);
-        return inertia('admin/productos/lista', [
-            'vencimientos' => $vencimientos,
-        ]);
+  public function store(Request $request, Producto $producto)
+  {
+    $validated = $request->validate([
+      'codigo'      => 'required|string|max:50',
+      'vencimiento' => 'required|date|after_or_equal:today',
+    ]);
+    $producto->vencimientos()->create($validated);
+    // Redirección simple - Inertia la manejará correctamente
+    return redirect('/productos')
+      ->with('success', 'Vencimiento registrado correctamente');
+  }
+
+  public function destroy(Producto $producto, ProductoVencimiento $vencimiento)
+  {
+    // Seguridad adicional: verificar que pertenece al producto
+    if ($vencimiento->producto_id !== $producto->id) {
+      abort(403);
     }
 
+    $vencimiento->delete();
 
+    return redirect('/productos')
+      ->with('success', 'Vencimiento registrado correctamente');
+  }
 
-    public function store(Request $request, Producto $producto)
-    {
-        $validated = $request->validate([
-            'codigo'      => 'required|string|max:50',
-            'vencimiento' => 'required|date|after_or_equal:today',
-        ]);
-
-        $producto->vencimientos()->create($validated);
-
-        // return back()->with('success', 'Fecha de vencimiento registrada correctamente');
-        // return redirect()->route('productos.index');
-
-        // return response()->noContent();
-
-        // return redirect()->back()
-        //     ->with('success', 'Fecha de vencimiento registrada correctamente');
-
-        // Redirección simple - Inertia la manejará correctamente
-        return redirect('/productos')
-            ->with('success', 'Vencimiento registrado correctamente');
-    }
-
-
-
-    public function destroy(Producto $producto, ProductoVencimiento $vencimiento)
-    {
-        // Seguridad adicional: verificar que pertenece al producto
-        if ($vencimiento->producto_id !== $producto->id) {
-            abort(403);
-        }
-
-        $vencimiento->delete();
-
-        // return back()->with('success', 'Vencimiento eliminado');
-        return redirect('/productos')
-            ->with('success', 'Vencimiento registrado correctamente');
-    }
-
-    /** FUNCIONES NO USADAS */
-    public function create() {}
-    public function show(string $id) {}
-
-    public function edit(string $id) {}
-
-    public function update(Request $request, string $id) {}
+  /** FUNCIONES NO USADAS */
+  // public function create() {}
+  // public function show(string $id) {}
+  // public function edit(string $id) {}
+  // public function update(Request $request, string $id) {}
 }

@@ -102,9 +102,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('especies', EspeciesController::class);
     Route::resource('unidades', UnidadesController::class);
     Route::get('/informes/obtener', [InformesController::class, 'obtenerEstado'])->name('estados.obtener');
-    Route::get('/informes/empresas', [InformesController::class, 'getEmpresas'])->name('estados.empresas');
-    Route::get('/informes/almacenes/{empresa}', [InformesController::class, 'getAlmacen'])->name('estados.almacenes');
-    Route::get('/informes/seguimientos/{almacen}', [InformesController::class, 'getSeguimientos'])->name('estados.seguimiento');
+    // Route::get('/informes/empresas', [InformesController::class, 'getEmpresas'])->name('estados.empresas');
+    // Route::get('/informes/almacenes/{empresa}', [InformesController::class, 'getAlmacen'])->name('estados.almacenes');
+    // Route::get('/informes/seguimientos/{almacen}', [InformesController::class, 'getSeguimientos'])->name('estados.seguimiento');
     Route::resource('informes', InformesController::class);
     // Route::get('/certificados/pdf', [CertificadosController::class, 'pdf'])->name('certificados.pdf');
     // Route::resource('certificados', CertificadosController::class);
@@ -119,7 +119,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('compras', ComprasController::class);
     Route::resource('ventas', VentasController::class);
     Route::resource('ingresos', IngresosController::class);
-    Route::resource('retiros', RetirosController::class);
+    // Route::resource('retiros', RetirosController::class);
     Route::resource('gastos', GastosController::class);
     Route::resource('gastosop', GastosOpController::class);
     Route::resource('gastosfin', GastosFinController::class);

@@ -13,24 +13,11 @@ class EtiquetasController extends Controller
     return inertia('admin/etiquetas/index', ['items' => $etiquetas]);
   }
 
-  public function create()
-  {
-    return inertia('admin/etiquetas/crear', ['cliente' => new Etiqueta()]);
-  }
-
   public function store(Request $request)
   {
     $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
     Etiqueta::create($validated);
     return redirect()->route('etiquetas.index');
-  }
-
-
-
-  public function edit(string $id)
-  {
-    $etiqueta = Etiqueta::find($id);
-    return inertia('admin/etiquetas/editar', ['etiqueta' => $etiqueta]);
   }
 
   public function update(Request $request, string $id)
@@ -49,5 +36,14 @@ class EtiquetasController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function show(string $id) {}
+  // public function create()
+  // {
+  //   return inertia('admin/etiquetas/crear', ['cliente' => new Etiqueta()]);
+  // }
+  // public function edit(string $id)
+  // {
+  //   $etiqueta = Etiqueta::find($id);
+  //   return inertia('admin/etiquetas/editar', ['etiqueta' => $etiqueta]);
+  // }
+  // public function show(string $id) {}
 }

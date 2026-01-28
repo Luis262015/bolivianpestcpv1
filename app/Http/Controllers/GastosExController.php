@@ -20,16 +20,12 @@ class GastosExController extends Controller
     return inertia('admin/gastosEx/index', ['gastos' => $gastosex, 'cuentas' => $cuentas]);
   }
 
-
-
   public function store(Request $request)
   {
     $validated = $request->validate($this->toValidated);
     GastoExtra::create($validated);
     return redirect()->route('gastosex.index');
   }
-
-
 
   public function update(Request $request, string $id)
   {
@@ -47,8 +43,7 @@ class GastosExController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function create() {}
-  public function show(string $id) {}
-
-  public function edit(string $id) {}
+  // public function create() {}
+  // public function show(string $id) {}
+  // public function edit(string $id) {}
 }

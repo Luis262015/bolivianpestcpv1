@@ -10,18 +10,15 @@ use Illuminate\Support\Facades\Log;
 
 class GastosController extends Controller
 {
-
   private $toValidated = [
     'total' => ['required', 'numeric', 'min:0'],
     'concepto' => ['required', 'string', 'max:255'],
-    // 'detalle' => ['nullable', 'string'],
   ];
 
   public function index(Request $request)
   {
     $filters = $request->only([
       'concepto',
-      // 'detalle',
       'total_min',
       'total_max',
       'fecha_desde',
@@ -34,10 +31,6 @@ class GastosController extends Controller
     if ($request->filled('concepto')) {
       $query->where('concepto', 'like', "%{$request->concepto}%");
     }
-
-    // if ($request->filled('detalle')) {
-    //   $query->where('detalle', 'like', "%{$request->detalle}%");
-    // }
 
     // === FILTROS NUMÉRICOS ===
     if ($request->filled('total_min')) {
@@ -93,17 +86,13 @@ class GastosController extends Controller
   public function store(Request $request)
   {
     $validated = $request->validate($this->toValidated);
-
     $gasto = new Gasto();
     $gasto->user_id = Auth::id();
     $gasto->concepto = $validated['concepto'];
     $gasto->total = $validated['total'];
     $gasto->save();
-
     return redirect()->route('gastos.index');
   }
-
-
 
   public function edit(string $id)
   {
@@ -116,11 +105,9 @@ class GastosController extends Controller
     $validated = $request->validate($this->toValidated);
 
     $gasto = Gasto::find($id);
-    // LOG: de todos los datos anteriores al cambio
     $user = Auth::user();
     Log::info("@@@--- Actualizacion de Gasto ---@@@");
     Log::info("Gasto Anterior: ID: " . $gasto->id . ", Concepto: " . $gasto->concepto . ", Total: " . $gasto->total . ", USER_ID: " . $gasto->user_id  . ", USER_AUTH: " . $user->id . " " . $user->name . " " . $user->email);
-    // NUEVOS DATOS
     Log::info("Gasto Nuevo: ID: " . $gasto->id . ", Concepto: " . $validated['concepto'] . ", Total: " . $validated['total'] . ", USER_ID: " . $gasto->user_id  . ", USER_AUTH: " . $user->id . " " . $user->name . " " . $user->email);
     $gasto->update($validated);
     return redirect()->route('gastos.index');
@@ -129,15 +116,13 @@ class GastosController extends Controller
   public function destroy(string $id)
   {
     $gasto = Gasto::find($id);
-    // LOG: de todos los datos anteriores al cambio
     $user = Auth::user();
     Log::info("@@@--- Eliminado de Gasto ---@@@");
     Log::info("Gasto Anterior: ID: " . $gasto->id . ", Concepto: " . $gasto->concepto . ", Detalle: " . $gasto->detalle . ", Total: " . $gasto->total . ", USER_ID: " . $gasto->user_id . ", TIENDA_ID: " . $gasto->tienda_id . ", USER_AUTH: " . $user->id . " " . $user->name . " " . $user->email);
-    // Eliminar datos de gasto
     $gasto->delete();
     return redirect()->route('gastos.index');
   }
 
   /** FUNCIONES NO USADAS */
-  public function show(string $id) {}
+  // public function show(string $id) {}
 }

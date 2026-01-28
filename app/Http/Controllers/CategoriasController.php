@@ -39,7 +39,7 @@ class CategoriasController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function create() {}
-  public function show(string $id) {}
-  public function edit(Categoria $categoria) {}
+  // public function create() {}
+  // public function show(string $id) {}
+  // public function edit(Categoria $categoria) {}
 }

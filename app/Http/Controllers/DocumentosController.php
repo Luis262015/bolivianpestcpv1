@@ -130,5 +130,5 @@ class DocumentosController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function show(string $id) {}
+  // public function show(string $id) {}
 }

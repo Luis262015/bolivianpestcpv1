@@ -20,20 +20,14 @@ use Carbon\Carbon;
 
 class EstadosController extends Controller
 {
-  public function index(Request $request)
+  public function index()
   {
     $estados = EstadoResultado::all();
     return inertia('admin/estados/index', ['estados' => $estados]);
   }
 
-
-
-  public function obtenerCierre(Request $request)
+  public function obtenerCierre()
   {
-    // $request->validate([
-    //   'fecha_inicio' => 'required|date',
-    //   'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
-    // ]);
     $fecha_inicio = null;
     $fecha_fin = now();
 
@@ -45,13 +39,6 @@ class EstadosController extends Controller
       $user = User::find(1);
       $fecha_inicio = $user->created_at;
     }
-
-    // dd($fecha_inicio);
-    Log::info("Fecha inicio: " . $fecha_inicio);
-    // return response()->json($fecha_inicio);
-
-    // Aquí deberías obtener los datos reales de tu base de datos
-    // Este es un ejemplo de estructura de datos
     $estado = [
       'ingresos' => [
         'ventas' => $this->calcularVentas($fecha_inicio, $fecha_fin),
@@ -71,10 +58,8 @@ class EstadosController extends Controller
       'fecha_inicio' => $fecha_inicio,
       'fecha_fin' => $fecha_fin,
     ];
-
     return response()->json($estado);
   }
-
 
   public function obtenerEstado(Request $request)
   {
@@ -86,8 +71,6 @@ class EstadosController extends Controller
     $f_inicio = Carbon::parse($request->fecha_inicio)->startOfDay(); // Establece a 00:00:00
     $f_fin = Carbon::parse($request->fecha_fin)->endOfDay(); // Establece a 23:59:59
 
-    // Aquí deberías obtener los datos reales de tu base de datos
-    // Este es un ejemplo de estructura de datos
     $estado = [
       'ingresos' => [
         'ventas' => $this->calcularVentas($f_inicio, $f_fin),
@@ -113,9 +96,6 @@ class EstadosController extends Controller
 
   public function cierre(Request $request)
   {
-
-    // dd($request);
-
     $validated = $request->validate([
       'fecha_inicio' => 'required|date',
       'fecha_fin' => 'required|date',
@@ -140,13 +120,8 @@ class EstadosController extends Controller
       'utilidad_neta' => 'required|numeric',
     ]);
 
-    // Aquí guardarías el cierre en la base de datos
-    // Por ejemplo:
-    // CierreFinanciero::create($request->all());
     $estado = new EstadoResultado();
-    // $estado->fecha_inicio = $validated['fecha_inicio'];
     $estado->fecha_inicio = Carbon::parse($validated['fecha_inicio']);
-    // $estado->fecha_fin = $validated['fecha_fin'];
     $estado->fecha_fin =  Carbon::parse($validated['fecha_fin']);
     $estado->ventas = $validated['ventas'];
     $estado->cobrado = $validated['cobros'];
@@ -170,32 +145,20 @@ class EstadosController extends Controller
 
   // ------------------------
   // - INGRESOS
-  // ------------------------
-
-  // Métodos auxiliares para cálculos (reemplaza con tu lógica real)
+  // ------------------------  
   private function calcularVentas($inicio, $fin)
   {
-    // $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
-    // $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
-
     return Venta::whereBetween('created_at', [$inicio, $fin])->sum('total');
-    // return 150000.00; // Ejemplo
   }
+
   private function calcularCobros($inicio, $fin)
   {
-    // $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
-    // $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
-
     return CobrarPago::whereBetween('created_at', [$inicio, $fin])->sum('monto');
-    // return 150000.00; // Ejemplo
   }
 
   private function calcularOtrosIngresos($inicio, $fin)
   {
-    // $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
-    // $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
     return Ingreso::whereBetween('created_at', [$inicio, $fin])->sum('total');
-    // return 5000.00; // Ejemplo
   }
 
   // ------------------------
@@ -203,10 +166,7 @@ class EstadosController extends Controller
   // ------------------------
   private function calcularCompras($inicio, $fin)
   {
-    // $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
-    // $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
     return Compra::whereBetween('created_at', [$inicio, $fin])->sum('total');
-    // return 80000.00; // Ejemplo
   }
 
   // ------------------------
@@ -215,64 +175,42 @@ class EstadosController extends Controller
 
   private function calcularGastosOperativos($inicio, $fin)
   {
-    // $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
-    // $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
     return GastoOperativo::whereBetween('created_at', [$inicio, $fin])->sum('total');
-    // return 20000.00; // Ejemplo
   }
 
   private function calcularGastosFinancieros($inicio, $fin)
   {
-    // $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
-    // $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
     return GastoFinanciero::whereBetween('created_at', [$inicio, $fin])->sum('total');
-    // return 3000.00; // Ejemplo
   }
 
   private function calcularGastosExtraordinarios($inicio, $fin)
   {
-    // $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
-    // $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
     return GastoExtra::whereBetween('created_at', [$inicio, $fin])->sum('total');
-    // return 2000.00; // Ejemplo
   }
 
   private function calcularCajaChica($inicio, $fin)
   {
-    // $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
-    // $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
     return Gasto::whereBetween('created_at', [$inicio, $fin])->sum('total');
-    // return 1500.00; // Ejemplo
   }
+
   private function calcularPagos($inicio, $fin)
   {
-    // $f_inicio = \Carbon\Carbon::parse($inicio)->startOfDay(); // Establece a 00:00:00
-    // $f_fin = \Carbon\Carbon::parse($fin)->endOfDay(); // Establece a 23:59:59
     return PagarPago::whereBetween('created_at', [$inicio, $fin])->sum('monto');
-    // return 1500.00; // Ejemplo
   }
 
   public function pdf(Request $request, string $id)
   {
     $estado = EstadoResultado::find($id);
-    // Cargar la vista Blade con los datos
     $pdf = Pdf::loadView('pdf.cierre', compact('estado'));
-    // Opcional: configurar tamaño, orientación, etc. ('portrait' -> vertical, 'landscape' -> horizontal)
     $pdf->setPaper('letter', 'portrait');
     return $pdf->stream(filename: 'cierre-' . now()->format('Y-m-d') . '.pdf');
-    // o ->download() si quieres forzar descarga
   }
 
   /** FUNCIONES NO USADAS */
-  public function create() {}
-
-  public function store(Request $request) {}
-
-  public function show(string $id) {}
-
-  public function edit(string $id) {}
-
-  public function update(Request $request, string $id) {}
-
-  public function destroy(string $id) {}
+  // public function create() {}
+  // public function store(Request $request) {}
+  // public function show(string $id) {}
+  // public function edit(string $id) {}
+  // public function update(Request $request, string $id) {}
+  // public function destroy(string $id) {}
 }

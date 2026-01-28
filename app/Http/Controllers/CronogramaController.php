@@ -51,7 +51,7 @@ class CronogramaController extends Controller
   public function store(Request $request)
   {
     $validated = $request->validate($this->toValidated);
-    $tarea = Cronograma::create($validated);
+    Cronograma::create($validated);
     return redirect()->route('cronogramas.index', $request->only(['empresa_id', 'almacen_id']))
       ->with('success', 'Tarea creada correctamente.');
   }
@@ -72,8 +72,8 @@ class CronogramaController extends Controller
 
 
   /** FUNCIONES NO USADAS */
-  public function create() {}
-  public function show(string $id) {}
-  public function edit(string $id) {}
-  public function getAlmacenes() {}
+  // public function create() {}
+  // public function show(string $id) {}
+  // public function edit(string $id) {}
+  // public function getAlmacenes() {}
 }

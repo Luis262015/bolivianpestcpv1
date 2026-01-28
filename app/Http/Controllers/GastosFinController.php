@@ -9,12 +9,12 @@ use Illuminate\Http\Request;
 
 class GastosFinController extends Controller
 {
-
   private $toValidated = [
     'concepto' => ['required', 'string', 'max:255'],
     'total' => ['required', 'numeric', 'min:0'],
     'cuenta_id' => ['required', 'integer']
   ];
+
   public function index()
   {
     $gastosfin = GastoFinanciero::paginate(20);
@@ -22,22 +22,15 @@ class GastosFinController extends Controller
     return inertia('admin/gastosFin/index', ['gastos' => $gastosfin, 'cuentas' => $cuentas]);
   }
 
-
-
   public function store(Request $request)
   {
-    // dd($request);
     $validated = $request->validate($this->toValidated);
-    // dd($validated);
     GastoFinanciero::create($validated);
     return redirect()->route('gastosfin.index');
   }
 
-
-
   public function update(Request $request, string $id)
   {
-    // dd($request);
     $validated = $request->validate($this->toValidated);
     $gasto = GastoFinanciero::find($id);
     $gasto->update($validated);
@@ -52,8 +45,7 @@ class GastosFinController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function create() {}
-  public function show(string $id) {}
-
-  public function edit(string $id) {}
+  // public function create() {}
+  // public function show(string $id) {}
+  // public function edit(string $id) {}
 }

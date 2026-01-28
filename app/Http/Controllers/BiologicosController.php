@@ -36,7 +36,7 @@ class BiologicosController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function create() {}
-  public function show(string $id) {}
-  public function edit(string $id) {}
+  // public function create() {}
+  // public function show(string $id) {}
+  // public function edit(string $id) {}
 }

@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Log;
 
 class IngresosController extends Controller
 {
-
   private $toValidate = [
     'total' => ['required', 'numeric', 'min:0'],
     'concepto' => ['required', 'string', 'max:255'],
@@ -29,20 +28,14 @@ class IngresosController extends Controller
 
   public function store(Request $request)
   {
-    // dd($request);
     $validated = $request->validate($this->toValidate);
-    // dd($validated);
-
     $ingreso = new Ingreso();
     $ingreso->user_id = Auth::id();
     $ingreso->concepto = $validated['concepto'];
     $ingreso->total = $validated['total'];
     $ingreso->save();
-
     return redirect()->route('ingresos.index');
   }
-
-
 
   public function edit(string $id)
   {
@@ -53,17 +46,12 @@ class IngresosController extends Controller
   public function update(Request $request, string $id)
   {
     $validated = $request->validate($this->toValidate);
-
     $ingreso = Ingreso::find($id);
     $user = Auth::user();
-
     Log::info("@@@--- Actualizacion de Ingreso ---@@@");
     Log::info("Ingreso Anterior: ID: " . $ingreso->id . ", Concepto: " . $ingreso->concepto . ", Total: " . $ingreso->monto . ", USER_ID: " . $ingreso->user_id . ", USER_AUTH: " . $user->id . " " . $user->name . " " . $user->email);
-    // NUEVOS DATOS
     Log::info("Ingreso Nuevo: ID: " . $ingreso->id . ", Concepto: " . $validated['concepto'] . ", Total: " . $validated['total'] . ", USER_ID: " . $ingreso->user_id . ", USER_AUTH: " . $user->id . " " . $user->name . " " . $user->email);
-
     $ingreso->update($validated);
-
     return redirect()->route('ingresos.index');
   }
 
@@ -78,5 +66,5 @@ class IngresosController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function show(string $id) {}
+  // public function show(string $id) {}
 }

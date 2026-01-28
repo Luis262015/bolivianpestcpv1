@@ -14,11 +14,6 @@ class MarcasController extends Controller
     return inertia('admin/marcas/index', ['items' => $marcas]);
   }
 
-  public function create()
-  {
-    return inertia('admin/marcas/crear');
-  }
-
   public function store(Request $request)
   {
     $validated = $request->validate([
@@ -26,13 +21,6 @@ class MarcasController extends Controller
     ]);
     Marca::create($validated);
     return redirect()->route('marcas.index');
-  }
-
-
-
-  public function edit(Marca $marca)
-  {
-    return inertia('admin/marcas/editar', ['marca' => $marca]);
   }
 
   public function update(Request $request, string $id)
@@ -53,6 +41,13 @@ class MarcasController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-
-  public function show(string $id) {}
+  // public function create()
+  // {
+  //   return inertia('admin/marcas/crear');
+  // }
+  // public function edit(Marca $marca)
+  // {
+  //   return inertia('admin/marcas/editar', ['marca' => $marca]);
+  // }
+  // public function show(string $id) {}
 }

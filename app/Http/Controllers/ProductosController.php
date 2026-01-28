@@ -11,6 +11,8 @@ use App\Models\ProductoVencimiento;
 use App\Models\Subcategoria;
 use App\Models\Unidad;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ProductosController extends Controller
@@ -34,14 +36,10 @@ class ProductosController extends Controller
       ->with(['categoria' => function ($query) {
         $query->select('id', 'nombre');
       }])
-      // ->with(['subcategoria' => function ($query) {
-      //   $query->select('id', 'nombre');
-      // }])
       ->with(['marca' => function ($query) {
         $query->select('id', 'nombre');
       }])
       ->paginate(20);
-
     return inertia('admin/productos/lista', ['productos' => $productos]);
   }
 
@@ -58,11 +56,7 @@ class ProductosController extends Controller
   public function store(Request $request)
   {
 
-    // dd($request);
-
     $validated = $request->validate($this->validate);
-
-    // dd($validated);
 
     $producto = new Producto();
     $producto->categoria_id = $validated['categoria_id'];
@@ -80,20 +74,12 @@ class ProductosController extends Controller
     } else {
       $producto->etiquetas()->detach(); // Limpiar si no hay
     }
-
     return redirect()->route('productos.index')->with('success', 'Producto creado con éxito');
   }
 
-
-
   public function edit(string $id)
   {
-    // $categorias = Categoria::all('id', 'nombre');
-    // $subcategorias = Subcategoria::all('id', 'nombre');
-    // $marcas = Marca::all('id', 'nombre');
     $producto = Producto::find($id);
-    // $etiquetas = Etiqueta::all('id', 'nombre');
-
     $categorias = Categoria::all('id', 'nombre');
     $subcategorias = Subcategoria::all('id', 'nombre');
     $marcas = Marca::all('id', 'nombre');
@@ -105,8 +91,6 @@ class ProductosController extends Controller
   public function update(Request $request, string $id)
   {
 
-    // dd($request);
-
     $validated = $request->validate($this->validate);
 
     $producto = Producto::find($id);
@@ -117,9 +101,7 @@ class ProductosController extends Controller
     $producto->descripcion = $validated['descripcion'];
     $producto->unidad_valor = $validated['unidad_valor'];
     $producto->stock_min = $validated['stock_min'];
-    // $producto->subcategoria_id = $validated['subcategoria_id'];
     $producto->update();
-    // Sincronizar etiquetas
     $producto->etiquetas()->sync($request->etiqueta_ids ?? []);
     return redirect()->route('productos.index');
   }
@@ -153,8 +135,6 @@ class ProductosController extends Controller
       'codigo'      => 'required|string|max:50',
       'vencimiento' => 'required|date|after_or_equal:today',
     ]);
-
-    // $producto->vencimientos()->create($validated);
     $producto_vencimiento = new ProductoVencimiento();
     $producto_vencimiento->producto_id = $producto->id;
     $producto_vencimiento->codigo = $validated['codigo'];
@@ -163,6 +143,7 @@ class ProductosController extends Controller
 
     return back()->with('success', 'Fecha de vencimiento registrada correctamente');
   }
+
   public function deleteVencimiento(Producto $producto, ProductoVencimiento $vencimiento)
   {
     // Seguridad adicional: verificar que pertenece al producto
@@ -172,41 +153,50 @@ class ProductosController extends Controller
     $vencimiento->delete();
     return back()->with('success', 'Vencimiento eliminado');
   }
+
   public function storeHojaTecnica(Request $request, Producto $producto)
   {
-    $validated = $request->validate([
-      'titulo'  => 'required|string|max:255',
-      'archivo' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB
-    ]);
+    try {
+      DB::beginTransaction();
 
-    // Guardar archivo
-    $path = $request->file('archivo')->store('hojas-tecnicas', 'public');
+      $validated = $request->validate([
+        'titulo'  => 'required|string|max:255',
+        'archivo' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB
+      ]);
 
-    $producto->hojasTecnicas()->create([
-      'titulo'  => $validated['titulo'],
-      'archivo' => $path,
-      // 'imagen'  => $this->generateThumbnailIfImage($path) // opcional
-    ]);
+      // Guardar archivo
+      $path = $request->file('archivo')->store('hojas-tecnicas', 'public');
 
-    return back()
-      ->with('success', 'Hoja técnica cargada correctamente');
+      $producto->hojasTecnicas()->create([
+        'titulo'  => $validated['titulo'],
+        'archivo' => $path,
+      ]);
+
+      DB::commit();
+      return back()
+        ->with('success', 'Hoja técnica cargada correctamente');
+    } catch (\Exception | \Error $e) {
+      DB::rollBack();
+      Log::error('Error:', ['error' => $e->getMessage()]);
+      return redirect()->back()
+        ->withInput()
+        ->with('error', 'Error ' . $e->getMessage());
+    }
   }
+
   public function deleteHojaTecnica(Producto $producto, HojaTecnica $hojaTecnica)
   {
     if ($hojaTecnica->producto_id !== $producto->id) {
       abort(403);
     }
-
     // Eliminar archivo físico
     if ($hojaTecnica->archivo) {
       Storage::disk('public')->delete($hojaTecnica->archivo);
     }
-
     $hojaTecnica->delete();
-
     return back()->with('success', 'Hoja técnica eliminada');
   }
 
   /** FUNCIONES NO USADAS */
-  public function show(string $id) {}
+  // public function show(string $id) {}
 }

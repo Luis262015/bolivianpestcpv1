@@ -13,24 +13,11 @@ class MetodosController extends Controller
     return inertia('admin/metodos/index', ['items' => $metodos]);
   }
 
-  public function create()
-  {
-    return inertia('admin/metodos/crear', ['metodo' => new Metodo()]);
-  }
-
   public function store(Request $request)
   {
     $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
     Metodo::create($validated);
     return redirect()->route('metodos.index');
-  }
-
-
-
-  public function edit(string $id)
-  {
-    $metodo = Metodo::find($id);
-    return inertia('admin/metodos/editar', ['metodo' => $metodo]);
   }
 
   public function update(Request $request, string $id)
@@ -49,5 +36,14 @@ class MetodosController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function show(string $id) {}
+  // public function create()
+  // {
+  //   return inertia('admin/metodos/crear', ['metodo' => new Metodo()]);
+  // }
+  // public function edit(string $id)
+  // {
+  //   $metodo = Metodo::find($id);
+  //   return inertia('admin/metodos/editar', ['metodo' => $metodo]);
+  // }
+  // public function show(string $id) {}
 }

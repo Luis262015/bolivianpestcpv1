@@ -19,8 +19,6 @@ class RolePermissionController extends Controller
     ]);
   }
 
-
-
   public function store(Request $request)
   {
     $request->validate([
@@ -32,8 +30,6 @@ class RolePermissionController extends Controller
     $role->givePermissionTo($request->permissions ?? []);
     return redirect()->back()->with('success', 'Rol creado exitosamente.');
   }
-
-
 
   public function update(Request $request, Role $role)
   {
@@ -64,8 +60,7 @@ class RolePermissionController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function create() {}
-  public function show(string $id) {}
-
-  public function edit(string $id) {}
+  // public function create() {}
+  // public function show(string $id) {}
+  // public function edit(string $id) {}
 }

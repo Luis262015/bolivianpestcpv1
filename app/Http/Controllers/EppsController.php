@@ -13,24 +13,11 @@ class EppsController extends Controller
     return inertia('admin/epps/index', ['items' => $epps]);
   }
 
-  public function create()
-  {
-    return inertia('admin/epps/crear', ['epp' => new Epp()]);
-  }
-
   public function store(Request $request)
   {
     $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
     Epp::create($validated);
     return redirect()->route('epps.index');
-  }
-
-
-
-  public function edit(string $id)
-  {
-    $epp = Epp::find($id);
-    return inertia('admin/epps/editar', ['epp' => $epp]);
   }
 
   public function update(Request $request, string $id)
@@ -49,5 +36,14 @@ class EppsController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function show(string $id) {}
+  // public function create()
+  // {
+  //   return inertia('admin/epps/crear', ['epp' => new Epp()]);
+  // }
+  // public function edit(string $id)
+  // {
+  //   $epp = Epp::find($id);
+  //   return inertia('admin/epps/editar', ['epp' => $epp]);
+  // }
+  // public function show(string $id) {}
 }

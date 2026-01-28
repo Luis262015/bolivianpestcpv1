@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cotizacion;
 use App\Models\CotizacionDetalles;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -51,12 +52,10 @@ class CotizacionController extends Controller
 
     try {
       DB::beginTransaction();
-      // Transacciones .....
       $totalSuma = 0;
       foreach ($validated['detalles'] as $detalle) {
         $totalSuma += $detalle['t_total'] + $detalle['a_total'] +  $detalle['i_total'];
       }
-
       // Extraer solo los campos que pertenecen a cotizaciones
       $cotizacionData = [
         'nombre' => $validated['nombre'],
@@ -94,7 +93,7 @@ class CotizacionController extends Controller
 
       DB::commit();
       return redirect()->route('cotizaciones.index');
-    } catch (\Exception | \Error $e) {
+    } catch (Exception | \Error $e) {
       DB::rollBack();
       Log::error('Error:', ['error' => $e->getMessage()]);
       return redirect()->back()
@@ -103,7 +102,7 @@ class CotizacionController extends Controller
     }
   }
 
-  public function show(string $id) {}
+
 
   public function edit(string $id)
   {
@@ -140,7 +139,7 @@ class CotizacionController extends Controller
       }
       DB::commit();
       return redirect()->route('cotizaciones.index');
-    } catch (\Exception | \Error $e) {
+    } catch (Exception | \Error $e) {
       DB::rollBack();
       Log::error('Error:', ['error' => $e->getMessage()]);
       return redirect()->back()
@@ -154,11 +153,11 @@ class CotizacionController extends Controller
     try {
       DB::beginTransaction();
       $cotizacion = Cotizacion::find($id);
-      $cotizacion_detalles = CotizacionDetalles::where('cotizacion_id', $cotizacion->id)->delete();
+      CotizacionDetalles::where('cotizacion_id', $cotizacion->id)->delete();
       $cotizacion->delete();
       DB::commit();
       return redirect()->route('cotizaciones.index');
-    } catch (\Exception | \Error | QueryException $e) {
+    } catch (Exception | \Error | QueryException $e) {
       DB::rollBack();
       Log::error('Error:', ['error' => $e->getMessage()]);
       return redirect()->back()
@@ -170,11 +169,12 @@ class CotizacionController extends Controller
   public function pdf(Request $request, string $id)
   {
     $cotizacion = Cotizacion::with(['detalles'])->find($id);
-    // Cargar la vista Blade con los datos
     $pdf = Pdf::loadView('pdf.cotizacion', compact(['cotizacion']));
-    // Opcional: configurar tamaño, orientación, etc. ('portrait' -> vertical, 'landscape' -> horizontal)
     $pdf->setPaper('letter', 'portrait');
     return $pdf->stream('cotizacion-' . now()->format('Y-m-d') . '.pdf');
-    // o ->download() si quieres forzar descarga
   }
+
+  /** FUNCIONES NO USADAS */
+  // public function show(string $id) {}
+
 }

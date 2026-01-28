@@ -29,9 +29,32 @@ interface Almacen {
   nombre: string;
 }
 
+interface Especie {
+  id: number;
+  nombre: string;
+}
+
+interface Insectocutor {
+  id: number;
+  trampa_id: number;
+  especie: Especie;
+  cantidad: number;
+}
+
+interface Roedor {
+  id: number;
+  trampa_id: number;
+  observacion: string;
+  inicial: number;
+  actual: number;
+  merma: number;
+}
+
 interface Seguimiento {
   id: number;
   created_at: string;
+  insectocutores: Insectocutor[];
+  roedores: Roedor[];
 }
 
 interface Props {
@@ -95,7 +118,7 @@ export default function Lista({
     <AppLayout breadcrumbs={[{ title: 'Informes', href: '/informes' }]}>
       <Head title="Informes" />
 
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
         {/* Empresa */}
         <Select value={empresaId} onValueChange={onEmpresaChange}>
           <SelectTrigger>
@@ -151,6 +174,7 @@ export default function Lista({
         </Button>
 
         {/* Tabla */}
+        <div className="text-[1rem] font-bold">SEGUIMIENTOS</div>
         <Table>
           <TableHeader>
             <TableRow>
@@ -171,6 +195,81 @@ export default function Lista({
             ) : (
               <TableRow>
                 <TableCell colSpan={2} className="text-center">
+                  Sin resultados
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+
+        {/* TABLA DE INSECTOCUTORES */}
+        <div className="text-[1rem] font-bold">
+          INCIDENCIA DE INSECTOS VOLADORES
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Nro Trampa</TableHead>
+              <TableHead>Especie</TableHead>
+              <TableHead>Cantidad</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {seguimientos.length ? (
+              seguimientos.flatMap((seg) =>
+                seg.insectocutores.map((ins) => (
+                  <TableRow key={`${seg.id}-${ins.id}`}>
+                    <TableCell>
+                      {new Date(seg.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>{ins.trampa_id}</TableCell>
+                    <TableCell>{ins.especie.nombre}</TableCell>
+                    <TableCell>{ins.cantidad}</TableCell>
+                  </TableRow>
+                )),
+              )
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center">
+                  Sin resultados
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+        {/* TABLA DE ROEDORES */}
+        <div className="text-[1rem] font-bold">SEGUIMIENTO PESO DE TRAMPAS</div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Nro Trampa</TableHead>
+              <TableHead>Inicial</TableHead>
+              <TableHead>Merma</TableHead>
+              <TableHead>Actual</TableHead>
+              <TableHead>Observacion</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {seguimientos.length ? (
+              seguimientos.flatMap((seg) =>
+                seg.roedores.map((ins) => (
+                  <TableRow key={`${seg.id}-${ins.id}`}>
+                    <TableCell>
+                      {new Date(seg.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>{ins.trampa_id}</TableCell>
+                    <TableCell>{ins.inicial}</TableCell>
+                    <TableCell>{ins.merma}</TableCell>
+                    <TableCell>{ins.actual}</TableCell>
+                    <TableCell>{ins.observacion}</TableCell>
+                  </TableRow>
+                )),
+              )
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center">
                   Sin resultados
                 </TableCell>
               </TableRow>

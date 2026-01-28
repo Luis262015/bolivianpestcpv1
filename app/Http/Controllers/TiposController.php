@@ -13,24 +13,11 @@ class TiposController extends Controller
     return inertia('admin/tipos/index', ['items' => $tipos]);
   }
 
-  public function create()
-  {
-    return inertia('admin/tipos/crear', ['epp' => new TipoSeguimiento()]);
-  }
-
   public function store(Request $request)
   {
     $validated = $request->validate(['nombre' => ['required', 'string', 'max:255']]);
     TipoSeguimiento::create($validated);
     return redirect()->route('tipos.index');
-  }
-
-
-
-  public function edit(string $id)
-  {
-    $tipo = TipoSeguimiento::find($id);
-    return inertia('admin/tipos/editar', ['tipo' => $tipo]);
   }
 
   public function update(Request $request, string $id)
@@ -49,6 +36,14 @@ class TiposController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-
-  public function show(string $id) {}
+  // public function create()
+  // {
+  //   return inertia('admin/tipos/crear', ['epp' => new TipoSeguimiento()]);
+  // }
+  // public function edit(string $id)
+  // {
+  //   $tipo = TipoSeguimiento::find($id);
+  //   return inertia('admin/tipos/editar', ['tipo' => $tipo]);
+  // }
+  // public function show(string $id) {}
 }

@@ -13,24 +13,11 @@ class SignosController extends Controller
     return inertia('admin/signos/index', ['items' => $signos]);
   }
 
-  public function create()
-  {
-    return inertia('admin/signos/crear', ['signos' => new Signo()]);
-  }
-
   public function store(Request $request)
   {
     $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
     Signo::create($validated);
     return redirect()->route('signos.index');
-  }
-
-
-
-  public function edit(string $id)
-  {
-    $signo = Signo::find($id);
-    return inertia('admin/signos/editar', ['signo' => $signo]);
   }
 
   public function update(Request $request, string $id)
@@ -49,5 +36,14 @@ class SignosController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function show(string $id) {}
+  // public function create()
+  // {
+  //   return inertia('admin/signos/crear', ['signos' => new Signo()]);
+  // }
+  // public function edit(string $id)
+  // {
+  //   $signo = Signo::find($id);
+  //   return inertia('admin/signos/editar', ['signo' => $signo]);
+  // }
+  // public function show(string $id) {}
 }

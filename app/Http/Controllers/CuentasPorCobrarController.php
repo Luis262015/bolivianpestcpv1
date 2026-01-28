@@ -42,18 +42,15 @@ class CuentasPorCobrarController extends Controller
     'cuotas.*.monto' => 'numeric|min:0',
     'cuotas.*.estado' => 'in:pendiente,pagado,vencido',
   ];
+
   public function index()
   {
     $cuentascobrar = CuentaCobrar::with(['cuotas'])->paginate(20);
     return inertia('admin/cuentasporcobrar/lista', ['cuentascobrar' =>  $cuentascobrar]);
   }
 
-
-
   public function store(Request $request)
   {
-    // dd($request);
-
     $validated = $request->validate($this->toValidated);
 
     $cuenta = new CuentaCobrar();
@@ -62,7 +59,6 @@ class CuentasPorCobrarController extends Controller
     $cuenta->detalles = $validated['detalles'];
     $cuenta->total = $validated['total'];
     $cuenta->saldo = $validated['total'];
-    // $cuenta->estado = $validated['estado'];
     $cuenta->estado = 'Pendiente';
     $cuenta->plan_pagos = $request['con_plan_pagos'];
     $cuenta->save();
@@ -87,28 +83,19 @@ class CuentasPorCobrarController extends Controller
   public function destroy(string $id)
   {
     $cuenta = CuentaCobrar::find($id);
-    // dd($cuenta->contrato_id);
-    // dd($cuenta->contrato_id != null);
     if ($cuenta->contrato_id != null) {
       return redirect()->back()
         ->withInput()
         ->withErrors(['error', 'No se puede eliminar el registro']);
     }
-
-
     try {
       DB::beginTransaction();
-      // Transacciones .....
-
       $pagos = CobrarPago::where('cuenta_cobrar_id', $cuenta->id)->get();
       if (count($pagos) > 0) {
         throw new Exception('No se puede eliminar el registro');
       }
-
       CobrarCuota::where('cuenta_cobrar_id', $cuenta->id)->delete();
-
       $cuenta->delete();
-
       DB::commit();
       return redirect()->back()->with('success', "Mensaje");
     } catch (Exception | \Error | QueryException $e) {
@@ -170,9 +157,8 @@ class CuentasPorCobrarController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-
-  public function create() {}
-  public function show(string $id) {}
-  public function edit(string $id) {}
-  public function update(Request $request, string $id) {}
+  // public function create() {}
+  // public function show(string $id) {}
+  // public function edit(string $id) {}
+  // public function update(Request $request, string $id) {}
 }

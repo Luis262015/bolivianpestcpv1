@@ -43,4 +43,9 @@ class Producto extends Model
     {
         return $this->hasMany(HojaTecnica::class);
     }
+
+    public function productoUsos()
+    {
+        return $this->hasMany(ProductoUso::class);
+    }
 }

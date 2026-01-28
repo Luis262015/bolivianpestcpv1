@@ -9,7 +9,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\QueryException;
 
 class EmpresaController extends Controller
 {
@@ -53,6 +56,7 @@ class EmpresaController extends Controller
     $validated = $request->validate($this->toValidatedCert);
 
     try {
+      DB::beginTransaction();
       // Generar QR Code
 
       // Guardar informacion del certificado
@@ -76,33 +80,25 @@ class EmpresaController extends Controller
 
       $path = '';
       if ($request->hasFile('logo')) {
-        // GUARDAR NORMAL A STORAGE
-        // $path = $request->file('logo')->store('logos', 'public');
-
         // GUARDAR IMAGEN A PUBLIC
         $file = $request->file('logo');
         $filename = uniqid() . '_' . $file->getClientOriginalName();
-
         $file->move(
           public_path('images/certificado'),
           $filename
         );
-
         $path = 'images/certificado/' . $filename;
       }
 
       $certificado->logo = $path;
 
       $certificado->save();
+      DB::commit();
 
       return redirect()->back()->with('success', 'Certificado creado exitosamente');
-    } catch (\Error $e) {
+    } catch (Exception | \Error | QueryException $e) {
+      DB::rollBack();
       Log::info("ERROR ******************** " . $e->getMessage());
-      return redirect()->back()
-        ->withInput()
-        ->withErrors('error', 'Error crítico al crear el certificado. Contacte al administrador.');
-    } catch (\Exception $e) {
-      Log::info("EXCEPTION ******************** " . $e->getMessage());
       return redirect()->back()
         ->withInput()
         ->withErrors('error', 'Error crítico al crear el certificado. Contacte al administrador.');
@@ -111,25 +107,18 @@ class EmpresaController extends Controller
 
   public function certificadopdf(Request $request, string $id)
   {
-    // $certificado = Certificado::find($request->id);
     $certificado = Certificado::find($id);
-    // Cargar la vista Blade con los datos
     $pdf = Pdf::loadView('pdf.certificado', compact('certificado'));
-    // Opcional: configurar tamaño, orientación, etc.
     $pdf->setPaper('letter', 'landscape');
     return $pdf->stream('certificado-' . now()->format('Y-m-d') . '.pdf');
-    // o ->download() si quieres forzar descarga
   }
 
   public function certificadoultimo()
   {
     $certificado = Certificado::latest()->first();
-    // Cargar la vista Blade con los datos
     $pdf = Pdf::loadView('pdf.certificado', compact('certificado'));
-    // Opcional: configurar tamaño, orientación, etc.
     $pdf->setPaper('letter', 'landscape');
     return $pdf->stream('certificado-' . now()->format('Y-m-d') . '.pdf');
-    // o ->download() si quieres forzar descarga
   }
 
   public function getByEmpresa($empresaId)
@@ -139,13 +128,9 @@ class EmpresaController extends Controller
   }
 
   /* FUNCIONES NO UTILIZADAS */
-  public function store(Request $request) {}
-
-  public function show(string $id) {}
-
-  public function edit(Empresa $empresa) {}
-
-  public function update(Request $request, Empresa $empresa) {}
-
-  public function destroy(string $id) {}
+  // public function store(Request $request) {}
+  // public function show(string $id) {}
+  // public function edit(Empresa $empresa) {}
+  // public function update(Request $request, Empresa $empresa) {}
+  // public function destroy(string $id) {}
 }

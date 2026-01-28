@@ -40,17 +40,12 @@ class CuentasPorPagarController extends Controller
     'cuotas.*.monto' => 'numeric|min:0',
     'cuotas.*.estado' => 'in:pendiente,pagado,vencido',
   ];
+
   public function index()
   {
-    // $cuentaspagar = CuentaPagar::select()->with(['proveedor' => function ($query) {
-    //   $query->select('id', 'nombre');
-    // }])->paginate(20);
-
     $cuentaspagar = CuentaPagar::with(['cuotas'])->paginate(20);
     return inertia('admin/cuentasporpagar/lista', ['cuentaspagar' => $cuentaspagar]);
   }
-
-  public function create() {}
 
   public function store(Request $request)
   {
@@ -86,18 +81,15 @@ class CuentasPorPagarController extends Controller
   {
     try {
       DB::beginTransaction();
-      // Transacciones .....
       $cuenta = CuentaPagar::find($id);
       $pagos = PagarPago::where('cuenta_pagar_id', $cuenta->id)->get();
       if (count($pagos) > 0) {
         throw new Exception('No se puede eliminar el registro');
       }
-
       PagarCuota::where('cuenta_pagar_id', $cuenta->id)->delete();
-
       $cuenta->delete();
-
       DB::commit();
+
       return redirect()->back()->with('success', "Mensaje");
     } catch (Exception | \Error | QueryException $e) {
       DB::rollBack();
@@ -111,9 +103,7 @@ class CuentasPorPagarController extends Controller
   public function pagar(Request $request, string $id)
   {
     $validated = $request->validate($this->toValidatedPago);
-
     $cuenta_cobrar = CuentaPagar::find($id);
-
     foreach ($validated['cuotas_ids'] as $id_cuota) {
       // Actualizar estado
       $cobrar_cuota = PagarCuota::find($id_cuota);
@@ -140,7 +130,6 @@ class CuentasPorPagarController extends Controller
   public function cuotas(Request $request)
   {
     $validated = $request->validate($this->toValidatedCuota);
-
     $cuenta_cobrar = CuentaPagar::find($validated['id']);
     $cuenta_cobrar->plan_pagos = true;
     $cuenta_cobrar->update();
@@ -158,10 +147,8 @@ class CuentasPorPagarController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-
-  public function show(string $id) {}
-
-  public function edit(string $id) {}
-
-  public function update(Request $request, string $id) {}
+  // public function create() {}
+  // public function show(string $id) {}
+  // public function edit(string $id) {}
+  // public function update(Request $request, string $id) {}
 }

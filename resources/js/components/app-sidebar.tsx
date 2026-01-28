@@ -320,6 +320,11 @@ const mainNavItemsCliente: MainNavItem[] = [
     icon: NotebookPen,
     href: '/seguimientos',
   },
+  {
+    title: 'Informes',
+    icon: FileChartColumn,
+    href: '/informes',
+  },
   // {
   //   title: 'Trampas',
   //   icon: NotebookPen,

@@ -22,16 +22,12 @@ class GastosOpController extends Controller
     return inertia('admin/gastosOp/index', ['gastos' => $gastosop, 'cuentas' => $cuentas]);
   }
 
-
-
   public function store(Request $request)
   {
     $validated = $request->validate($this->toValidated);
     GastoOperativo::create($validated);
     return redirect()->route('gastosop.index');
   }
-
-
 
   public function update(Request $request, string $id)
   {
@@ -49,8 +45,7 @@ class GastosOpController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function create() {}
-  public function show(string $id) {}
-
-  public function edit(string $id) {}
+  // public function create() {}
+  // public function show(string $id) {}
+  // public function edit(string $id) {}
 }

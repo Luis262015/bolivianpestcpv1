@@ -13,16 +13,12 @@ class EspeciesController extends Controller
     return inertia('admin/especies/index', ['items' => $especies]);
   }
 
-
-
   public function store(Request $request)
   {
     $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
     Especie::create($validated);
     return redirect()->route('especies.index');
   }
-
-
 
   public function update(Request $request, string $id)
   {
@@ -40,8 +36,7 @@ class EspeciesController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function create() {}
-  public function show(string $id) {}
-
-  public function edit(string $id) {}
+  // public function create() {}
+  // public function show(string $id) {}
+  // public function edit(string $id) {}
 }

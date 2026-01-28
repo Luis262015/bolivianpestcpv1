@@ -95,4 +95,19 @@ class Seguimiento extends Model
     {
         return $this->hasMany(SeguimientoImage::class);
     }
+
+    public function productoUsos()
+    {
+        return $this->hasMany(ProductoUso::class);
+    }
+
+    public function roedores()
+    {
+        return $this->hasMany(TrampaRoedorSeguimiento::class);
+    }
+
+    public function insectocutores()
+    {
+        return $this->hasMany(TrampaEspecieSeguimiento::class);
+    }
 }

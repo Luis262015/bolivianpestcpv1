@@ -276,38 +276,55 @@ export default function SeguimientoTrampas({
           {/* ROEDORES */}
           {trampa.trampa_tipo.nombre !== 'insecto' && (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-              <Input
-                placeholder="Obs."
-                value={roedores[trampa.id]?.observacion || ''}
-                onChange={(e) =>
-                  updateRoedor(trampa.id, 'observacion', e.target.value)
-                }
-              />
-              <Input
-                type="number"
-                placeholder="Cantidad"
-                value={roedores[trampa.id]?.cantidad}
-                onChange={(e) =>
-                  updateRoedor(trampa.id, 'cantidad', Number(e.target.value))
-                }
-              />
-              <Input
-                type="number"
-                placeholder="Inicial"
-                value={roedores[trampa.id]?.inicial}
-                onChange={(e) =>
-                  updateRoedor(trampa.id, 'inicial', Number(e.target.value))
-                }
-              />
-              <Input
-                type="number"
-                placeholder="Actual"
-                value={roedores[trampa.id]?.actual}
-                onChange={(e) =>
-                  updateRoedor(trampa.id, 'actual', Number(e.target.value))
-                }
-              />
-              <Input disabled value={roedores[trampa.id]?.merma} />
+              <div>
+                <Label className="text-xs">Observacion</Label>
+
+                <Input
+                  placeholder="Obs."
+                  value={roedores[trampa.id]?.observacion || ''}
+                  onChange={(e) =>
+                    updateRoedor(trampa.id, 'observacion', e.target.value)
+                  }
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Atrapados</Label>
+                <Input
+                  type="number"
+                  placeholder="Cantidad"
+                  value={roedores[trampa.id]?.cantidad}
+                  onChange={(e) =>
+                    updateRoedor(trampa.id, 'cantidad', Number(e.target.value))
+                  }
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Inicial</Label>
+                <Input
+                  type="number"
+                  placeholder="Inicial"
+                  value={roedores[trampa.id]?.inicial}
+                  onChange={(e) =>
+                    updateRoedor(trampa.id, 'inicial', Number(e.target.value))
+                  }
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs">Actual</Label>
+                <Input
+                  type="number"
+                  placeholder="Actual"
+                  value={roedores[trampa.id]?.actual}
+                  onChange={(e) =>
+                    updateRoedor(trampa.id, 'actual', Number(e.target.value))
+                  }
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Merma</Label>
+                <Input disabled value={roedores[trampa.id]?.merma} />
+              </div>
             </div>
           )}
         </div>

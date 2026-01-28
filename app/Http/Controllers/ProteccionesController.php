@@ -13,24 +13,11 @@ class ProteccionesController extends Controller
     return inertia('admin/protecciones/index', ['items' => $protecciones]);
   }
 
-  public function create()
-  {
-    return inertia('admin/protecciones/crear', ['proteccion' => new Proteccion()]);
-  }
-
   public function store(Request $request)
   {
     $validated = $request->validate(['nombre' => ['required', 'string', 'max:255'],]);
     Proteccion::create($validated);
     return redirect()->route('protecciones.index');
-  }
-
-
-
-  public function edit(string $id)
-  {
-    $proteccion = Proteccion::find($id);
-    return inertia('admin/protecciones/editar', ['proteccion' => $proteccion]);
   }
 
   public function update(Request $request, string $id)
@@ -49,5 +36,14 @@ class ProteccionesController extends Controller
   }
 
   /** FUNCIONES NO USADAS */
-  public function show(string $id) {}
+  // public function create()
+  // {
+  //   return inertia('admin/protecciones/crear', ['proteccion' => new Proteccion()]);
+  // }
+  // public function edit(string $id)
+  // {
+  //   $proteccion = Proteccion::find($id);
+  //   return inertia('admin/protecciones/editar', ['proteccion' => $proteccion]);
+  // }
+  // public function show(string $id) {}
 }
