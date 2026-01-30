@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { usePermissions } from '@/hooks/usePermissions';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
@@ -40,6 +41,7 @@ type PageProps = {
 
 export default function Lista() {
   const { documents, filters } = usePage<PageProps>().props;
+  const { hasRole, hasAnyRole, hasPermission } = usePermissions();
   const { delete: destroy } = useForm();
 
   const getIcon = (tipo: string) => {
@@ -71,9 +73,11 @@ export default function Lista() {
       <div className="max-w-7xl px-4 py-10">
         <div className="mb-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
           <h1 className="text-3xl font-bold">Mis Documentos</h1>
-          <Button asChild>
-            <a href="/documentos/create">+ Subir nuevo</a>
-          </Button>
+          {(hasRole('superadmin') || hasRole('admin')) && (
+            <Button asChild>
+              <a href="/documentos/create">+ Subir nuevo</a>
+            </Button>
+          )}
         </div>
 
         <div className="mb-8">
@@ -89,9 +93,11 @@ export default function Lista() {
         {documents.data.length === 0 ? (
           <div className="py-16 text-center">
             <p className="text-lg text-gray-500">No hay documentos aún</p>
-            <Button asChild className="mt-4">
-              <a href="/documentos/create">Subir el primero</a>
-            </Button>
+            {(hasRole('superadmin') || hasRole('admin')) && (
+              <Button asChild className="mt-4">
+                <a href="/documentos/create">Subir el primero</a>
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -126,30 +132,33 @@ export default function Lista() {
                         Descargar
                       </a>
                     </Button>
+                    {(hasRole('superadmin') || hasRole('admin')) && (
+                      <>
+                        <Button size="sm" asChild>
+                          <a href={`/documentos/${doc.id}/edit`}>
+                            <Edit className="h-4 w-4" />
+                          </a>
+                        </Button>
 
-                    <Button size="sm" asChild>
-                      <a href={`/documentos/${doc.id}/edit`}>
-                        <Edit className="h-4 w-4" />
-                      </a>
-                    </Button>
-
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => {
-                        if (
-                          confirm(
-                            '¿Seguro que quieres eliminar este documento?',
-                          )
-                        ) {
-                          destroy(`/documentos/${doc.id}`, {
-                            preserveState: false,
-                          });
-                        }
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => {
+                            if (
+                              confirm(
+                                '¿Seguro que quieres eliminar este documento?',
+                              )
+                            ) {
+                              destroy(`/documentos/${doc.id}`, {
+                                preserveState: false,
+                              });
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </CardContent>
               </Card>

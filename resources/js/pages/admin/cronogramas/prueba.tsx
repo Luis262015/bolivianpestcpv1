@@ -134,6 +134,8 @@ export default function Lista() {
   const [taskTitle, setTaskTitle] = useState('');
   const [taskColor, setTaskColor] = useState(COLORS[0]);
   const [taskStatus, setTaskStatus] = useState<TaskStatus>('pendiente');
+  const [taskAlmacenId, setTaskAlmacenId] = useState<number>(0);
+
   const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
   const [selectedEmpresaId, setSelectedEmpresaId] = useState<number | null>(
     filters?.empresa_id ?? null,
@@ -151,12 +153,30 @@ export default function Lista() {
   // Controlar guardado de tarea
   const [savingTask, setSavingTask] = useState(false);
 
+  // const viendoTodasLasTareas =
+  //   selectedEmpresaId === null && selectedAlmacenId === null;
+  const viendoTodasLasTareas = Boolean(Number(props.filters?.ver_todas));
+
+  const getAlmacenById = (id: number | null): Almacen | undefined =>
+    props.almacenes.find((a: Almacen) => a.id === id);
+
+  const getEmpresaByAlmacenId = (
+    almacenId: number | null,
+  ): Empresa | undefined => {
+    const almacen = getAlmacenById(almacenId);
+    if (!almacen) return undefined;
+
+    return props.empresas.find((e: Empresa) => e.id === almacen.empresa_id);
+  };
+
   // 1. Limpiar tareas si se deselecciona el almacén
   useEffect(() => {
-    if (noHayAlmacenSeleccionado) {
+    // if (noHayAlmacenSeleccionado) {
+    if (noHayAlmacenSeleccionado && !viendoTodasLasTareas) {
       setTasks([]);
     }
-  }, [noHayAlmacenSeleccionado]);
+    // }, [noHayAlmacenSeleccionado]);
+  }, [noHayAlmacenSeleccionado, viendoTodasLasTareas]);
 
   // 2. Actualizar tareas cuando llegan nuevas del servidor
   useEffect(() => {
@@ -180,7 +200,8 @@ export default function Lista() {
 
   // 5. Cargar tareas automáticamente al cambiar empresa o almacén
   useEffect(() => {
-    if (selectedAlmacenId !== null) {
+    // if (selectedAlmacenId !== null) {
+    if (selectedAlmacenId !== null && !viendoTodasLasTareas) {
       router.get(
         '/cronogramas',
         {
@@ -194,7 +215,8 @@ export default function Lista() {
         },
       );
     }
-  }, [selectedAlmacenId]); // ← Solo depende del almacén (la empresa ya está implícita)
+    // }, [selectedAlmacenId]); // ← Solo depende del almacén (la empresa ya está implícita)
+  }, [selectedAlmacenId, viendoTodasLasTareas]);
 
   const getTasksForDate = (dateStr: string) =>
     tasks.filter((t) => t.date === dateStr);
@@ -244,6 +266,7 @@ export default function Lista() {
         setTaskTitle(task.title);
         setTaskColor(task.color);
         setTaskStatus(task.status);
+        setTaskAlmacenId(Number(task.almacen_id));
         setSelectedUserId(task.user_id);
         setSelectedDate(new Date(task.date + 'T00:00:00'));
       } else {
@@ -251,6 +274,7 @@ export default function Lista() {
         setTaskTitle('');
         setTaskColor(COLORS[0]);
         setTaskStatus('pendiente');
+        setTaskAlmacenId(0);
         setSelectedUserId('');
         setSelectedDate(date || null);
       }
@@ -612,9 +636,57 @@ export default function Lista() {
               </SelectContent>
             </Select>
           </div>
+
+          <div className="flex items-end gap-4">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setSelectedEmpresaId(null);
+                setSelectedAlmacenId(null);
+
+                router.get(
+                  '/cronogramas',
+                  { ver_todas: 1 },
+                  {
+                    preserveState: true,
+                    replace: true,
+                    preserveScroll: true,
+                  },
+                );
+              }}
+            >
+              Ver todas las tareas
+            </Button>
+
+            {selectedAlmacenId && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  router.get(
+                    '/cronogramas',
+                    {
+                      empresa_id: selectedEmpresaId,
+                      almacen_id: selectedAlmacenId,
+                    },
+                    {
+                      preserveState: true,
+                      replace: true,
+                      preserveScroll: true,
+                    },
+                  );
+                }}
+              >
+                Ver solo este almacén
+              </Button>
+            )}
+            {viendoTodasLasTareas && (
+              <Badge variant="secondary">Vista global · Todas las tareas</Badge>
+            )}
+          </div>
         </div>
 
-        {noHayAlmacenSeleccionado ? (
+        {/* {noHayAlmacenSeleccionado ? ( */}
+        {noHayAlmacenSeleccionado && !viendoTodasLasTareas ? (
           <div className="flex min-h-[500px] items-center justify-center rounded-lg border border-dashed bg-muted/40 p-10 text-center">
             <div className="max-w-md space-y-4">
               <h3 className="text-xl font-semibold">Selecciona un almacén</h3>
@@ -719,6 +791,17 @@ export default function Lista() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div>
+                <span className="font-medium text-foreground">Empresa:</span>{' '}
+                {getEmpresaByAlmacenId(taskAlmacenId)?.nombre ?? '—'}
+              </div>
+
+              <div>
+                <span className="font-medium text-foreground">Almacén:</span>{' '}
+                {getAlmacenById(taskAlmacenId)?.nombre ?? '—'}
+              </div>
+            </div>
             <div>
               <Label htmlFor="title">Título</Label>
               <Input

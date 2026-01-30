@@ -120,6 +120,7 @@ class DocumentosController extends Controller
   public function download(Documento $documento)
   {
     $filePath = storage_path('app/private/' . $documento->ruta);
+    // dd($filePath);
     if (!file_exists($filePath)) {
       abort(404, 'Archivo no encontrado');
     }

@@ -12,9 +12,10 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { FileChartColumn, Plus, Trash2 } from 'lucide-react';
+import { Edit2, FileChartColumn, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import ModalSeguimiento from './ModalSeguimiento';
+import ModalSeguimientoTrampa from './ModalSeguimientoTrampa';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -103,7 +104,11 @@ export default function Lista({
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTrapsOpen, setModalTrapsOpen] = useState(false);
 
+  const [open, setOpen] = useState(false);
+
   const { hasRole, hasAnyRole, hasPermission } = usePermissions();
+
+  console.log(seguimientos);
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -177,13 +182,15 @@ export default function Lista({
                             >
                               <Edit className="h-4 w-4" />
                             </Button> */}
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              onClick={() => handleDelete(seguimiento.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {(hasRole('superadmin') || hasRole('admin')) && (
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                onClick={() => handleDelete(seguimiento.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button
                               size="icon"
                               variant="outline"
@@ -191,6 +198,25 @@ export default function Lista({
                             >
                               <FileChartColumn className="h-4 w-4" />
                             </Button>
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              onClick={() => setOpen(true)}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <ModalSeguimientoTrampa
+                              open={open}
+                              onClose={() => setOpen(false)}
+                              seguimientoId={seguimiento.id}
+                              almacenId={seguimiento.almacen_id}
+                              initialData={{
+                                trampa_especies_seguimientos:
+                                  seguimiento.trampa_especies_seguimientos,
+                                trampa_roedores_seguimientos:
+                                  seguimiento.trampa_roedores_seguimientos,
+                              }}
+                            />
                           </TableCell>
                         </TableRow>
                       ))}
@@ -236,6 +262,7 @@ export default function Lista({
         especies={especies}
         tipoSeguimiento={tipoSeguimiento}
       />
+
       {/* <ModalTrampas
         open={modalTrapsOpen}
         onClose={() => setModalTrapsOpen(false)}

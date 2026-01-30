@@ -166,18 +166,14 @@ export default function Lista() {
                     </Button>
                   )}
 
-                  {(hasRole('superadmin') ||
-                    hasRole('admin') ||
-                    hasRole('tecnico')) && (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => openListaCertificados(empresa)}
-                    >
-                      <Eye className="mr-1 h-4 w-4" />
-                      Ver Certificados
-                    </Button>
-                  )}
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => openListaCertificados(empresa)}
+                  >
+                    <Eye className="mr-1 h-4 w-4" />
+                    Ver Certificados
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

@@ -138,6 +138,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/productos/test', [ProductosController::class, 'test'])->name('productos.test');
     Route::get('/productos/subcategorias/{categoria}', [ProductosController::class, 'getSubcategorias'])->name('productos.subcategorias');
     Route::get('/productos/search', [ProductosController::class, 'search'])->name('productos.search');
+    Route::get('/productos/{hojaTecnica}/download', [ProductosController::class, 'download'])->name('productos.download');
     Route::resource('productos', ProductosController::class);
 
     Route::prefix('productos/{producto}')->group(function () {

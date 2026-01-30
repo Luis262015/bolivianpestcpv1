@@ -166,12 +166,17 @@ class MapaController extends Controller
       'texts.*.vertical' => 'boolean',
       'texts.*.fontSize' => 'numeric',
       'trampas'      => 'nullable|array',
+      'trampas.*.id'         => 'nullable|integer',
       'trampas.*.trampa_tipo_id' => 'required|exists:trampa_tipos,id',
       'trampas.*.posx'           => 'required|numeric',
       'trampas.*.posy'           => 'required|numeric',
       'trampas.*.estado'         => 'nullable|string|in:activo,inactivo,mantenimiento',
       'trampas.*.numero'         => 'nullable|integer',
     ]);
+
+
+
+
 
     try {
 
@@ -220,10 +225,12 @@ class MapaController extends Controller
           $mapa->save();
         }
       }
+
+
       $trampasRecibidas = collect($validated['trampas'] ?? []);
       $idsMantener = $trampasRecibidas->filter(fn($t) => !empty($t['id']))->pluck('id');
       // Eliminar las que ya no vienen
-      // $mapa->trampas()->whereNotIn('id', $idsMantener)->delete(); // 🔴🔴🔴 REVISAR 
+      $mapa->trampas()->whereNotIn('id', $idsMantener)->delete(); // 🔴🔴🔴 REVISAR 
       // Procesar cada trampa (crear o actualizar)
       foreach ($trampasRecibidas as $index => $trampaData) {
         $data = [

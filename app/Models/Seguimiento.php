@@ -110,4 +110,14 @@ class Seguimiento extends Model
     {
         return $this->hasMany(TrampaEspecieSeguimiento::class);
     }
+
+    public function trampaEspeciesSeguimientos()
+    {
+        return $this->hasMany(TrampaEspecieSeguimiento::class);
+    }
+
+    public function trampaRoedoresSeguimientos()
+    {
+        return $this->hasMany(TrampaRoedorSeguimiento::class);
+    }
 }

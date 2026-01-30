@@ -23,7 +23,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { CalendarClock, FileText, Plus, SquarePen, Trash2 } from 'lucide-react';
+import { usePermissions } from '@/hooks/usePermissions';
+import {
+  CalendarClock,
+  Download,
+  FileText,
+  Plus,
+  SquarePen,
+  Trash2,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -74,6 +82,7 @@ export default function Index() {
   const { processing, delete: destroy } = useForm();
   const { productos } = usePage<{ productos: ProductosPaginate }>().props;
 
+  const { hasRole, hasAnyRole, hasPermission } = usePermissions();
   // Estados comunes
   const [selectedProductoId, setSelectedProductoId] = useState<number | null>(
     null,
@@ -253,11 +262,13 @@ export default function Index() {
       <div className="m-4">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold">Gestión de productos</h1>
-          <Link href="/productos/create">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Nuevo Producto
-            </Button>
-          </Link>
+          {(hasRole('superadmin') || hasRole('admin')) && (
+            <Link href="/productos/create">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" /> Nuevo Producto
+              </Button>
+            </Link>
+          )}
         </div>
 
         {productos.data.length === 0 ? (
@@ -287,11 +298,13 @@ export default function Index() {
                   <TableCell>{producto.marca?.nombre ?? '—'}</TableCell>
                   <TableCell>{producto.stock ?? '—'}</TableCell>
                   <TableCell className="space-x-1 text-right">
-                    <Link href={`/productos/${producto.id}/edit`}>
-                      <Button size="icon" variant="outline">
-                        <SquarePen className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                    {(hasRole('superadmin') || hasRole('admin')) && (
+                      <Link href={`/productos/${producto.id}/edit`}>
+                        <Button size="icon" variant="outline">
+                          <SquarePen className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    )}
 
                     <Button
                       size="icon"
@@ -317,14 +330,16 @@ export default function Index() {
                       <FileText className="h-4 w-4" />
                     </Button>
 
-                    <Button
-                      size="icon"
-                      variant="destructive"
-                      onClick={() => handleDeleteProducto(producto.id)}
-                      disabled={processing}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {(hasRole('superadmin') || hasRole('admin')) && (
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        onClick={() => handleDeleteProducto(producto.id)}
+                        disabled={processing}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -382,49 +397,50 @@ export default function Index() {
               </div>
             )}
           </div>
-
-          <form
-            onSubmit={handleSubmitVencimiento}
-            className="space-y-4 border-t pt-4"
-          >
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Código/Lote</Label>
-                <Input
-                  value={vencimientoForm.data.codigo}
-                  onChange={(e) =>
-                    vencimientoForm.setData('codigo', e.target.value)
-                  }
-                  placeholder="Lote 0234"
-                />
+          {(hasRole('superadmin') || hasRole('admin')) && (
+            <form
+              onSubmit={handleSubmitVencimiento}
+              className="space-y-4 border-t pt-4"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Código/Lote</Label>
+                  <Input
+                    value={vencimientoForm.data.codigo}
+                    onChange={(e) =>
+                      vencimientoForm.setData('codigo', e.target.value)
+                    }
+                    placeholder="Lote 0234"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Fecha vencimiento</Label>
+                  <Input
+                    type="date"
+                    value={vencimientoForm.data.vencimiento}
+                    onChange={(e) =>
+                      vencimientoForm.setData('vencimiento', e.target.value)
+                    }
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Fecha vencimiento</Label>
-                <Input
-                  type="date"
-                  value={vencimientoForm.data.vencimiento}
-                  onChange={(e) =>
-                    vencimientoForm.setData('vencimiento', e.target.value)
-                  }
-                />
-              </div>
-            </div>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpenVencimientos(false)}
-              >
-                Cerrar
-              </Button>
-              <Button type="submit" disabled={vencimientoForm.processing}>
-                {vencimientoForm.processing
-                  ? 'Guardando...'
-                  : 'Agregar vencimiento'}
-              </Button>
-            </DialogFooter>
-          </form>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setOpenVencimientos(false)}
+                >
+                  Cerrar
+                </Button>
+                <Button type="submit" disabled={vencimientoForm.processing}>
+                  {vencimientoForm.processing
+                    ? 'Guardando...'
+                    : 'Agregar vencimiento'}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -459,13 +475,21 @@ export default function Index() {
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span>{h.archivo}</span>
                         {h.url && (
+                          // <a
+                          //   href={h.url}
+                          //   target="_blank"
+                          //   rel="noopener noreferrer"
+                          //   className="text-xs text-primary hover:underline"
+                          // >
+                          //   Ver archivo
+                          // </a>
                           <a
-                            href={h.url}
+                            href={`/productos/${h.id}/download`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-primary hover:underline"
                           >
-                            Ver archivo
+                            <Download className="mr-1 h-4 w-4" />
+                            Descargar
                           </a>
                         )}
                       </div>
@@ -483,59 +507,63 @@ export default function Index() {
               </div>
             )}
           </div>
-
-          <form onSubmit={handleSubmitHoja} className="space-y-4 border-t pt-4">
-            <div className="space-y-2">
-              <Label>Título / Descripción</Label>
-              <Input
-                value={hojaForm.data.titulo}
-                onChange={(e) => hojaForm.setData('titulo', e.target.value)}
-                placeholder="Ficha técnica - Especificaciones 2025"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Archivo</Label>
-              <div className="flex items-center gap-3">
-                <Button type="button" variant="outline" asChild>
-                  <label className="cursor-pointer">
-                    Seleccionar archivo
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={handleFileChange}
-                    />
-                  </label>
-                </Button>
-                {selectedFileName && (
-                  <span className="max-w-[300px] truncate text-sm text-muted-foreground">
-                    {selectedFileName}
-                  </span>
-                )}
+          {(hasRole('superadmin') || hasRole('admin')) && (
+            <form
+              onSubmit={handleSubmitHoja}
+              className="space-y-4 border-t pt-4"
+            >
+              <div className="space-y-2">
+                <Label>Título / Descripción</Label>
+                <Input
+                  value={hojaForm.data.titulo}
+                  onChange={(e) => hojaForm.setData('titulo', e.target.value)}
+                  placeholder="Ficha técnica - Especificaciones 2025"
+                />
               </div>
-            </div>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpenHojas(false)}
-              >
-                Cerrar
-              </Button>
-              <Button
-                type="submit"
-                disabled={
-                  hojaForm.processing ||
-                  !hojaForm.data.titulo ||
-                  !hojaForm.data.archivo
-                }
-              >
-                {hojaForm.processing ? 'Subiendo...' : 'Subir nueva hoja'}
-              </Button>
-            </DialogFooter>
-          </form>
+              <div className="space-y-2">
+                <Label>Archivo</Label>
+                <div className="flex items-center gap-3">
+                  <Button type="button" variant="outline" asChild>
+                    <label className="cursor-pointer">
+                      Seleccionar archivo
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={handleFileChange}
+                      />
+                    </label>
+                  </Button>
+                  {selectedFileName && (
+                    <span className="max-w-[300px] truncate text-sm text-muted-foreground">
+                      {selectedFileName}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setOpenHojas(false)}
+                >
+                  Cerrar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={
+                    hojaForm.processing ||
+                    !hojaForm.data.titulo ||
+                    !hojaForm.data.archivo
+                  }
+                >
+                  {hojaForm.processing ? 'Subiendo...' : 'Subir nueva hoja'}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
     </AppLayout>

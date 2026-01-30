@@ -78,7 +78,7 @@ class SeguimientoController extends Controller
       $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen'])->where('empresa_id', $empresaUser->id)->paginate(20);
     } else {
 
-      $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen'])->paginate(20);
+      $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen', 'trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->paginate(20);
     }
     return inertia('admin/seguimientos/lista', [
       'empresas' => $empresas,

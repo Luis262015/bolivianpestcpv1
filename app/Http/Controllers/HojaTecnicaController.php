@@ -37,7 +37,7 @@ class HojaTecnicaController extends Controller
       'titulo'  => 'required|string|max:255',
       'archivo' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
     ]);
-    $path = $request->file('archivo')->store('hojas-tecnicas', 'public');
+    $path = $request->file('archivo')->store('hojas-tecnicas', 'local');
     $producto->hojasTecnicas()->create([
       'titulo'  => $validated['titulo'],
       'archivo' => $path,
@@ -53,7 +53,7 @@ class HojaTecnicaController extends Controller
     }
     // Eliminar archivo físico
     if ($hojaTecnica->archivo) {
-      Storage::disk('public')->delete($hojaTecnica->archivo);
+      Storage::disk('local')->delete($hojaTecnica->archivo);
     }
     $hojaTecnica->delete();
     return redirect('/productos')

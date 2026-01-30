@@ -72,7 +72,7 @@
       font-size: 2rem;
       text-align: center;
       color: #0D3347;
-      margin-top: 8rem;
+      margin-top: 7.2rem;
       font-weight: bold;
       margin-left: 3.5rem;
     }
@@ -125,6 +125,9 @@
       background-image: url('{{ public_path('images/certificado/firma.png') }}');
 
     } */
+    .tablaVarios {
+      margin: 1rem 0;
+    }
 
     .sello {
       position: absolute;
@@ -167,24 +170,36 @@
       <div>
         CONDICION SANITARIA DE LA ZONA CIRCULANTE: <span class="resaltado">{{ $certificado->condicion }}</span>
       </div>
-      <div>
+      {{-- <div>
         TRABAJOS REALIZADOS:
         <span class="resaltado">
           @foreach (explode(',', $certificado->trabajo) as $item)
             {{ trim($item) }}<br>
           @endforeach
         </span>
-      </div>
-
-      <table>
+      </div> --}}
+      <table class="tablaVarios">
         <tr>
-          <td>PLAGUICIDAS UTILIZADOS:</td>
+          <td style="vertical-align: text-top">
+            TRABAJOS REALIZADOS:</td>
+          <td>
+            @foreach (explode(',', $certificado->trabajo) as $item)
+              <span class="resaltado">{{ trim($item) }}</span>
+              <br>
+            @endforeach
+          </td>
+        </tr>
+      </table>
+
+      <table class="tablaVarios">
+        <tr>
+          <td style="vertical-align: text-top">PLAGUICIDAS UTILIZADOS:</td>
           <td>
             @foreach (explode(',', $certificado->plaguicidas) as $item)
               <span class="resaltado">{{ trim($item) }}</span><br>
             @endforeach
           </td>
-          <td>REGISTRO:</td>
+          <td style="vertical-align: text-top">REGISTRO:</td>
           <td>
             @foreach (explode(',', $certificado->registro) as $item)
               <span class="resaltado">{{ trim($item) }}</span><br>
@@ -235,7 +250,10 @@
     </div>
 
     <div class="logo">
-      <img src="{{ public_path($certificado->logo) }}" alt="" width="60px">
+      {{-- <img src="{{ public_path($certificado->logo) }}" alt="" width="60px"> --}}
+      @if (!empty($certificado->logo))
+        <img src="{{ public_path($certificado->logo) }}" alt="" width="60px">
+      @endif
     </div>
 
     {{-- <div class="firma">

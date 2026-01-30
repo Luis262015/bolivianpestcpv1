@@ -325,6 +325,16 @@ const mainNavItemsCliente: MainNavItem[] = [
     icon: FileChartColumn,
     href: '/informes',
   },
+  {
+    title: 'Productos',
+    href: '/productos',
+    icon: Apple,
+  },
+  {
+    title: 'Documentos',
+    icon: Files,
+    href: '/documentos',
+  },
   // {
   //   title: 'Trampas',
   //   icon: NotebookPen,

@@ -121,6 +121,24 @@ export default function MapaEditor(props: Props) {
     props.selectedAlmacen ?? null,
   );
 
+  const downloadCanvasImage = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Crear imagen en PNG
+    const dataURL = canvas.toDataURL('image/png');
+
+    // Crear link temporal
+    const link = document.createElement('a');
+    link.href = dataURL;
+    link.download = `mapa-trampas-${selectedAlmacen ?? 'preview'}.png`;
+
+    // Forzar descarga
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Cargar mapa automáticamente cuando cambie el almacén seleccionado
   useEffect(() => {
     if (!selectedAlmacen) {
@@ -231,7 +249,18 @@ export default function MapaEditor(props: Props) {
     ctx.translate(panOffset.x, panOffset.y);
     ctx.scale(scale, scale);
 
+    // if (backgroundImageRef.current) {
+    //   ctx.drawImage(
+    //     backgroundImageRef.current,
+    //     0,
+    //     0,
+    //     CANVAS_WIDTH,
+    //     CANVAS_HEIGHT,
+    //   );
+    // }
     if (backgroundImageRef.current) {
+      ctx.save();
+      ctx.globalAlpha = 0.8; // 90% de opacidad SOLO para el fondo
       ctx.drawImage(
         backgroundImageRef.current,
         0,
@@ -239,6 +268,7 @@ export default function MapaEditor(props: Props) {
         CANVAS_WIDTH,
         CANVAS_HEIGHT,
       );
+      ctx.restore();
     }
 
     // Grid
@@ -299,7 +329,8 @@ export default function MapaEditor(props: Props) {
       const label = String(index + 1);
       ctx.save();
       ctx.beginPath();
-      ctx.arc(trap.posx, trap.posy - 28, 14, 0, Math.PI * 2);
+      // ctx.arc(trap.posx, trap.posy - 28, 14, 0, Math.PI * 2); //****************************************** */
+      ctx.arc(trap.posx, trap.posy - size, size / 2, 0, Math.PI * 2);
       switch (trap.trampa_tipo_id) {
         case 1:
           ctx.fillStyle = '#0CB362';
@@ -320,10 +351,12 @@ export default function MapaEditor(props: Props) {
       // ctx.fillStyle = '#15803d';
       ctx.fill();
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 14px sans-serif';
+      // ctx.font = 'bold 14px sans-serif';
+      ctx.font = 'bold 10px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(label, trap.posx, trap.posy - 28);
+      // ctx.fillText(label, trap.posx, trap.posy - 28);//*************************************** */
+      ctx.fillText(label, trap.posx, trap.posy - size);
       ctx.restore();
     });
 
@@ -699,6 +732,13 @@ export default function MapaEditor(props: Props) {
               </div>
 
               <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={downloadCanvasImage}
+                >
+                  ⬇ Descargar PNG
+                </Button>
                 <Button
                   variant="outline"
                   onClick={() => setHistory((prev) => prev.slice(0, -1))}

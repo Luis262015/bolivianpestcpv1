@@ -23,29 +23,108 @@ class CronogramaController extends Controller
   public function index(Request $request)
   {
     $user = $request->user();
-    $filters = $request->only(['empresa_id', 'almacen_id']);
-    if ($user->HasRole('cliente')) {
+
+    // =============================
+    // Filtros
+    // =============================
+    $filters = $request->only([
+      'empresa_id',
+      'almacen_id',
+      'ver_todas',
+    ]);
+
+    // =============================
+    // Empresas y almacenes visibles
+    // =============================
+    if ($user->hasRole('cliente')) {
       $empresasUser = User::with('empresas')->find($user->id);
       $empresaUser = $empresasUser->empresas[0];
-      $empresas = Empresa::select(['id', 'nombre'])->where('id', $empresaUser->id)->get();
-      $almacenes = Almacen::select(['id', 'nombre', 'empresa_id'])->where('empresa_id', $empresaUser->id)->get();
+
+      $empresas = Empresa::select(['id', 'nombre'])
+        ->where('id', $empresaUser->id)
+        ->get();
+
+      $almacenes = Almacen::select(['id', 'nombre', 'empresa_id'])
+        ->where('empresa_id', $empresaUser->id)
+        ->get();
     } else {
       $empresas = Empresa::all(['id', 'nombre']);
       $almacenes = Almacen::all(['id', 'nombre', 'empresa_id']);
     }
-    $usuarios = User::all(['id', 'name as nombre']); // Ajusta si el campo es 'nombre' en lugar de 'name'
-    $tareas = [];
-    if (isset($filters['almacen_id'])) {
-      $tareas = Cronograma::where('almacen_id', $filters['almacen_id'])
-        ->get(['id', 'title', 'date', 'color', 'status', 'user_id', 'almacen_id']);
+
+    // =============================
+    // Usuarios
+    // =============================
+    $usuarios = User::all(['id', 'name as nombre']);
+
+    // =============================
+    // Tareas (lógica principal)
+    // =============================
+    $tareasQuery = Cronograma::query();
+
+    if (!empty($filters['almacen_id'])) {
+      // 📍 Vista por almacén
+      $tareasQuery->where('almacen_id', $filters['almacen_id']);
+    } elseif ($request->boolean('ver_todas')) {
+      // 🌍 Vista global (solo si se presionó el botón)
+
+      if ($user->hasRole('cliente')) {
+        // Cliente: solo tareas de sus almacenes
+        $tareasQuery->whereIn(
+          'almacen_id',
+          $almacenes->pluck('id')
+        );
+      }
+      // Admin / superadmin: ve todo (sin filtro)
+    } else {
+      // ❌ Sin almacén y sin "ver todas" → no mostrar nada
+      $tareasQuery->whereRaw('1 = 0');
     }
-    return inertia('admin/cronogramas/prueba', [ // Ajusta la ruta del componente Inertia si es necesario
+
+    $tareas = $tareasQuery->get([
+      'id',
+      'title',
+      'date',
+      'color',
+      'status',
+      'user_id',
+      'almacen_id',
+    ]);
+
+    // =============================
+    // Inertia
+    // =============================
+    return inertia('admin/cronogramas/prueba', [
       'empresas' => $empresas,
       'almacenes' => $almacenes,
       'usuarios' => $usuarios,
       'tareas' => $tareas,
       'filters' => $filters,
     ]);
+    // $user = $request->user();
+    // $filters = $request->only(['empresa_id', 'almacen_id']);
+    // if ($user->HasRole('cliente')) {
+    //   $empresasUser = User::with('empresas')->find($user->id);
+    //   $empresaUser = $empresasUser->empresas[0];
+    //   $empresas = Empresa::select(['id', 'nombre'])->where('id', $empresaUser->id)->get();
+    //   $almacenes = Almacen::select(['id', 'nombre', 'empresa_id'])->where('empresa_id', $empresaUser->id)->get();
+    // } else {
+    //   $empresas = Empresa::all(['id', 'nombre']);
+    //   $almacenes = Almacen::all(['id', 'nombre', 'empresa_id']);
+    // }
+    // $usuarios = User::all(['id', 'name as nombre']); // Ajusta si el campo es 'nombre' en lugar de 'name'
+    // $tareas = [];
+    // if (isset($filters['almacen_id'])) {
+    //   $tareas = Cronograma::where('almacen_id', $filters['almacen_id'])
+    //     ->get(['id', 'title', 'date', 'color', 'status', 'user_id', 'almacen_id']);
+    // }
+    // return inertia('admin/cronogramas/prueba', [ // Ajusta la ruta del componente Inertia si es necesario
+    //   'empresas' => $empresas,
+    //   'almacenes' => $almacenes,
+    //   'usuarios' => $usuarios,
+    //   'tareas' => $tareas,
+    //   'filters' => $filters,
+    // ]);
   }
 
   public function store(Request $request)

@@ -165,7 +165,7 @@ class ProductosController extends Controller
       ]);
 
       // Guardar archivo
-      $path = $request->file('archivo')->store('hojas-tecnicas', 'public');
+      $path = $request->file('archivo')->store('hojasTecnicas', 'private');
 
       $producto->hojasTecnicas()->create([
         'titulo'  => $validated['titulo'],
@@ -191,10 +191,24 @@ class ProductosController extends Controller
     }
     // Eliminar archivo físico
     if ($hojaTecnica->archivo) {
-      Storage::disk('public')->delete($hojaTecnica->archivo);
+      Storage::disk('local')->delete($hojaTecnica->archivo);
     }
     $hojaTecnica->delete();
     return back()->with('success', 'Hoja técnica eliminada');
+  }
+
+  public function download(HojaTecnica $hojaTecnica)
+  {
+    // dd($hojaTecnica);
+    $filePath = storage_path('app/private/' . $hojaTecnica->archivo);
+    // dd($filePath);
+    if (!file_exists($filePath)) {
+      abort(404, 'Archivo no encontrado');
+    }
+    return response()->download(
+      $filePath,
+      $hojaTecnica->titulo . '.' . pathinfo($hojaTecnica->archivo, PATHINFO_EXTENSION)
+    );
   }
 
   /** FUNCIONES NO USADAS */

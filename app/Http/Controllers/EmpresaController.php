@@ -17,18 +17,18 @@ use Illuminate\Database\QueryException;
 class EmpresaController extends Controller
 {
   private $toValidatedCert = [
-    'titulo' => 'required|string',
-    'establecimiento' => 'required|string',
-    'actividad' => 'required|string',
-    'validez' => 'required|string',
-    'direccion' => 'required|string',
-    'diagnostico' => 'required|string',
-    'condicion' => 'required|string',
-    'trabajo' => 'required|string',
-    'plaguicidas' => 'required|string',
-    'registro' => 'required|string',
-    'area' => 'required|string',
-    'acciones' => 'required|string',
+    'titulo' => 'nullable|string',
+    'establecimiento' => 'nullable|string',
+    'actividad' => 'nullable|string',
+    'validez' => 'nullable|string',
+    'direccion' => 'nullable|string',
+    'diagnostico' => 'nullable|string',
+    'condicion' => 'nullable|string',
+    'trabajo' => 'nullable|string',
+    'plaguicidas' => 'nullable|string',
+    'registro' => 'nullable|string',
+    'area' => 'nullable|string',
+    'acciones' => 'nullable|string',
     'logo' => 'nullable|image|max:2048',
   ];
 
@@ -65,18 +65,18 @@ class EmpresaController extends Controller
       $certificado->user_id = Auth::id();
       $certificado->qrcode = '';
       $certificado->firmadigital = '';
-      $certificado->titulo = $validated['titulo'];
-      $certificado->establecimiento = $validated['establecimiento'];
-      $certificado->actividad = $validated['actividad'];
-      $certificado->validez = $validated['validez'];
-      $certificado->direccion = $validated['direccion'];
-      $certificado->diagnostico = $validated['diagnostico'];
-      $certificado->condicion = $validated['condicion'];
-      $certificado->trabajo = $validated['trabajo'];
-      $certificado->plaguicidas = $validated['plaguicidas'];
-      $certificado->registro = $validated['registro'];
-      $certificado->area = $validated['area'];
-      $certificado->acciones = $validated['acciones'];
+      $certificado->titulo = $validated['titulo'] ?? null;
+      $certificado->establecimiento = $validated['establecimiento'] ?? null;
+      $certificado->actividad = $validated['actividad'] ?? null;
+      $certificado->validez = $validated['validez'] ?? null;
+      $certificado->direccion = $validated['direccion'] ?? null;
+      $certificado->diagnostico = $validated['diagnostico'] ?? null;
+      $certificado->condicion = $validated['condicion'] ?? null;
+      $certificado->trabajo = $validated['trabajo'] ?? null;
+      $certificado->plaguicidas = $validated['plaguicidas'] ?? null;
+      $certificado->registro = $validated['registro'] ?? null;
+      $certificado->area = $validated['area'] ?? null;
+      $certificado->acciones = $validated['acciones'] ?? null;
 
       $path = '';
       if ($request->hasFile('logo')) {
