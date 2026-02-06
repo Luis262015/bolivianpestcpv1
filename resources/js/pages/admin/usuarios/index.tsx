@@ -30,7 +30,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Edit, Plus, Trash2 } from 'lucide-react';
+import { Edit, Eye, EyeOff, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 // ----- INTERFACES
@@ -86,9 +86,11 @@ export default function Index() {
 
   const [isOpen, setIsOpen] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('handleCreate');
+    // console.log('handleCreate');
     if (!itemName) return;
 
     router.post(
@@ -111,7 +113,7 @@ export default function Index() {
 
   const handleEdit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('handleEdit');
+    // console.log('handleEdit');
     if (!editItem || !itemName) return;
 
     router.put(
@@ -162,6 +164,19 @@ export default function Index() {
     setItemPassword('');
     setItemConfPassword('');
     setIsOpen(true);
+  };
+
+  const generatePassword = (length = 12) => {
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+';
+    let password = '';
+
+    for (let i = 0; i < length; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    setItemPassword(password);
+    setItemConfPassword(password);
   };
 
   return (
@@ -222,17 +237,33 @@ export default function Index() {
                   <>
                     <div>
                       <Label htmlFor="password">Password</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        value={itemPassword}
-                        onChange={(e) => setItemPassword(e.target.value)}
-                        required
-                        tabIndex={3}
-                        autoComplete="new-password"
-                        name="password"
-                        placeholder="Password"
-                      />
+                      <div className="flex items-center justify-center gap-2">
+                        <Input
+                          id="password"
+                          type={showPassword ? 'text' : 'password'}
+                          value={itemPassword}
+                          onChange={(e) => setItemPassword(e.target.value)}
+                          required
+                          tabIndex={3}
+                          autoComplete="new-password"
+                          name="password"
+                          placeholder="Password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className=""
+                        >
+                          {showPassword ? <EyeOff /> : <Eye />}
+                        </button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => generatePassword()}
+                        >
+                          <RotateCcw />
+                        </Button>
+                      </div>
                       <InputError message={errors.password} />
                     </div>
                     <div>
@@ -241,7 +272,7 @@ export default function Index() {
                       </Label>
                       <Input
                         id="password_confirmation"
-                        type="password"
+                        type={showPassword ? 'text' : 'password'}
                         value={itemConfPassword}
                         onChange={(e) => setItemConfPassword(e.target.value)}
                         tabIndex={4}
