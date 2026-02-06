@@ -114,6 +114,9 @@ export default function Lista() {
   const dragOverRef = useRef<string | null>(null);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
 
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+
   // 2. Actualizar tareas cuando llegan nuevas del servidor
   useEffect(() => {
     setTasks(initialTasks || []);
@@ -154,14 +157,20 @@ export default function Lista() {
   };
 
   const openTaskDialog = (date?: Date, task?: Task) => {
-    console.log(task);
+    // console.log(task);
     if (task) {
+      const taskDate = new Date(task.date + 'T00:00:00');
+
       setEditingTask(task);
       setTaskTitle(task.title);
       setTaskColor(task.color);
       setTaskStatus(task.status);
       setSelectedDate(new Date(task.date + 'T00:00:00'));
       setSelectedHour(task.hour);
+
+      setSelectedDate(taskDate);
+      setSelectedMonth(taskDate.getMonth());
+      setSelectedYear(taskDate.getFullYear());
     } else {
       setEditingTask(null);
       setTaskTitle('');
@@ -169,6 +178,10 @@ export default function Lista() {
       setTaskStatus('pendiente');
       setSelectedDate(date || null);
       setSelectedHour('');
+      if (date) {
+        setSelectedMonth(date.getMonth());
+        setSelectedYear(date.getFullYear());
+      }
     }
     setIsDialogOpen(true);
   };
@@ -176,7 +189,18 @@ export default function Lista() {
   const saveTask = () => {
     if (!selectedDate || !taskTitle.trim()) return;
 
-    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    // const dateStr = format(selectedDate, 'yyyy-MM-dd');
+
+    if (selectedMonth === null || selectedYear === null) return;
+
+    const finalDate = new Date(
+      selectedYear,
+      selectedMonth,
+      selectedDate?.getDate() ?? 1,
+    );
+
+    const dateStr = format(finalDate, 'yyyy-MM-dd');
+
     // const dateHour = format(selectedHour, 'HH:mm:ss');
 
     const data = {
@@ -535,6 +559,48 @@ export default function Lista() {
               {selectedDate && format(selectedDate, 'dd MMMM yyyy')}
             </DialogTitle>
           </DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Mes</Label>
+              <Select
+                value={selectedMonth?.toString()}
+                onValueChange={(v) => setSelectedMonth(parseInt(v))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Mes" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <SelectItem key={i} value={i.toString()}>
+                      {format(new Date(2026, i), 'MMMM')}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Año</Label>
+              <Select
+                value={selectedYear?.toString()}
+                onValueChange={(v) => setSelectedYear(parseInt(v))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Año" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 10 }, (_, i) => {
+                    const y = new Date().getFullYear() - 2 + i;
+                    return (
+                      <SelectItem key={y} value={y.toString()}>
+                        {y}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <div className="space-y-4">
             <div>
               <Label htmlFor="title">Hora</Label>

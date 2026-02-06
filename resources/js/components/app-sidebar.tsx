@@ -361,8 +361,8 @@ export function AppSidebar() {
   const { hasRole, hasAnyRole, hasPermission } = usePermissions();
 
   const { props } = usePage();
-  console.log(props.auth);
-  console.log(hasRole('superadmin'));
+  // console.log(props.auth);
+  // console.log(hasRole('superadmin'));
 
   return (
     <Sidebar collapsible="icon" variant="inset">

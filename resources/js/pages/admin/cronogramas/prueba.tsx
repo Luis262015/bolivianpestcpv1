@@ -169,6 +169,9 @@ export default function Lista() {
     return props.empresas.find((e: Empresa) => e.id === almacen.empresa_id);
   };
 
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+
   // 1. Limpiar tareas si se deselecciona el almacén
   useEffect(() => {
     // if (noHayAlmacenSeleccionado) {
@@ -262,6 +265,8 @@ export default function Lista() {
       console.log(task);
 
       if (task) {
+        const taskDate = new Date(task.date + 'T00:00:00');
+
         setEditingTask(task);
         setTaskTitle(task.title);
         setTaskColor(task.color);
@@ -269,6 +274,10 @@ export default function Lista() {
         setTaskAlmacenId(Number(task.almacen_id));
         setSelectedUserId(task.user_id);
         setSelectedDate(new Date(task.date + 'T00:00:00'));
+
+        setSelectedDate(taskDate);
+        setSelectedMonth(taskDate.getMonth());
+        setSelectedYear(taskDate.getFullYear());
       } else {
         setEditingTask(null);
         setTaskTitle('');
@@ -277,6 +286,11 @@ export default function Lista() {
         setTaskAlmacenId(0);
         setSelectedUserId('');
         setSelectedDate(date || null);
+
+        if (date) {
+          setSelectedMonth(date.getMonth());
+          setSelectedYear(date.getFullYear());
+        }
       }
       setIsDialogOpen(true);
     }
@@ -293,7 +307,16 @@ export default function Lista() {
 
     setSavingTask(true);
 
-    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    // const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    if (selectedMonth === null || selectedYear === null) return;
+
+    const finalDate = new Date(
+      selectedYear,
+      selectedMonth,
+      selectedDate?.getDate() ?? 1,
+    );
+
+    const dateStr = format(finalDate, 'yyyy-MM-dd');
 
     const data = {
       title: taskTitle.trim(),
@@ -791,6 +814,49 @@ export default function Lista() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Mes</Label>
+                <Select
+                  value={selectedMonth?.toString()}
+                  onValueChange={(v) => setSelectedMonth(parseInt(v))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Mes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <SelectItem key={i} value={i.toString()}>
+                        {format(new Date(2026, i), 'MMMM')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Año</Label>
+                <Select
+                  value={selectedYear?.toString()}
+                  onValueChange={(v) => setSelectedYear(parseInt(v))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Año" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 10 }, (_, i) => {
+                      const y = new Date().getFullYear() - 2 + i;
+                      return (
+                        <SelectItem key={y} value={y.toString()}>
+                          {y}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div className="space-y-2 text-sm text-muted-foreground">
               <div>
                 <span className="font-medium text-foreground">Empresa:</span>{' '}
