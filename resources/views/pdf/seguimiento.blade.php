@@ -176,50 +176,51 @@
       <tr>
         <td>
           <table>
-            <tr>
-              <td colspan="5" class="titulo">FUMIGACIONES</td>
-            </tr>
-            <tr>
-              <td class="titulo">PAREDES INTERNAS:
-                <span>{{ $seguimiento->aplicacion->paredes_internas ?? 'No disponible' }}</span>
-              </td>
-              <td class="titulo">PISOS: <span>{{ $seguimiento->aplicacion->pisos ?? 'No disponible' }}</span></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              {{-- <td>OFICINAS: <span>{{ $seguimiento->aplicacion->oficinas }}</span></td>
+            @if ($seguimiento->tipoSeguimiento->nombre === 'DESRATIZACION')
+              <tr>
+                <td colspan="5" class="titulo">CONTROL DE ROEDORES</td>
+              </tr>
+              <tr>
+                <td class="titulo">TRAMPAS: <span>{{ $seguimiento->aplicacion->trampas ?? 'No disponible' }}</span></td>
+                <td class="titulo">CAMBIAR TRAMPAS:
+                  <span>{{ $seguimiento->aplicacion->trampas_cambiar ?? 'No disponible' }}</span>
+                </td>
+                <td class="titulo">INTERNAS: <span>{{ $seguimiento->aplicacion->internas ?? 'No disponible' }}</span>
+                </td>
+                <td class="titulo">EXTERNAS: <span>{{ $seguimiento->aplicacion->externas ?? 'No disponible' }}</span>
+                </td>
+                <td class="titulo">ROEDORES: <span>{{ $seguimiento->aplicacion->roedores ?? 'No disponible' }}</span>
+                </td>
+              </tr>
+            @else
+              <tr>
+                <td colspan="5" class="titulo">FUMIGACIONES</td>
+              </tr>
+              <tr>
+                <td class="titulo">PAREDES INTERNAS:
+                  <span>{{ $seguimiento->aplicacion->paredes_internas ?? 'No disponible' }}</span>
+                </td>
+                <td class="titulo">PISOS: <span>{{ $seguimiento->aplicacion->pisos ?? 'No disponible' }}</span></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                {{-- <td>OFICINAS: <span>{{ $seguimiento->aplicacion->oficinas }}</span></td>
               <td>BAÑOS: <span>{{ $seguimiento->aplicacion->banos }}</span></td> --}}
-            </tr>
-            <tr>
-              <td colspan="5" class="titulo">DESINFECCION</td>
-            </tr>
-            <tr>
-              <td class="titulo">PISOS: <span>{{ $seguimiento->aplicacion->ambientes ?? 'No disponible' }}</span></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              {{-- <td>COCINAS: <span>{{ $seguimiento->aplicacion->cocinas }}</span></td>
-              <td>ALMACENES: <span>{{ $seguimiento->aplicacion->almacenes }}</span></td>
-              <td>PORTERIA: <span>{{ $seguimiento->aplicacion->porteria }}</span></td>
-              <td>POLICIAL: <span>{{ $seguimiento->aplicacion->policial }}</span></td> --}}
+              </tr>
+              <tr>
+                <td colspan="5" class="titulo">DESINFECCION</td>
+              </tr>
+              <tr>
+                <td class="titulo">PISOS: <span>{{ $seguimiento->aplicacion->ambientes ?? 'No disponible' }}</span>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            @endif
 
-            </tr>
-            <tr>
-              <td colspan="5" class="titulo">CONTROL DE ROEDORES</td>
-            </tr>
-            <tr>
-              <td class="titulo">TRAMPAS: <span>{{ $seguimiento->aplicacion->trampas ?? 'No disponible' }}</span></td>
-              <td class="titulo">CAMBIAR TRAMPAS:
-                <span>{{ $seguimiento->aplicacion->trampas_cambiar ?? 'No disponible' }}</span>
-              </td>
-              <td class="titulo">INTERNAS: <span>{{ $seguimiento->aplicacion->internas ?? 'No disponible' }}</span>
-              </td>
-              <td class="titulo">EXTERNAS: <span>{{ $seguimiento->aplicacion->externas ?? 'No disponible' }}</span>
-              </td>
-              <td class="titulo">ROEDORES: <span>{{ $seguimiento->aplicacion->roedores ?? 'No disponible' }}</span>
-              </td>
-            </tr>
+
 
           </table>
         </td>
@@ -243,8 +244,13 @@
       </tr>
       <tr>
         <td>
-          @foreach ($seguimiento->productoUsos as $productoUso)
+          {{-- @foreach ($seguimiento->productoUsos as $productoUso)
             {{ $loop->iteration }} : <span> {{ $productoUso->producto->nombre }} : {{ $productoUso->cantidad }}
+              {{ $productoUso->unidad->nombre }} </span><br>
+          @endforeach --}}
+
+          @foreach ($seguimiento->productoUsos as $productoUso)
+            {{ $loop->iteration }} : <span> {{ $productoUso->producto->nombre }}
               {{ $productoUso->unidad->nombre }} </span><br>
           @endforeach
 
@@ -277,89 +283,37 @@
         </td>
       </tr>
     </table>
-    <table>
-      <tr>
-        <td class="titulo">OBSERVACIONES DE CICLO BIOLOGICO</td>
-      </tr>
-      <tr>
-        <td>
-          @foreach ($seguimiento->biologicos as $biologico)
-            {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $biologico->nombre }}</span>
-          @endforeach
-        </td>
-      </tr>
-    </table>
-    <table>
-      <tr>
-        <td class="titulo">OBSERVACIONES DE SIGNOS DE ROEDORES</td>
-      </tr>
-      <tr>
-        <td>
-          @foreach ($seguimiento->signos as $signo)
-            {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $signo->nombre }}</span>
-          @endforeach
-        </td>
-      </tr>
-    </table>
-
-    <table>
-      <tr>
-        <td class="titulo">TRAMPAS ROEDORES</td>
-      </tr>
-      <tr>
-        <td>
-          <table>
-            <tr>
-              <td>#</td>
-              <td>ID</td>
-              <td>Observación</td>
-              <td>Inicial</td>
-              <td>Actual</td>
-              <td>Merma</td>
-            </tr>
-            @foreach ($seguimiento->roedores as $roedor)
-              <tr>
-                <td>{{ $loop->iteration }}</td>
-                <td>{{ $roedor->trampa_id }}</td>
-                <td>{{ $roedor->observacion }}</td>
-                <td>{{ $roedor->inicial }}</td>
-                <td>{{ $roedor->actual }}</td>
-                <td> {{ $roedor->merma }}</td>
-              </tr>
+    @if ($seguimiento->tipoSeguimiento->nombre === 'DESRATIZACION')
+      <table>
+        <tr>
+          <td class="titulo">OBSERVACIONES DE SIGNOS DE ROEDORES</td>
+        </tr>
+        <tr>
+          <td>
+            @foreach ($seguimiento->signos as $signo)
+              {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $signo->nombre }}</span>
             @endforeach
-
-          </table>
-
-        </td>
-      </tr>
-    </table>
-
-    <table>
-      <tr>
-        <td class="titulo">INSECTOCUTORES</td>
-      </tr>
-      <tr>
-        <td>
-          <table>
-            <tr>
-              <td>#</td>
-              <td>ID</td>
-              <td>Especie</td>
-              <td>Cantidad</td>
-            </tr>
-
-            @foreach ($seguimiento->insectocutores as $insect)
-              <tr>
-                <td>{{ $loop->iteration }}</td>
-                <td>{{ $insect->trampa_id }}</td>
-                <td>{{ $insect->especie->nombre }}</td>
-                <td>{{ $insect->cantidad }}</td>
-              </tr>
+          </td>
+        </tr>
+      </table>
+    @else
+      <table>
+        <tr>
+          <td class="titulo">OBSERVACIONES DE CICLO BIOLOGICO</td>
+        </tr>
+        <tr>
+          <td>
+            @foreach ($seguimiento->biologicos as $biologico)
+              {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $biologico->nombre }}</span>
             @endforeach
-          </table>
-        </td>
-      </tr>
-    </table>
+          </td>
+        </tr>
+      </table>
+    @endif
+
+
+
+
 
     <table>
       <tr>
@@ -369,7 +323,7 @@
         <td><span>{{ $seguimiento->observacionesp }}</span></td>
       </tr>
     </table>
-    <table>
+    {{-- <table>
       <tr>
         <td class="titulo">EVIDENCIAS</td>
       </tr>
@@ -377,6 +331,19 @@
         <td>
           @foreach ($seguimiento->images as $image)
             <img src="{{ public_path($image->imagen) }}" alt="" width="150px">
+          @endforeach
+        </td>
+      </tr>
+    </table> --}}
+    <table>
+      <tr>
+        <td class="titulo">EVIDENCIAS</td>
+      </tr>
+      <tr>
+        <td style="overflow: hidden; padding: 10px;">
+          @foreach ($seguimiento->images as $image)
+            <img src="{{ public_path($image->imagen) }}" alt=""
+              style="width: 150px; max-width: 100%; height: auto; margin: 5px; vertical-align: top;">
           @endforeach
         </td>
       </tr>
@@ -408,6 +375,68 @@
         </td>
       </tr>
     </table>
+
+
+    @if ($seguimiento->tipoSeguimiento->nombre === 'DESRATIZACION')
+      <table>
+        <tr>
+          <td class="titulo">TRAMPAS ROEDORES</td>
+        </tr>
+        <tr>
+          <td>
+            <table>
+              <tr>
+                <td>#</td>
+                <td>ID</td>
+                <td>Observación</td>
+                <td>Inicial</td>
+                <td>Actual</td>
+                <td>Merma</td>
+              </tr>
+              @foreach ($seguimiento->roedores as $roedor)
+                <tr>
+                  <td>{{ $loop->iteration }}</td>
+                  <td>{{ $roedor->trampa_id }}</td>
+                  <td>{{ $roedor->observacion }}</td>
+                  <td>{{ $roedor->inicial }}</td>
+                  <td>{{ $roedor->actual }}</td>
+                  <td> {{ $roedor->merma }}</td>
+                </tr>
+              @endforeach
+
+            </table>
+
+          </td>
+        </tr>
+      </table>
+    @else
+      <table>
+        <tr>
+          <td class="titulo">INSECTOCUTORES</td>
+        </tr>
+        <tr>
+          <td>
+            <table>
+              <tr>
+                <td>#</td>
+                <td>ID</td>
+                <td>Especie</td>
+                <td>Cantidad</td>
+              </tr>
+
+              @foreach ($seguimiento->insectocutores as $insect)
+                <tr>
+                  <td>{{ $loop->iteration }}</td>
+                  <td>{{ $insect->trampa_id }}</td>
+                  <td>{{ $insect->especie->nombre }}</td>
+                  <td>{{ $insect->cantidad }}</td>
+                </tr>
+              @endforeach
+            </table>
+          </td>
+        </tr>
+      </table>
+    @endif
 
 
 

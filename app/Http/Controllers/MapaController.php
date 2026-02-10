@@ -19,45 +19,122 @@ use Illuminate\Database\QueryException;
 class MapaController extends Controller
 {
 
+  // public function index(Request $request)
+  // {
+  //   $user = $request->user();
+  //   $mapa = Mapa::where('almacen_id', $request->almacen_id)
+  //     ->with('trampas')
+  //     ->first();
+
+  //   if ($user->HasRole('cliente')) {
+  //     $empresasUser = User::with('empresas')->find($user->id);
+  //     $empresaUser = $empresasUser->empresas[0];
+  //     $empresas = Empresa::select(['id', 'nombre'])->where('id', $empresaUser->id)->get();
+  //     $almacenes = Almacen::select(['id', 'nombre', 'empresa_id'])->where('empresa_id', $empresaUser->id)->get();
+  //   } else {
+  //     $empresas = Empresa::all(['id', 'nombre']);
+  //     $almacenes = Almacen::all(['id', 'nombre', 'empresa_id']);
+  //   }
+
+  //   return inertia('admin/mapas/lista', [
+  //     // 'empresas' => Empresa::select('id', 'nombre')->get(),
+  //     'empresas' => $empresas,
+  //     // 'allAlmacenes' => Almacen::select('id', 'nombre', 'empresa_id')->get(),
+  //     'allAlmacenes' => $almacenes,
+  //     'trampaTipos' => TrampaTipo::select('id', 'nombre', 'imagen')->get(),
+  //     'selectedEmpresa' => $mapa?->empresa_id,
+  //     'selectedAlmacen' => $request->almacen_id,
+  //     'mapa' => $mapa ? [
+  //       'id' => $mapa->id,
+  //       'background' => $mapa->background,
+  //       'texts' => $mapa->texts ?? [],
+  //       'trampas' => $mapa->trampas->map(function ($t) {
+  //         return [
+  //           'id' => $t->id,
+  //           'trampa_tipo_id' => $t->trampa_tipo_id,
+  //           'posx' => $t->posx,
+  //           'posy' => $t->posy,
+  //           'estado' => $t->estado,
+  //         ];
+  //       }),
+  //     ] : null,
+  //   ]);
+  // }
+
   public function index(Request $request)
   {
     $user = $request->user();
-    $mapa = Mapa::where('almacen_id', $request->almacen_id)
-      ->with('trampas')
-      ->first();
+    $almacenId = $request->almacen_id;
 
-    if ($user->HasRole('cliente')) {
+    /* =========================
+       Empresas y almacenes
+    ========================= */
+
+    if ($user->hasRole('cliente')) {
       $empresasUser = User::with('empresas')->find($user->id);
-      $empresaUser = $empresasUser->empresas[0];
-      $empresas = Empresa::select(['id', 'nombre'])->where('id', $empresaUser->id)->get();
-      $almacenes = Almacen::select(['id', 'nombre', 'empresa_id'])->where('empresa_id', $empresaUser->id)->get();
+      $empresaUser = $empresasUser->empresas->first();
+
+      $empresas = Empresa::select('id', 'nombre')
+        ->where('id', $empresaUser->id)
+        ->get();
+
+      $almacenes = Almacen::select('id', 'nombre', 'empresa_id')
+        ->where('empresa_id', $empresaUser->id)
+        ->get();
     } else {
-      $empresas = Empresa::all(['id', 'nombre']);
-      $almacenes = Almacen::all(['id', 'nombre', 'empresa_id']);
+      $empresas = Empresa::select('id', 'nombre')->get();
+      $almacenes = Almacen::select('id', 'nombre', 'empresa_id')->get();
     }
 
+    /* =========================
+       Mapas del almacén
+    ========================= */
+
+    $mapas = collect();
+
+    if ($almacenId) {
+      $mapas = Mapa::with(['trampas' => function ($q) {
+        $q->orderBy('numero');
+      }])
+        ->where('almacen_id', $almacenId)
+        ->orderBy('id')
+        ->get()
+        ->map(function ($mapa) {
+          return [
+            'id' => $mapa->id,
+            'empresa_id' => $mapa->empresa_id,
+            'almacen_id' => $mapa->almacen_id,
+            'background' => $mapa->background,
+            'texts' => $mapa->texts ?? [],
+            'trampas' => $mapa->trampas->map(function ($t) {
+              return [
+                'id' => $t->id,
+                'trampa_tipo_id' => $t->trampa_tipo_id,
+                'posx' => $t->posx,
+                'posy' => $t->posy,
+                'estado' => $t->estado,
+                'numero' => $t->numero,
+              ];
+            }),
+          ];
+        });
+    }
+
+    /* =========================
+       Render Inertia
+    ========================= */
+
     return inertia('admin/mapas/lista', [
-      // 'empresas' => Empresa::select('id', 'nombre')->get(),
       'empresas' => $empresas,
-      // 'allAlmacenes' => Almacen::select('id', 'nombre', 'empresa_id')->get(),
       'allAlmacenes' => $almacenes,
       'trampaTipos' => TrampaTipo::select('id', 'nombre', 'imagen')->get(),
-      'selectedEmpresa' => $mapa?->empresa_id,
-      'selectedAlmacen' => $request->almacen_id,
-      'mapa' => $mapa ? [
-        'id' => $mapa->id,
-        'background' => $mapa->background,
-        'texts' => $mapa->texts ?? [],
-        'trampas' => $mapa->trampas->map(function ($t) {
-          return [
-            'id' => $t->id,
-            'trampa_tipo_id' => $t->trampa_tipo_id,
-            'posx' => $t->posx,
-            'posy' => $t->posy,
-            'estado' => $t->estado,
-          ];
-        }),
-      ] : null,
+
+      // selección actual
+      'selectedEmpresa' => $mapas->first()['empresa_id'] ?? null,
+      'selectedAlmacen' => $almacenId,
+
+      // 👇 CAMBIO CLAVE
+      'mapas' => $mapas, // AHORA ES ARRAY
     ]);
   }
 

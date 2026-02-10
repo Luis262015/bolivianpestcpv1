@@ -1,4 +1,9 @@
 import { Button } from '@/components/ui/button';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -14,6 +19,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { Label } from '@radix-ui/react-dropdown-menu';
 import axios from 'axios';
+import { InfoIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { MultiSelect } from './MultiSelect';
 
@@ -184,7 +190,18 @@ export default function Create() {
           </div>
           {/* STOCK MIN */}
           <div className="gap-1.5">
-            <Label>Stock minimo</Label>
+            <div className="flex items-center gap-1.5">
+              <Label>Stock minimo</Label>
+              <HoverCard openDelay={200} closeDelay={100}>
+                <HoverCardTrigger asChild>
+                  <InfoIcon className="h-4 w-4 cursor-help text-muted-foreground transition-colors hover:text-foreground" />
+                </HoverCardTrigger>
+                <HoverCardContent className="w-72 text-sm">
+                  La cantidad de stock minimo en el almacen{' '}
+                  <strong>para notificar que casi no hay producto</strong>.
+                </HoverCardContent>
+              </HoverCard>
+            </div>
             <Input
               type="number"
               placeholder="Stock Minimo"
@@ -199,7 +216,21 @@ export default function Create() {
           </div>
           {/* UNIDAD */}
           <div className="gap-1.5">
-            <Label>Unidad: </Label>
+            <div className="flex items-center gap-1.5">
+              <Label>Unidad: </Label>
+              <HoverCard openDelay={200} closeDelay={100}>
+                <HoverCardTrigger asChild>
+                  <InfoIcon className="h-4 w-4 cursor-help text-muted-foreground transition-colors hover:text-foreground" />
+                </HoverCardTrigger>
+                <HoverCardContent className="w-72 text-sm">
+                  La unidad enla que se manejara el producto{' '}
+                  <strong>unidad del producto</strong>.
+                  <br />
+                  Ejemplo: Si el producto es "Insecticida de 1000 gramos", aquí
+                  va la unidad "gramos".
+                </HoverCardContent>
+              </HoverCard>
+            </div>
             <div className="flex items-center">
               <Input
                 type="number"

@@ -108,6 +108,9 @@ export default function Lista({
 
   const { hasRole, hasAnyRole, hasPermission } = usePermissions();
 
+  const [openTrampa, setOpenTrampa] = useState(false);
+  const [selectedSeguimiento, setSelectedSeguimiento] = useState<any>(null);
+
   console.log(seguimientos);
 
   return (
@@ -201,11 +204,14 @@ export default function Lista({
                             <Button
                               size="icon"
                               variant="outline"
-                              onClick={() => setOpen(true)}
+                              onClick={() => {
+                                setSelectedSeguimiento(seguimiento);
+                                setOpenTrampa(true);
+                              }}
                             >
                               <Edit2 className="h-4 w-4" />
                             </Button>
-                            <ModalSeguimientoTrampa
+                            {/* <ModalSeguimientoTrampa
                               open={open}
                               onClose={() => setOpen(false)}
                               seguimientoId={seguimiento.id}
@@ -216,7 +222,7 @@ export default function Lista({
                                 trampa_roedores_seguimientos:
                                   seguimiento.trampa_roedores_seguimientos,
                               }}
-                            />
+                            /> */}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -262,6 +268,24 @@ export default function Lista({
         especies={especies}
         tipoSeguimiento={tipoSeguimiento}
       />
+
+      {selectedSeguimiento && (
+        <ModalSeguimientoTrampa
+          open={openTrampa}
+          onClose={() => {
+            setOpenTrampa(false);
+            setSelectedSeguimiento(null);
+          }}
+          seguimientoId={selectedSeguimiento.id}
+          almacenId={selectedSeguimiento.almacen_id}
+          initialData={{
+            trampa_especies_seguimientos:
+              selectedSeguimiento.trampa_especies_seguimientos,
+            trampa_roedores_seguimientos:
+              selectedSeguimiento.trampa_roedores_seguimientos,
+          }}
+        />
+      )}
 
       {/* <ModalTrampas
         open={modalTrapsOpen}

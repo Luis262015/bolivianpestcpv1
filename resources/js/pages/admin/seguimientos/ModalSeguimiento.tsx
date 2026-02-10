@@ -16,6 +16,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -34,7 +39,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useForm } from '@inertiajs/react';
 import axios from 'axios';
-import { Check, ChevronsUpDown, Plus, Trash2 } from 'lucide-react';
+import { Check, ChevronsUpDown, InfoIcon, Plus, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import SeguimientoTrampas, {
   TrampaEspecieSeguimientos,
@@ -415,6 +420,12 @@ export default function ModalSeguimiento({
     }
   }, [firmaSupervisor]);
 
+  const [tipoSeguimientoSel, setTipoSeguimientoSel] = useState<string>('TIPO');
+
+  const metodosGrupoA = metodos.filter((m) => m.id >= 1 && m.id <= 3);
+
+  const metodosGrupoB = metodos.filter((m) => m.id > 3);
+
   return (
     <Dialog
       open={open}
@@ -515,7 +526,14 @@ export default function ModalSeguimiento({
                 <Label>Tipo de Seguimiento *</Label>
                 <Select
                   value={data.tipo_seguimiento_id}
-                  onValueChange={(v) => setData('tipo_seguimiento_id', v)}
+                  onValueChange={(v) => {
+                    setData('tipo_seguimiento_id', v);
+                    const tipo = tipoSeguimiento.find(
+                      (t) => t.id.toString() === v,
+                    );
+
+                    setTipoSeguimientoSel(tipo?.nombre ?? '');
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar tipo de seguimiento" />
@@ -541,127 +559,138 @@ export default function ModalSeguimiento({
           {step === 2 && (
             <div className="space-y-5 py-6">
               <Label className="text-lg font-semibold">
-                Labores Desarrolladas
+                Labores Desarrolladas ( {tipoSeguimientoSel} )
               </Label>
 
-              <div className="text-[.9rem] text-gray-500">Desinfeccion</div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="flex items-center justify-between">
-                  <Label>Cantidad Ambientes</Label>
-                  <Input
-                    className="w-auto"
-                    placeholder="Cantidad Oficinas"
-                    type="number"
-                    value={aplicacion.ambientes}
-                    onChange={(e) =>
-                      updateAplicacion('ambientes', e.target.value)
-                    }
-                  />
-                </div>
-              </div>
-              <div className="text-[.9rem] text-gray-500">Fumigacion</div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="flex items-center justify-between">
-                  <Label>Cantidad Pisos</Label>
-                  <Input
-                    className="w-auto"
-                    placeholder="Cantidad Pisos"
-                    type="number"
-                    value={aplicacion.pisos}
-                    onChange={(e) => updateAplicacion('pisos', e.target.value)}
-                  />
-                </div>
+              {tipoSeguimientoSel === 'DESRATIZACION' ? (
+                <>
+                  <div className="text-[.9rem] text-gray-500">
+                    Control de roedores
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Cantidad Trampas</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Cantidad Trampas"
+                        type="number"
+                        value={aplicacion.trampas}
+                        onChange={(e) =>
+                          updateAplicacion('trampas', e.target.value)
+                        }
+                      />
+                    </div>
 
-                <div className="flex items-center justify-between">
-                  <Label>Paredes Internas</Label>
-                  <Input
-                    className="w-auto"
-                    placeholder="Paredes Internas"
-                    type="number"
-                    value={aplicacion.paredes_internas}
-                    onChange={(e) =>
-                      updateAplicacion('paredes_internas', e.target.value)
-                    }
-                  />
-                </div>
-              </div>
-              <div className="text-[.9rem] text-gray-500">
-                Control de roedores
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="flex items-center justify-between">
-                  <Label>Cantidad Trampas</Label>
-                  <Input
-                    className="w-auto"
-                    placeholder="Cantidad Trampas"
-                    type="number"
-                    value={aplicacion.trampas}
-                    onChange={(e) =>
-                      updateAplicacion('trampas', e.target.value)
-                    }
-                  />
-                </div>
+                    <div className="flex items-center justify-between">
+                      <Label>Trampas Cambiadas</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Trampas Cambiadas"
+                        type="number"
+                        value={aplicacion.trampas_cambiar}
+                        onChange={(e) =>
+                          updateAplicacion('trampas_cambiar', e.target.value)
+                        }
+                      />
+                    </div>
 
-                <div className="flex items-center justify-between">
-                  <Label>Trampas Cambiadas</Label>
-                  <Input
-                    className="w-auto"
-                    placeholder="Trampas Cambiadas"
-                    type="number"
-                    value={aplicacion.trampas_cambiar}
-                    onChange={(e) =>
-                      updateAplicacion('trampas_cambiar', e.target.value)
-                    }
-                  />
-                </div>
+                    <div className="flex items-center justify-between">
+                      <Label>Trampas Internas</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Trampas Internas"
+                        type="number"
+                        value={aplicacion.internas}
+                        onChange={(e) =>
+                          updateAplicacion('internas', e.target.value)
+                        }
+                      />
+                    </div>
 
-                <div className="flex items-center justify-between">
-                  <Label>Trampas Internas</Label>
-                  <Input
-                    className="w-auto"
-                    placeholder="Trampas Internas"
-                    type="number"
-                    value={aplicacion.internas}
-                    onChange={(e) =>
-                      updateAplicacion('internas', e.target.value)
-                    }
-                  />
-                </div>
+                    <div className="flex items-center justify-between">
+                      <Label>Trampas Externas</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Trampas Externas"
+                        type="number"
+                        value={aplicacion.externas}
+                        onChange={(e) =>
+                          updateAplicacion('externas', e.target.value)
+                        }
+                      />
+                    </div>
 
-                <div className="flex items-center justify-between">
-                  <Label>Trampas Externas</Label>
-                  <Input
-                    className="w-auto"
-                    placeholder="Trampas Externas"
-                    type="number"
-                    value={aplicacion.externas}
-                    onChange={(e) =>
-                      updateAplicacion('externas', e.target.value)
-                    }
-                  />
-                </div>
+                    <div className="flex items-center justify-between">
+                      <Label>Roedores encontrados</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Roedores encontrados"
+                        type="number"
+                        value={aplicacion.roedores}
+                        onChange={(e) =>
+                          updateAplicacion('roedores', e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-[.9rem] text-gray-500">Desinfeccion</div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Cantidad Ambientes</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Cantidad Oficinas"
+                        type="number"
+                        value={aplicacion.ambientes}
+                        onChange={(e) =>
+                          updateAplicacion('ambientes', e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="text-[.9rem] text-gray-500">Fumigacion</div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Cantidad Pisos</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Cantidad Pisos"
+                        type="number"
+                        value={aplicacion.pisos}
+                        onChange={(e) =>
+                          updateAplicacion('pisos', e.target.value)
+                        }
+                      />
+                    </div>
 
-                <div className="flex items-center justify-between">
-                  <Label>Roedores encontrados</Label>
-                  <Input
-                    className="w-auto"
-                    placeholder="Roedores encontrados"
-                    type="number"
-                    value={aplicacion.roedores}
-                    onChange={(e) =>
-                      updateAplicacion('roedores', e.target.value)
-                    }
-                  />
-                </div>
-              </div>
+                    <div className="flex items-center justify-between">
+                      <Label>Paredes Internas</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Paredes Internas"
+                        type="number"
+                        value={aplicacion.paredes_internas}
+                        onChange={(e) =>
+                          updateAplicacion('paredes_internas', e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
           {/* PASO 3: Métodos */}
           {step === 3 && (
             <div className="py-5">
-              <Label className="text-lg font-semibold">Método Utilizado</Label>
-              <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+              <Label className="text-lg font-semibold">
+                Método Utilizado ( {tipoSeguimientoSel} )
+              </Label>
+              {/* <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
                 {metodos.map((m) => (
                   <label
                     key={m.id}
@@ -676,18 +705,74 @@ export default function ModalSeguimiento({
                     <span>{m.nombre}</span>
                   </label>
                 ))}
-              </div>
+              </div> */}
+
+              {tipoSeguimientoSel === 'DESRATIZACION' ? (
+                <>
+                  {/* GRUPO 1 */}
+                  <div>
+                    <Label className="mb-3 block text-sm text-muted-foreground">
+                      Métodos principales
+                    </Label>
+
+                    <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                      {metodosGrupoA.map((m) => (
+                        <label
+                          key={m.id}
+                          className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                        >
+                          <Checkbox
+                            checked={metodosSel.includes(m.id)}
+                            onCheckedChange={() =>
+                              toggle(metodosSel, setMetodosSel, m.id)
+                            }
+                          />
+                          <span>{m.nombre}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* GRUPO 2 */}
+                  <div>
+                    <Label className="mb-3 block text-sm text-muted-foreground">
+                      Otros métodos
+                    </Label>
+
+                    <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                      {metodosGrupoB.map((m) => (
+                        <label
+                          key={m.id}
+                          className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                        >
+                          <Checkbox
+                            checked={metodosSel.includes(m.id)}
+                            onCheckedChange={() =>
+                              toggle(metodosSel, setMetodosSel, m.id)
+                            }
+                          />
+                          <span>{m.nombre}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
           {/* PASO 4: Productos y Cantidades */}
           {step === 4 && (
             <div className="space-y-5 py-6">
-              <div className="flex items-center justify-between">
-                <Label className="text-lg font-semibold">
-                  Productos Utilizados
-                </Label>
-              </div>
+              <div className="flex items-center justify-between"></div>
+              <Label className="text-lg font-semibold">
+                Productos Utilizados
+              </Label>
+              <Label className="mb-3 block text-sm text-muted-foreground">
+                Otros métodos
+              </Label>
 
               {/* Búsqueda de Producto */}
               <div className="flex items-end gap-3">
@@ -763,7 +848,23 @@ export default function ModalSeguimiento({
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Cantidad</Label>
+                  {/* <Label>Cantidad Usada</Label> */}
+                  <div className="flex items-center gap-1.5">
+                    <Label>Cantidad Usada</Label>
+
+                    <HoverCard openDelay={200} closeDelay={100}>
+                      <HoverCardTrigger asChild>
+                        <InfoIcon className="h-4 w-4 cursor-help text-muted-foreground transition-colors hover:text-foreground" />
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-72 text-sm">
+                        La cantidad usada es en cantidad de la{' '}
+                        <strong>unidad del producto</strong>.
+                        <br />
+                        Ejemplo: si el producto es "Caja de 12 unidades", aquí
+                        va la cantidad de cajas usadas.
+                      </HoverCardContent>
+                    </HoverCard>
+                  </div>
                   <Input
                     type="number"
                     step="0.01"
@@ -874,22 +975,30 @@ export default function ModalSeguimiento({
               <Label className="text-lg font-semibold">
                 Observaciones de Ciclos Biológicos
               </Label>
-              <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
-                {biologicos.map((b) => (
-                  <label
-                    key={b.id}
-                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
-                  >
-                    <Checkbox
-                      checked={biologicosSel.includes(b.id)}
-                      onCheckedChange={() =>
-                        toggle(biologicosSel, setBiologicosSel, b.id)
-                      }
-                    />
-                    <span>{b.nombre}</span>
-                  </label>
-                ))}
-              </div>
+              <Label className="mb-3 block text-sm text-muted-foreground">
+                Solo en DESINFECCION o DESINSECTACION
+              </Label>
+
+              {tipoSeguimientoSel !== 'DESRATIZACION' && (
+                <>
+                  <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                    {biologicos.map((b) => (
+                      <label
+                        key={b.id}
+                        className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                      >
+                        <Checkbox
+                          checked={biologicosSel.includes(b.id)}
+                          onCheckedChange={() =>
+                            toggle(biologicosSel, setBiologicosSel, b.id)
+                          }
+                        />
+                        <span>{b.nombre}</span>
+                      </label>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -899,22 +1008,29 @@ export default function ModalSeguimiento({
               <Label className="text-lg font-semibold">
                 Observaciones de Signos de Roedores
               </Label>
-              <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
-                {signos.map((s) => (
-                  <label
-                    key={s.id}
-                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
-                  >
-                    <Checkbox
-                      checked={signosSel.includes(s.id)}
-                      onCheckedChange={() =>
-                        toggle(signosSel, setSignosSel, s.id)
-                      }
-                    />
-                    <span>{s.nombre}</span>
-                  </label>
-                ))}
-              </div>
+              <Label className="mb-3 block text-sm text-muted-foreground">
+                Solo en DESRATIZACION
+              </Label>
+              {tipoSeguimientoSel === 'DESRATIZACION' && (
+                <>
+                  <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                    {signos.map((s) => (
+                      <label
+                        key={s.id}
+                        className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                      >
+                        <Checkbox
+                          checked={signosSel.includes(s.id)}
+                          onCheckedChange={() =>
+                            toggle(signosSel, setSignosSel, s.id)
+                          }
+                        />
+                        <span>{s.nombre}</span>
+                      </label>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
 

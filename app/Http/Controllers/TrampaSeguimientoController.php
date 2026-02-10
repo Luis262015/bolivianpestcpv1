@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Almacen;
 use App\Models\Empresa;
 use App\Models\Especie;
+use App\Models\Seguimiento;
 use App\Models\Trampa;
 use App\Models\TrampaEspecieSeguimiento;
 use App\Models\TrampaRoedorSeguimiento;
@@ -24,6 +25,31 @@ class TrampaSeguimientoController extends Controller
       'empresas' => $empresas,
       'almacenes' => $almacenes,
       'seguimientos' => $seguimientos,
+    ]);
+  }
+
+  public function show(string $id)
+  {
+    // Cargar relaciones necesarias
+    // $seguimiento->load([
+    //   'trampaEspeciesSeguimientos',
+    //   'trampaRoedoresSeguimientos',
+    // ]);
+
+    // return response()->json([
+    //   'trampa_especies_seguimientos' =>
+    //   $seguimiento->trampaEspeciesSeguimientos ?? [],
+    //   'trampa_roedores_seguimientos' =>
+    //   $seguimiento->trampaRoedoresSeguimientos ?? [],
+    // ]);
+
+    $seguimiento = Seguimiento::find($id)->with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->get();
+    // dd($seguimiento[0]->trampaRoedoresSeguimientos);
+    return response()->json([
+      'trampa_especies_seguimientos' =>
+      $seguimiento[0]->trampaEspeciesSeguimientos ?? [],
+      'trampa_roedores_seguimientos' =>
+      $seguimiento[0]->trampaRoedoresSeguimientos ?? [],
     ]);
   }
 
@@ -58,40 +84,68 @@ class TrampaSeguimientoController extends Controller
 
   public function update(Request $request, string $id)
   {
-    $trampa_seguimiento = TrampaSeguimiento::findOrFail($id);
-    // Actualizar datos principales
-    $trampa_seguimiento->update([
-      'almacen_id' => $request->almacen_id,
-      'mapa_id' => $request->mapa_id,
-      'user_id' => Auth::id(),
-      'observaciones' => 'Actualizado',
-    ]);
+    // $trampa_seguimiento = TrampaSeguimiento::findOrFail($id);
+    // // Actualizar datos principales
+    // $trampa_seguimiento->update([
+    //   'almacen_id' => $request->almacen_id,
+    //   'mapa_id' => $request->mapa_id,
+    //   'user_id' => Auth::id(),
+    //   'observaciones' => 'Actualizado',
+    // ]);
+
+    // dd($request);
+
+    $seguimiento = Seguimiento::find($id)->with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->get();
+
+
     // Sincronizar seguimientos de especies
     if ($request->has('trampa_especies_seguimientos')) {
       // Eliminar los anteriores
-      $trampa_seguimiento->trampaEspeciesSeguimientos()->delete();
+      // $seguimiento[0]->trampaEspeciesSeguimientos->delete();
+      foreach ($seguimiento[0]->trampaEspeciesSeguimientos as $especie) {
+        $delItem = TrampaEspecieSeguimiento::find($especie->id)->delete();
+      }
       // Crear los nuevos
       foreach ($request->trampa_especies_seguimientos as $especie) {
-        $trampa_seguimiento->trampaEspeciesSeguimientos()->create([
+        $createItem = new TrampaEspecieSeguimiento([
+          'seguimiento_id' => $id,
           'trampa_id' => $especie['trampa_id'],
           'especie_id' => $especie['especie_id'],
           'cantidad' => $especie['cantidad'],
         ]);
+        $createItem->save();
+        // $seguimiento[0]->trampaEspeciesSeguimientos->create([
+        //   'trampa_id' => $especie['trampa_id'],
+        //   'especie_id' => $especie['especie_id'],
+        //   'cantidad' => $especie['cantidad'],
+        // ]);
       }
     }
     // Sincronizar seguimientos de roedores
     if ($request->has('trampa_roedores_seguimientos')) {
       // Eliminar los anteriores
-      $trampa_seguimiento->trampaRoedoresSeguimientos()->delete();
+      // $seguimiento[0]->trampaRoedoresSeguimientos->delete();
+      foreach ($seguimiento[0]->trampaRoedoresSeguimientos as $roedor) {
+        $delItem = TrampaRoedorSeguimiento::find($roedor->id)->delete();
+      }
       // Crear los nuevos
       foreach ($request->trampa_roedores_seguimientos as $roedor) {
-        $trampa_seguimiento->trampaRoedoresSeguimientos()->create([
+        $createItem = new TrampaRoedorSeguimiento([
+          'seguimiento_id' => $id,
           'trampa_id' => $roedor['trampa_id'],
           'cantidad' => $roedor['cantidad'],
           'inicial' => $roedor['inicial'],
           'merma' => $roedor['merma'],
           'actual' => $roedor['actual'],
         ]);
+        $createItem->save();
+        // $seguimiento[0]->trampaRoedoresSeguimientos->create([
+        //   'trampa_id' => $roedor['trampa_id'],
+        //   'cantidad' => $roedor['cantidad'],
+        //   'inicial' => $roedor['inicial'],
+        //   'merma' => $roedor['merma'],
+        //   'actual' => $roedor['actual'],
+        // ]);
       }
     }
     return redirect()->back()->with('success', 'Seguimiento actualizado correctamente');
