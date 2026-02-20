@@ -34,6 +34,11 @@ class Producto extends Model
         );
     }
 
+    public function unidad()
+    {
+        return $this->belongsTo(Unidad::class);
+    }
+
     public function vencimientos()
     {
         return $this->hasMany(ProductoVencimiento::class);

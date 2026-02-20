@@ -77,11 +77,17 @@ interface Signo {
   nombre: string;
 }
 
+interface Unidad {
+  id: number;
+  nombre: string;
+}
+
 interface Producto {
   id: number;
   nombre: string;
   precio_compra: number;
   precio_venta: number;
+  unidad: Unidad;
 }
 
 interface ProductoUsado {
@@ -254,6 +260,7 @@ export default function ModalSeguimiento({
       setLoading(true);
       try {
         const { data } = await axios.get(`/productos/search?q=${query}`);
+        console.log(data);
         setSearchResults(data);
       } catch (error) {
         console.error('Error al buscar productos:', error);
@@ -787,7 +794,10 @@ export default function ModalSeguimiento({
                         className="w-full justify-between"
                       >
                         {selectedProduct
-                          ? selectedProduct.nombre
+                          ? selectedProduct.nombre +
+                            ' (unidad = ' +
+                            selectedProduct.unidad.nombre +
+                            ')'
                           : 'Buscar producto...'}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -834,8 +844,9 @@ export default function ModalSeguimiento({
                                 <div>
                                   <div>{product.nombre}</div>
                                   <div className="text-xs text-gray-500">
-                                    Compra: ${product.precio_compra} | Venta: $
-                                    {product.precio_venta}
+                                    Unidad: {product.unidad.nombre}
+                                    {/* Compra: ${product.precio_compra} | Venta: $
+                                    {product.precio_venta} */}
                                   </div>
                                 </div>
                               </CommandItem>
