@@ -46,16 +46,21 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
+
+// Route::get('/', function () {
+//     return Inertia::render('landing', [
+//         'canRegister' => Features::enabled(Features::registration()),
+//     ]);
+// })->name('home');
+
 Route::get('/', function () {
-    return Inertia::render('landing', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
+    return Inertia::render('landing');
 })->name('home');
 
 // ------ PRUEBAS DE LANDING --------------------
-Route::get('/landing', function () {
-    return Inertia::render('landing');
-})->name('landing');
+// Route::get('/landing', function () {
+//     return Inertia::render('landing');
+// })->name('landing');
 
 // ------ PRUEBAS DE MAPA --------------------
 Route::get('/drawing', function () {

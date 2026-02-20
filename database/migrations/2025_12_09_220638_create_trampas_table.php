@@ -20,6 +20,7 @@ return new class extends Migration
       $table->string('tipo')->nullable();
       $table->integer('posx');
       $table->integer('posy');
+      $table->string('identificador');
       $table->string('estado');
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();

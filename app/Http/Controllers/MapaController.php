@@ -104,6 +104,7 @@ class MapaController extends Controller
             'id' => $mapa->id,
             'empresa_id' => $mapa->empresa_id,
             'almacen_id' => $mapa->almacen_id,
+            'titulo' => $mapa->titulo,
             'background' => $mapa->background,
             'texts' => $mapa->texts ?? [],
             'trampas' => $mapa->trampas->map(function ($t) {
@@ -114,6 +115,7 @@ class MapaController extends Controller
                 'posy' => $t->posy,
                 'estado' => $t->estado,
                 'numero' => $t->numero,
+                'identificador' => $t->identificador,
               ];
             }),
           ];
@@ -140,10 +142,12 @@ class MapaController extends Controller
 
   public function store(Request $request)
   {
+    // dd($request);
 
     $validated = $request->validate([
       'empresa_id'   => 'required|exists:empresas,id',
       'almacen_id'   => 'required|exists:almacenes,id',
+      'titulo'       => 'nullable|string',
       'background'   => 'nullable|string', // puede ser dataURL o ruta
       'texts'        => 'nullable|array',
       'texts.*.id'   => 'required|string',
@@ -159,7 +163,11 @@ class MapaController extends Controller
       'trampas.*.posy'           => 'required|numeric',
       'trampas.*.estado'         => 'nullable|string|in:activo,inactivo,mantenimiento',
       'trampas.*.numero'         => 'nullable|integer',
+      'trampas.*.identificador'  => 'required|string',
+
     ]);
+
+    // dd($validated);
 
     try {
       DB::beginTransaction();
@@ -168,6 +176,7 @@ class MapaController extends Controller
       $mapa = Mapa::create([
         'empresa_id' => $validated['empresa_id'],
         'almacen_id' => $validated['almacen_id'],
+        'titulo'     => $validated['titulo'] ?? null,
         'user_id'    => Auth::id(),
         'texts'      => $validated['texts'] ?? [], // json o array según tu estructura
       ]);
@@ -210,6 +219,7 @@ class MapaController extends Controller
             'posy'             => $trampaData['posy'],
             'estado'           => $trampaData['estado'] ?? 'activo',
             'numero'           => $trampaData['numero'] ?? null,
+            'identificador'    => $trampaData['identificador'],
           ]);
         }
       }
@@ -230,9 +240,12 @@ class MapaController extends Controller
   public function update(Request $request, string $id)
   {
 
+    // dd($request);
+
     $validated = $request->validate([
       'empresa_id'   => 'required|exists:empresas,id',
       'almacen_id'   => 'required|exists:almacenes,id',
+      'titulo'       => 'nullable|string',
       'background'   => 'nullable|string', // puede ser dataURL o ruta
       'texts'        => 'nullable|array',
       'texts.*.id'   => 'required|string',
@@ -249,10 +262,11 @@ class MapaController extends Controller
       'trampas.*.posy'           => 'required|numeric',
       'trampas.*.estado'         => 'nullable|string|in:activo,inactivo,mantenimiento',
       'trampas.*.numero'         => 'nullable|integer',
+      'trampas.*.identificador'         => 'required|string',
     ]);
 
 
-
+    // dd($validated);
 
 
     try {
@@ -263,6 +277,7 @@ class MapaController extends Controller
       $mapa->update([
         'empresa_id' => $validated['empresa_id'],
         'almacen_id' => $validated['almacen_id'],
+        'titulo'     => $validated['titulo'] ?? null,
         'texts'      => $validated['texts'] ?? $mapa->texts ?? [],
       ]);
 
@@ -317,6 +332,7 @@ class MapaController extends Controller
           'posy'           => round($trampaData['posy']),
           'estado'         => $trampaData['estado'] ?? 'activo',
           'numero'         => $trampaData['numero'] ?? ($index + 1),
+          'identificador'         => $trampaData['identificador'],
         ];
 
         if (!empty($trampaData['id'])) {

@@ -52,6 +52,7 @@ interface Props {
   mapas?: {
     id: number;
     background: string | null;
+    titulo: string | null;
     texts: any[];
     trampas: any[];
   }[];
@@ -124,6 +125,7 @@ export default function MapaEditor(props: Props) {
             mapas.map((m) => ({
               localId: uuidv4(),
               mapaId: m.id,
+              titulo: m.titulo ?? '', // 👈 nuevo
               texts: m.texts ?? [],
               traps: (m.trampas ?? []).map((t: any) => ({
                 ...t,
@@ -149,6 +151,7 @@ export default function MapaEditor(props: Props) {
       {
         localId: uuidv4(),
         mapaId: undefined,
+        titulo: '', // 👈 nuevo
         texts: [],
         traps: [],
         background: null,
@@ -164,6 +167,7 @@ export default function MapaEditor(props: Props) {
       {
         empresa_id: selectedEmpresa,
         almacen_id: selectedAlmacen,
+        titulo: mapa.titulo, // 👈 nuevo
         background: mapa.background,
         texts: mapa.texts,
         trampas: mapa.traps.map((t, index) => ({
@@ -172,6 +176,7 @@ export default function MapaEditor(props: Props) {
           posx: Math.round(t.posx),
           posy: Math.round(t.posy),
           estado: t.estado ?? 'activo',
+          identificador: t.identificador,
           numero: index + 1,
         })),
       },

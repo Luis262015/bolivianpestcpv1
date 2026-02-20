@@ -22,6 +22,7 @@ class Mapa extends Model
         'almacen_id',
         'user_id',
         'data',
+        'titulo',
         'background',
     ];
 

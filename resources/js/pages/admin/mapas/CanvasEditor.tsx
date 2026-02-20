@@ -15,6 +15,14 @@ import { Download, Hand, Trash2 } from 'lucide-react';
 import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+
 /* =======================
    Tipos
 ======================= */
@@ -24,11 +32,13 @@ export type Trap = {
   trampa_tipo_id: number;
   posx: number;
   posy: number;
+  identificador: string; // 👈 nuevo
 };
 
 export type MapEditorState = {
   localId: string;
   mapaId?: number;
+  titulo: string; // 👈 nuevo
   traps: Trap[];
   background: string | null;
 };
@@ -65,16 +75,50 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
   const [dragging, setDragging] = useState<Dragging | null>(null);
   const [wheelPan, setWheelPan] = useState(false);
 
+  const TRAP_TYPE_COLORS: Record<number, string> = {
+    1: '#ef4444', // rojo
+    2: '#3b82f6', // azul
+    3: '#22c55e', // verde
+    4: '#f59e0b', // amarillo
+    5: '#a855f7', // morado
+  };
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [identificador, setIdentificador] = useState('');
+  const [errorIdentificador, setErrorIdentificador] = useState('');
+  const [pendingTrap, setPendingTrap] = useState<{
+    posx: number;
+    posy: number;
+    trampa_tipo_id: number;
+  } | null>(null);
+
   /* =======================
      Cargar imágenes
   ======================= */
+
+  // useEffect(() => {
+  //   trampaTipos.forEach((t) => {
+  //     if (t.imagen && !trapImagesRef.current[t.id]) {
+  //       const img = new Image();
+  //       img.src = t.imagen;
+  //       img.crossOrigin = 'anonymous';
+  //       trapImagesRef.current[t.id] = img;
+  //     }
+  //   });
+  // }, [trampaTipos]);
 
   useEffect(() => {
     trampaTipos.forEach((t) => {
       if (t.imagen && !trapImagesRef.current[t.id]) {
         const img = new Image();
+
+        img.onload = () => {
+          redraw(); // 👈 clave
+        };
+
         img.src = t.imagen;
         img.crossOrigin = 'anonymous';
+
         trapImagesRef.current[t.id] = img;
       }
     });
@@ -129,7 +173,11 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
 
     const half = trapSize / 2;
 
-    mapa.traps.forEach((trap, index) => {
+    // mapa.traps.forEach((trap, index) => {
+
+    const typeCounters: Record<number, number> = {};
+
+    mapa.traps.forEach((trap) => {
       const img = trapImagesRef.current[trap.trampa_tipo_id];
 
       if (img?.complete) {
@@ -148,14 +196,102 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
       // Número
       ctx.beginPath();
       ctx.arc(trap.posx, trap.posy - trapSize, trapSize / 2, 0, Math.PI * 2);
-      ctx.fillStyle = '#15803d';
+      // ctx.fillStyle = '#15803d';
+
+      const color = TRAP_TYPE_COLORS[trap.trampa_tipo_id] ?? '#6b7280';
+      ctx.fillStyle = color;
+
       ctx.fill();
 
       ctx.fillStyle = '#fff';
       ctx.font = 'bold 10px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(index + 1), trap.posx, trap.posy - trapSize);
+      // ctx.fillText(String(index + 1), trap.posx, trap.posy - trapSize);
+
+      typeCounters[trap.trampa_tipo_id] =
+        (typeCounters[trap.trampa_tipo_id] ?? 0) + 1;
+
+      const number = typeCounters[trap.trampa_tipo_id];
+
+      // ctx.fillText(String(number), trap.posx, trap.posy - trapSize);
+
+      ctx.fillText(trap.identificador, trap.posx, trap.posy - trapSize);
+    });
+
+    ctx.restore();
+  };
+
+  const getTrapSummary = () => {
+    const counts: Record<number, number> = {};
+
+    mapa.traps.forEach((t) => {
+      counts[t.trampa_tipo_id] = (counts[t.trampa_tipo_id] ?? 0) + 1;
+    });
+
+    return trampaTipos
+      .map((tipo) => ({
+        ...tipo,
+        count: counts[tipo.id] ?? 0,
+        color: TRAP_TYPE_COLORS[tipo.id] ?? '#6b7280',
+      }))
+      .filter((t) => t.count > 0);
+  };
+
+  const drawExportOverlay = (ctx: CanvasRenderingContext2D) => {
+    const padding = 20;
+
+    /* ===========
+     TÍTULO
+  =========== */
+    ctx.save();
+
+    ctx.fillStyle = '#111';
+    ctx.font = 'bold 26px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+
+    ctx.fillText(mapa.titulo ?? 'Mapa', padding, padding);
+
+    /* ===========
+     CONTAR TRAMPAS POR TIPO
+  =========== */
+    const counts: Record<number, number> = {};
+
+    mapa.traps.forEach((t) => {
+      counts[t.trampa_tipo_id] = (counts[t.trampa_tipo_id] ?? 0) + 1;
+    });
+
+    /* ===========
+     LEYENDA
+  =========== */
+    let y = padding + 40;
+
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillStyle = '#111';
+    ctx.fillText('Resumen de trampas', padding, y);
+
+    y += 20;
+
+    ctx.font = '13px sans-serif';
+
+    trampaTipos.forEach((tipo) => {
+      const count = counts[tipo.id] ?? 0;
+      if (count === 0) return;
+
+      const color = TRAP_TYPE_COLORS[tipo.id] ?? '#6b7280';
+
+      /* círculo color */
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.arc(padding + 6, y + 7, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      /* texto */
+      ctx.fillStyle = '#111';
+      ctx.fillText(`${tipo.nombre}: ${count}`, padding + 18, y);
+
+      y += 18;
     });
 
     ctx.restore();
@@ -228,19 +364,31 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
       return;
     }
 
+    // if (typeof mode === 'number') {
+    //   onChange({
+    //     ...mapa,
+    //     traps: [
+    //       ...mapa.traps,
+    //       {
+    //         tempId: uuidv4(),
+    //         trampa_tipo_id: mode,
+    //         posx: pos.x,
+    //         posy: pos.y,
+    //       },
+    //     ],
+    //   });
+    // }
+
     if (typeof mode === 'number') {
-      onChange({
-        ...mapa,
-        traps: [
-          ...mapa.traps,
-          {
-            tempId: uuidv4(),
-            trampa_tipo_id: mode,
-            posx: pos.x,
-            posy: pos.y,
-          },
-        ],
+      setPendingTrap({
+        posx: pos.x,
+        posy: pos.y,
+        trampa_tipo_id: mode,
       });
+
+      setIdentificador('');
+      setErrorIdentificador('');
+      setDialogOpen(true);
     }
   };
 
@@ -294,12 +442,106 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  // const downloadPNG = () => {
+  //   const canvas = canvasRef.current;
+  //   if (!canvas) return;
+  //   const link = document.createElement('a');
+  //   link.download = `mapa-${mapa.mapaId ?? 'nuevo'}.png`;
+  //   link.href = canvas.toDataURL('image/png');
+  //   link.click();
+  // };
+
+  // const downloadPNG = () => {
+  //   const canvas = canvasRef.current;
+  //   if (!canvas) return;
+
+  //   const ctx = ctxRef.current;
+  //   if (!ctx) return;
+
+  //   /* redibujar base */
+  //   redraw();
+
+  //   /* dibujar overlay export */
+  //   drawExportOverlay(ctx);
+
+  //   /* exportar */
+  //   const link = document.createElement('a');
+  //   link.download = `mapa-${mapa.mapaId ?? 'nuevo'}.png`;
+  //   link.href = canvas.toDataURL('image/png');
+  //   link.click();
+
+  //   /* volver a dibujar sin overlay */
+  //   redraw();
+  // };
+
   const downloadPNG = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    const summary = getTrapSummary();
+
+    /* altura extra para resumen */
+    const summaryHeight = 40 + summary.length * 20 + 30;
+
+    /* canvas temporal */
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = canvas.width;
+    exportCanvas.height = canvas.height + summaryHeight;
+
+    const ctx = exportCanvas.getContext('2d');
+    if (!ctx) return;
+
+    /* fondo blanco */
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+    /* ============
+     DIBUJAR MAPA
+  ============ */
+    ctx.drawImage(canvas, 0, 0);
+
+    /* ============
+     TÍTULO
+  ============ */
+    let y = canvas.height + 30;
+
+    ctx.fillStyle = '#111';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillText(mapa.titulo ?? 'Mapa', 20, y);
+
+    y += 25;
+
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('Resumen de trampas', 20, y);
+
+    y += 20;
+
+    /* ============
+     RESUMEN
+  ============ */
+    ctx.font = '13px sans-serif';
+
+    summary.forEach((item) => {
+      /* círculo color */
+      ctx.beginPath();
+      ctx.fillStyle = item.color;
+      // ctx.arc(26, y + 6, 6, 0, Math.PI * 2);
+      ctx.arc(26, y - 2, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      /* texto */
+      ctx.fillStyle = '#111';
+      ctx.fillText(`${item.nombre}: total = ${item.count}`, 40, y);
+
+      y += 18;
+    });
+
+    /* ============
+     EXPORTAR
+  ============ */
     const link = document.createElement('a');
     link.download = `mapa-${mapa.mapaId ?? 'nuevo'}.png`;
-    link.href = canvas.toDataURL('image/png');
+    link.href = exportCanvas.toDataURL('image/png');
     link.click();
   };
 
@@ -308,12 +550,60 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
     onChange({ ...mapa, traps: [] });
   };
 
+  const confirmAddTrap = () => {
+    if (!identificador.trim()) {
+      setErrorIdentificador('El identificador es obligatorio');
+      return;
+    }
+
+    const exists = mapa.traps.some(
+      (t) => t.identificador === identificador.trim(),
+    );
+
+    if (exists) {
+      setErrorIdentificador('Ya existe ese identificador');
+      return;
+    }
+
+    if (!pendingTrap) return;
+
+    onChange({
+      ...mapa,
+      traps: [
+        ...mapa.traps,
+        {
+          tempId: uuidv4(),
+          trampa_tipo_id: pendingTrap.trampa_tipo_id,
+          identificador: identificador.trim(),
+          posx: pendingTrap.posx,
+          posy: pendingTrap.posy,
+        },
+      ],
+    });
+
+    setDialogOpen(false);
+    setPendingTrap(null);
+  };
+
   /* =======================
      Render
   ======================= */
 
   return (
     <div className="space-y-4">
+      <div className="flex w-72 flex-col gap-1">
+        <Label>Título del mapa</Label>
+        <Input
+          value={mapa.titulo ?? ''}
+          placeholder="Ej: Planta almacén norte"
+          onChange={(e) =>
+            onChange({
+              ...mapa,
+              titulo: e.target.value,
+            })
+          }
+        />
+      </div>
       <div className="flex flex-wrap gap-3 rounded-lg border p-4">
         <Select onValueChange={(v) => setMode(Number(v))}>
           <SelectTrigger className="w-56">
@@ -399,6 +689,38 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       />
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Identificador de la trampa</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <Label>Identificador</Label>
+            <Input
+              value={identificador}
+              onChange={(e) => {
+                setIdentificador(e.target.value);
+                setErrorIdentificador('');
+              }}
+              placeholder="Ej: T-01"
+            />
+
+            {errorIdentificador && (
+              <p className="text-sm text-red-500">{errorIdentificador}</p>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancelar
+            </Button>
+
+            <Button onClick={confirmAddTrap}>Agregar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

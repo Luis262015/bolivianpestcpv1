@@ -17,6 +17,8 @@ return new class extends Migration
       $table->foreignId('almacen_id')->constrained('almacenes');
       $table->foreignId('user_id')->constrained('users');
 
+      $table->string('titulo')->nullable();
+
       // Datos del dibujo (textos + trampas) en JSON
       $table->json('data')->nullable();
 
