@@ -38,6 +38,8 @@ import {
   subMonths,
   subYears,
 } from 'date-fns';
+import * as htmlToImage from 'html-to-image';
+import jsPDF from 'jspdf';
 import {
   CheckCircle2,
   ChevronLeft,
@@ -144,6 +146,13 @@ export default function Lista() {
     filters?.almacen_id ?? null,
   );
 
+  const [selectEmpresaNombre, setSelectedEmpresaNombre] = useState<
+    string | null
+  >();
+  const [selectAlmacenNombre, setSelectedAlmacenNombre] = useState<
+    string | null
+  >();
+
   const dragOverRef = useRef<string | null>(null);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
 
@@ -171,6 +180,8 @@ export default function Lista() {
 
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+
+  const monthlyRef = useRef<HTMLDivElement>(null);
 
   // 1. Limpiar tareas si se deselecciona el almacén
   useEffect(() => {
@@ -383,6 +394,54 @@ export default function Lista() {
 
       setDraggedTask(null);
       dragOverRef.current = null;
+    }
+  };
+
+  const downloadMonthlyPNG = async () => {
+    if (!monthlyRef.current) return;
+
+    try {
+      const dataUrl = await htmlToImage.toPng(monthlyRef.current, {
+        backgroundColor: '#ffffff',
+        pixelRatio: 2, // mejor calidad
+      });
+
+      const link = document.createElement('a');
+      link.download = `cronograma-${format(currentDate, 'yyyy-MM')}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error('Error generando PNG:', error);
+    }
+  };
+
+  const downloadMonthlyPDF = async () => {
+    if (!monthlyRef.current) return;
+
+    try {
+      const dataUrl = await htmlToImage.toPng(monthlyRef.current, {
+        backgroundColor: '#ffffff',
+        pixelRatio: 2,
+      });
+
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: 'a4',
+      });
+
+      const img = new Image();
+      img.src = dataUrl;
+
+      img.onload = () => {
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (img.height * pdfWidth) / img.width;
+
+        pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`cronograma-${format(currentDate, 'yyyy-MM')}.pdf`);
+      };
+    } catch (error) {
+      console.error('Error generando PDF:', error);
     }
   };
 
@@ -613,6 +672,12 @@ export default function Lista() {
               onValueChange={(v) => {
                 const empresaId = v ? parseInt(v) : null;
                 setSelectedEmpresaId(empresaId);
+
+                const empresa = empresas.find(
+                  (emp: Empresa) => emp.id === empresaId,
+                );
+                setSelectedEmpresaNombre(empresa?.nombre ?? null);
+
                 // Limpiamos almacén al cambiar empresa
                 setSelectedAlmacenId(null);
               }}
@@ -634,9 +699,13 @@ export default function Lista() {
             <Label>Almacén</Label>
             <Select
               value={selectedAlmacenId?.toString() ?? ''}
-              onValueChange={(v) =>
-                setSelectedAlmacenId(v ? parseInt(v) : null)
-              }
+              onValueChange={(v) => {
+                setSelectedAlmacenId(v ? parseInt(v) : null);
+                const almacen = almacenes.find(
+                  (alm: Almacen) => alm.id === parseInt(v),
+                );
+                setSelectedAlmacenNombre(almacen?.nombre ?? null);
+              }}
               disabled={!selectedEmpresaId || almacenesFiltrados.length === 0}
             >
               <SelectTrigger className="w-80">
@@ -793,11 +862,41 @@ export default function Lista() {
                       <TabsTrigger value="year">Anual</TabsTrigger>
                     </TabsList>
                   </Tabs>
+                  {viewMode === 'month' && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={downloadMonthlyPNG}
+                    >
+                      Descargar PNG
+                    </Button>
+                  )}
+                  {viewMode === 'month' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={downloadMonthlyPDF}
+                    >
+                      Exportar PDF
+                    </Button>
+                  )}
                 </div>
               </div>
 
               <div className="mt-6">
-                {viewMode === 'month' ? <MonthlyView /> : <YearlyView />}
+                {viewMode === 'month' ? (
+                  <div ref={monthlyRef} className="rounded-lg bg-white p-6">
+                    <h2 className="mb-4 text-center text-xl font-bold">
+                      Empresa: {selectEmpresaNombre} , Almacen:
+                      {selectAlmacenNombre}
+                      {'  @ '}
+                      {format(currentDate, 'MMMM yyyy')}
+                    </h2>
+                    <MonthlyView />
+                  </div>
+                ) : (
+                  <YearlyView />
+                )}
               </div>
             </CardContent>
           </Card>

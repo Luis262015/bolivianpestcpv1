@@ -37,6 +37,8 @@ import {
   subMonths,
   subYears,
 } from 'date-fns';
+import * as htmlToImage from 'html-to-image';
+import jsPDF from 'jspdf';
 import {
   CheckCircle2,
   ChevronLeft,
@@ -116,6 +118,7 @@ export default function Lista() {
 
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const monthlyRef = useRef<HTMLDivElement>(null);
 
   // 2. Actualizar tareas cuando llegan nuevas del servidor
   useEffect(() => {
@@ -250,6 +253,54 @@ export default function Lista() {
 
     setDraggedTask(null);
     dragOverRef.current = null;
+  };
+
+  const downloadMonthlyPNG = async () => {
+    if (!monthlyRef.current) return;
+
+    try {
+      const dataUrl = await htmlToImage.toPng(monthlyRef.current, {
+        backgroundColor: '#ffffff',
+        pixelRatio: 2, // mejor calidad
+      });
+
+      const link = document.createElement('a');
+      link.download = `agenda-${format(currentDate, 'yyyy-MM')}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error('Error generando PNG:', error);
+    }
+  };
+
+  const downloadMonthlyPDF = async () => {
+    if (!monthlyRef.current) return;
+
+    try {
+      const dataUrl = await htmlToImage.toPng(monthlyRef.current, {
+        backgroundColor: '#ffffff',
+        pixelRatio: 2,
+      });
+
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: 'a4',
+      });
+
+      const img = new Image();
+      img.src = dataUrl;
+
+      img.onload = () => {
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (img.height * pdfWidth) / img.width;
+
+        pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`agenda-${format(currentDate, 'yyyy-MM')}.pdf`);
+      };
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+    }
   };
 
   const MonthlyView = () => {
@@ -537,11 +588,45 @@ export default function Lista() {
                     <TabsTrigger value="year">Anual</TabsTrigger>
                   </TabsList>
                 </Tabs>
+                {viewMode === 'month' && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={downloadMonthlyPNG}
+                  >
+                    Descargar PNG
+                  </Button>
+                )}
+                {viewMode === 'month' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={downloadMonthlyPDF}
+                  >
+                    Exportar PDF
+                  </Button>
+                )}
               </div>
             </div>
 
-            <div className="mt-6">
+            {/* <div className="mt-6">
               {viewMode === 'month' ? <MonthlyView /> : <YearlyView />}
+            </div> */}
+            <div className="mt-6">
+              {viewMode === 'month' ? (
+                <div ref={monthlyRef} className="rounded-lg bg-white p-6">
+                  <h2 className="mb-4 text-center text-xl font-bold">
+                    Agenda {format(currentDate, 'MMMM yyyy')}
+                  </h2>
+
+                  <MonthlyView />
+                </div>
+              ) : (
+                // <div ref={monthlyRef}>
+                //   <MonthlyView />
+                // </div>
+                <YearlyView />
+              )}
             </div>
           </CardContent>
         </Card>
