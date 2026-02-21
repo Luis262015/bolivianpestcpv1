@@ -18,6 +18,7 @@ return new class extends Migration
       $table->foreignId('user_id')->constrained('users');
       $table->foreignId('tipo_seguimiento_id')->nullable()->constrained('tipo_seguimientos');
       $table->foreignId('contacto_id')->nullable()->constrained('contactos');
+      $table->foreignId('cronograma_id')->constrained('cronogramas');
 
       $table->string('encargado_nombre')->nullable();
       $table->string('encargado_cargo')->nullable();

@@ -267,6 +267,7 @@ interface ModalSeguimientoTrampaProps {
   onClose: () => void;
   seguimientoId: number;
   almacenId: number;
+  tipoSeguimiento: number;
   initialData: {
     trampa_especies_seguimientos: TrampaEspecieSeguimientos[];
     trampa_roedores_seguimientos: TrampaRoedoresSeguimiento[];
@@ -282,6 +283,7 @@ export default function ModalSeguimientoTrampa({
   onClose,
   seguimientoId,
   almacenId,
+  tipoSeguimiento,
   initialData,
 }: ModalSeguimientoTrampaProps) {
   const [loading, setLoading] = useState(false);
@@ -367,7 +369,9 @@ export default function ModalSeguimientoTrampa({
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[800px]">
         <DialogHeader>
-          <DialogTitle>Editar seguimiento de trampas</DialogTitle>
+          <DialogTitle>
+            Editar seguimiento de trampas {tipoSeguimiento}
+          </DialogTitle>
         </DialogHeader>
 
         {loading ? (
@@ -378,6 +382,7 @@ export default function ModalSeguimientoTrampa({
           <div className="py-6">
             <SeguimientoTrampasEdit
               almacenId={almacenId}
+              tipoSeguimiento={tipoSeguimiento}
               value={data}
               onChange={(val) => {
                 setData(

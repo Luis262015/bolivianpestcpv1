@@ -152,6 +152,7 @@ export default function Lista({
                         <TableHead>Empresa</TableHead>
                         <TableHead>Almacen</TableHead>
                         <TableHead>Usuario</TableHead>
+                        <TableHead className="text-center">Tipo</TableHead>
                         <TableHead className="text-center">Fecha</TableHead>
                         <TableHead>Acciones</TableHead>
                       </TableRow>
@@ -170,6 +171,9 @@ export default function Lista({
                           </TableCell>
                           <TableCell className="font-medium">
                             {seguimiento.user?.name}
+                          </TableCell>
+                          <TableCell className="text-center font-medium">
+                            {seguimiento.tipo_seguimiento?.nombre}
                           </TableCell>
                           <TableCell className="text-center font-mono text-xs text-muted-foreground sm:text-sm">
                             {format(
@@ -278,6 +282,7 @@ export default function Lista({
           }}
           seguimientoId={selectedSeguimiento.id}
           almacenId={selectedSeguimiento.almacen_id}
+          tipoSeguimiento={selectedSeguimiento.tipo_seguimiento_id}
           initialData={{
             trampa_especies_seguimientos:
               selectedSeguimiento.trampa_especies_seguimientos,

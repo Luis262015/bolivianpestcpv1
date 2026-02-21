@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Lista de Clientes</title>
+  <title>PDF Seguimiento</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @page {
@@ -164,7 +164,9 @@
       </tr>
       <tr>
         <td colspan="2" class="titulo">DIRECCION: <span>{{ $seguimiento->almacen->direccion }}</span></td>
-        <td class="titulo">PROXIMA EVALUACION:</td>
+        <td class="titulo">PROXIMA EVALUACION:
+          <span>{{ $cronograma ? $cronograma->date : 'NO HAY PROXIMA FECHA' }}</span>
+        </td>
       </tr>
     </table>
     <table>

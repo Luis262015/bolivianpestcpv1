@@ -75,10 +75,10 @@ class SeguimientoController extends Controller
     if ($user->HasRole('cliente')) {
       $empresasUser = User::with('empresas')->find($user->id);
       $empresaUser = $empresasUser->empresas[0];
-      $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen'])->where('empresa_id', $empresaUser->id)->paginate(20);
+      $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen', 'tipoSeguimiento'])->where('empresa_id', $empresaUser->id)->paginate(20);
     } else {
 
-      $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen', 'trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->paginate(20);
+      $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen', 'trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos', 'tipoSeguimiento'])->paginate(20);
     }
     return inertia('admin/seguimientos/lista', [
       'empresas' => $empresas,
@@ -107,6 +107,7 @@ class SeguimientoController extends Controller
       $seguimiento->almacen_id = $validated['almacen_id'];
       $seguimiento->user_id = Auth::id();
       $seguimiento->tipo_seguimiento_id = $validated['tipo_seguimiento_id'];
+      $seguimiento->cronograma_id = $validated['numero_tarea'];
       $seguimiento->observaciones = $validated['observaciones_generales'];
       $seguimiento->observacionesp = $validated['observaciones_especificas'];
       $seguimiento->encargado_nombre = $validated['encargado_nombre'];
@@ -323,8 +324,26 @@ class SeguimientoController extends Controller
   public function pdf(Request $request, string $id)
   {
     $seguimiento = Seguimiento::with(['empresa', 'almacen', 'user', 'tipoSeguimiento', 'aplicacion', 'metodos', 'epps', 'proteccions', 'biologicos', 'signos', 'images', 'especies', 'productoUsos.unidad', 'productoUsos.producto', 'roedores', 'insectocutores.especie'])->find($id);
-    $pdf = Pdf::loadView('pdf.seguimiento', compact('seguimiento'));
+    // Conseguir siguiente registro de cronograma del mismo tipo y misma empresa
+    // cronogramas(id,empresa_id,almacen_id,tipo_seguimiento_id)
+    // Si hiciera una funcion devolver(id, almacen_id, tipo_seguimiento_id), como conseguiria
+    // un cronograma del id siguiente si existe del mismo almacen y del mismo tipo_seguimiendo
+    // dd($seguimiento);
+
+    $cronograma = Cronograma::query()
+      ->where('almacen_id', $seguimiento->almacen->id)
+      ->where('tipo_seguimiento_id', $seguimiento->tipoSeguimiento->id)
+      ->where('id', '>', $seguimiento->cronograma_id)           // ← clave
+      ->orderBy('id', 'asc')            // el más cercano hacia adelante
+      ->first();                        // solo el primero (el inmediato siguiente)
+
+    // dd($cronograma);
+
+    $pdf = Pdf::loadView('pdf.seguimiento', compact('seguimiento', 'cronograma'));
     $pdf->setPaper('legal', 'portrait');
+
+
+
     return $pdf->stream(filename: 'seguimiento-' . now()->format('Y-m-d') . '.pdf');
   }
 

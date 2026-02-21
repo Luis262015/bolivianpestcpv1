@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Lista de Clientes</title>
+  <title>PDF Certificado</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @page {

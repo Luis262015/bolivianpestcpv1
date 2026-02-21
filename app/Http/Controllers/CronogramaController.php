@@ -149,6 +149,24 @@ class CronogramaController extends Controller
     return redirect()->route('cronogramas.index');
   }
 
+  public function verificar($numero)
+  {
+    $cronograma = Cronograma::where('id', $numero)
+      ->select('id', 'empresa_id', 'almacen_id', 'tipo_seguimiento_id', 'status')
+      ->first();
+
+    if (!$cronograma) {
+      return response()->json([
+        'exists' => false
+      ]);
+    }
+
+    return response()->json([
+      'exists' => true,
+      'data' => $cronograma
+    ]);
+  }
+
 
   /** FUNCIONES NO USADAS */
   // public function create() {}

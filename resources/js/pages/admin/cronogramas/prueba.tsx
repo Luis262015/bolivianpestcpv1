@@ -808,7 +808,16 @@ export default function Lista() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingTask ? 'Editar tarea # ' + editingTask.id : 'Nueva tarea'}{' '}
+              {editingTask ? (
+                <>
+                  Editar tarea #
+                  <Badge variant="destructive" className="text-[1.2rem]">
+                    {editingTask.id}
+                  </Badge>
+                </>
+              ) : (
+                'Nueva tarea'
+              )}{' '}
               - {selectedDate && format(selectedDate, 'dd MMMM yyyy')}
               {}
             </DialogTitle>

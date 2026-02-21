@@ -88,6 +88,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('contratos', ContratoController::class);
     Route::get('/cotizaciones/{id}/pdf', [CotizacionController::class, 'pdf'])->name('cotizaciones.pdf');
     Route::resource('cotizaciones', CotizacionController::class);
+    Route::get('/cronogramas/verificar/{numero}', [CronogramaController::class, 'verificar']);
     Route::resource('cronogramas', CronogramaController::class);
     Route::resource('mapas', MapaController::class);
     Route::get('/seguimientos/{id}/pdf', [SeguimientoController::class, 'pdf'])->name('seguimientos.pdf');

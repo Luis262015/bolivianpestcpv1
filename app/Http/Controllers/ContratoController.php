@@ -172,10 +172,12 @@ class ContratoController extends Controller
         // -- Fechas trampas
         foreach ($almacen['almacen_trampa']['fechas_visitas'] as $fecha) {
           $cronograma = new Cronograma();
+          $cronograma->empresa_id = $empresa->id;
           $cronograma->almacen_id = $almacendb->id;
           $cronograma->user_id = Auth::id();
           $cronograma->tecnico_id = Auth::id();
-          $cronograma->title = 'Desratización';
+          $cronograma->tipo_seguimiento_id = 1;
+          $cronograma->title = 'DESRATIZACION';
           $cronograma->date = $fecha;
           $cronograma->color = 'bg-yellow-500';
           $cronograma->status = 'pendiente';
@@ -184,10 +186,12 @@ class ContratoController extends Controller
         // -- Fechas fumigacion
         foreach ($almacen['almacen_area']['fechas_visitas'] as $fecha) {
           $cronograma = new Cronograma();
+          $cronograma->empresa_id = $empresa->id;
           $cronograma->almacen_id = $almacendb->id;
           $cronograma->user_id = Auth::id();
           $cronograma->tecnico_id = Auth::id();
-          $cronograma->title = 'Fumigación';
+          $cronograma->tipo_seguimiento_id = 2;
+          $cronograma->title = 'DESINFECCION';
           $cronograma->date = $fecha;
           $cronograma->color = 'bg-blue-500';
           $cronograma->status = 'pendiente';
@@ -196,10 +200,12 @@ class ContratoController extends Controller
         // -- Fechas insectocutores
         foreach ($almacen['almacen_insectocutor']['fechas_visitas'] as $fecha) {
           $cronograma = new Cronograma();
+          $cronograma->empresa_id = $empresa->id;
           $cronograma->almacen_id = $almacendb->id;
           $cronograma->user_id = Auth::id();
           $cronograma->tecnico_id = Auth::id();
-          $cronograma->title = 'Insectocutores';
+          $cronograma->tipo_seguimiento_id = 3;
+          $cronograma->title = 'DESINSECTACION';
           $cronograma->date = $fecha;
           $cronograma->color = 'bg-pink-600';
           $cronograma->status = 'pendiente';

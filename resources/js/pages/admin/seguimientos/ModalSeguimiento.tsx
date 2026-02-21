@@ -156,6 +156,10 @@ export default function ModalSeguimiento({
 }: ModalSeguimientoProps) {
   const [step, setStep] = useState(1);
 
+  const [verificando, setVerificando] = useState(false);
+  const [cronogramaInfo, setCronogramaInfo] = useState<any>(null);
+  const [cronogramaError, setCronogramaError] = useState<string | null>(null);
+
   // Estados locales
   const [biologicosSel, setBiologicosSel] = useState<number[]>([]);
   const [metodosSel, setMetodosSel] = useState<number[]>([]);
@@ -174,6 +178,8 @@ export default function ModalSeguimiento({
       cantidad: 0,
     })),
   );
+
+  console.log(tipoSeguimiento);
 
   const updateEspecieCantidad = (id: number, value: string) => {
     const cantidad = value === '' ? 0 : Number(value);
@@ -285,7 +291,10 @@ export default function ModalSeguimiento({
   const handleNext = () => {
     if (
       step === 1 &&
-      (!data.empresa_id || !data.almacen_id || !data.tipo_seguimiento_id)
+      (!data.empresa_id ||
+        !data.almacen_id ||
+        !data.tipo_seguimiento_id ||
+        data.numero_tarea === 0)
     )
       return;
     if (step === 2) setData('aplicacion_data', aplicacion);
@@ -309,6 +318,11 @@ export default function ModalSeguimiento({
     }
     if (step === 10)
       setData('observaciones_especificas', data.observaciones_especificas);
+    if (
+      step === 11 &&
+      (data.encargado_nombre == '' || data.encargado_cargo == '')
+    )
+      return;
 
     setStep((s) => Math.min(s + 1, 13));
   };
@@ -433,6 +447,50 @@ export default function ModalSeguimiento({
 
   const metodosGrupoB = metodos.filter((m) => m.id > 3);
 
+  const verificarTarea = async () => {
+    if (!data.numero_tarea) return;
+
+    setVerificando(true);
+    setCronogramaError(null);
+    setCronogramaInfo(null);
+
+    try {
+      const res = await axios.get(
+        `/cronogramas/verificar/${data.numero_tarea}`,
+      );
+
+      if (!res.data.exists) {
+        setCronogramaError('No existe el número de tarea');
+        return;
+      }
+
+      console.log(res.data.data);
+      if (res.data.data.status !== 'pendiente') {
+        setCronogramaError('La tarea tiene un estado distinto a pendiente');
+        return;
+      }
+
+      setCronogramaInfo(res.data.data);
+
+      // OPCIONAL: autocompletar datos
+      setData('empresa_id', res.data.data.empresa_id.toString());
+      setData('almacen_id', res.data.data.almacen_id.toString());
+      setData(
+        'tipo_seguimiento_id',
+        res.data.data.tipo_seguimiento_id.toString(),
+      );
+      const tipo = tipoSeguimiento.find(
+        (t) => t.id === res.data.data.tipo_seguimiento_id,
+      );
+
+      setTipoSeguimientoSel(tipo?.nombre ?? '');
+    } catch (error) {
+      setCronogramaError('Error al verificar');
+    } finally {
+      setVerificando(false);
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -446,7 +504,9 @@ export default function ModalSeguimiento({
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Nuevo Seguimiento - Paso {step} de 13</DialogTitle>
+          <DialogTitle className="text-[1rem]">
+            Nuevo Seguimiento - Paso {step} de 13
+          </DialogTitle>
           <div className="mt-3 h-2 w-full rounded-full bg-muted">
             <div
               className="h-2 rounded-full bg-primary transition-all"
@@ -461,13 +521,34 @@ export default function ModalSeguimiento({
             <div className="space-y-6 py-6">
               <div className="space-y-2">
                 <Label>Numero de Tarea en Cronograma *</Label>
-                <Input
-                  type="number"
-                  value={data.numero_tarea}
-                  onChange={(e) =>
-                    setData('numero_tarea', Number(e.target.value))
-                  }
-                />
+
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    value={data.numero_tarea}
+                    onChange={(e) =>
+                      setData('numero_tarea', Number(e.target.value))
+                    }
+                  />
+
+                  <Button
+                    type="button"
+                    variant="default"
+                    className="bg-cyan-800 text-cyan-500"
+                    onClick={verificarTarea}
+                    disabled={verificando || !data.numero_tarea}
+                  >
+                    {verificando ? '...' : 'VERIFICAR'}
+                  </Button>
+                </div>
+
+                {cronogramaError && (
+                  <p className="text-sm text-red-500">{cronogramaError}</p>
+                )}
+
+                {cronogramaInfo && (
+                  <p className="text-sm text-green-600">Tarea válida</p>
+                )}
               </div>
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <div className="space-y-2">
@@ -564,16 +645,17 @@ export default function ModalSeguimiento({
 
           {/* PASO 2: 11 Labores */}
           {step === 2 && (
-            <div className="space-y-5 py-6">
-              <Label className="text-lg font-semibold">
-                Labores Desarrolladas ( {tipoSeguimientoSel} )
-              </Label>
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Labores Desarrolladas</div>
 
               {tipoSeguimientoSel === 'DESRATIZACION' ? (
                 <>
-                  <div className="text-[.9rem] text-gray-500">
+                  {/* <div className="text-[.9rem] text-gray-500">
                     Control de roedores
-                  </div>
+                  </div> */}
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="flex items-center justify-between">
                       <Label>Cantidad Trampas</Label>
@@ -643,7 +725,9 @@ export default function ModalSeguimiento({
                 </>
               ) : (
                 <>
-                  <div className="text-[.9rem] text-gray-500">Desinfeccion</div>
+                  <div className="my-3 text-[.9rem] text-gray-500">
+                    Desinfeccion
+                  </div>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="flex items-center justify-between">
                       <Label>Cantidad Ambientes</Label>
@@ -658,7 +742,9 @@ export default function ModalSeguimiento({
                       />
                     </div>
                   </div>
-                  <div className="text-[.9rem] text-gray-500">Fumigacion</div>
+                  <div className="my-3 text-[.9rem] text-gray-500">
+                    Fumigacion
+                  </div>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="flex items-center justify-between">
                       <Label>Cantidad Pisos</Label>
@@ -693,10 +779,11 @@ export default function ModalSeguimiento({
 
           {/* PASO 3: Métodos */}
           {step === 3 && (
-            <div className="py-5">
-              <Label className="text-lg font-semibold">
-                Método Utilizado ( {tipoSeguimientoSel} )
-              </Label>
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Método Utilizado</div>
               {/* <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
                 {metodos.map((m) => (
                   <label
@@ -718,9 +805,9 @@ export default function ModalSeguimiento({
                 <>
                   {/* GRUPO 1 */}
                   <div>
-                    <Label className="mb-3 block text-sm text-muted-foreground">
+                    {/* <Label className="mb-3 block text-sm text-muted-foreground">
                       Métodos principales
-                    </Label>
+                    </Label> */}
 
                     <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
                       {metodosGrupoA.map((m) => (
@@ -744,9 +831,9 @@ export default function ModalSeguimiento({
                 <>
                   {/* GRUPO 2 */}
                   <div>
-                    <Label className="mb-3 block text-sm text-muted-foreground">
+                    {/* <Label className="mb-3 block text-sm text-muted-foreground">
                       Otros métodos
-                    </Label>
+                    </Label> */}
 
                     <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
                       {metodosGrupoB.map((m) => (
@@ -772,14 +859,14 @@ export default function ModalSeguimiento({
 
           {/* PASO 4: Productos y Cantidades */}
           {step === 4 && (
-            <div className="space-y-5 py-6">
-              <div className="flex items-center justify-between"></div>
-              <Label className="text-lg font-semibold">
-                Productos Utilizados
-              </Label>
-              <Label className="mb-3 block text-sm text-muted-foreground">
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Productos Utilizados</div>
+              {/* <Label className="mb-3 block text-sm text-muted-foreground">
                 Otros métodos
-              </Label>
+              </Label> */}
 
               {/* Búsqueda de Producto */}
               <div className="flex items-end gap-3">
@@ -934,10 +1021,14 @@ export default function ModalSeguimiento({
 
           {/* PASO 5: EPP */}
           {step === 5 && (
-            <div className="space-y-5 py-6">
-              <Label className="text-lg font-semibold">
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">
                 Equipos de Protección Personal Utilizados (EPP)
-              </Label>
+              </div>
+
               <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
                 {epps.map((e) => (
                   <label
@@ -957,10 +1048,14 @@ export default function ModalSeguimiento({
 
           {/* PASO 6: Métodos de Protección */}
           {step === 6 && (
-            <div className="space-y-5 py-6">
-              <Label className="text-lg font-semibold">
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">
                 Métodos de Protección Adoptadas para Terceros
-              </Label>
+              </div>
+
               <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
                 {protecciones.map((p) => (
                   <label
@@ -982,13 +1077,15 @@ export default function ModalSeguimiento({
 
           {/* PASO 7: Biológicos */}
           {step === 7 && (
-            <div className="space-y-5 py-6">
-              <Label className="text-lg font-semibold">
-                Observaciones de Ciclos Biológicos
-              </Label>
-              <Label className="mb-3 block text-sm text-muted-foreground">
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Observaciones de Ciclos Biológicos</div>
+
+              {/* <Label className="mb-3 block text-sm text-muted-foreground">
                 Solo en DESINFECCION o DESINSECTACION
-              </Label>
+              </Label> */}
 
               {tipoSeguimientoSel !== 'DESRATIZACION' && (
                 <>
@@ -1015,13 +1112,15 @@ export default function ModalSeguimiento({
 
           {/* PASO 8: Signos / Síntomas */}
           {step === 8 && (
-            <div className="space-y-5 py-6">
-              <Label className="text-lg font-semibold">
-                Observaciones de Signos de Roedores
-              </Label>
-              <Label className="mb-3 block text-sm text-muted-foreground">
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Observaciones de Signos de Roedores</div>
+
+              {/* <Label className="mb-3 block text-sm text-muted-foreground">
                 Solo en DESRATIZACION
-              </Label>
+              </Label> */}
               {tipoSeguimientoSel === 'DESRATIZACION' && (
                 <>
                   <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
@@ -1047,12 +1146,15 @@ export default function ModalSeguimiento({
 
           {/* PASO 9: Especies */}
           {step === 9 && (
-            <div className="space-y-5 py-6">
-              <Label className="text-lg font-semibold">
-                Seguimiento de trampas
-              </Label>
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Seguimiento de trampas</div>
+
               <SeguimientoTrampas
                 almacenId={Number(data.almacen_id)!}
+                tipoSeguimiento={data.tipo_seguimiento_id}
                 value={{
                   trampa_especies_seguimientos:
                     data.trampa_especies_seguimientos,
@@ -1075,10 +1177,12 @@ export default function ModalSeguimiento({
 
           {/* PASO 10: Observaciones Específicas */}
           {step === 10 && (
-            <div className="space-y-5 py-6">
-              <Label className="text-lg font-semibold">
-                Observaciones Bolivian PEST
-              </Label>
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Observaciones Bolivian PEST</div>
+
               <Textarea
                 rows={8}
                 placeholder="Detalles adicionales del seguimiento..."
@@ -1092,26 +1196,30 @@ export default function ModalSeguimiento({
 
           {/* PASO 11: Datos del Encargado y Firmas */}
           {step === 11 && (
-            <div className="space-y-6 py-6">
-              <Label className="text-lg font-semibold">
-                Responsable y Firmas
-              </Label>
+            <div className="space-y-6">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Responsable y Firmas</div>
+
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Nombre del Encargado</Label>
+                  <Label>Nombre del Encargado *</Label>
                   <Input
                     value={data.encargado_nombre}
                     onChange={(e) =>
                       setData('encargado_nombre', e.target.value)
                     }
+                    required
                   />
                   <InputError message={errors.encargado_nombre} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Cargo</Label>
+                  <Label>Cargo *</Label>
                   <Input
                     value={data.encargado_cargo}
                     onChange={(e) => setData('encargado_cargo', e.target.value)}
+                    required
                   />
                   <InputError message={errors.encargado_cargo} />
                 </div>
@@ -1147,16 +1255,20 @@ export default function ModalSeguimiento({
           {/* PASO 12: Imagenes */}
           {step === 12 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Subir imágenes</h3>
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Subir imágenes</div>
 
-              <p className="text-sm text-muted-foreground">
+              {/* <p className="text-sm text-muted-foreground">
                 Puedes adjuntar imágenes relacionadas al seguimiento (opcional).
-              </p>
+              </p> */}
 
               <input
                 type="file"
                 multiple
                 accept="image/*"
+                className="rounded-2xl border-2 p-3"
                 onChange={(e) => {
                   if (e.target.files) {
                     setData('imagenes', Array.from(e.target.files));
