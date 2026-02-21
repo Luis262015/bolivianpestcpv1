@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/hooks/usePermissions';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -41,6 +42,7 @@ interface Certificado {
   registro: string;
   area: string;
   acciones: string;
+  ingredientes: string;
   logo: File | null;
 }
 
@@ -89,6 +91,7 @@ export default function Lista() {
     registro: '',
     area: '',
     acciones: '',
+    ingredientes: '',
     logo: null,
   });
 
@@ -186,7 +189,7 @@ export default function Lista() {
       {/* DIALOG CREAR CERTIFICADO */}
       <Dialog open={openCreate} onOpenChange={setOpenCreate}>
         <DialogContent
-          className="max-w-3xl"
+          className="max-h-[90vh] overflow-y-auto sm:max-w-[800px]"
           onInteractOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
@@ -206,8 +209,134 @@ export default function Lista() {
                 }
               />
             </div>
+            <div className="md:col-span-2">
+              <Label htmlFor="titulo">CERTIFICADO DE:</Label>
+              <Input
+                id="titulo"
+                value={data.titulo}
+                onChange={(e) => setData('titulo', e.target.value)}
+                placeholder="Ej: CONTROL DE VECTORES"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <Label htmlFor="establecimiento">Al establecimiento:</Label>
+              <Input
+                id="establecimiento"
+                value={data.establecimiento}
+                onChange={(e) => setData('establecimiento', e.target.value)}
+                placeholder="Nombre del establecimiento"
+              />
+            </div>
+            <div>
+              <Label htmlFor="actividad">Actividad del solicitante</Label>
+              <Input
+                id="actividad"
+                value={data.actividad}
+                onChange={(e) => setData('actividad', e.target.value)}
+                placeholder="Ej: CAFE ESPACIO CULTURAL"
+              />
+            </div>
 
-            {(
+            <div>
+              <Label htmlFor="validez">Validez de la certificación</Label>
+              <Input
+                id="validez"
+                value={data.validez}
+                onChange={(e) => setData('validez', e.target.value)}
+                placeholder="Ej: 90 DIAS HABILES DEL ..."
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <Label htmlFor="direccion">Dirección</Label>
+              <Input
+                id="direccion"
+                value={data.direccion}
+                onChange={(e) => setData('direccion', e.target.value)}
+                placeholder="Av. Principal 123, La Paz"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <Label htmlFor="diagnostico">Diagnóstico</Label>
+              <Input
+                id="diagnostico"
+                value={data.diagnostico}
+                onChange={(e) => setData('diagnostico', e.target.value)}
+                placeholder="Descripción del diagnóstico inicial..."
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <Label htmlFor="condicion">Condición sanitaria</Label>
+              <Input
+                id="condicion"
+                value={data.condicion}
+                onChange={(e) => setData('condicion', e.target.value)}
+                placeholder="Ej: BUENA LIMPIEZA"
+              />
+            </div>
+
+            <div className="">
+              <Label htmlFor="trabajo">Trabajo realizado</Label>
+              <Textarea
+                id="trabajo"
+                value={data.trabajo}
+                onChange={(e) => setData('trabajo', e.target.value)}
+              />
+            </div>
+            <div></div>
+
+            {/* Puedes seguir con los demás... */}
+            <div>
+              <Label htmlFor="plaguicidas">Plaguicidas utilizados</Label>
+              <Textarea
+                id="plaguicidas"
+                value={data.plaguicidas}
+                onChange={(e) => setData('plaguicidas', e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="registro">Registros:</Label>
+              <Textarea
+                id="registro"
+                value={data.registro}
+                onChange={(e) => setData('registro', e.target.value)}
+              />
+            </div>
+
+            <div className="">
+              <Label htmlFor="trabajo">Ingrediente activo</Label>
+              <Textarea
+                id="ingredientes"
+                value={data.ingredientes}
+                onChange={(e) => setData('ingredientes', e.target.value)}
+              />
+            </div>
+            <div></div>
+
+            <div>
+              <Label htmlFor="validez">Area tratada:</Label>
+              <Input
+                id="area"
+                value={data.area}
+                onChange={(e) => setData('area', e.target.value)}
+                placeholder="Ej: 800 M2"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="validez">Acciones correctivas:</Label>
+              <Input
+                id="acciones"
+                value={data.acciones}
+                onChange={(e) => setData('acciones', e.target.value)}
+                placeholder="Ej: CONTINUAR CON EL ORDEN Y LA LIMPIEZA"
+              />
+            </div>
+
+            {/* {(
               Object.keys(data).filter(
                 (k) => k !== 'logo',
               ) as (keyof Certificado)[]
@@ -219,7 +348,7 @@ export default function Lista() {
                   onChange={(e) => setData(field, e.target.value)}
                 />
               </div>
-            ))}
+            ))} */}
           </div>
 
           <DialogFooter>

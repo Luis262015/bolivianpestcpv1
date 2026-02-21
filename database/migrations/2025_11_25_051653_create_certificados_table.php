@@ -30,6 +30,7 @@ return new class extends Migration
       $table->string('registro')->nullable();
       $table->string('area')->nullable();
       $table->string('acciones')->nullable();
+      $table->string('ingredientes')->nullable();
       $table->string('logo')->nullable()->nullable();
       $table->timestamp('created_at')->useCurrent();
       $table->timestamp('updated_at')->useCurrent();

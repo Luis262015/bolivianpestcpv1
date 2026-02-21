@@ -29,6 +29,7 @@ class EmpresaController extends Controller
     'registro' => 'nullable|string',
     'area' => 'nullable|string',
     'acciones' => 'nullable|string',
+    'ingredientes' => 'nullable|string',
     'logo' => 'nullable|image|max:2048',
   ];
 
@@ -77,6 +78,7 @@ class EmpresaController extends Controller
       $certificado->registro = $validated['registro'] ?? null;
       $certificado->area = $validated['area'] ?? null;
       $certificado->acciones = $validated['acciones'] ?? null;
+      $certificado->ingredientes = $validated['ingredientes'] ?? null;
 
       $path = '';
       if ($request->hasFile('logo')) {

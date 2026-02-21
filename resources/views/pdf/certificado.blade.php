@@ -210,6 +210,21 @@
 
         </tr>
       </table>
+
+      @if ($certificado->ingredientes != '')
+        <table class="tablaVarios">
+          <tr>
+            <td style="vertical-align: text-top">
+              INGREDIENTE ACTIVO:</td>
+            <td>
+              @foreach (explode(',', $certificado->ingredientes) as $item)
+                <span class="resaltado">{{ trim($item) }}</span>
+                <br>
+              @endforeach
+            </td>
+          </tr>
+        </table>
+      @endif
       {{-- PLAGUICIDAS UTILIZADOS: --}}
       {{-- <span class="resaltado">          
           @foreach (explode(',', $certificado->plaguicidas) as $item)

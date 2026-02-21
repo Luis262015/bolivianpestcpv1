@@ -38,6 +38,7 @@ import {
   subMonths,
   subYears,
 } from 'date-fns';
+import { es } from 'date-fns/locale';
 import * as htmlToImage from 'html-to-image';
 import jsPDF from 'jspdf';
 import {
@@ -470,7 +471,7 @@ export default function Lista() {
         ))}
 
         {days.map((day) => {
-          const dateStr = format(day, 'yyyy-MM-dd');
+          const dateStr = format(day, 'yyyy-MM-dd', { locale: es });
           const dayTasks = getTasksForDate(dateStr);
           const isToday = isSameDay(day, new Date());
 
@@ -588,7 +589,7 @@ export default function Lista() {
             >
               <CardHeader className="bg-primary/5 px-3 pt-3 pb-2">
                 <CardTitle className="text-center text-sm">
-                  {format(monthDate, 'MMMM')}
+                  {format(monthDate, 'MMMM', { locale: es })}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
@@ -811,7 +812,9 @@ export default function Lista() {
                           <SelectContent>
                             {Array.from({ length: 12 }, (_, i) => (
                               <SelectItem key={i} value={i.toString()}>
-                                {format(new Date(2026, i), 'MMMM')}
+                                {format(new Date(2026, i), 'MMMM', {
+                                  locale: es,
+                                })}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -886,12 +889,21 @@ export default function Lista() {
               <div className="mt-6">
                 {viewMode === 'month' ? (
                   <div ref={monthlyRef} className="rounded-lg bg-white p-6">
-                    <h2 className="mb-4 text-center text-xl font-bold">
-                      Empresa: {selectEmpresaNombre} , Almacen:
-                      {selectAlmacenNombre}
-                      {'  @ '}
-                      {format(currentDate, 'MMMM yyyy')}
-                    </h2>
+                    {viendoTodasLasTareas ? (
+                      <h2 className="mb-4 text-center text-xl font-bold">
+                        Todas las tareas
+                        {'  @ '}
+                        {format(currentDate, 'MMMM yyyy', { locale: es })}
+                      </h2>
+                    ) : (
+                      <h2 className="mb-4 text-center text-xl font-bold">
+                        Empresa: {selectEmpresaNombre} , Almacen:
+                        {selectAlmacenNombre}
+                        {'  @ '}
+                        {format(currentDate, 'MMMM yyyy', { locale: es })}
+                      </h2>
+                    )}
+
                     <MonthlyView />
                   </div>
                 ) : (
@@ -917,7 +929,9 @@ export default function Lista() {
               ) : (
                 'Nueva tarea'
               )}{' '}
-              - {selectedDate && format(selectedDate, 'dd MMMM yyyy')}
+              -{' '}
+              {selectedDate &&
+                format(selectedDate, 'dd MMMM yyyy', { locale: es })}
               {}
             </DialogTitle>
           </DialogHeader>
@@ -935,7 +949,7 @@ export default function Lista() {
                   <SelectContent>
                     {Array.from({ length: 12 }, (_, i) => (
                       <SelectItem key={i} value={i.toString()}>
-                        {format(new Date(2026, i), 'MMMM')}
+                        {format(new Date(2026, i), 'MMMM', { locale: es })}
                       </SelectItem>
                     ))}
                   </SelectContent>
