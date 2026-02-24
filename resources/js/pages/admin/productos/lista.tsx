@@ -51,13 +51,20 @@ interface Marca {
   nombre: string;
 }
 
+interface Unidad {
+  id: number;
+  nombre: string;
+}
+
 interface Producto {
   id: number;
   nombre: string;
   categoria: Categoria;
   subcategoria: Subcategoria;
   marca: Marca;
+  unidad: Unidad;
   stock: number;
+  unidad_valor: number;
 }
 
 interface ProductoVencimiento {
@@ -281,10 +288,11 @@ export default function Index() {
               <TableRow>
                 <TableHead className="w-[80px]">ID</TableHead>
                 <TableHead>Nombre</TableHead>
-                <TableHead>Categoría</TableHead>
+                {/* <TableHead>Categoría</TableHead>
                 <TableHead>Subcategoría</TableHead>
-                <TableHead>Marca</TableHead>
+                <TableHead>Marca</TableHead> */}
                 <TableHead>Stock</TableHead>
+                <TableHead>Empaque</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -293,10 +301,15 @@ export default function Index() {
                 <TableRow key={producto.id}>
                   <TableCell className="font-medium">{producto.id}</TableCell>
                   <TableCell>{producto.nombre}</TableCell>
-                  <TableCell>{producto.categoria?.nombre ?? '—'}</TableCell>
+                  {/* <TableCell>{producto.categoria?.nombre ?? '—'}</TableCell>
                   <TableCell>{producto.subcategoria?.nombre ?? '—'}</TableCell>
-                  <TableCell>{producto.marca?.nombre ?? '—'}</TableCell>
+                  <TableCell>{producto.marca?.nombre ?? '—'}</TableCell> */}
                   <TableCell>{producto.stock ?? '—'}</TableCell>
+                  <TableCell>
+                    {producto.unidad_valor ?? '—'}{' '}
+                    {producto.unidad.nombre ?? '—'}
+                  </TableCell>
+
                   <TableCell className="space-x-1 text-right">
                     {(hasRole('superadmin') || hasRole('admin')) && (
                       <Link href={`/productos/${producto.id}/edit`}>

@@ -338,6 +338,7 @@ export default function Lista() {
       user_id: selectedUserId,
       tecnico_id: selectedUserId,
       almacen_id: selectedAlmacenId,
+      empresa_id: selectedEmpresaId,
       // empresa_id ya no es necesario enviarlo si el backend lo deduce del almacén
     };
 
@@ -387,10 +388,24 @@ export default function Lista() {
       e.preventDefault();
       if (!draggedTask) return;
 
+      // router.patch(
+      //   `/cronogramas/${draggedTask.id}`,
+      //   { date: dateStr },
+      //   { preserveState: true },
+      // );
+
       router.patch(
         `/cronogramas/${draggedTask.id}`,
-        { date: dateStr },
-        { preserveState: true },
+        {
+          date: dateStr,
+          empresa_id: selectedEmpresaId,
+          almacen_id: selectedAlmacenId,
+          ver_todas: viendoTodasLasTareas ? 1 : 0,
+        },
+        {
+          preserveState: true,
+          preserveScroll: true,
+        },
       );
 
       setDraggedTask(null);

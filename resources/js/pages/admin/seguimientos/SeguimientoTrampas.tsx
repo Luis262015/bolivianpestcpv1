@@ -23,6 +23,7 @@ interface TrampaTipo {
 interface Trampa {
   id: number;
   numero: number;
+  identificador: string;
   mapa_id: number;
   trampa_tipo: TrampaTipo;
 }
@@ -215,7 +216,12 @@ export default function SeguimientoTrampas({
                   className="space-y-4 rounded-lg border p-4"
                 >
                   <div>
-                    <h4 className="font-semibold">Trampa #{trampa.numero}</h4>
+                    <h4 className="font-semibold">
+                      Trampa{' '}
+                      <span className="text-[1rem] text-red-500">
+                        {trampa.identificador}
+                      </span>
+                    </h4>
                     <p className="text-sm text-muted-foreground">
                       Tipo: {trampa.trampa_tipo.nombre}
                     </p>
@@ -301,7 +307,12 @@ export default function SeguimientoTrampas({
                   className="space-y-4 rounded-lg border p-4"
                 >
                   <div>
-                    <h4 className="font-semibold">Trampa #{trampa.numero}</h4>
+                    <h4 className="font-semibold">
+                      Trampa{' '}
+                      <span className="text-[1rem] text-red-500">
+                        {trampa.identificador}
+                      </span>
+                    </h4>
                     <p className="text-sm text-muted-foreground">
                       Tipo: {trampa.trampa_tipo.nombre}
                     </p>

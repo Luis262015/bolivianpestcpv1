@@ -223,11 +223,11 @@ export default function Create() {
                   <InfoIcon className="h-4 w-4 cursor-help text-muted-foreground transition-colors hover:text-foreground" />
                 </HoverCardTrigger>
                 <HoverCardContent className="w-72 text-sm">
-                  La unidad enla que se manejara el producto{' '}
+                  Es la unidad en la que se manejara el producto{' '}
                   <strong>unidad del producto</strong>.
                   <br />
                   Ejemplo: Si el producto es "Insecticida de 1000 gramos", aquí
-                  va la unidad "gramos".
+                  va "1000" en el siguiente campo "gramos".
                 </HoverCardContent>
               </HoverCard>
             </div>

@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Download, Hand, Trash2 } from 'lucide-react';
+import { Download, Hand, RotateCcw, Trash2 } from 'lucide-react';
 import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -91,6 +91,15 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
     posy: number;
     trampa_tipo_id: number;
   } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  // foco automático al abrir
+  useEffect(() => {
+    if (dialogOpen) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+    }
+  }, [dialogOpen]);
 
   /* =======================
      Cargar imágenes
@@ -151,6 +160,11 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
   useEffect(() => {
     redraw();
   }, [mapa.traps, zoom, panOffset, trapSize]);
+
+  const resetZoom = () => {
+    setZoom(100);
+    setPanOffset({ x: 0, y: 0 });
+  };
 
   /* =======================
      Render canvas
@@ -642,6 +656,11 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
           />
         </div>
 
+        <Button variant="outline" size="sm" onClick={resetZoom}>
+          <RotateCcw className="mr-2 h-4 w-4" />
+          Reestablecer Zoom
+        </Button>
+
         <Button
           variant={panMode ? 'default' : 'outline'}
           size="sm"
@@ -690,7 +709,7 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
         onMouseLeave={handleMouseUp}
       />
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Identificador de la trampa</DialogTitle>
@@ -699,6 +718,7 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
           <div className="space-y-2">
             <Label>Identificador</Label>
             <Input
+              ref={inputRef}
               value={identificador}
               onChange={(e) => {
                 setIdentificador(e.target.value);
@@ -719,6 +739,51 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
 
             <Button onClick={confirmAddTrap}>Agregar</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog> */}
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Identificador de la trampa</DialogTitle>
+          </DialogHeader>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              confirmAddTrap();
+            }}
+          >
+            <div className="space-y-2">
+              <Label>Identificador</Label>
+
+              <Input
+                ref={inputRef}
+                value={identificador}
+                onChange={(e) => {
+                  setIdentificador(e.target.value);
+                  setErrorIdentificador('');
+                }}
+                placeholder="Ej: T-01"
+              />
+
+              {errorIdentificador && (
+                <p className="text-sm text-red-500">{errorIdentificador}</p>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+
+              <Button type="submit">Agregar</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

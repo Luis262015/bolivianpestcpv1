@@ -78,7 +78,7 @@ export default function Lista() {
         <Table className="mt-6">
           <TableHeader>
             <TableRow>
-              <TableHead>Cliente</TableHead>
+              <TableHead>Empresa</TableHead>
               <TableHead className="text-center">Total</TableHead>
               <TableHead className="text-center">Expiracion</TableHead>
               <TableHead className="text-center">Fecha</TableHead>
@@ -91,7 +91,7 @@ export default function Lista() {
             {contratos.data.map((cot) => (
               <TableRow key={cot.id}>
                 <TableCell>{cot.empresa.nombre}</TableCell>
-                <TableCell className="text-right font-mono text-[1rem]">
+                <TableCell className="text-center font-mono text-[1rem]">
                   <span className="font-bold">Bs.</span>{' '}
                   {cot.total.toLocaleString('es-BO')}
                 </TableCell>
@@ -104,7 +104,7 @@ export default function Lista() {
                     const date = new Date(dateStr);
                     if (isNaN(date.getTime())) return '-';
 
-                    return format(date, 'dd/MM/yyyy HH:mm:ss');
+                    return format(date, 'dd/MM/yyyy');
                   })()}
                 </TableCell>
                 <TableCell className="text-center font-mono text-xs text-muted-foreground sm:text-sm">

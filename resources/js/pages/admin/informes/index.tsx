@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   ChartConfig,
@@ -203,15 +204,18 @@ export default function Lista({
   const chartConfigRoedores: ChartConfig = {
     inicial: {
       label: 'Inicial',
-      color: 'hsl(var(--chart-1))',
+      // color: 'hsl(var(--chart-1))',
+      color: '#f00',
     },
     merma: {
       label: 'Merma',
-      color: 'hsl(var(--chart-2))',
+      // color: 'hsl(var(--chart-2))',
+      color: '#0f0',
     },
     actual: {
       label: 'Actual',
-      color: 'hsl(var(--chart-3))',
+      // color: 'hsl(var(--chart-3))',
+      color: '#00f',
     },
   };
 
@@ -619,15 +623,18 @@ export default function Lista({
           {/* TABLA DE ROEDORES */}
           <div>
             <div className="mb-2 text-[1rem] font-bold">
-              SEGUIMIENTO PESO DE TRAMPAS
+              SEGUIMIENTO PESO DE TRAMPAS{' '}
+              <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+                Cálculo {seguimientos.length} seguimientos
+              </Badge>
             </div>
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="font-bold">
+                    {/* <TableHead className="font-bold">
                       Fecha de Seguimiento
-                    </TableHead>
+                    </TableHead> */}
                     <TableHead className="text-center font-bold">
                       Nro Trampa
                     </TableHead>
@@ -640,7 +647,11 @@ export default function Lista({
                     <TableHead className="text-center font-bold">
                       Actual
                     </TableHead>
-                    <TableHead className="font-bold">Observación</TableHead>
+                    {/* <TableHead className="font-bold">Observación</TableHead> */}
+                    <TableHead className="text-center font-bold">
+                      % merma
+                    </TableHead>
+                    <TableHead className="font-bold">RESULTADO</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -648,31 +659,44 @@ export default function Lista({
                     <>
                       {datosRoedores.map((dato, index) => (
                         <TableRow key={index}>
-                          <TableCell className="font-medium">
+                          {/* <TableCell className="font-medium">
                             {dato.fecha}
-                          </TableCell>
+                          </TableCell> */}
                           <TableCell className="text-center">
                             {dato.trampa_id}
                           </TableCell>
                           <TableCell className="text-center">
-                            {dato.inicial}
+                            {dato.inicial / seguimientos.length}
                           </TableCell>
                           <TableCell className="text-center">
                             {dato.merma}
                           </TableCell>
                           <TableCell className="text-center">
-                            {dato.actual}
+                            {/* {dato.actual} */}
+                            {dato.inicial / seguimientos.length - dato.merma}
+                          </TableCell>
+                          {/* <TableCell>
+                            {dato.observaciones.join(', ') || '-'}
+                          </TableCell> */}
+                          <TableCell className="text-center">
+                            {(dato.merma * 100) /
+                              (dato.inicial / seguimientos.length)}
                           </TableCell>
                           <TableCell>
-                            {dato.observaciones.join(', ') || '-'}
+                            {(dato.merma * 100) /
+                              (dato.inicial / seguimientos.length) <=
+                            25
+                              ? 'Medio Ambiente'
+                              : 'Consumo'}
                           </TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="bg-muted/50 font-bold">
-                        <TableCell colSpan={2}>TOTAL</TableCell>
+                        <TableCell className="text-center">TOTAL</TableCell>
                         <TableCell className="text-center">
                           {datosRoedores.reduce(
-                            (sum, dato) => sum + dato.inicial,
+                            (sum, dato) =>
+                              sum + dato.inicial / seguimientos.length,
                             0,
                           )}
                         </TableCell>
@@ -684,11 +708,145 @@ export default function Lista({
                         </TableCell>
                         <TableCell className="text-center">
                           {datosRoedores.reduce(
-                            (sum, dato) => sum + dato.actual,
+                            (sum, dato) =>
+                              sum +
+                              (dato.inicial / seguimientos.length - dato.merma),
                             0,
                           )}
                         </TableCell>
                         <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
+                      </TableRow>
+                      <TableRow className="text-center">
+                        <TableCell>TOTAL</TableCell>
+                        <TableCell>
+                          {datosRoedores.reduce(
+                            (sum, dato) =>
+                              sum + dato.inicial / seguimientos.length,
+                            0,
+                          )}
+                        </TableCell>
+                        <TableCell>100 %</TableCell>
+                      </TableRow>
+                      <TableRow className="text-center">
+                        <TableCell>MERMA</TableCell>
+                        <TableCell>
+                          {datosRoedores.reduce(
+                            (sum, dato) => sum + dato.merma,
+                            0,
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {(datosRoedores.reduce(
+                            (sum, dato) => sum + dato.merma,
+                            0,
+                          ) *
+                            100) /
+                            datosRoedores.reduce(
+                              (sum, dato) =>
+                                sum + dato.inicial / seguimientos.length,
+                              0,
+                            )}{' '}
+                          %
+                        </TableCell>
+                      </TableRow>
+                      <TableRow className="text-center">
+                        <TableCell>PESO ACTUAL</TableCell>
+                        <TableCell>
+                          {datosRoedores.reduce(
+                            (sum, dato) =>
+                              sum +
+                              (dato.inicial / seguimientos.length - dato.merma),
+                            0,
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {(datosRoedores.reduce(
+                            (sum, dato) =>
+                              sum +
+                              (dato.inicial / seguimientos.length - dato.merma),
+                            0,
+                          ) *
+                            100) /
+                            datosRoedores.reduce(
+                              (sum, dato) =>
+                                sum + dato.inicial / seguimientos.length,
+                              0,
+                            )}{' '}
+                          %
+                        </TableCell>
+                      </TableRow>
+                      <TableRow className="text-center">
+                        <TableCell>CONSUMO</TableCell>
+                        <TableCell>
+                          {datosRoedores.reduce((sum, dato) => {
+                            const inicial = dato.inicial / seguimientos.length;
+                            const actual = inicial - dato.merma;
+                            const porcentaje = (dato.merma * 100) / inicial;
+
+                            if (porcentaje > 25) {
+                              return sum + actual;
+                            }
+                            return sum;
+                          }, 0)}
+                        </TableCell>
+                        <TableCell>
+                          {(datosRoedores.reduce((sum, dato) => {
+                            const inicial = dato.inicial / seguimientos.length;
+                            const actual = inicial - dato.merma;
+                            const porcentaje = (dato.merma * 100) / inicial;
+
+                            if (porcentaje > 25) {
+                              return sum + actual;
+                            }
+                            return sum;
+                          }, 0) *
+                            100) /
+                            datosRoedores.reduce(
+                              (sum, dato) =>
+                                sum +
+                                (dato.inicial / seguimientos.length -
+                                  dato.merma),
+                              0,
+                            )}{' '}
+                          %
+                        </TableCell>
+                      </TableRow>
+                      <TableRow className="text-center">
+                        <TableCell>MEDIO AMBIENTE</TableCell>
+                        <TableCell>
+                          {datosRoedores.reduce((sum, dato) => {
+                            const inicial = dato.inicial / seguimientos.length;
+                            const actual = inicial - dato.merma;
+                            const porcentaje = (dato.merma * 100) / inicial;
+
+                            if (porcentaje <= 25) {
+                              return sum + actual;
+                            }
+                            return sum;
+                          }, 0)}
+                        </TableCell>
+                        <TableCell>
+                          {(datosRoedores.reduce((sum, dato) => {
+                            const inicial = dato.inicial / seguimientos.length;
+                            const actual = inicial - dato.merma;
+                            const porcentaje = (dato.merma * 100) / inicial;
+
+                            if (porcentaje <= 25) {
+                              return sum + actual;
+                            }
+                            return sum;
+                          }, 0) *
+                            100) /
+                            datosRoedores.reduce(
+                              (sum, dato) =>
+                                sum +
+                                (dato.inicial / seguimientos.length -
+                                  dato.merma),
+                              0,
+                            )}{' '}
+                          %
+                        </TableCell>
                       </TableRow>
                     </>
                   ) : (

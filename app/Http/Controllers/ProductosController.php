@@ -32,11 +32,16 @@ class ProductosController extends Controller
 
   public function index()
   {
-    $productos = Producto::select('id', 'nombre', 'categoria_id', 'marca_id', 'stock')
-      ->with(['categoria' => function ($query) {
-        $query->select('id', 'nombre');
-      }])
-      ->with(['marca' => function ($query) {
+    // $productos = Producto::select('id', 'nombre', 'categoria_id', 'marca_id', 'stock')
+    //   ->with(['categoria' => function ($query) {
+    //     $query->select('id', 'nombre');
+    //   }])
+    //   ->with(['marca' => function ($query) {
+    //     $query->select('id', 'nombre');
+    //   }])
+    //   ->paginate(20);
+    $productos = Producto::select('id', 'nombre', 'categoria_id', 'marca_id', 'stock', 'unidad_valor', 'unidad_id')
+      ->with(['unidad' => function ($query) {
         $query->select('id', 'nombre');
       }])
       ->paginate(20);

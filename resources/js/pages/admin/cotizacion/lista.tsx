@@ -75,7 +75,7 @@ export default function Lista({ cotizaciones }: Props) {
               <TableRow key={cot.id}>
                 <TableCell>{cot.nombre}</TableCell>
 
-                <TableCell className="text-right font-mono text-[1rem]">
+                <TableCell className="text-center font-mono text-[1rem]">
                   <span className="font-bold">Bs.</span>{' '}
                   {cot.total.toLocaleString('es-BO')}
                 </TableCell>

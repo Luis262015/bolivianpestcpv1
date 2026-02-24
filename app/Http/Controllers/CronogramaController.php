@@ -18,6 +18,7 @@ class CronogramaController extends Controller
     'user_id' => 'sometimes|required|exists:users,id',
     'tecnico_id' => 'sometimes|required|exists:users,id',
     'almacen_id' => 'sometimes|required|exists:almacenes,id',
+    'empresa_id' => 'sometimes|required|exists:empresas,id',
   ];
 
   public function index(Request $request)
@@ -101,35 +102,12 @@ class CronogramaController extends Controller
       'tareas' => $tareas,
       'filters' => $filters,
     ]);
-    // $user = $request->user();
-    // $filters = $request->only(['empresa_id', 'almacen_id']);
-    // if ($user->HasRole('cliente')) {
-    //   $empresasUser = User::with('empresas')->find($user->id);
-    //   $empresaUser = $empresasUser->empresas[0];
-    //   $empresas = Empresa::select(['id', 'nombre'])->where('id', $empresaUser->id)->get();
-    //   $almacenes = Almacen::select(['id', 'nombre', 'empresa_id'])->where('empresa_id', $empresaUser->id)->get();
-    // } else {
-    //   $empresas = Empresa::all(['id', 'nombre']);
-    //   $almacenes = Almacen::all(['id', 'nombre', 'empresa_id']);
-    // }
-    // $usuarios = User::all(['id', 'name as nombre']); // Ajusta si el campo es 'nombre' en lugar de 'name'
-    // $tareas = [];
-    // if (isset($filters['almacen_id'])) {
-    //   $tareas = Cronograma::where('almacen_id', $filters['almacen_id'])
-    //     ->get(['id', 'title', 'date', 'color', 'status', 'user_id', 'almacen_id']);
-    // }
-    // return inertia('admin/cronogramas/prueba', [ // Ajusta la ruta del componente Inertia si es necesario
-    //   'empresas' => $empresas,
-    //   'almacenes' => $almacenes,
-    //   'usuarios' => $usuarios,
-    //   'tareas' => $tareas,
-    //   'filters' => $filters,
-    // ]);
   }
 
   public function store(Request $request)
   {
     $validated = $request->validate($this->toValidated);
+    // dd($validated);
     Cronograma::create($validated);
     return redirect()->route('cronogramas.index', $request->only(['empresa_id', 'almacen_id']))
       ->with('success', 'Tarea creada correctamente.');
@@ -166,11 +144,4 @@ class CronogramaController extends Controller
       'data' => $cronograma
     ]);
   }
-
-
-  /** FUNCIONES NO USADAS */
-  // public function create() {}
-  // public function show(string $id) {}
-  // public function edit(string $id) {}
-  // public function getAlmacenes() {}
 }

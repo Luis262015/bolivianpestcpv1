@@ -24,6 +24,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { Eye, File, FileText } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Empresas', href: '/empresas' },
@@ -116,10 +117,12 @@ export default function Lista() {
         window.open(`/empresas/certificadoultimo`, '_blank');
         reset();
         setOpenCreate(false);
+        toast.success('Certificado creado con éxito');
       },
       onError: (errors) => {
         console.log('ERROR');
         console.log(errors);
+        toast.error('No se pudo crear el certificado');
       },
     });
   };
@@ -143,8 +146,8 @@ export default function Lista() {
               <TableHead>Nombre</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Celular</TableHead>
-              <TableHead>Activo</TableHead>
-              <TableHead>Acciones</TableHead>
+              {/* <TableHead>Activo</TableHead> */}
+              <TableHead>Certificados</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -155,13 +158,13 @@ export default function Lista() {
                 <TableCell>{empresa.nombre}</TableCell>
                 <TableCell>{empresa.email}</TableCell>
                 <TableCell>{empresa.telefono}</TableCell>
-                <TableCell>{empresa.activo ? 'Activo' : 'Inactivo'}</TableCell>
+                {/* <TableCell>{empresa.activo ? 'Activo' : 'Inactivo'}</TableCell> */}
 
                 <TableCell className="space-x-2">
                   {(hasRole('superadmin') || hasRole('admin')) && (
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="default"
                       onClick={() => openCrearCertificado(empresa)}
                     >
                       <File className="mr-1 h-4 w-4" />
@@ -171,11 +174,11 @@ export default function Lista() {
 
                   <Button
                     size="sm"
-                    variant="secondary"
+                    variant="outline"
                     onClick={() => openListaCertificados(empresa)}
                   >
                     <Eye className="mr-1 h-4 w-4" />
-                    Ver Certificados
+                    Ver
                   </Button>
                 </TableCell>
               </TableRow>

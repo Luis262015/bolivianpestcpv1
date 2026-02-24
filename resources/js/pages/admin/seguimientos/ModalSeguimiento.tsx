@@ -171,12 +171,22 @@ export default function ModalSeguimiento({
     useState<Almacen[]>(almacenes);
 
   // const [especiesSel, setEspeciesSel] = useState<number[]>([]);
-  const [especiesCantidad, setEspeciesCantidad] = useState<EspecieCantidad[]>(
+  // const [especiesCantidad, setEspeciesCantidad] = useState<EspecieCantidad[]>(
+  //   especies.map((e) => ({
+  //     especie_id: e.id,
+  //     nombre: e.nombre,
+  //     cantidad: 0,
+  //   })),
+  // );
+  const buildInitialEspecies = () =>
     especies.map((e) => ({
       especie_id: e.id,
       nombre: e.nombre,
       cantidad: 0,
-    })),
+    }));
+
+  const [especiesCantidad, setEspeciesCantidad] = useState<EspecieCantidad[]>(
+    buildInitialEspecies(),
   );
 
   console.log(tipoSeguimiento);
@@ -364,22 +374,55 @@ export default function ModalSeguimiento({
     });
   };
 
+  // const handleClose = () => {
+  //   reset();
+  //   setStep(1);
+  //   setBiologicosSel([]);
+  //   setMetodosSel([]);
+  //   setEppsSel([]);
+  //   setProteccionesSel([]);
+  //   setSignosSel([]);
+  //   // setEspeciesSel([]);
+  //   setEspeciesCantidad([]);
+  //   setAplicacion(emptyAplicacion);
+  //   setProductos([]);
+  //   setSelectedProduct(null);
+  //   setQuery('');
+  //   setQuantity('1');
+  //   onClose();
+  // };
+
   const handleClose = () => {
-    reset();
+    resetDialogState();
+    onClose();
+  };
+
+  const resetDialogState = () => {
+    reset(); // inertia
+
     setStep(1);
+
     setBiologicosSel([]);
     setMetodosSel([]);
     setEppsSel([]);
     setProteccionesSel([]);
     setSignosSel([]);
-    // setEspeciesSel([]);
-    setEspeciesCantidad([]);
+
+    setEspeciesCantidad(buildInitialEspecies());
+
     setAplicacion(emptyAplicacion);
     setProductos([]);
+
     setSelectedProduct(null);
     setQuery('');
     setQuantity('1');
-    onClose();
+
+    setFirmaEncargado('');
+    setFirmaSupervisor('');
+
+    setCronogramaInfo(null);
+    setCronogramaError(null);
+    setTipoSeguimientoSel('TIPO');
   };
 
   // Helpers productos
@@ -494,8 +537,11 @@ export default function ModalSeguimiento({
   return (
     <Dialog
       open={open}
+      // onOpenChange={(isOpen) => {
+      //   if (!isOpen) onClose();
+      // }}
       onOpenChange={(isOpen) => {
-        if (!isOpen) onClose();
+        if (!isOpen) handleClose();
       }}
     >
       <DialogContent
@@ -573,6 +619,7 @@ export default function ModalSeguimiento({
                         setAlmacenesFiltrados([]);
                       }
                     }}
+                    disabled
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar empresa" />
@@ -596,6 +643,7 @@ export default function ModalSeguimiento({
                   <Select
                     value={data.almacen_id}
                     onValueChange={(v) => setData('almacen_id', v)}
+                    disabled
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar almacén" />
@@ -622,6 +670,7 @@ export default function ModalSeguimiento({
 
                     setTipoSeguimientoSel(tipo?.nombre ?? '');
                   }}
+                  disabled
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar tipo de seguimiento" />
