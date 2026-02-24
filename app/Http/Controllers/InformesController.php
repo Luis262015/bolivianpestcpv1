@@ -44,7 +44,7 @@ class InformesController extends Controller
           $request->fecha_fin . ' 23:59:59',
         ])
         ->orderBy('created_at', 'desc')
-        ->get(['id', 'created_at']);
+        ->get(['id', 'tipo_seguimiento_id', 'created_at']);
     }
     return inertia('admin/informes/index', [
       'empresas'     => $empresas,

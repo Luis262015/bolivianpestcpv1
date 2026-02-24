@@ -235,17 +235,19 @@ class SeguimientoController extends Controller
       }
 
       // Trampas roedores
-      if (isset($validated['trampa_roedores_seguimientos'])) {
-        foreach ($validated['trampa_roedores_seguimientos'] as $tramp) {
-          $trampa = new TrampaRoedorSeguimiento();
-          $trampa->seguimiento_id = $seguimiento->id;
-          $trampa->trampa_id = $tramp['trampa_id'];
-          $trampa->observacion = $tramp['observacion'];
-          $trampa->cantidad = $tramp['cantidad'];
-          $trampa->inicial = $tramp['inicial'];
-          $trampa->actual = $tramp['actual'];
-          $trampa->merma = $tramp['merma'];
-          $trampa->save();
+      if ($validated['tipo_seguimiento_id'] == 1) {
+        if (isset($validated['trampa_roedores_seguimientos'])) {
+          foreach ($validated['trampa_roedores_seguimientos'] as $tramp) {
+            $trampa = new TrampaRoedorSeguimiento();
+            $trampa->seguimiento_id = $seguimiento->id;
+            $trampa->trampa_id = $tramp['trampa_id'];
+            $trampa->observacion = $tramp['observacion'];
+            $trampa->cantidad = $tramp['cantidad'];
+            $trampa->inicial = $tramp['inicial'];
+            $trampa->actual = $tramp['actual'];
+            $trampa->merma = $tramp['merma'];
+            $trampa->save();
+          }
         }
       }
 

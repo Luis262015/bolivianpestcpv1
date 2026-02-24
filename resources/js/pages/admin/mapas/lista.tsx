@@ -101,42 +101,46 @@ export default function MapaEditor(props: Props) {
      Cargar mapas
   ======================= */
 
+  // useEffect(() => {
+  //   if (!selectedAlmacen) {
+  //     setMapEditors([]);
+  //     return;
+  //   }
+
+  //   router.get(
+  //     '/mapas',
+  //     { almacen_id: selectedAlmacen },
+  //     {
+  //       preserveState: true,
+  //       replace: true,
+  //       onSuccess: (page) => {
+  //         const mapas = page.props.mapas as Props['mapas'];
+
+  //         if (!mapas || mapas.length === 0) {
+  //           setMapEditors([]);
+  //           return;
+  //         }
+
+  //         setMapEditors(
+  //           mapas.map((m) => ({
+  //             localId: uuidv4(),
+  //             mapaId: m.id,
+  //             titulo: m.titulo ?? '', // 👈 nuevo
+  //             texts: m.texts ?? [],
+  //             traps: (m.trampas ?? []).map((t: any) => ({
+  //               ...t,
+  //               tempId: uuidv4(),
+  //             })),
+  //             background: m.background ?? null,
+  //           })),
+  //         );
+  //       },
+  //     },
+  //   );
+  // }, [selectedAlmacen]);
+
   useEffect(() => {
-    if (!selectedAlmacen) {
-      setMapEditors([]);
-      return;
-    }
-
-    router.get(
-      '/mapas',
-      { almacen_id: selectedAlmacen },
-      {
-        preserveState: true,
-        replace: true,
-        onSuccess: (page) => {
-          const mapas = page.props.mapas as Props['mapas'];
-
-          if (!mapas || mapas.length === 0) {
-            setMapEditors([]);
-            return;
-          }
-
-          setMapEditors(
-            mapas.map((m) => ({
-              localId: uuidv4(),
-              mapaId: m.id,
-              titulo: m.titulo ?? '', // 👈 nuevo
-              texts: m.texts ?? [],
-              traps: (m.trampas ?? []).map((t: any) => ({
-                ...t,
-                tempId: uuidv4(),
-              })),
-              background: m.background ?? null,
-            })),
-          );
-        },
-      },
-    );
+    loadMaps();
   }, [selectedAlmacen]);
 
   /* =======================
@@ -183,10 +187,47 @@ export default function MapaEditor(props: Props) {
       {
         preserveScroll: true,
         onSuccess: () => {
+          loadMaps(); // 👈 recarga mapas desde BD
           alert('Mapa guardado correctamente');
         },
         onError: () => {
           alert('Error al guardar el mapa');
+        },
+      },
+    );
+  };
+
+  const loadMaps = () => {
+    if (!selectedAlmacen) return;
+
+    router.get(
+      '/mapas',
+      { almacen_id: selectedAlmacen },
+      {
+        preserveState: true,
+        replace: true,
+        only: ['mapas'], // 👈 clave para que solo refresque mapas
+        onSuccess: (page) => {
+          const mapas = page.props.mapas as Props['mapas'];
+
+          if (!mapas || mapas.length === 0) {
+            setMapEditors([]);
+            return;
+          }
+
+          setMapEditors(
+            mapas.map((m) => ({
+              localId: uuidv4(),
+              mapaId: m.id,
+              titulo: m.titulo ?? '',
+              texts: m.texts ?? [],
+              traps: (m.trampas ?? []).map((t: any) => ({
+                ...t,
+                tempId: uuidv4(),
+              })),
+              background: m.background ?? null,
+            })),
+          );
         },
       },
     );

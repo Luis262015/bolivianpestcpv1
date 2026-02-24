@@ -75,6 +75,7 @@ interface Seguimiento {
   created_at: string;
   insectocutores: Insectocutor[];
   roedores: Roedor[];
+  tipo_seguimiento_id: number;
 }
 
 interface Props {
@@ -107,15 +108,19 @@ export default function Lista({
 
   // Procesar datos de insectocutores
   const datosInsectocutores = useMemo(() => {
+    // Filtrar solo tipo_seguimiento_id = 3
+    const seguimientosFiltrados = seguimientos.filter(
+      (seg) => seg.tipo_seguimiento_id === 3,
+    );
     const especiesSet = new Set<string>();
-    seguimientos.forEach((seg) => {
+    seguimientosFiltrados.forEach((seg) => {
       seg.insectocutores.forEach((ins) => {
         especiesSet.add(ins.especie.nombre);
       });
     });
     const especies = Array.from(especiesSet).sort();
 
-    const datosPorFecha = seguimientos.map((seg) => {
+    const datosPorFecha = seguimientosFiltrados.map((seg) => {
       const fecha = new Date(seg.created_at).toLocaleDateString();
       const cantidadesPorEspecie: { [especie: string]: number } = {};
 
@@ -138,7 +143,15 @@ export default function Lista({
       );
     });
 
-    return { especies, datosPorFecha, totales };
+    // Promedios por especie
+    const totalSeguimientos = seguimientosFiltrados.length || 1;
+
+    const promedios: { [especie: string]: number } = {};
+    especies.forEach((esp) => {
+      promedios[esp] = totales[esp] / totalSeguimientos;
+    });
+
+    return { especies, datosPorFecha, totales, promedios };
   }, [seguimientos]);
 
   // Procesar datos de roedores
@@ -174,18 +187,38 @@ export default function Lista({
         datosPorFechaTrampa[key].inicial += roedor.inicial;
         datosPorFechaTrampa[key].merma += roedor.merma;
         datosPorFechaTrampa[key].actual += roedor.actual;
+
         if (roedor.observacion) {
           datosPorFechaTrampa[key].observaciones.push(roedor.observacion);
         }
       });
     });
 
-    return Object.values(datosPorFechaTrampa).sort((a, b) => {
-      if (a.fecha !== b.fecha) {
-        return a.fecha.localeCompare(b.fecha);
-      }
-      return a.trampa_id - b.trampa_id;
-    });
+    // return Object.values(datosPorFechaTrampa).sort((a, b) => {
+    //   if (a.fecha !== b.fecha) {
+    //     return a.fecha.localeCompare(b.fecha);
+    //   }
+    //   return a.trampa_id - b.trampa_id;
+    // });
+    // Filtrar solo tipo_seguimiento_id = 3
+    const seguimientosFiltrados = seguimientos.filter(
+      (seg) => seg.tipo_seguimiento_id === 1,
+    );
+    const totalSeguimientos = seguimientosFiltrados.length || 1;
+
+    return Object.values(datosPorFechaTrampa)
+      .map((item) => ({
+        ...item,
+        inicial: Math.round(item.inicial / totalSeguimientos),
+        merma: Math.round(item.merma / totalSeguimientos),
+        actual: Math.round(item.actual / totalSeguimientos),
+      }))
+      .sort((a, b) => {
+        if (a.fecha !== b.fecha) {
+          return a.fecha.localeCompare(b.fecha);
+        }
+        return a.trampa_id - b.trampa_id;
+      });
   }, [seguimientos]);
 
   // Configuración de colores para gráficos de insectocutores
@@ -499,7 +532,10 @@ export default function Lista({
           {/* TABLA DE INSECTOCUTORES */}
           <div>
             <div className="mb-2 text-[1rem] font-bold">
-              INCIDENCIA DE INSECTOS VOLADORES
+              INCIDENCIA DE INSECTOS VOLADORES{' '}
+              <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+                Cálculo {datosInsectocutores.datosPorFecha.length} seguimientos
+              </Badge>
             </div>
             <div className="rounded-md border">
               <Table>
@@ -541,6 +577,14 @@ export default function Lista({
                           </TableCell>
                         ))}
                       </TableRow>
+                      <TableRow>
+                        <TableCell>PROMEDIO</TableCell>
+                        {datosInsectocutores.especies.map((especie) => (
+                          <TableCell key={especie} className="text-center">
+                            {datosInsectocutores.promedios[especie].toFixed(2)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
                     </>
                   ) : (
                     <TableRow>
@@ -575,6 +619,7 @@ export default function Lista({
                       fill: chartConfigInsectos[especie]?.color,
                     }),
                   )}
+                  barCategoryGap="20%"
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="especie" />
@@ -590,7 +635,7 @@ export default function Lista({
           {datosInsectocutores.especies.length > 0 && (
             <div>
               <div className="mb-4 text-[1rem] font-bold">
-                GRÁFICO: EVOLUCIÓN DE INSECTOS POR FECHA
+                GRÁFICO DE INCIDENCIA: EVOLUCIÓN DE INSECTOS POR FECHA
               </div>
               <ChartContainer
                 config={chartConfigInsectos}
@@ -601,6 +646,8 @@ export default function Lista({
                     fecha: dato.fecha,
                     ...dato.cantidades,
                   }))}
+                  barGap={4}
+                  barCategoryGap="20%"
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="fecha" />
@@ -611,8 +658,8 @@ export default function Lista({
                     <Bar
                       key={especie}
                       dataKey={especie}
-                      stackId="a"
                       fill={chartConfigInsectos[especie]?.color}
+                      radius={4}
                     />
                   ))}
                 </BarChart>
@@ -625,7 +672,7 @@ export default function Lista({
             <div className="mb-2 text-[1rem] font-bold">
               SEGUIMIENTO PESO DE TRAMPAS{' '}
               <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-                Cálculo {seguimientos.length} seguimientos
+                Cálculo {datosRoedores.length} seguimientos
               </Badge>
             </div>
             <div className="rounded-md border">
@@ -666,26 +713,23 @@ export default function Lista({
                             {dato.trampa_id}
                           </TableCell>
                           <TableCell className="text-center">
-                            {dato.inicial / seguimientos.length}
+                            {dato.inicial}
                           </TableCell>
                           <TableCell className="text-center">
                             {dato.merma}
                           </TableCell>
                           <TableCell className="text-center">
-                            {/* {dato.actual} */}
-                            {dato.inicial / seguimientos.length - dato.merma}
+                            {dato.actual}
+                            {/* {dato.inicial - dato.merma} */}
                           </TableCell>
                           {/* <TableCell>
                             {dato.observaciones.join(', ') || '-'}
                           </TableCell> */}
                           <TableCell className="text-center">
-                            {(dato.merma * 100) /
-                              (dato.inicial / seguimientos.length)}
+                            {(dato.merma * 100) / dato.inicial}
                           </TableCell>
                           <TableCell>
-                            {(dato.merma * 100) /
-                              (dato.inicial / seguimientos.length) <=
-                            25
+                            {(dato.merma * 100) / dato.inicial <= 25
                               ? 'Medio Ambiente'
                               : 'Consumo'}
                           </TableCell>
@@ -695,8 +739,7 @@ export default function Lista({
                         <TableCell className="text-center">TOTAL</TableCell>
                         <TableCell className="text-center">
                           {datosRoedores.reduce(
-                            (sum, dato) =>
-                              sum + dato.inicial / seguimientos.length,
+                            (sum, dato) => sum + dato.inicial,
                             0,
                           )}
                         </TableCell>
@@ -708,9 +751,8 @@ export default function Lista({
                         </TableCell>
                         <TableCell className="text-center">
                           {datosRoedores.reduce(
-                            (sum, dato) =>
-                              sum +
-                              (dato.inicial / seguimientos.length - dato.merma),
+                            // (sum, dato) => sum + (dato.inicial - dato.merma),
+                            (sum, dato) => sum + dato.actual,
                             0,
                           )}
                         </TableCell>
@@ -721,8 +763,7 @@ export default function Lista({
                         <TableCell>TOTAL</TableCell>
                         <TableCell>
                           {datosRoedores.reduce(
-                            (sum, dato) =>
-                              sum + dato.inicial / seguimientos.length,
+                            (sum, dato) => sum + dato.inicial,
                             0,
                           )}
                         </TableCell>
@@ -743,8 +784,7 @@ export default function Lista({
                           ) *
                             100) /
                             datosRoedores.reduce(
-                              (sum, dato) =>
-                                sum + dato.inicial / seguimientos.length,
+                              (sum, dato) => sum + dato.inicial,
                               0,
                             )}{' '}
                           %
@@ -754,23 +794,18 @@ export default function Lista({
                         <TableCell>PESO ACTUAL</TableCell>
                         <TableCell>
                           {datosRoedores.reduce(
-                            (sum, dato) =>
-                              sum +
-                              (dato.inicial / seguimientos.length - dato.merma),
+                            (sum, dato) => sum + (dato.inicial - dato.merma),
                             0,
                           )}
                         </TableCell>
                         <TableCell>
                           {(datosRoedores.reduce(
-                            (sum, dato) =>
-                              sum +
-                              (dato.inicial / seguimientos.length - dato.merma),
+                            (sum, dato) => sum + (dato.inicial - dato.merma),
                             0,
                           ) *
                             100) /
                             datosRoedores.reduce(
-                              (sum, dato) =>
-                                sum + dato.inicial / seguimientos.length,
+                              (sum, dato) => sum + dato.inicial,
                               0,
                             )}{' '}
                           %
@@ -780,7 +815,7 @@ export default function Lista({
                         <TableCell>CONSUMO</TableCell>
                         <TableCell>
                           {datosRoedores.reduce((sum, dato) => {
-                            const inicial = dato.inicial / seguimientos.length;
+                            const inicial = dato.inicial;
                             const actual = inicial - dato.merma;
                             const porcentaje = (dato.merma * 100) / inicial;
 
@@ -792,7 +827,7 @@ export default function Lista({
                         </TableCell>
                         <TableCell>
                           {(datosRoedores.reduce((sum, dato) => {
-                            const inicial = dato.inicial / seguimientos.length;
+                            const inicial = dato.inicial;
                             const actual = inicial - dato.merma;
                             const porcentaje = (dato.merma * 100) / inicial;
 
@@ -803,10 +838,7 @@ export default function Lista({
                           }, 0) *
                             100) /
                             datosRoedores.reduce(
-                              (sum, dato) =>
-                                sum +
-                                (dato.inicial / seguimientos.length -
-                                  dato.merma),
+                              (sum, dato) => sum + (dato.inicial - dato.merma),
                               0,
                             )}{' '}
                           %
@@ -816,7 +848,7 @@ export default function Lista({
                         <TableCell>MEDIO AMBIENTE</TableCell>
                         <TableCell>
                           {datosRoedores.reduce((sum, dato) => {
-                            const inicial = dato.inicial / seguimientos.length;
+                            const inicial = dato.inicial;
                             const actual = inicial - dato.merma;
                             const porcentaje = (dato.merma * 100) / inicial;
 
@@ -828,7 +860,7 @@ export default function Lista({
                         </TableCell>
                         <TableCell>
                           {(datosRoedores.reduce((sum, dato) => {
-                            const inicial = dato.inicial / seguimientos.length;
+                            const inicial = dato.inicial;
                             const actual = inicial - dato.merma;
                             const porcentaje = (dato.merma * 100) / inicial;
 
@@ -839,10 +871,7 @@ export default function Lista({
                           }, 0) *
                             100) /
                             datosRoedores.reduce(
-                              (sum, dato) =>
-                                sum +
-                                (dato.inicial / seguimientos.length -
-                                  dato.merma),
+                              (sum, dato) => sum + (dato.inicial - dato.merma),
                               0,
                             )}{' '}
                           %
