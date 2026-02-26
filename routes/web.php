@@ -107,6 +107,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('tipos', TiposController::class);
     Route::resource('especies', EspeciesController::class);
     Route::resource('unidades', UnidadesController::class);
+    Route::post('/informes/exportar-word', [InformesController::class, 'storeWord']);
+    Route::get('/informes/exportar-word-download', [InformesController::class, 'downloadWord']);
     Route::get('/informes/obtener', [InformesController::class, 'obtenerEstado'])->name('estados.obtener');
     // Route::get('/informes/empresas', [InformesController::class, 'getEmpresas'])->name('estados.empresas');
     // Route::get('/informes/almacenes/{empresa}', [InformesController::class, 'getAlmacen'])->name('estados.almacenes');

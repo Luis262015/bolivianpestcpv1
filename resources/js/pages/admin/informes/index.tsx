@@ -24,7 +24,8 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
-import html2canvas from 'html2canvas';
+// import html2canvas from 'html2canvas';
+import * as htmlToImage from 'html-to-image';
 import jsPDF from 'jspdf';
 import { Download } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
@@ -103,6 +104,11 @@ export default function Lista({
   const [exportando, setExportando] = useState(false);
 
   const contenidoRef = useRef<HTMLDivElement>(null);
+
+  const chartInsectosRef = useRef<HTMLDivElement>(null);
+  const chartEvolucionRef = useRef<HTMLDivElement>(null);
+  const chartRoedoresLineRef = useRef<HTMLDivElement>(null);
+  const chartRoedoresBarRef = useRef<HTMLDivElement>(null);
 
   console.log(seguimientos);
 
@@ -286,6 +292,96 @@ export default function Lista({
     );
   };
 
+  // const exportarPDF = async () => {
+  //   if (!contenidoRef.current) return;
+  //   setExportando(true);
+  //   try {
+  //     const elemento = contenidoRef.current;
+  //     // Clonar el elemento para no afectar el DOM original
+  //     const clone = elemento.cloneNode(true) as HTMLElement;
+  //     // Convertir colores oklch a rgb en el clon
+  //     const convertirColores = (el: HTMLElement) => {
+  //       const computedStyle = window.getComputedStyle(el);
+  //       // Convertir background-color
+  //       if (computedStyle.backgroundColor) {
+  //         el.style.backgroundColor = computedStyle.backgroundColor;
+  //       }
+  //       // Convertir color
+  //       if (computedStyle.color) {
+  //         el.style.color = computedStyle.color;
+  //       }
+  //       // Convertir border-color
+  //       if (computedStyle.borderColor) {
+  //         el.style.borderColor = computedStyle.borderColor;
+  //       }
+  //       // Convertir fill y stroke para SVG
+  //       if (computedStyle.fill && computedStyle.fill !== 'none') {
+  //         el.style.fill = computedStyle.fill;
+  //       }
+  //       if (computedStyle.stroke && computedStyle.stroke !== 'none') {
+  //         el.style.stroke = computedStyle.stroke;
+  //       }
+  //       // Recursivamente para todos los hijos
+  //       Array.from(el.children).forEach((child) => {
+  //         convertirColores(child as HTMLElement);
+  //       });
+  //     };
+  //     // Aplicar conversión de colores
+  //     convertirColores(clone);
+  //     // Agregar el clon temporalmente al DOM
+  //     clone.style.position = 'absolute';
+  //     clone.style.left = '-9999px';
+  //     clone.style.top = '0';
+  //     document.body.appendChild(clone);
+  //     // Crear el canvas del contenido clonado
+  //     const canvas = await html2canvas(clone, {
+  //       scale: 2,
+  //       useCORS: true,
+  //       logging: false,
+  //       backgroundColor: '#ffffff',
+  //       onclone: (clonedDoc) => {
+  //         // Asegurar que todos los estilos estén aplicados
+  //         const clonedElement = clonedDoc.querySelector('[data-export]');
+  //         if (clonedElement) {
+  //           (clonedElement as HTMLElement).style.display = 'block';
+  //         }
+  //       },
+  //     });
+  //     // Remover el clon del DOM
+  //     document.body.removeChild(clone);
+  //     const imgData = canvas.toDataURL('image/png');
+  //     const pdf = new jsPDF({
+  //       orientation: 'landscape',
+  //       unit: 'mm',
+  //       format: 'a4',
+  //     });
+  //     const imgWidth = 297;
+  //     const pageHeight = 210;
+  //     const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  //     let heightLeft = imgHeight;
+  //     let position = 0;
+  //     pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+  //     heightLeft -= pageHeight;
+  //     while (heightLeft > 0) {
+  //       position = heightLeft - imgHeight;
+  //       pdf.addPage();
+  //       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+  //       heightLeft -= pageHeight;
+  //     }
+  //     const empresaNombre =
+  //       empresas.find((e) => e.id === Number(empresaId))?.nombre || 'empresa';
+  //     const almacenNombre =
+  //       almacenes.find((a) => a.id === Number(almacenId))?.nombre || 'almacen';
+  //     const nombreArchivo = `informe_${empresaNombre}_${almacenNombre}_${fechaInicio}_${fechaFin}.pdf`;
+  //     pdf.save(nombreArchivo);
+  //   } catch (error) {
+  //     console.error('Error al exportar PDF:', error);
+  //     alert('Error al generar el PDF. Por favor, intente nuevamente.');
+  //   } finally {
+  //     setExportando(false);
+  //   }
+  // };
+
   const exportarPDF = async () => {
     if (!contenidoRef.current) return;
 
@@ -297,77 +393,83 @@ export default function Lista({
       // Clonar el elemento para no afectar el DOM original
       const clone = elemento.cloneNode(true) as HTMLElement;
 
-      // Convertir colores oklch a rgb en el clon
+      // Convertir colores (evita problemas con OKLCH de Tailwind/Shadcn)
       const convertirColores = (el: HTMLElement) => {
         const computedStyle = window.getComputedStyle(el);
 
-        // Convertir background-color
         if (computedStyle.backgroundColor) {
           el.style.backgroundColor = computedStyle.backgroundColor;
         }
 
-        // Convertir color
         if (computedStyle.color) {
           el.style.color = computedStyle.color;
         }
 
-        // Convertir border-color
         if (computedStyle.borderColor) {
           el.style.borderColor = computedStyle.borderColor;
         }
 
-        // Convertir fill y stroke para SVG
         if (computedStyle.fill && computedStyle.fill !== 'none') {
           el.style.fill = computedStyle.fill;
         }
+
         if (computedStyle.stroke && computedStyle.stroke !== 'none') {
           el.style.stroke = computedStyle.stroke;
         }
 
-        // Recursivamente para todos los hijos
-        Array.from(el.children).forEach((child) => {
-          convertirColores(child as HTMLElement);
-        });
+        Array.from(el.children).forEach((child) =>
+          convertirColores(child as HTMLElement),
+        );
       };
 
-      // Aplicar conversión de colores
       convertirColores(clone);
 
-      // Agregar el clon temporalmente al DOM
-      clone.style.position = 'absolute';
-      clone.style.left = '-9999px';
+      // Agregar clon temporal
+      // clone.style.position = 'absolute';
+      // clone.style.left = '-9999px';
+      // clone.style.top = '0';
+
+      clone.style.position = 'fixed';
+      clone.style.left = '0';
       clone.style.top = '0';
+      clone.style.zIndex = '-1';
+      clone.style.width = elemento.offsetWidth + 'px';
+      clone.style.background = '#ffffff';
+
       document.body.appendChild(clone);
 
-      // Crear el canvas del contenido clonado
-      const canvas = await html2canvas(clone, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
+      // 🔹 Aquí reemplazamos html2canvas por html-to-image
+      const imgData = await htmlToImage.toPng(clone, {
+        pixelRatio: 2,
         backgroundColor: '#ffffff',
-        onclone: (clonedDoc) => {
-          // Asegurar que todos los estilos estén aplicados
-          const clonedElement = clonedDoc.querySelector('[data-export]');
-          if (clonedElement) {
-            (clonedElement as HTMLElement).style.display = 'block';
-          }
-        },
+
+        // IMPORTANTE: evita el error de fonts cross-origin
+        skipFonts: true,
+
+        cacheBust: true,
       });
 
-      // Remover el clon del DOM
+      // remover clon
       document.body.removeChild(clone);
 
-      const imgData = canvas.toDataURL('image/png');
-
+      // Crear PDF
       const pdf = new jsPDF({
-        orientation: 'landscape',
+        orientation: 'landscape', // landscape, portrait
         unit: 'mm',
         format: 'a4',
       });
 
+      const img = new Image();
+      img.src = imgData;
+
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+
       const imgWidth = 297;
       const pageHeight = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const imgHeight = (img.height * imgWidth) / img.width;
+
       let heightLeft = imgHeight;
       let position = 0;
 
@@ -383,14 +485,125 @@ export default function Lista({
 
       const empresaNombre =
         empresas.find((e) => e.id === Number(empresaId))?.nombre || 'empresa';
+
       const almacenNombre =
         almacenes.find((a) => a.id === Number(almacenId))?.nombre || 'almacen';
+
       const nombreArchivo = `informe_${empresaNombre}_${almacenNombre}_${fechaInicio}_${fechaFin}.pdf`;
 
       pdf.save(nombreArchivo);
     } catch (error) {
       console.error('Error al exportar PDF:', error);
       alert('Error al generar el PDF. Por favor, intente nuevamente.');
+    } finally {
+      setExportando(false);
+    }
+  };
+
+  const exportarWord = async () => {
+    if (!contenidoRef.current) return;
+
+    setExportando(true);
+
+    try {
+      // const dataUrl = await htmlToImage.toPng(contenidoRef.current, {
+      //   pixelRatio: 2,
+      //   backgroundColor: '#ffffff',
+      //   cacheBust: true,
+      //   skipFonts: true, // <-- SOLUCIÓN
+      // });
+
+      // const dataUrl = await htmlToImage.toJpeg(contenidoRef.current, {
+      //   quality: 0.95,
+      //   pixelRatio: 2,
+      //   backgroundColor: '#ffffff',
+      //   cacheBust: true,
+      //   skipFonts: true,
+      // });
+
+      // const link = document.createElement('a');
+      // link.download = `informe1.png`;
+      // link.href = dataUrl;
+      // link.click();
+
+      // await fetch('/informes/exportar-word', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'X-CSRF-TOKEN': (
+      //       document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement
+      //     ).content,
+      //   },
+      //   body: JSON.stringify({
+      //     imagen: dataUrl,
+      //     empresa_id: empresaId,
+      //     almacen_id: almacenId,
+      //     fecha_inicio: fechaInicio,
+      //     fecha_fin: fechaFin,
+      //   }),
+      // });
+
+      // router.post('/informes/exportar-word', {
+      //   imagen: dataUrl,
+      //   empresa_id: empresaId,
+      //   almacen_id: almacenId,
+      //   fecha_inicio: fechaInicio,
+      //   fecha_fin: fechaFin,
+      // });
+
+      const seguimientoIds = seguimientos.map((s) => s.id);
+
+      const chart1 = chartInsectosRef.current
+        ? await htmlToImage.toPng(chartInsectosRef.current, {
+            pixelRatio: 2,
+            backgroundColor: '#ffffff',
+            skipFonts: true,
+          })
+        : null;
+
+      const chart2 = chartEvolucionRef.current
+        ? await htmlToImage.toPng(chartEvolucionRef.current, {
+            pixelRatio: 2,
+            backgroundColor: '#ffffff',
+            skipFonts: true,
+          })
+        : null;
+
+      const chart3 = chartRoedoresLineRef.current
+        ? await htmlToImage.toPng(chartRoedoresLineRef.current, {
+            pixelRatio: 2,
+            backgroundColor: '#ffffff',
+            skipFonts: true,
+          })
+        : null;
+
+      const chart4 = chartRoedoresBarRef.current
+        ? await htmlToImage.toPng(chartRoedoresBarRef.current, {
+            pixelRatio: 2,
+            backgroundColor: '#ffffff',
+            skipFonts: true,
+          })
+        : null;
+
+      router.post('/informes/exportar-word', {
+        chart1,
+        chart2,
+        chart3,
+        chart4,
+        // 👇 NUEVO
+        seguimiento_ids: seguimientoIds,
+        datosInsectocutores,
+        datosRoedores,
+        empresa_id: empresaId,
+        almacen_id: almacenId,
+        fecha_inicio: fechaInicio,
+        fecha_fin: fechaFin,
+      });
+
+      window.open('/informes/exportar-word-download');
+    } catch (error) {
+      console.error(error);
+      alert('Error al generar Word');
     } finally {
       setExportando(false);
     }
@@ -457,20 +670,25 @@ export default function Lista({
           </Button>
 
           {seguimientos.length > 0 && (
-            <Button
-              onClick={exportarPDF}
-              disabled={exportando}
-              variant="outline"
-            >
-              {exportando ? (
-                'Exportando...'
-              ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
-                  Exportar PDF
-                </>
-              )}
-            </Button>
+            <>
+              <Button
+                onClick={exportarPDF}
+                disabled={exportando}
+                variant="outline"
+              >
+                {exportando ? (
+                  'Exportando...'
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    Exportar PDF
+                  </>
+                )}
+              </Button>
+              <Button onClick={exportarWord} variant="outline">
+                Exportar Word
+              </Button>
+            </>
           )}
         </div>
 
@@ -610,6 +828,7 @@ export default function Lista({
               <ChartContainer
                 config={chartConfigInsectos}
                 className="h-[300px]"
+                ref={chartInsectosRef}
               >
                 <BarChart
                   data={Object.entries(datosInsectocutores.totales).map(
@@ -640,6 +859,7 @@ export default function Lista({
               <ChartContainer
                 config={chartConfigInsectos}
                 className="h-[300px]"
+                ref={chartEvolucionRef}
               >
                 <BarChart
                   data={datosInsectocutores.datosPorFecha.map((dato) => ({
@@ -899,6 +1119,7 @@ export default function Lista({
               <ChartContainer
                 config={chartConfigRoedores}
                 className="h-[300px]"
+                ref={chartRoedoresLineRef}
               >
                 <LineChart data={datosRoedores}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -944,6 +1165,7 @@ export default function Lista({
               <ChartContainer
                 config={chartConfigRoedores}
                 className="h-[300px]"
+                ref={chartRoedoresBarRef}
               >
                 <BarChart data={datosRoedores}>
                   <CartesianGrid strokeDasharray="3 3" />
