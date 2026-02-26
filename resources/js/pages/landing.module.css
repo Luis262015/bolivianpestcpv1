@@ -58,14 +58,15 @@
 /* inicio de imagenes de circulos -------------*/
 .aboutImageU{
   position: absolute;
-  height: 600px;
+  height: 520px;
   width: 520px;
 }
 /* 🔥 Menos de 1090px → 2 columnas */
 @media (max-width: 0px) {
   .aboutImageU{
   position: absolute;
-  height: 600px;
+  height: 400px;
+  width: 400px;
 }
 }
 
@@ -73,7 +74,8 @@
 @media (max-width: 768px) {
   .aboutImageU{
   position: absolute;
-  height: 400px;
+  height: 250px;
+  width: 250px;
 }
 }
 
@@ -82,6 +84,7 @@
   .aboutImageU{
   position: absolute;
   height: 200px;
+  width: 200px;
 }
 }
 
