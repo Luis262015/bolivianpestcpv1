@@ -551,6 +551,8 @@ export default function Lista({
       //   fecha_fin: fechaFin,
       // });
 
+      const seguimientoIds = seguimientos.map((s) => s.id);
+
       const chart1 = chartInsectosRef.current
         ? await htmlToImage.toPng(chartInsectosRef.current, {
             pixelRatio: 2,
@@ -588,6 +590,8 @@ export default function Lista({
         chart2,
         chart3,
         chart4,
+        // 👇 NUEVO
+        seguimiento_ids: seguimientoIds,
         datosInsectocutores,
         datosRoedores,
         empresa_id: empresaId,
@@ -817,13 +821,14 @@ export default function Lista({
 
           {/* GRÁFICO 1: Totales por Especie (Barras) */}
           {datosInsectocutores.especies.length > 0 && (
-            <div ref={chartInsectosRef}>
+            <div>
               <div className="mb-4 text-[1rem] font-bold">
                 GRÁFICO: TOTAL DE INSECTOS POR ESPECIE
               </div>
               <ChartContainer
                 config={chartConfigInsectos}
                 className="h-[300px]"
+                ref={chartInsectosRef}
               >
                 <BarChart
                   data={Object.entries(datosInsectocutores.totales).map(
@@ -847,13 +852,14 @@ export default function Lista({
 
           {/* GRÁFICO 2: Evolución por Fecha (Barras Apiladas) */}
           {datosInsectocutores.especies.length > 0 && (
-            <div ref={chartEvolucionRef}>
+            <div>
               <div className="mb-4 text-[1rem] font-bold">
                 GRÁFICO DE INCIDENCIA: EVOLUCIÓN DE INSECTOS POR FECHA
               </div>
               <ChartContainer
                 config={chartConfigInsectos}
                 className="h-[300px]"
+                ref={chartEvolucionRef}
               >
                 <BarChart
                   data={datosInsectocutores.datosPorFecha.map((dato) => ({
@@ -1106,13 +1112,14 @@ export default function Lista({
 
           {/* GRÁFICO 3: Comparación Inicial/Merma/Actual (Líneas) */}
           {datosRoedores.length > 0 && (
-            <div ref={chartRoedoresLineRef}>
+            <div>
               <div className="mb-4 text-[1rem] font-bold">
                 GRÁFICO: COMPARACIÓN DE PESOS POR TRAMPA
               </div>
               <ChartContainer
                 config={chartConfigRoedores}
                 className="h-[300px]"
+                ref={chartRoedoresLineRef}
               >
                 <LineChart data={datosRoedores}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -1151,13 +1158,14 @@ export default function Lista({
 
           {/* GRÁFICO 4: Barras agrupadas por trampa */}
           {datosRoedores.length > 0 && (
-            <div ref={chartRoedoresBarRef}>
+            <div>
               <div className="mb-4 text-[1rem] font-bold">
                 GRÁFICO: VALORES POR TRAMPA
               </div>
               <ChartContainer
                 config={chartConfigRoedores}
                 className="h-[300px]"
+                ref={chartRoedoresBarRef}
               >
                 <BarChart data={datosRoedores}>
                   <CartesianGrid strokeDasharray="3 3" />

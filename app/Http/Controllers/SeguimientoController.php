@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Almacen;
 use App\Models\Aplicacion;
 use App\Models\Biologico;
+use App\Models\BufferProducto;
 use App\Models\Cronograma;
 use App\Models\Empresa;
 use App\Models\Epp;
@@ -216,8 +217,49 @@ class SeguimientoController extends Controller
           $producto_usado->unidad_id = $producto->unidad_id;
           $producto_usado->cantidad = $prod['cantidad'];
           $producto_usado->save();
-          // Logica para descuento de stock  
+
           // *******************************************
+          // Logica para descuento de stock  
+          // *******************************************          
+
+          // Buscar si existe producto en buffer productos
+          $prodBuf = BufferProducto::where('producto_id', $prod['producto_id'])->first();
+          if ($prodBuf) {
+            // Usar producto buffer
+
+            // Calculo inicial: res = cantidad / unidad_valor
+            $res = ($prod['cantidad'] + $prodBuf['cantidad']) / $producto->unidad_valor;
+            $parte_entera = (int) $res;
+            $parte_decimal = $res - $parte_entera;
+
+            // Descontar la parte entera del STOCK
+            $producto->stock = $producto->stock - $parte_entera;
+            $producto->save();
+
+            // Agregar la parte decimal en registro
+            $prodBuf->cantidad = $parte_decimal * $producto->unidad_valor;
+            $prodBuf->save();
+          } else {
+            // Crear producto buffer
+            $prodBuf = new BufferProducto();
+
+            // Calculo inicial: res = cantidad / unidad_valor
+            $res = $prod['cantidad'] / $producto->unidad_valor;
+            $parte_entera = (int) $res;
+            $parte_decimal = $res - $parte_entera;
+
+            // Descontar la parte entera del STOCK
+            $producto->stock = $producto->stock - $parte_entera;
+            $producto->save();
+
+            // Agregar la parte decimal en registro, solo si la parte decimal es mayor a 0
+            $parte_decimal = $parte_decimal * $producto->unidad_valor;
+            if ($parte_decimal > 0) {
+              $prodBuf = new BufferProducto();
+              $prodBuf->cantidad = $parte_decimal;
+              $prodBuf->save();
+            }
+          }
         }
       }
 
