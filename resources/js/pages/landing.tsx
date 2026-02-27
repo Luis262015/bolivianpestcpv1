@@ -213,8 +213,10 @@ export default function Landing() {
         <div className="container w-full">
           <div className="about-wrapper grid grid-cols-1 items-center gap-[10px] lg:grid-cols-2">
             {/* <!-- Columna Izquierda - Imagen Principal + Círculos de Insectos --> */}
-            <div className="about-image relative mt-8 h-[600px] md:mt-12 lg:mt-20">
-              <div className="main-circle absolute h-[520px] w-[520px] overflow-hidden rounded-full border-[12px] shadow-2xl">
+            <div className={`about-image mt-8 ml-24 md:mt-12  lg:mt-20 lg:ml-1 ${styles.aboutImage}`}>
+
+              <div className=
+              {`main-circle overflow-hidden rounded-full border-[12px] shadow-2xl ${styles.aboutImageU}`}>
                 <img
                   src="/images/about/cuatro.webp"
                   className="h-[100%] w-[100%] object-cover"
@@ -222,21 +224,24 @@ export default function Landing() {
                 />
               </div>
               {/* <!-- Círculos flotantes de insectos --> */}
-              <div className="floating-bug bug-1 absolute mt-[340px] h-[120px] w-[120px] overflow-hidden rounded-full border-[8px] shadow-2xl">
+              <div className=
+              {`floating-bug bug-1 mt-[340px] overflow-hidden rounded-full border-[8px] shadow-2xl ${styles.aboutImageD}`}>
                 <img
                   src="/images/about/dos.webp"
                   className="h-[100%] w-[100%] object-cover"
                   alt="Mosquito"
                 />
               </div>
-              <div className="floating-bug bug-2 absolute ms-[420px] mt-[100px] h-[120px] w-[120px] overflow-hidden rounded-full border-[8px] shadow-2xl">
+              <div className=
+              {`floating-bug bug-2 absolute ms-[420px] mt-[100px] overflow-hidden rounded-full border-[8px] shadow-2xl ${styles.aboutImageT}`}>
                 <img
                   src="/images/about/uno.webp"
                   className="h-[100%] w-[100%] object-cover"
                   alt="Escarabajo"
                 />
               </div>
-              <div className="floating-bug bug-3 absolute h-[120px] w-[120px] overflow-hidden rounded-full border-[8px] shadow-2xl">
+              <div className=
+              {`floating-bug bug-3  overflow-hidden rounded-full border-[8px] shadow-2xl ${styles.aboutImageC}`}>
                 <img
                   src="/images/about/siete.webp"
                   className="h-[100%] w-[100%] object-cover"
@@ -251,8 +256,8 @@ export default function Landing() {
                 Acerca de Nosotros
               </span>
               <h2 className={`section-title ${styles.sectionTitle}`}>
-                Protegiendo hogares,
-                <span>negocios y comunidades</span>
+                Protegiendo hogares, 
+                <span> negocios y comunidades</span>
               </h2>
 
               <p className={`about-text ${styles.aboutText}`}>
@@ -348,7 +353,7 @@ export default function Landing() {
 
       {/* <!-- Services --> */}
       <section
-        className="services mt-8 flex justify-center md:mt-12 lg:mt-20"
+        className="services ml-8 mr-8 mt-8 flex justify-center md:mt-12 lg:mt-20"
         id="servicios"
       >
         <div className="container w-full">
@@ -496,11 +501,11 @@ export default function Landing() {
 
       {/* <!-- our features --> */}
       <section
-        className={`our-features mt-2 flex justify-center md:mt-6 lg:mt-10 ${styles.ourFeatures}`}
+        className={`our-features mr-8 ml-8 mt-2 flex justify-center md:mt-6 lg:mt-10 ${styles.ourFeatures}`}
         id="#"
       >
         <div className="container w-full">
-          <div className="features-wrapper /* Móvil: 1 columna por defecto (sm) */ /* Tabletas y Escritorios medianos: 2 columnas */ grid grid-cols-1 items-center gap-[80px] md:grid-cols-2">
+          <div className="features-wrapper /* Móvil: 1 columna por defecto (sm) */ /* Tabletas y Escritorios medianos: 2 columnas */ grid grid-cols-1 items-center gap-[100px] md:grid-cols-2">
             {/* <!-- Columna Izquierda - Texto + Características --> */}
             <div className="features-content">
               <span className={`section-tag ${styles.sectionTag}`}>
@@ -522,7 +527,7 @@ export default function Landing() {
               <div
                 className={`features-grid mt-12 md:mt-16 lg:mt-24 ${styles.featuresGrid}`}
               >
-                {/* Feature 1 - Servicios de emergencia */}
+                {/* Feature 1 - Servicios de emergencia */} 
                 <div
                   className={`features-item ${styles.featuresItem} group transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-xl`}
                 >
@@ -909,7 +914,7 @@ export default function Landing() {
               <Accordion
                 type="single"
                 collapsible
-                className="w-full"
+                className="w-full pl-8 pr-8"
                 defaultValue="item-1"
               >
                    {' '}

@@ -26,10 +26,166 @@
 }
 
 /* ABOUT */
+.aboutImage{
+  position: relative;
+  max-height: 100%;
+  height: 600px;
+}
+/* 🔥 Menos de 1090px → 2 columnas */
+@media (max-width: 0px) {
+  .aboutImage{
+  position: relative;
+  height: 600px;
+}
+}
+
+/* 📱 Menos de 768px → 2 columnas más compactas */
+@media (max-width: 768px) {
+  .aboutImage{
+  position: relative;
+  height: 400px;
+}
+}
+
+/* 📱 Menos de 560px → 1 columna */
+@media (max-width: 560px) {
+  .aboutImage{
+  position: relative;
+  height: 200px;
+}
+}
+
+/* inicio de imagenes de circulos -------------*/
+.aboutImageU{
+  position: absolute;
+  height: 520px;
+  width: 520px;
+}
+/* 🔥 Menos de 1090px → 2 columnas */
+@media (max-width: 0px) {
+  .aboutImageU{
+  position: absolute;
+  height: 400px;
+  width: 400px;
+}
+}
+
+/* 📱 Menos de 768px → 2 columnas más compactas */
+@media (max-width: 768px) {
+  .aboutImageU{
+  position: absolute;
+  height: 250px;
+  width: 250px;
+}
+}
+
+/* 📱 Menos de 560px → 1 columna */
+@media (max-width: 560px) {
+  .aboutImageU{
+  position: absolute;
+  height: 200px;
+  width: 200px;
+}
+}
+
+/* inicio de imagenes de circulos -------------*/
+.aboutImageD{
+  position: absolute;
+  height: 120px;
+  width: 120px;
+}
+/* 🔥 Menos de 1090px → 2 columnas */
+@media (max-width: 0px) {
+  .aboutImageD{
+  position: absolute;
+  height: 120px;
+}
+}
+
+/* 📱 Menos de 768px → 2 columnas más compactas */
+@media (max-width: 768px) {
+  .aboutImageD{
+  position: absolute;
+  height: 120px;
+}
+}
+
+/* 📱 Menos de 560px → 1 columna */
+@media (max-width: 560px) {
+  .aboutImageD{
+  position: absolute;
+  height: 120px;
+}
+}
+
+/* inicio de imagenes de circulos -------------*/
+.aboutImageT{
+  position: absolute;
+  width: 120px;
+  height: 120px;
+}
+/* 🔥 Menos de 1090px → 2 columnas */
+@media (max-width: 0px) {
+  .aboutImageT{
+  position: absolute;
+  height: 120px;
+}
+}
+
+/* 📱 Menos de 768px → 2 columnas más compactas */
+@media (max-width: 768px) {
+  .aboutImageT{
+  position: absolute;
+  height: 120px;
+}
+}
+
+/* 📱 Menos de 560px → 1 columna */
+@media (max-width: 560px) {
+  .aboutImageT{
+  position: absolute;
+  height: 120px;
+}
+}
+
+
+/* inicio de imagenes de circulos -------------*/
+.aboutImageC{
+  position: absolute;
+  width: 120px;
+  height: 600px;
+}
+/* 🔥 Menos de 1090px → 2 columnas */
+@media (max-width: 0px) {
+  .aboutImageC{
+  position: absolute;
+  height: 120px;
+}
+}
+
+/* 📱 Menos de 768px → 2 columnas más compactas */
+@media (max-width: 768px) {
+  .aboutImageC{
+  position: absolute;
+  height: 120px;
+}
+}
+
+/* 📱 Menos de 560px → 1 columna */
+@media (max-width: 560px) {
+  .aboutImageC{
+  position: absolute;
+  height: 120px;
+}
+}
+
+
+/* ABOUT */
 .aboutText {
   color: #555;
   font-size: 1.1rem;
   line-height: 1.7;
+  margin-right: 15px;
 }
 
 .aboutBenefit {
@@ -241,6 +397,7 @@
 .featuresImage {
   position: relative;
   border-radius: 28px;
+  margin-bottom: 200px;
   /* overflow: hidden; */
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
 }
@@ -311,6 +468,8 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 30px;
+  margin-left: 25px;
+  margin-right: 25px;
 }
 /* 🔥 Menos de 1090px → 2 columnas */
 @media (max-width: 1090px) {
@@ -457,6 +616,7 @@
   border-radius: 24px;
   overflow: hidden;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  margin-right: 20px;
 }
 
 .whyHighCard img {
@@ -569,6 +729,7 @@
 .faqImages {
   position: relative;
   height: 680px;
+  margin-left: 20px;
 }
 
 .faqImages img {
@@ -612,6 +773,8 @@
   grid-template-columns: 1fr 1.1fr;
   gap: 80px;
   align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 .ctaImage {
 }
@@ -707,6 +870,7 @@
   grid-template-columns: 1.4fr 1fr 1fr 1fr;
   gap: 50px;
   margin-bottom: 50px;
+  padding-left: 30px;
 }
 /* 🔥 Tablet grande a mediana — menos de 1090px → 2 columnas */
 @media (max-width: 1090px) {
@@ -814,6 +978,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 20px;
+  padding-left: 30px;
 }
 
 .footerLogo {
@@ -841,6 +1006,7 @@
   justify-content: center;
   margin: 0 8px;
   transition: all 0.3s;
+  margin-right: 20px;
 }
 .footerSocialLinks a:hover {
   background: #013147;
