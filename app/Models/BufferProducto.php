@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class BufferProducto extends Model
 {
     //
+    protected $guarded = [];
 }

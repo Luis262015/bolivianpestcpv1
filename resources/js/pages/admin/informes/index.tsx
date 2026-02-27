@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   ChartConfig,
@@ -71,18 +70,46 @@ interface Roedor {
   merma: number;
 }
 
+interface TipoSeguimiento {
+  id: number;
+  nombre: string;
+}
+
+interface User {
+  id: number;
+  name: string;
+}
+
+interface TotalData {
+  mes: string;
+  inicial_sum: number;
+  merma_sum: number;
+  actual_sum: number;
+  inicial_avg: number;
+  merma_avg: number;
+  actual_avg: number;
+}
+
 interface Seguimiento {
   id: number;
   created_at: string;
   insectocutores: Insectocutor[];
   roedores: Roedor[];
   tipo_seguimiento_id: number;
+  tipo_seguimiento: TipoSeguimiento;
+  user: User;
+  encargado_nombre: string;
+  encargado_cargo: string;
+  totales: TotalData[];
 }
 
 interface Props {
   empresas: Empresa[];
   almacenes: Almacen[];
   seguimientos: Seguimiento[];
+  trampasinsect?: number;
+  trampasrat?: number;
+  totales: TotalData[];
   filters: {
     empresa_id?: number;
     almacen_id?: number;
@@ -95,6 +122,9 @@ export default function Lista({
   empresas,
   almacenes,
   seguimientos,
+  trampasinsect,
+  trampasrat,
+  totales,
   filters,
 }: Props) {
   const [empresaId, setEmpresaId] = useState(filters.empresa_id?.toString());
@@ -110,7 +140,7 @@ export default function Lista({
   const chartRoedoresLineRef = useRef<HTMLDivElement>(null);
   const chartRoedoresBarRef = useRef<HTMLDivElement>(null);
 
-  console.log(seguimientos);
+  console.log(totales);
 
   // Procesar datos de insectocutores
   const datosInsectocutores = useMemo(() => {
@@ -127,7 +157,8 @@ export default function Lista({
     const especies = Array.from(especiesSet).sort();
 
     const datosPorFecha = seguimientosFiltrados.map((seg) => {
-      const fecha = new Date(seg.created_at).toLocaleDateString();
+      // const fecha = new Date(seg.created_at).toLocaleDateString();
+      const fecha = `${new Date(seg.created_at).toLocaleDateString()}-${seg.id}`;
       const cantidadesPorEspecie: { [especie: string]: number } = {};
 
       especies.forEach((esp) => {
@@ -159,6 +190,35 @@ export default function Lista({
 
     return { especies, datosPorFecha, totales, promedios };
   }, [seguimientos]);
+
+  const totalFechas = datosInsectocutores.datosPorFecha.length || 1;
+
+  const dataPromedio = datosInsectocutores.datosPorFecha.map((dato) => ({
+    fecha: dato.fecha,
+    ...Object.fromEntries(
+      Object.entries(dato.cantidades).map(([key, value]) => [
+        key,
+        value / totalFechas,
+      ]),
+    ),
+  }));
+
+  const dataSeveridadPivot = useMemo(() => {
+    const fechas = datosInsectocutores.datosPorFecha.map((d) => d.fecha);
+
+    return datosInsectocutores.especies.map((especie) => {
+      const row: any = { especie };
+
+      datosInsectocutores.datosPorFecha.forEach((dato) => {
+        row[dato.fecha] = Math.floor(
+          dato.cantidades[especie] /
+            (datosInsectocutores.datosPorFecha.length || 1),
+        );
+      });
+
+      return row;
+    });
+  }, [datosInsectocutores]);
 
   // Procesar datos de roedores
   const datosRoedores = useMemo(() => {
@@ -674,7 +734,7 @@ export default function Lista({
               <Button
                 onClick={exportarPDF}
                 disabled={exportando}
-                variant="outline"
+                className="bg-red-800 text-white"
               >
                 {exportando ? (
                   'Exportando...'
@@ -685,7 +745,8 @@ export default function Lista({
                   </>
                 )}
               </Button>
-              <Button onClick={exportarWord} variant="outline">
+              <Button onClick={exportarWord} className="bg-blue-800 text-white">
+                <Download className="mr-2 h-4 w-4" />
                 Exportar Word
               </Button>
             </>
@@ -694,6 +755,7 @@ export default function Lista({
 
         {/* Contenido a exportar */}
         <div ref={contenidoRef} data-export className="space-y-6 bg-white p-6">
+          {/* --------------------------- DATOS DEL INFORME ----------------------------------------- */}
           {/* Encabezado del informe */}
           <div className="mb-6">
             <h1 className="text-2xl font-bold">Informe de Seguimiento</h1>
@@ -716,14 +778,20 @@ export default function Lista({
             </div>
           </div>
 
+          {/* --------------------------- LISTA DE SEGUIMIENTOS ----------------------------------------- */}
           {/* Tabla SEGUIMIENTOS */}
           <div>
-            <div className="mb-2 text-[1rem] font-bold">SEGUIMIENTOS</div>
+            <div className="mb-2 text-[1rem] font-bold">
+              LISTA DE SEGUIMIENTOS
+            </div>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>ID</TableHead>
-                  <TableHead>Fecha</TableHead>
+                  <TableHead>TECNICO</TableHead>
+                  <TableHead>ENCARGADO</TableHead>
+                  <TableHead>TIPO</TableHead>
+                  <TableHead>FECHA</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -731,6 +799,9 @@ export default function Lista({
                   seguimientos.map((s) => (
                     <TableRow key={s.id}>
                       <TableCell>{s.id}</TableCell>
+                      <TableCell>{s.user.name}</TableCell>
+                      <TableCell>{s.encargado_nombre}</TableCell>
+                      <TableCell>{s.tipo_seguimiento.nombre}</TableCell>
                       <TableCell>
                         {new Date(s.created_at).toLocaleString()}
                       </TableCell>
@@ -747,13 +818,67 @@ export default function Lista({
             </Table>
           </div>
 
-          {/* TABLA DE INSECTOCUTORES */}
+          <div className="mb-6">
+            <h2 className="text-xl font-bold">Informe de Insectocutores</h2>
+          </div>
+          {/* --------------------------- CANTIDAD DE INSECTOCUTORES ----------------------------------------- */}
+
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ALMACEN</TableHead>
+                <TableHead>CANT. INSECTOCUTORES</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>
+                  {almacenes.find((a) => a.id === Number(almacenId))?.nombre}
+                </TableCell>
+                <TableCell>{trampasinsect}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+
+          {/* GRÁFICO 1: Totales por Especie (Barras) */}
+          {datosInsectocutores.especies.length > 0 && (
+            <div>
+              <div className="mb-4 text-[1rem] font-bold">
+                GRÁFICO: TOTAL DE INSECTOS POR ESPECIE
+              </div>
+              <ChartContainer
+                config={chartConfigInsectos}
+                className="h-[300px]"
+                ref={chartInsectosRef}
+              >
+                <BarChart
+                  data={Object.entries(datosInsectocutores.totales).map(
+                    ([especie, total]) => ({
+                      especie,
+                      cantidad: total,
+                      fill: chartConfigInsectos[especie]?.color,
+                    }),
+                  )}
+                  barCategoryGap="20%"
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="especie" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="cantidad" radius={8} />
+                </BarChart>
+              </ChartContainer>
+            </div>
+          )}
+
+          {/* --------------------------- INCIDENCIA ----------------------------------------- */}
+          {/* TABLA DE INSECTOCUTORES "INCIDENCIA" */}
           <div>
             <div className="mb-2 text-[1rem] font-bold">
               INCIDENCIA DE INSECTOS VOLADORES{' '}
-              <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+              {/* <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
                 Cálculo {datosInsectocutores.datosPorFecha.length} seguimientos
-              </Badge>
+              </Badge> */}
             </div>
             <div className="rounded-md border">
               <Table>
@@ -819,38 +944,7 @@ export default function Lista({
             </div>
           </div>
 
-          {/* GRÁFICO 1: Totales por Especie (Barras) */}
-          {datosInsectocutores.especies.length > 0 && (
-            <div>
-              <div className="mb-4 text-[1rem] font-bold">
-                GRÁFICO: TOTAL DE INSECTOS POR ESPECIE
-              </div>
-              <ChartContainer
-                config={chartConfigInsectos}
-                className="h-[300px]"
-                ref={chartInsectosRef}
-              >
-                <BarChart
-                  data={Object.entries(datosInsectocutores.totales).map(
-                    ([especie, total]) => ({
-                      especie,
-                      cantidad: total,
-                      fill: chartConfigInsectos[especie]?.color,
-                    }),
-                  )}
-                  barCategoryGap="20%"
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="especie" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="cantidad" radius={8} />
-                </BarChart>
-              </ChartContainer>
-            </div>
-          )}
-
-          {/* GRÁFICO 2: Evolución por Fecha (Barras Apiladas) */}
+          {/* GRÁFICO INCIDENCIA */}
           {datosInsectocutores.especies.length > 0 && (
             <div>
               <div className="mb-4 text-[1rem] font-bold">
@@ -887,13 +981,192 @@ export default function Lista({
             </div>
           )}
 
+          {/* --------------------------- SEVERIDAD ----------------------------------------- */}
+          {/* TABLA DE INSECTOCUTORES "SEVERIDAD" */}
+          <div>
+            <div className="mb-2 text-[1rem] font-bold">
+              SEVERIDAD DE INSECTOS VOLADORES{' '}
+              {/* <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+                Cálculo {datosInsectocutores.datosPorFecha.length} seguimientos
+              </Badge> */}
+            </div>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-bold">
+                      Fecha de Seguimiento
+                    </TableHead>
+                    {datosInsectocutores.especies.map((especie) => (
+                      <TableHead
+                        key={especie}
+                        className="text-center font-bold"
+                      >
+                        {especie}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {datosInsectocutores.datosPorFecha.length > 0 ? (
+                    <>
+                      {datosInsectocutores.datosPorFecha.map((dato, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">
+                            {dato.fecha}
+                          </TableCell>
+                          {datosInsectocutores.especies.map((especie) => (
+                            <TableCell key={especie} className="text-center">
+                              {Math.floor(
+                                dato.cantidades[especie] /
+                                  datosInsectocutores.datosPorFecha.length,
+                              )}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-muted/50 font-bold">
+                        <TableCell>TOTAL</TableCell>
+                        {datosInsectocutores.especies.map((especie) => (
+                          <TableCell key={especie} className="text-center">
+                            {datosInsectocutores.totales[especie]}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>PROMEDIO</TableCell>
+                        {datosInsectocutores.especies.map((especie) => (
+                          <TableCell key={especie} className="text-center">
+                            {(
+                              datosInsectocutores.promedios[especie] /
+                              datosInsectocutores.datosPorFecha.length
+                            ).toFixed(2)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </>
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={datosInsectocutores.especies.length + 1}
+                        className="text-center"
+                      >
+                        Sin resultados
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* GRÁFICO SEVERIDAD */}
+          {datosInsectocutores.especies.length > 0 && (
+            <div>
+              <div className="mb-4 text-[1rem] font-bold">
+                GRÁFICO DE SEVERIDAD
+              </div>
+              <ChartContainer
+                config={chartConfigInsectos}
+                className="h-[300px]"
+                ref={chartEvolucionRef}
+              >
+                <BarChart
+                  data={dataSeveridadPivot}
+                  barGap={4}
+                  barCategoryGap="20%"
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+
+                  {/* AHORA X ES ESPECIE */}
+                  <XAxis dataKey="especie" />
+
+                  <YAxis />
+
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Legend />
+
+                  {/* LAS BARRAS SON LAS FECHAS */}
+                  {datosInsectocutores.datosPorFecha.map((dato, index) => (
+                    <Bar
+                      key={dato.fecha}
+                      dataKey={dato.fecha}
+                      fill={`hsl(${(index * 360) / datosInsectocutores.datosPorFecha.length},70%,50%)`}
+                      radius={4}
+                      name={dato.fecha}
+                    />
+                  ))}
+                </BarChart>
+              </ChartContainer>
+            </div>
+          )}
+
+          {/* {datosInsectocutores.especies.length > 0 && (
+            <div>
+              <div className="mb-4 text-[1rem] font-bold">
+                GRÁFICO DE SEVERIDAD
+              </div>
+              <ChartContainer
+                config={chartConfigInsectos}
+                className="h-[300px]"
+                ref={chartEvolucionRef}
+              >
+                <BarChart
+                  // data={datosInsectocutores.datosPorFecha.map((dato) => ({
+                  //   fecha: dato.fecha,
+                  //   ...dato.cantidades,
+                  // }))}
+                  data={dataPromedio}
+                  barGap={4}
+                  barCategoryGap="20%"
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="fecha" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Legend />
+                  {datosInsectocutores.especies.map((especie) => (
+                    <Bar
+                      key={especie}
+                      dataKey={especie}
+                      fill={chartConfigInsectos[especie]?.color}
+                      radius={4}
+                    />
+                  ))}
+                </BarChart>
+              </ChartContainer>
+            </div>
+          )} */}
+
+          <div className="mb-6">
+            <h2 className="text-xl font-bold">Informe de Trampas</h2>
+          </div>
+          {/* --------------------------- CANTIDAD DE INSECTOCUTORES ----------------------------------------- */}
+
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ALMACEN</TableHead>
+                <TableHead>CANT. TRAMPAS</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>
+                  {almacenes.find((a) => a.id === Number(almacenId))?.nombre}
+                </TableCell>
+                <TableCell>{trampasrat}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+
           {/* TABLA DE ROEDORES */}
           <div>
             <div className="mb-2 text-[1rem] font-bold">
               SEGUIMIENTO PESO DE TRAMPAS{' '}
-              <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-                Cálculo {datosRoedores.length} seguimientos
-              </Badge>
+              {/* <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+                Cálculo {  } seguimientos
+              </Badge> */}
             </div>
             <div className="rounded-md border">
               <Table>
@@ -1190,6 +1463,47 @@ export default function Lista({
                   />
                   <Bar
                     dataKey="actual"
+                    fill="var(--color-actual)"
+                    radius={4}
+                    name="Actual"
+                  />
+                </BarChart>
+              </ChartContainer>
+            </div>
+          )}
+
+          <div className="mb-6">
+            <h2 className="text-xl font-bold">Informe de Trampas</h2>
+          </div>
+          {/* GRÁFICO 4: Barras agrupadas por trampa */}
+          {totales.length > 0 && (
+            <div>
+              <div className="mb-4 text-[1rem] font-bold">GRÁFICO: RESUMEN</div>
+              <ChartContainer
+                config={chartConfigRoedores}
+                className="h-[300px]"
+                ref={chartRoedoresBarRef}
+              >
+                <BarChart data={totales}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mes" tickFormatter={(value) => `T${value}`} />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Legend />
+                  <Bar
+                    dataKey="inicial_avg"
+                    fill="var(--color-inicial)"
+                    radius={4}
+                    name="Inicial"
+                  />
+                  <Bar
+                    dataKey="merma_avg"
+                    fill="var(--color-merma)"
+                    radius={4}
+                    name="Merma"
+                  />
+                  <Bar
+                    dataKey="actual_avg"
                     fill="var(--color-actual)"
                     radius={4}
                     name="Actual"

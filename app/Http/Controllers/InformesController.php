@@ -6,10 +6,12 @@ use App\Models\Almacen;
 use App\Models\Empresa;
 use App\Models\Seguimiento;
 use App\Models\SeguimientoImage;
+use App\Models\Trampa;
 use App\Models\TrampaRoedorSeguimiento;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
@@ -40,24 +42,53 @@ class InformesController extends Controller
     }
     // 🔴 SOLO buscar si presiona el botón
     $seguimientos = [];
+    $trampas_insect = 0;
+    $trampas_rat = 0;
+    $totales = [];
     if (
       $request->filled('buscar') &&
       $request->almacen_id &&
       $request->fecha_inicio &&
       $request->fecha_fin
     ) {
-      $seguimientos = Seguimiento::with(['roedores', 'insectocutores.especie'])->where('almacen_id', $request->almacen_id)
+      $seguimientos = Seguimiento::with(['roedores', 'insectocutores.especie', 'tipoSeguimiento', 'user'])->where('almacen_id', $request->almacen_id)
         ->whereBetween('created_at', [
           $request->fecha_inicio . ' 00:00:00',
           $request->fecha_fin . ' 23:59:59',
         ])
         ->orderBy('created_at', 'desc')
-        ->get(['id', 'tipo_seguimiento_id', 'created_at']);
+        ->get(['id', 'tipo_seguimiento_id', 'user_id', 'created_at', 'encargado_nombre', 'encargado_cargo']);
+      $trampas = Trampa::where('almacen_id', $request->almacen_id)->get();
+      $trampas_insect = $trampas->where('trampa_tipo_id', 2)->count();
+      $trampas_rat = $trampas->where('trampa_tipo_id', '!=', 2)->count();
+      $totales = TrampaRoedorSeguimiento::query()
+        ->join('seguimientos', 'seguimientos.id', '=', 'trampa_roedor_seguimientos.seguimiento_id')
+        ->where('seguimientos.almacen_id', $request->almacen_id)
+        ->whereBetween('seguimientos.created_at', [
+          $request->fecha_inicio . ' 00:00:00',
+          $request->fecha_fin . ' 23:59:59',
+        ])
+        ->selectRaw("
+        DATE_FORMAT(seguimientos.created_at, '%Y-%m') as mes,
+        SUM(trampa_roedor_seguimientos.inicial) as inicial_sum,
+        SUM(trampa_roedor_seguimientos.merma) as merma_sum,
+        SUM(trampa_roedor_seguimientos.actual) as actual_sum,
+
+        AVG(trampa_roedor_seguimientos.inicial) as inicial_avg,
+        AVG(trampa_roedor_seguimientos.merma) as merma_avg,
+        AVG(trampa_roedor_seguimientos.actual) as actual_avg
+    ")
+        ->groupBy(DB::raw("DATE_FORMAT(seguimientos.created_at, '%Y-%m')"))
+        ->orderBy('mes')
+        ->get();
     }
     return inertia('admin/informes/index', [
       'empresas'     => $empresas,
       'almacenes'    => $almacenes,
       'seguimientos' => $seguimientos,
+      'trampasinsect' => $trampas_insect,
+      'trampasrat' => $trampas_rat,
+      'totales' => $totales,
       'filters' => $request->only(
         'empresa_id',
         'almacen_id',
@@ -65,6 +96,17 @@ class InformesController extends Controller
         'fecha_fin'
       ),
     ]);
+
+
+    $seguimientos = Seguimiento::with(['roedores'])->where('almacen_id', $request->almacen_id)
+      ->whereBetween('created_at', [
+        $request->fecha_inicio . ' 00:00:00',
+        $request->fecha_fin . ' 23:59:59',
+      ])
+      ->orderBy('created_at', 'desc')
+      ->get(['id', 'created_at']);
+
+    // trampa_roedor_seguimientos(id, seguimiento_id, trampa_id, inicial, merma, actual)
   }
 
   public function obtenerEstado(Request $request)
