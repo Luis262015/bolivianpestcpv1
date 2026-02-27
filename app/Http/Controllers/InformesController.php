@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\SimpleType\Jc;
+use PhpOffice\PhpWord\Style\Language;
+
+
 
 
 class InformesController extends Controller
@@ -102,42 +105,6 @@ class InformesController extends Controller
 
   public function storeWord(Request $request)
   {
-
-
-
-
-
-    // if (!$request->imagen) {
-    //   return response()->json(['error' => 'No se recibió imagen'], 400);
-    // }
-
-    // $image = $request->imagen;
-
-    // // Extraer tipo y data base64 correctamente
-    // if (!preg_match('/^data:image\/(\w+);base64,/', $image, $type)) {
-    //   return response()->json(['error' => 'Formato base64 inválido'], 400);
-    // }
-
-    // $image = substr($image, strpos($image, ',') + 1);
-    // $image = str_replace(' ', '+', $image);
-
-    // $imageData = base64_decode($image);
-
-    // if ($imageData === false) {
-    //   return response()->json(['error' => 'Base64 corrupto'], 400);
-    // }
-
-    // // Guardar imagen temporal
-    // $imagePath = storage_path('app/informe.png');
-    // file_put_contents($imagePath, $imageData);
-
-    // // Validar que realmente sea una imagen
-    // if (!file_exists($imagePath) || filesize($imagePath) < 1000) {
-    //   return response()->json(['error' => 'Imagen inválida'], 400);
-    // }
-
-    // -----------------------------------------------------------------------------
-
     // Log::info($request->seguimiento_ids);
     $seguimientoIds = $request->input('seguimiento_ids', []);
     $seguimientos = Seguimiento::with([
@@ -208,13 +175,10 @@ class InformesController extends Controller
     // Crear Word
     $phpWord = new PhpWord();
 
-    // $section = $phpWord->addSection([
-    //   'orientation' => 'landscape'
-    // ]);
-
-    $section = $phpWord->addSection([
-      'orientation' => 'portrait'
-    ]);
+    // Idioma español
+    $phpWord->getSettings()->setThemeFontLang(
+      new Language(Language::ES_ES)
+    );
 
     $phpWord->addParagraphStyle('global', [
       'lineHeight' => 1.15,
@@ -222,76 +186,319 @@ class InformesController extends Controller
       'spaceBefore' => 0,
     ]);
 
-    // CARATULA
+    $phpWord->addTableStyle(
+      'tablaInforme',
+      [
+        'borderSize' => 6,
+        'borderColor' => '000000',
+        'cellMargin' => 80,
+        'alignment' => \PhpOffice\PhpWord\SimpleType\JcTable::CENTER,
+        // 'layout' => \PhpOffice\PhpWord\Style\Table::LAYOUT_FIXED,
+      ],
+      [
+        'bgColor' => 'D9D9D9' // estilo para la fila encabezado
+      ]
+    );
 
-    $section->addText('INFORME');
-    $section->addText('Fecha:');
-    $section->addText('CITE ');
-    $section->addTextBreak();
-    $section->addText('De mi mayor consideración:');
-    $section->addText('Adjunto al presente remito a usted el Informe técnico sobre el Control Integral de Plagas realizado en los almacenes Tunari Cochabamba, valido por el mes de diciembre desratización y fumigación.');
-    $section->addText('Sin otro particular saludo a usted con las consideraciones más distinguidas de mi respeto personal.');
-    $section->addText('Atentamente');
-    $section->addPageBreak();
+    // $section = $phpWord->addSection([
+    //   'orientation' => 'landscape'
+    // ]);
+
+    $section1 = $phpWord->addSection([
+      'orientation' => 'portrait',
+      'marginTop' => 2500,
+      'marginBottom' => 1417,
+      'marginLeft' => 2500,
+      'marginRight' => 1700,
+      'differentFirstPageHeaderFooter' => true
+    ]);
+
+    $header = $section1->addHeader('first');
+
+    $header->addImage(
+      public_path('images/informe/membretado.png'),
+      [
+        'width' => 595,
+        'height' => 842,
+
+        'positioning' => 'absolute',
+
+        'posHorizontal' => 'left',
+        'posHorizontalRel' => 'page',
+        'posHorizontalOffset' => 0,
+
+        'posVertical' => 'top',
+        'posVerticalRel' => 'page',
+        'posVerticalOffset' => 0,
+
+        'wrappingStyle' => 'behind'
+      ]
+    );
+
+    // $header->addImage(
+    //   public_path('images/informe/membretado.png'),
+    //   [
+    //     'width' => 595,
+    //     'height' => 842,
+    //     'positioning' => 'absolute',
+    //     'posHorizontal' => 'center',
+    //     'posVertical' => 'top',
+    //     'marginTop' => 0,
+    //     'marginLeft' => 0,
+    //     'wrappingStyle' => 'behind'
+    //   ]
+    // );
+
+    // $header->addImage(
+    //   public_path('images/informe/membretado.png'),
+    //   [
+    //     'width' => 595,
+    //     'height' => 842,
+    //     'positioning' => 'absolute',
+    //     'posHorizontal' => 'left',
+    //     'posVertical' => 'top',
+    //     'wrappingStyle' => 'behind'
+    //   ]
+    // );
+
+    // Imagen de fondo
+    // $section1->addWatermark(
+    //   public_path('images/informe/membretado.png'),
+    //   [
+    //     'width' => 794,   // A4 px aprox
+    //     'height' => 1123,
+    //     'positioning' => 'absolute',
+    //     'posHorizontal' => 'center',
+    //     'posVertical' => 'center',
+    //     'wrappingStyle' => 'behind'
+    //   ]
+    // );
+
+
+    $section1->addText('La Paz ' . Carbon::now()->translatedFormat('d \d\e F \d\e Y'), [
+      'name' => 'Calibri',
+      'size' => 11,
+      'lang' => 'es-ES'
+    ]);
+    $section1->addText('CITE: ', [
+      'bold' => true,
+      'size' => 12,
+      'underline' => 'single',
+    ]);
+    $section1->addTextBreak(3);
+
+    $section1->addText('Señor:');
+    $section1->addText('___________________');
+    $section1->addText('Presente .-');
+    $section1->addTextBreak(4);
+
+    $section1->addText(
+      'De mi mayor consideración:',
+      [
+        'name' => 'Calibri',
+        'size' => 11,
+        'lang' => 'es-ES'
+      ]
+    );
+    $section1->addText(
+      'Adjunto al presente remito a usted el Informe técnico sobre el Control Integral de Plagas realizado en los almacenes _______________, valido por el mes de __________ desratización y fumigación.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section1->addText(
+      'Sin otro particular saludo a usted con las consideraciones más distinguidas de mi respeto personal.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section1->addText('Atentamente');
+    $section1->addTextBreak(4);
+
+    $section1->addText(
+      'Ing. Agr. Freddy Montero Castillo',
+      ['size' => 10],
+      [
+        'alignment' => Jc::CENTER,
+        'lineHeight' => 1,
+        'spaceAfter' => 0
+      ]
+    );
+    $section1->addText(
+      'GERENTE PROPIETARIO',
+      ['size' => 10, 'bold' => true],
+      [
+        'alignment' => Jc::CENTER,
+        'lineHeight' => 1,
+        'spaceAfter' => 0
+      ]
+    );
+    $section1->addText(
+      'BOLIVIAN PEST HIGIENE AMBIENTAL',
+      ['size' => 10],
+      [
+        'alignment' => Jc::CENTER,
+        'lineHeight' => 1,
+        'spaceAfter' => 0
+      ]
+    );
+    $section1->addText(
+      'Telf: 2240974, Cel: 76738282',
+      ['size' => 10],
+      [
+        'alignment' => Jc::CENTER,
+        'lineHeight' => 1,
+        'spaceAfter' => 0
+      ]
+    );
+
+
+    $section1->addPageBreak();
+
+    $section = $phpWord->addSection([
+      'orientation' => 'portrait',
+      'marginLeft' => 2500,
+    ]);
 
     // INFORME TECNICO
-    $section->addText('INFORME TECNICO');
-    $section->addText('CONTROL DE PLAGAS');
-    $section->addText('"ALMACEN ************');
-    $section->addText('INTRODUCCIÓN:');
-    $section->addText('Las Buenas Prácticas de Almacenamiento BPAS son una herramienta básica para la obtención de productos seguros para el consumo y se focaliza en la higiene y en cómo se deben manipular estos siendo su aplicación obligatoria.');
-    $section->addText('La importancia de controlar las plagas radica en las pérdidas que estas ocasionan a través de mercaderías arruinadas, alimentos contaminados, potenciales demandas, productos mal utilizados para el control, daños a estructuras físicas de la empresa, pérdida de imagen, etc. ');
-    $section->addText('Dando cumplimiento al CONTROL DE PLAGAS para esta gestión que se realiza a la empresa “RANSA ALMACEN ILLIMANI” pasamos a desglosar las actividades alcanzadas para el mes de enero 2024 en lo que se refiere al almacén de productos.');
-    $section->addText('OBJETIVO:');
-    $section->addText('Contribuir a la mejora del almacenamiento de los productos dentro la empresa RANSA por medios de controles integrados de plagas aportando a la conservación de los productos libres de contaminantes.');
-    $section->addText('METODOLOGIA:');
+    $section->addText('INFORME TECNICO', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ], [
+      'alignment' => Jc::CENTER,
+      'lineHeight' => 1,
+    ]);
+    $section->addText('CONTROL DE PLAGAS', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ], [
+      'alignment' => Jc::CENTER,
+      'lineHeight' => 1,
+    ]);
+    $section->addText('"ALMACEN _________"', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ], [
+      'alignment' => Jc::CENTER,
+      'lineHeight' => 1,
+    ]);
+    $section->addText('INTRODUCCIÓN:', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
+    $section->addText(
+      'Las Buenas Prácticas de Almacenamiento BPAS son una herramienta básica para la obtención de productos seguros para el consumo y se focaliza en la higiene y en cómo se deben manipular estos siendo su aplicación obligatoria.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addText(
+      'La importancia de controlar las plagas radica en las pérdidas que estas ocasionan a través de mercaderías arruinadas, alimentos contaminados, potenciales demandas, productos mal utilizados para el control, daños a estructuras físicas de la empresa, pérdida de imagen, etc. ',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addText(
+      'Dando cumplimiento al CONTROL DE PLAGAS para esta gestión que se realiza a la empresa “____________________” pasamos a desglosar las actividades alcanzadas para el mes de ___________ en lo que se refiere al almacén de productos.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addText('OBJETIVO:', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
+    $section->addText(
+      'Contribuir a la mejora del almacenamiento de los productos dentro la empresa ________ por medios de controles integrados de plagas aportando a la conservación de los productos libres de contaminantes.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addText('METODOLOGIA:', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
     $section->addText('Respecto al trabajo realizado se tomará en cuenta tres etapas:');
-    $section->addText('- Lo que se realizó el presente mes');
-    $section->addText('- El balance análisis.');
-    $section->addText('- Las recomendaciones para el próximo mes.');
+    $section->addListItem('Lo que se realizó el presente mes');
+    $section->addListItem('El balance análisis.');
+    $section->addListItem('Las recomendaciones para el próximo mes.');
 
     // Lo que se realizo en la visita
-    $section->addText('LO QUE SE REALIZO EN EL MES DE ********');
+    $section->addText('LO QUE SE REALIZO EN LA VISITA', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
     // FOTOS
 
     // Balance y análisis
-    $section->addText('BALANCE Y ANALISIS.');
-    $section->addText('Se cumplió con el mantenimiento del control integral de plagas propuesto con el seguimiento de las [X] unidades de control de roedores para el pesaje de las unidades de control');
+    $section->addText('BALANCE Y ANALISIS.', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
+    $section->addText(
+      'Se cumplió con el mantenimiento del control integral de plagas propuesto con el seguimiento de las [X] unidades de control de roedores para el pesaje de las unidades de control',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
 
     // [TABLA DE TRAMPAS]
     // Crear tabla
     $section->addTextBreak();
     $section->addText('Peso de trampas', ['bold' => true]);
 
-    $table = $section->addTable();
+    $table = $section->addTable('tablaInforme');
 
     $table->addRow();
-    $table->addCell()->addText('Trampa');
-    $table->addCell()->addText('Inicial');
-    $table->addCell()->addText('Merma');
-    $table->addCell()->addText('Actual');
+    $table->addCell(2000)->addText('Trampa', ['bold' => true]);
+    $table->addCell(2000)->addText('Inicial', ['bold' => true]);
+    $table->addCell(2000)->addText('Merma', ['bold' => true]);
+    $table->addCell(2000)->addText('Actual', ['bold' => true]);
+    $table->addCell(3500)->addText('Observaciones', ['bold' => true]);
 
     foreach ($datosRoedores as $trampa => $data) {
 
       $table->addRow();
-      $table->addCell()->addText($trampa);
-      $table->addCell()->addText($data['inicial']);
-      $table->addCell()->addText($data['merma']);
-      $table->addCell()->addText($data['actual']);
+      $table->addCell(2000)->addText($trampa);
+      $table->addCell(2000)->addText($data['inicial']);
+      $table->addCell(2000)->addText($data['merma']);
+      $table->addCell(2000)->addText($data['actual']);
+      $table->addCell(3500)->addText($data['actual']);
     }
 
-    // SEGUIMIENTO DE TRAMAPAS
-    $section->addText('SEGUIMIENTO PESO DE TRAMPAS');
+    // SEGUIMIENTO DE TRAMAPAS    
 
     if ($chart3) {
       // $section->addPageBreak();
-      $section->addText('Comparación de pesos por trampa');
+      $section->addText('Comparación de pesos por trampa', ['bold' => true]);
       $section->addImage($chart3, ['width' => 300]);
     }
 
     if ($chart4) {
       // $section->addPageBreak();
-      $section->addText('Valores por trampa');
+      $section->addText('Valores por trampa', ['bold' => true]);
       $section->addImage($chart4, ['width' => 300]);
     }
 
@@ -300,7 +507,14 @@ class InformesController extends Controller
     // [GRAFICO DE REGISTRO QUINCENAL]
 
     $section->addText('BARRERAS FISICAS DE EXCLUCION (INSECTOCUTORES)');
-    $section->addText('Para el control de insectos voladores se ha implementado tres insectocutores se realizó el seguimiento de cada uno de los insectocutores revisando el tipo de insecto encontrado y la cantidad, con esta información se ha podido calcular la incidencia y severidad se muestra a través de gráficos las tendencias y análisis respectivos');
+    $section->addText(
+      'Para el control de insectos voladores se ha implementado tres insectocutores se realizó el seguimiento de cada uno de los insectocutores revisando el tipo de insecto encontrado y la cantidad, con esta información se ha podido calcular la incidencia y severidad se muestra a través de gráficos las tendencias y análisis respectivos',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
 
     $section->addText('CANTIDAD DE INSECTOCUTORES');
 
@@ -329,8 +543,22 @@ class InformesController extends Controller
 
 
 
-    $section->addText('La incidencia es el número de individuos que están presentes en un determinado lugar la gráfica de incidencia muestra la presencia en estado adulto de los tres tipos de insectos que se ha logrado capturar que son mosca, mosquito y polillas en este estado no realizan daño directo sino tienen una actividad de colocar huevos para completar su metamorfosis.');
-    $section->addText('Para realizar el calculo de la incidencia se toma en cuenta las cuatro visitas realizadas en los formularios de conformidad se saca el promedio de los 3 insectocutores por visita y se llena la tabla que se muestra a continuación.');
+    $section->addText(
+      'La incidencia es el número de individuos que están presentes en un determinado lugar la gráfica de incidencia muestra la presencia en estado adulto de los tres tipos de insectos que se ha logrado capturar que son mosca, mosquito y polillas en este estado no realizan daño directo sino tienen una actividad de colocar huevos para completar su metamorfosis.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addText(
+      'Para realizar el calculo de la incidencia se toma en cuenta las cuatro visitas realizadas en los formularios de conformidad se saca el promedio de los 3 insectocutores por visita y se llena la tabla que se muestra a continuación.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
     $section->addText('');
 
 
@@ -359,13 +587,72 @@ class InformesController extends Controller
 
     $section->addTextBreak();
 
-    $section->addText('RECOMENDACIONES PARA LA PROXIMA VISITA:');
-    $section->addText('- La recomendación del orden y limpieza para el mantenimiento de los procesos de control de plagas es necesario recalcarlos para los encargados de los almacenes, estibadores y ayudantes de los almacenes.');
-    $section->addText('- Para mantener el efecto del trabajo realizado recomendamos tener cuidado con las unidades de control evitando golpes, y recojo de sustancias pegajosas.');
-    $section->addText('- En el ingreso de nueva mercadería a los almacenes verificando siempre la existencia de plagas que puedan alterar el control integral en el cual se está trabajando.');
-    $section->addText('- Mantener con protección los puntos de ingreso de personal y producto para evitar el ingreso de contaminantes al almacén.');
-    $section->addText('- Se debe tener cuidado de cerrar las puertas una vez ingresado el personal o la mercadería en el sentido que si se dejan abiertas cualquier ave puede ingresar y contaminar los productos que se resguardan');
+    $section->addText('RECOMENDACIONES PARA LA PROXIMA VISITA:', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
+    $section->addListItem(
+      'La recomendación del orden y limpieza para el mantenimiento de los procesos de control de plagas es necesario recalcarlos para los encargados de los almacenes, estibadores y ayudantes de los almacenes.',
+      0,
+      [],
+      null,
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15,
+        'spaceBefore' => 0,
+        'spaceAfter' => 0
+      ]
+    );
+    $section->addListItem(
+      'Para mantener el efecto del trabajo realizado recomendamos tener cuidado con las unidades de control evitando golpes, y recojo de sustancias pegajosas.',
+      0,
+      [],
+      null,
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15,
+        'spaceBefore' => 0,
+        'spaceAfter' => 0
+      ]
+    );
+    $section->addListItem(
+      'En el ingreso de nueva mercadería a los almacenes verificando siempre la existencia de plagas que puedan alterar el control integral en el cual se está trabajando.',
+      0,
+      [],
+      null,
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15,
+        'spaceBefore' => 0,
+        'spaceAfter' => 0
+      ]
+    );
+    $section->addListItem(
+      'Mantener con protección los puntos de ingreso de personal y producto para evitar el ingreso de contaminantes al almacén.',
+      0,
+      [],
+      null,
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15,
+        'spaceBefore' => 0,
+        'spaceAfter' => 0
+      ]
+    );
+    $section->addListItem(
+      'Se debe tener cuidado de cerrar las puertas una vez ingresado el personal o la mercadería en el sentido que si se dejan abiertas cualquier ave puede ingresar y contaminar los productos que se resguardan',
+      0,
+      [],
+      null,
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15,
+        'spaceBefore' => 0,
+        'spaceAfter' => 0
+      ]
 
+    );
     // $section->addImage(
     //   realpath($imagePath),
     //   [
@@ -379,6 +666,9 @@ class InformesController extends Controller
 
 
     $file = storage_path('app/informe.docx');
+    if (!$file) {
+      $file = storage_path('app\\informe.docx');
+    }
 
     IOFactory::createWriter($phpWord, 'Word2007')->save($file);
 
