@@ -225,7 +225,7 @@ export default function Landing() {
               </div>
               {/* <!-- Círculos flotantes de insectos --> */}
               <div className=
-              {`floating-bug bug-1 mt-[340px] overflow-hidden rounded-full border-[8px] shadow-2xl ${styles.aboutImageD}`}>
+              {`floating-bug bug-1 overflow-hidden rounded-full border-[8px] shadow-2xl ${styles.aboutImageD}`}>
                 <img
                   src="/images/about/dos.webp"
                   className="h-[100%] w-[100%] object-cover"
@@ -233,7 +233,7 @@ export default function Landing() {
                 />
               </div>
               <div className=
-              {`floating-bug bug-2 absolute ms-[420px] mt-[100px] overflow-hidden rounded-full border-[8px] shadow-2xl ${styles.aboutImageT}`}>
+              {`floating-bug bug-2 absolute overflow-hidden rounded-full border-[8px] shadow-2xl ${styles.aboutImageT}`}>
                 <img
                   src="/images/about/uno.webp"
                   className="h-[100%] w-[100%] object-cover"
