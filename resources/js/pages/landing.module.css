@@ -60,7 +60,6 @@
   position: absolute;
   height: 520px;
   width: 520px;
-  margin-top: 340px;
 }
 /* 🔥 Menos de 1090px → 2 columnas */
 @media (max-width: 0px) {
@@ -75,8 +74,8 @@
 @media (max-width: 768px) {
   .aboutImageU{
   position: absolute;
-  height: 250px;
-  width: 250px;
+  height: 400px;
+  width: 400px;
 }
 }
 
@@ -95,12 +94,15 @@
   position: absolute;
   height: 120px;
   width: 120px;
+  margin-bottom: 120px;
+  margin-left: 380px;
 }
 /* 🔥 Menos de 1090px → 2 columnas */
 @media (max-width: 0px) {
   .aboutImageD{
   position: absolute;
   height: 120px;
+  width: 120px;
 }
 }
 
@@ -109,6 +111,9 @@
   .aboutImageD{
   position: absolute;
   height: 120px;
+  width: 120px;
+  margin-bottom: 120px;
+  margin-left: 280px;
 }
 }
 
@@ -128,7 +133,7 @@
   position: absolute;
   width: 120px;
   height: 120px;
-  margin-top: 100px;
+  margin-top: 350px;
 
 }
 /* 🔥 Menos de 1090px → 2 columnas */
@@ -136,6 +141,7 @@
   .aboutImageT{
   position: absolute;
   height: 120px;
+  width: 120px;
 }
 }
 
@@ -144,6 +150,9 @@
   .aboutImageT{
   position: absolute;
   height: 120px;
+  width: 120px;
+  margin-top: 300px;
+  margin-left: 25px;
 }
 }
 
@@ -170,6 +179,7 @@
   .aboutImageC{
   position: absolute;
   height: 120px;
+  width: 120px;
 }
 }
 
@@ -178,6 +188,7 @@
   .aboutImageC{
   position: absolute;
   height: 120px;
+  width: 120px;
 }
 }
 
