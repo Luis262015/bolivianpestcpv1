@@ -217,7 +217,7 @@ export default function Create() {
           {/* UNIDAD */}
           <div className="gap-1.5">
             <div className="flex items-center gap-1.5">
-              <Label>Unidad: </Label>
+              <Label>Unidad de empaque: </Label>
               <HoverCard openDelay={200} closeDelay={100}>
                 <HoverCardTrigger asChild>
                   <InfoIcon className="h-4 w-4 cursor-help text-muted-foreground transition-colors hover:text-foreground" />

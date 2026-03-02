@@ -10,6 +10,7 @@ use App\Models\Cronograma;
 use App\Models\Empresa;
 use App\Models\Epp;
 use App\Models\Especie;
+use App\Models\Kardex;
 use App\Models\Metodo;
 use App\Models\Producto;
 use App\Models\ProductoUso;
@@ -232,6 +233,16 @@ class SeguimientoController extends Controller
             $parte_entera = (int) $res;
             $parte_decimal = $res - $parte_entera;
 
+            Kardex::create([
+              'venta_id' => null,
+              'compra_id' => null,
+              'producto_id' => $producto->id,
+              'tipo' => 'Salida',
+              'cantidad' => $parte_entera,
+              'cantidad_saldo' => $producto->stock - $parte_entera,
+              'costo_unitario' => $producto->precio_compra,
+            ]);
+
             // Descontar la parte entera del STOCK
             $producto->stock = $producto->stock - $parte_entera;
             $producto->save();
@@ -240,13 +251,21 @@ class SeguimientoController extends Controller
             $prodBuf->cantidad = $parte_decimal * $producto->unidad_valor;
             $prodBuf->save();
           } else {
-            // Crear producto buffer
-            $prodBuf = new BufferProducto();
 
-            // Calculo inicial: res = cantidad / unidad_valor
+            // Calculo inicial: res = cantidad / unidad_valor            
             $res = $prod['cantidad'] / $producto->unidad_valor;
             $parte_entera = (int) $res;
             $parte_decimal = $res - $parte_entera;
+
+            Kardex::create([
+              'venta_id' => null,
+              'compra_id' => null,
+              'producto_id' => $producto->id,
+              'tipo' => 'Salida',
+              'cantidad' => $parte_entera,
+              'cantidad_saldo' => $producto->stock - $parte_entera,
+              'costo_unitario' => $producto->precio_compra,
+            ]);
 
             // Descontar la parte entera del STOCK
             $producto->stock = $producto->stock - $parte_entera;
@@ -254,8 +273,10 @@ class SeguimientoController extends Controller
 
             // Agregar la parte decimal en registro, solo si la parte decimal es mayor a 0
             $parte_decimal = $parte_decimal * $producto->unidad_valor;
+            Log::info('EEEEEE ' . $parte_decimal);
             if ($parte_decimal > 0) {
               $prodBuf = new BufferProducto();
+              $prodBuf->producto_id = $prod['producto_id'];
               $prodBuf->cantidad = $parte_decimal;
               $prodBuf->save();
             }
