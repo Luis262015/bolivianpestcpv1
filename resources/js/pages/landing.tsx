@@ -8,7 +8,7 @@ import {
 import { Head } from '@inertiajs/react';
 import { Autoplay, EffectFade, Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
-
+import { Textarea } from "@/components/ui/textarea"
 import styles from './landing.module.css';
 
 import SplashScreen from '@/components/SplashScreen';
@@ -31,6 +31,16 @@ import {
   Siren,
   Snail,
 } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import 'swiper/css';
 import 'swiper/css/autoplay';
 import 'swiper/css/effect-fade';
@@ -1112,65 +1122,57 @@ export default function Landing() {
       {/* <!-- CTA --> */}
       <section
         className={`about-your mt-2 md:mt-6 lg:mt-10 ${styles.ctaSection}`}
-        id="contacto"
-      >
+        id="contacto">
         <div className="container w-full">
-          <div className={`about-your-wrapper ${styles.ctaWrapper}`}>
-            {/* <!-- Imagen del técnico (izquierda) --> */}
-            <div className={`about-your-image ${styles.ctaImage}`}>
-              <img
-                src="/images/cta/personaje.webp"
-                alt="Técnico profesional listo para ayudarte"
-              />
-            </div>
-
-            {/* <!-- Contenido (derecha) --> */}
-            <div className={`about-your-content ${styles.ctaContent}`}>
-              <h2 className={`section-title mb-5 ${styles.sectionTitle}`}>
-                Hablemos de sus necesidades de
-                <span className="text-green"> control de plagas</span>
-              </h2>
-
-              <ul className={`about-your-list ${styles.ctaList}`}>
-                <li className="group flex items-center gap-4">
-                  <CheckCircle2 className="h-9 w-9 shrink-0 text-emerald-500 transition-transform group-hover:scale-110" />
-                  <span className="transition-colors group-hover:text-emerald-600">
-                    Agende su inspección gratuita
-                  </span>
-                </li>
-                <li className="group flex items-center gap-4">
-                  <CheckCircle2 className="h-9 w-9 shrink-0 text-emerald-500 transition-transform group-hover:scale-110" />
-                  <span className="transition-colors group-hover:text-emerald-600">
-                    Prevenga futuras infestaciones
-                  </span>
-                </li>
-                <li className="group flex items-center gap-4">
-                  <CheckCircle2 className="h-9 w-9 shrink-0 text-emerald-500 transition-transform group-hover:scale-110" />
-                  <span className="transition-colors group-hover:text-emerald-600">
-                    Reserva fácil y rápida
-                  </span>
-                </li>
-                {/* <li>
-                  <span className={`list-icon ${styles.ctaListIcon}`}>
-                    Check
-                  </span>
-                  Reserva fácil y rápida
-                </li> */}
-              </ul>
-
-              <a
-                href="https://wa.me/59176738282"
-                target="_blank"
-                className={`btn-membership ${styles.ctaBtnMember}`}
-              >
-                Empieza Ahora
-                <span className={`arrow-circle ${styles.ctaArrowCircle}`}>
-                  <CheckCircle2 className="text-white-500 h-9 w-9 shrink-0 transition-transform group-hover:scale-110" />
-                </span>
-              </a>
+          <div className='flex-1 rounded-lg border bg-card p-6 shadow-sm'>
+                <h1>sadasd</h1>
+          </div>
+              <div className="flex flex-col gap-8 md:flex-row sm:px-6 lg:px-8">
+                
+                    <form className="space-y-10">
+                      {/* === CLIENTE === */}
+                      <div className="space-y-6">
+                        <h3 className="text-lg font-semibold">
+                          Información del Cliente
+                        </h3>
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                          <div>
+                            <Label>Nombre del cliente</Label>
+                            <Input/>
+                          </div>
+                          <div>
+                            <Label>Ciudad</Label>
+                            <Input
+                            />
+                          </div>
+                          <div>
+                            <Label>Email</Label>
+                            <Input
+                            />
+                          </div>
+                          <div>
+                            <Label>Teléfono</Label>
+                            <Input
+                            />
+                          </div>
+                        </div>
+                        <div>
+                            <Textarea placeholder="Escribe tu mensaje aquí..." />
+                          </div>
+                      </div>
+                              
+                      <div className="flex justify-end gap-4 pt-8">
+                        <Button
+                        >
+                          Cancelar
+                        </Button>
+                        <Button type="submit">
+                          
+                        </Button>
+                      </div>
+                    </form>
             </div>
           </div>
-        </div>
       </section>
 
       {/* <!-- Footer --> */}
