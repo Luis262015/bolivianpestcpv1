@@ -31,6 +31,7 @@ import {
   Siren,
   Snail,
 } from 'lucide-react';
+import WhyHighlightCard from '@/components/WhyHighlightCard';
 import { Input } from "@/components/ui/input";
 import { Button } from '@/components/ui/button';
 import {
@@ -803,58 +804,31 @@ export default function Landing() {
             </span>
             <h2 className={`section-title ${styles.sectionTitle}`}>
               ¿Qué nos convierte en la mejor opción
-              <span className="text-green">para usted?</span>
+              <span className="text-green"> para usted?</span>
             </h2>
             <p className={`section-desc ${styles.sectionDescription}`}>
-              Entendemos lo frustrantes y molestas que pueden ser las plagas,
-              por eso nos comprometemos a brindar soluciones rápidas, confiables
-              y efectivas..
+              En BolivianPest nos distinguimos por combinar calidad comprobada, atención personalizada y un compromiso total con la formalidad y transparencia que todo cliente merece.
             </p>
           </div>
 
           <div className={`why-grid ${styles.whyGrid}`}>
-            {/* Tarjeta 1 - Servicios de emergencia */}
-            <div className={`why-card ${styles.whyCard}`}>
-              <div className={`why-icon ${styles.whyIcon}`}>
-                <Clock className="text-white-600 h-10 w-10" strokeWidth={2} />
-              </div>
-              <h3 className="text-center">Servicios de emergencia</h3>
-              <p className="text-center">
-                Atención inmediata 24/7, incluso feriados.
-              </p>
-            </div>
-
-            {/* Tarjeta 2 - Tratamientos personalizados */}
-            <div className={`why-card ${styles.whyCard}`}>
-              <div className={`why-icon ${styles.whyIcon}`}>
-                <Settings
-                  className="text-white-600 h-10 w-10"
-                  strokeWidth={2}
-                />
-                {/* o también puedes usar: <Target /> o <Wrench /> */}
-              </div>
-              <h3 className="text-center">Tratamientos personalizados</h3>
-              <p className="text-center">
-                Soluciones adaptadas al tipo de plaga y propiedad.
-              </p>
-            </div>
-
-            {/* Tarjeta 3 - Profesionales certificados */}
+            
+            {/* Tarjeta 3 - Profesionales certificados 
             <div className={`why-card ${styles.whyCard}`}>
               <div className={`why-icon ${styles.whyIcon}`}>
                 <ShieldCheck
                   className="text-white-600 h-10 w-10"
                   strokeWidth={2}
                 />
-                {/* Alternativas bonitas: <Award />, <UserCheck />, <Certificate /> */}
+                {/* Alternativas bonitas: <Award />, <UserCheck />, <Certificate />
               </div>
               <h3 className="text-center">Profesionales certificados</h3>
               <p className="text-center">
                 Técnicos capacitados y con licencia oficial.
               </p>
-            </div>
+            </div>*/}
 
-            {/* Tarjeta destacada con imagen */}
+            {/* Tarjeta destacada con imagen 
             <div className={`why-highlight-card ${styles.whyHighCard}`}>
               <img
                 src="/images/choice/seis.webp"
@@ -873,7 +847,32 @@ export default function Landing() {
                   Llame ahora +591 76738282
                 </a>
               </div>
-            </div>
+            </div>*/}
+            <WhyHighlightCard
+              imageSrc="/images/choice/nit.png"
+              imageAlt="Control de plagas en cocina"
+              //title="¡Recupere su hogar de las plagas hoy mismo!"
+              //phoneNumber="59176738282"
+              //phoneDisplay="+591 76738282"
+            />
+
+            <WhyHighlightCard
+              imageSrc="/images/choice/gestora.png"
+              imageAlt="Fumigación profesional en hogar"
+            />
+
+            <WhyHighlightCard
+              imageSrc="/images/choice/certiS.png"
+              imageAlt="Servicio rápido y efectivo"
+            />
+
+            <WhyHighlightCard
+              imageSrc="/images/choice/seprec.png"
+              imageAlt="Servicio rápido y efectivo"
+              
+            />
+
+
           </div>
 
           {/* <!-- CTA final --> */}
