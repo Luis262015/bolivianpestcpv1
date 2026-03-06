@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccionController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\BiologicosController;
 use App\Http\Controllers\CategoriasController;
@@ -107,6 +108,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('tipos', TiposController::class);
     Route::resource('especies', EspeciesController::class);
     Route::resource('unidades', UnidadesController::class);
+
+    Route::resource('acciones', AccionController::class);
+
     Route::post('/informes/exportar-word', [InformesController::class, 'storeWord']);
     Route::get('/informes/exportar-word-download', [InformesController::class, 'downloadWord']);
     Route::get('/informes/obtener', [InformesController::class, 'obtenerEstado'])->name('estados.obtener');

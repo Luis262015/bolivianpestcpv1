@@ -35,6 +35,7 @@ import {
   Legend,
   Line,
   LineChart,
+  Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
@@ -220,6 +221,711 @@ export default function Lista({
     });
   }, [datosInsectocutores]);
 
+  const seguimientosRoedores = useMemo(() => {
+    const seguimientosFiltrados = seguimientos.filter(
+      (seg) => seg.tipo_seguimiento_id !== 3,
+    );
+    return seguimientosFiltrados;
+  }, [seguimientos]);
+
+  console.log('**** SEGUIMIENTO ROEDORES INI');
+  console.log(seguimientosRoedores);
+  console.log('**** SEGUIMIENTO ROEDORES FIN');
+
+  // const resumenTrampas = Object.values(
+  //   seguimientos
+  //     .flatMap((s) => s.roedores)
+  //     .reduce((acc: any, r: any) => {
+  //       const tipo = r.trampa.trampa_tipo.nombre;
+
+  //       if (!acc[tipo]) {
+  //         acc[tipo] = {
+  //           tipo,
+  //           total: 0,
+  //         };
+  //       }
+
+  //       acc[tipo].total += 1;
+
+  //       return acc;
+  //     }, {}),
+  // );
+
+  // const resumenTrampas = Object.values(
+  //   seguimientos
+  //     .flatMap((s) => s.roedores)
+  //     .reduce((acc: any, r: any) => {
+  //       const tipo = r.trampa.trampa_tipo.nombre;
+  //       const trampaId = r.trampa.id;
+
+  //       if (!acc[tipo]) {
+  //         acc[tipo] = {
+  //           tipo,
+  //           trampas: new Set(),
+  //         };
+  //       }
+
+  //       acc[tipo].trampas.add(trampaId);
+
+  //       return acc;
+  //     }, {}),
+  // ).map((item: any) => ({
+  //   tipo: item.tipo,
+  //   total: item.trampas.size,
+  // }));
+
+  // const resumen = Object.values(
+  //   seguimientos
+  //     .flatMap((s) => s.roedores)
+  //     .reduce((acc: any, r: any) => {
+  //       const tipo = r.trampa.trampa_tipo.nombre;
+  //       const trampaId = r.trampa.id;
+
+  //       if (!acc[tipo]) {
+  //         acc[tipo] = {
+  //           tipo,
+  //           trampas: new Set(),
+  //           revisiones: 0,
+  //           capturas: 0,
+  //         };
+  //       }
+
+  //       acc[tipo].trampas.add(trampaId);
+  //       acc[tipo].revisiones += 1;
+  //       acc[tipo].capturas += r.cantidad ?? 0;
+
+  //       return acc;
+  //     }, {}),
+  // ).map((item: any) => ({
+  //   tipo: item.tipo,
+  //   trampas: item.trampas.size,
+  //   revisiones: item.revisiones,
+  //   capturas: item.capturas,
+  //   incidencia:
+  //     item.revisiones > 0
+  //       ? ((item.capturas / item.revisiones) * 100).toFixed(2)
+  //       : 0,
+  // }));
+
+  const totalSeguimientos = seguimientos.length;
+
+  const resumen = Object.values(
+    seguimientos
+      .flatMap((s) => s.roedores)
+      .reduce((acc: any, r: any) => {
+        const tipo = r.trampa.trampa_tipo.nombre;
+        const trampaId = r.trampa.id;
+
+        if (!acc[tipo]) {
+          acc[tipo] = {
+            tipo,
+            trampas: new Set(),
+            capturas: 0,
+          };
+        }
+
+        acc[tipo].trampas.add(trampaId);
+        acc[tipo].capturas += r.cantidad ?? 0;
+
+        return acc;
+      }, {}),
+  ).map((item: any) => {
+    const trampas = item.trampas.size;
+    const capturas = item.capturas;
+
+    const incidencia =
+      trampas * totalSeguimientos > 0
+        ? ((capturas / (trampas * totalSeguimientos)) * 100).toFixed(2)
+        : 0;
+
+    return {
+      tipo: item.tipo,
+      trampas,
+      revisiones: totalSeguimientos,
+      capturas,
+      incidencia,
+    };
+  });
+
+  const total = resumen.reduce(
+    (acc: any, item: any) => {
+      acc.trampas += item.trampas;
+      acc.capturas += item.capturas;
+      return acc;
+    },
+    { trampas: 0, capturas: 0 },
+  );
+
+  const incidenciaTotal =
+    total.trampas * totalSeguimientos > 0
+      ? ((total.capturas / (total.trampas * totalSeguimientos)) * 100).toFixed(
+          2,
+        )
+      : 0;
+  const colorIncidencia = (valor: number) => {
+    if (valor === 0) return 'text-green-600';
+    if (valor < 5) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  // const resumenMeses = Object.values(
+  //   seguimientos.reduce((acc: any, s: any) => {
+  //     const fecha = new Date(s.created_at);
+
+  //     const key = `${fecha.getFullYear()}-${fecha.getMonth() + 1}`;
+  //     const mesTexto = fecha.toLocaleString('es-ES', {
+  //       month: 'long',
+  //       year: 'numeric',
+  //     });
+
+  //     if (!acc[key]) {
+  //       acc[key] = {
+  //         mes: mesTexto,
+  //         seguimientos: 0,
+  //         trampas: new Set(),
+  //         capturas: 0,
+  //       };
+  //     }
+
+  //     acc[key].seguimientos++;
+
+  //     s.roedores.forEach((r: any) => {
+  //       acc[key].trampas.add(r.trampa.id);
+  //       acc[key].capturas += r.cantidad ?? 0;
+  //     });
+
+  //     return acc;
+  //   }, {}),
+  // ).map((item: any) => ({
+  //   mes: item.mes,
+  //   seguimientos: item.seguimientos,
+  //   trampas: item.trampas.size,
+  //   capturas: item.capturas,
+  // }));
+
+  const resumenMeses = Object.values(
+    seguimientos.reduce((acc: any, s: any) => {
+      const fecha = new Date(s.created_at);
+
+      const key = `${fecha.getFullYear()}-${fecha.getMonth() + 1}`;
+
+      const mesTexto = fecha.toLocaleString('es-ES', {
+        month: 'long',
+        year: 'numeric',
+      });
+
+      if (!acc[key]) {
+        acc[key] = {
+          mes: mesTexto,
+          seguimientos: 0,
+          trampas: new Set(),
+          capturas: 0,
+        };
+      }
+
+      acc[key].seguimientos++;
+
+      s.roedores.forEach((r: any) => {
+        acc[key].trampas.add(r.trampa.id);
+        acc[key].capturas += r.cantidad ?? 0;
+      });
+
+      return acc;
+    }, {}),
+  ).map((item: any) => {
+    const trampas = item.trampas.size;
+    const incidencia =
+      trampas && item.seguimientos
+        ? ((item.capturas / (trampas * item.seguimientos)) * 100).toFixed(2)
+        : 0;
+
+    return {
+      mes: item.mes,
+      seguimientos: item.seguimientos,
+      trampas,
+      capturas: item.capturas,
+      incidencia,
+    };
+  });
+
+  // const resumenPorAlmacen = (seguimientos: any[]) => {
+  //   const almacenes: any = {};
+
+  //   seguimientos.forEach((seg) => {
+  //     const almacenId = seg.almacen.id;
+  //     const almacenNombre = seg.almacen.nombre;
+
+  //     if (!almacenes[almacenId]) {
+  //       almacenes[almacenId] = {
+  //         almacen: almacenNombre,
+  //         seguimientos: 0,
+  //         trampas: 0,
+  //         capturas: 0,
+  //       };
+  //     }
+
+  //     // contar seguimiento
+  //     almacenes[almacenId].seguimientos += 1;
+
+  //     // contar trampas
+  //     almacenes[almacenId].trampas += seg.roedores.length;
+
+  //     // sumar capturas
+  //     seg.roedores.forEach((r: any) => {
+  //       almacenes[almacenId].capturas += r.cantidad ?? 0;
+  //     });
+  //   });
+
+  //   return Object.values(almacenes).map((a: any) => ({
+  //     ...a,
+  //     incidencia:
+  //       a.trampas > 0
+  //         ? ((a.capturas / a.trampas) * 100).toFixed(2) + '%'
+  //         : '0%',
+  //   }));
+  // };
+
+  const resumenPorAlmacen = (seguimientos: any[]) => {
+    const almacenes: any = {};
+
+    seguimientos.forEach((seg) => {
+      const almacenId = seg.almacen.id;
+      const almacenNombre = seg.almacen.nombre;
+
+      if (!almacenes[almacenId]) {
+        almacenes[almacenId] = {
+          almacen: almacenNombre,
+          seguimientos: 0,
+          trampasSet: new Set(),
+          capturas: 0,
+        };
+      }
+
+      // contar seguimiento
+      almacenes[almacenId].seguimientos += 1;
+
+      seg.roedores.forEach((r: any) => {
+        // contar trampa única
+        almacenes[almacenId].trampasSet.add(r.trampa_id);
+
+        // sumar capturas
+        almacenes[almacenId].capturas += r.cantidad ?? 0;
+      });
+    });
+
+    return Object.values(almacenes).map((a: any) => {
+      const trampas = a.trampasSet.size;
+
+      return {
+        almacen: a.almacen,
+        seguimientos: a.seguimientos,
+        trampas: trampas,
+        capturas: a.capturas,
+        incidencia:
+          trampas > 0 ? ((a.capturas / trampas) * 100).toFixed(2) + '%' : '0%',
+      };
+    });
+  };
+
+  const tablaAlmacenes = resumenPorAlmacen(seguimientos);
+
+  // const tablaCeboPorAlmacen = (seguimientos: any[]) => {
+  //   const almacenes: any = {};
+
+  //   seguimientos.forEach((seg) => {
+  //     const almacenId = seg.almacen.id;
+  //     const almacenNombre = seg.almacen.nombre;
+
+  //     if (!almacenes[almacenId]) {
+  //       almacenes[almacenId] = {
+  //         almacen: almacenNombre,
+  //         trampas: 0,
+  //         ceboInicial: 0,
+  //         merma: 0,
+  //         ceboActual: 0,
+  //         capturados: 0,
+  //       };
+  //     }
+
+  //     seg.roedores.forEach((r: any) => {
+  //       almacenes[almacenId].trampas += 1;
+  //       almacenes[almacenId].ceboInicial += r.inicial ?? 0;
+  //       almacenes[almacenId].merma += r.merma ?? 0;
+  //       almacenes[almacenId].ceboActual += r.actual ?? 0;
+  //       almacenes[almacenId].capturados += r.cantidad ?? 0;
+  //     });
+  //   });
+
+  //   return Object.values(almacenes);
+  // };
+
+  const tablaCeboPorAlmacen = (seguimientos: any[]) => {
+    const almacenes: any = {};
+
+    seguimientos.forEach((seg) => {
+      const almacenId = seg.almacen.id;
+      const almacenNombre = seg.almacen.nombre;
+
+      if (!almacenes[almacenId]) {
+        almacenes[almacenId] = {
+          almacen: almacenNombre,
+          trampasSet: new Set(),
+          ceboInicial: 0,
+          merma: 0,
+          ceboActual: 0,
+          capturados: 0,
+        };
+      }
+
+      seg.roedores.forEach((r: any) => {
+        // guardar trampa única
+        almacenes[almacenId].trampasSet.add(r.trampa_id);
+
+        // sumar valores
+        almacenes[almacenId].ceboInicial += r.inicial ?? 0;
+        almacenes[almacenId].merma += r.merma ?? 0;
+        almacenes[almacenId].ceboActual += r.actual ?? 0;
+        almacenes[almacenId].capturados += r.cantidad ?? 0;
+      });
+    });
+
+    return Object.values(almacenes).map((a: any) => ({
+      almacen: a.almacen,
+      trampas: a.trampasSet.size,
+      ceboInicial: a.ceboInicial,
+      merma: a.merma,
+      ceboActual: a.ceboActual,
+      capturados: a.capturados,
+    }));
+  };
+
+  const tablaCebo = tablaCeboPorAlmacen(seguimientos);
+
+  const tablaSanitariaPorAlmacen = (seguimientos: any[]) => {
+    const almacenes: any = {};
+
+    seguimientos.forEach((seg) => {
+      const almacenId = seg.almacen.id;
+      const almacenNombre = seg.almacen.nombre;
+
+      if (!almacenes[almacenId]) {
+        almacenes[almacenId] = {
+          almacen: almacenNombre,
+          tipos: {},
+        };
+      }
+
+      seg.roedores.forEach((r: any) => {
+        const tipo = r.trampa.trampa_tipo.nombre; // golpe / viva
+
+        if (!almacenes[almacenId].tipos[tipo]) {
+          almacenes[almacenId].tipos[tipo] = {
+            trampasSet: new Set(),
+            cebo_inicial: 0,
+            merma: 0,
+            cebo_actual: 0,
+            capturados: 0,
+          };
+        }
+
+        const data = almacenes[almacenId].tipos[tipo];
+
+        // trampas únicas
+        data.trampasSet.add(r.trampa_id);
+
+        // sumatorias
+        data.cebo_inicial += r.inicial ?? 0;
+        data.merma += r.merma ?? 0;
+        data.cebo_actual += r.actual ?? 0;
+        data.capturados += r.cantidad ?? 0;
+      });
+    });
+
+    const resultado: any[] = [];
+
+    Object.values(almacenes).forEach((a: any) => {
+      Object.entries(a.tipos).forEach(([tipo, data]: any) => {
+        resultado.push({
+          almacen: a.almacen,
+          tipo: tipo.toUpperCase(),
+          trampas: data.trampasSet.size,
+          cebo_inicial: data.cebo_inicial,
+          merma: data.merma,
+          cebo_actual: data.cebo_actual,
+          capturados: data.capturados,
+        });
+      });
+    });
+
+    return resultado;
+  };
+
+  const datosSanitarios = tablaSanitariaPorAlmacen(seguimientos);
+
+  const totalesDatosSanitario = datosSanitarios.reduce(
+    (acc: any, row: any) => {
+      acc.trampas += row.trampas;
+      acc.cebo_inicial += row.cebo_inicial;
+      acc.merma += row.merma;
+      acc.cebo_actual += row.cebo_actual;
+      acc.capturados += row.capturados;
+      return acc;
+    },
+    { trampas: 0, cebo_inicial: 0, merma: 0, cebo_actual: 0, capturados: 0 },
+  );
+
+  // const tablaSanitariaPorSeguimiento = (seguimientos: any[]) => {
+  //   const data: any = {};
+
+  //   seguimientos.forEach((seg) => {
+  //     // const seguimientoId = seg.id;
+  //     const seguimientoId = seg.created_at;
+
+  //     if (!data[seguimientoId]) {
+  //       data[seguimientoId] = {
+  //         seguimiento: seguimientoId,
+  //         tipos: {},
+  //       };
+  //     }
+
+  //     seg.roedores.forEach((r: any) => {
+  //       const tipo = r.trampa.trampa_tipo.nombre;
+
+  //       if (!data[seguimientoId].tipos[tipo]) {
+  //         data[seguimientoId].tipos[tipo] = {
+  //           trampasSet: new Set(),
+  //           cebo_inicial: 0,
+  //           merma: 0,
+  //           cebo_actual: 0,
+  //           capturados: 0,
+  //         };
+  //       }
+
+  //       const t = data[seguimientoId].tipos[tipo];
+
+  //       // trampas únicas
+  //       t.trampasSet.add(r.trampa_id);
+
+  //       // sumatorias
+  //       t.cebo_inicial += r.inicial ?? 0;
+  //       t.merma += r.merma ?? 0;
+  //       t.cebo_actual += r.actual ?? 0;
+  //       t.capturados += r.cantidad ?? 0;
+  //     });
+  //   });
+
+  //   const resultado: any[] = [];
+
+  //   Object.values(data).forEach((s: any) => {
+  //     Object.entries(s.tipos).forEach(([tipo, t]: any) => {
+  //       resultado.push({
+  //         seguimiento: s.seguimiento,
+  //         tipo: tipo.toUpperCase(),
+  //         trampas: t.trampasSet.size,
+  //         cebo_inicial: t.cebo_inicial,
+  //         merma: t.merma,
+  //         cebo_actual: t.cebo_actual,
+  //         capturados: t.capturados,
+  //       });
+  //     });
+  //   });
+
+  //   return resultado;
+  // };
+
+  const tablaSanitariaPorSeguimiento = (seguimientos: any[]) => {
+    const data: any = {};
+
+    seguimientos.forEach((seg) => {
+      const seguimientoId = seg.id;
+      const almacenNombre = seg.almacen.nombre;
+
+      if (!data[seguimientoId]) {
+        data[seguimientoId] = {
+          seguimiento: seguimientoId,
+          almacen: almacenNombre,
+          fecha: seg.fecha,
+          tipos: {},
+        };
+      }
+
+      seg.roedores.forEach((r: any) => {
+        const tipo = r.trampa.trampa_tipo.nombre;
+
+        if (!data[seguimientoId].tipos[tipo]) {
+          data[seguimientoId].tipos[tipo] = {
+            trampasSet: new Set(),
+            cebo_inicial: 0,
+            merma: 0,
+            cebo_actual: 0,
+            capturados: 0,
+          };
+        }
+
+        const t = data[seguimientoId].tipos[tipo];
+
+        // trampas únicas
+        t.trampasSet.add(r.trampa_id);
+
+        // sumatorias
+        t.cebo_inicial += r.inicial ?? 0;
+        t.merma += r.merma ?? 0;
+        t.cebo_actual += r.actual ?? 0;
+        t.capturados += r.cantidad ?? 0;
+      });
+    });
+
+    const resultado: any[] = [];
+
+    Object.values(data).forEach((s: any) => {
+      Object.entries(s.tipos).forEach(([tipo, t]: any) => {
+        resultado.push({
+          seguimiento: s.seguimiento,
+          almacen: s.almacen,
+          fecha: s.fecha,
+          tipo: tipo.toUpperCase(),
+          trampas: t.trampasSet.size,
+          cebo_inicial: t.cebo_inicial,
+          merma: t.merma,
+          cebo_actual: t.cebo_actual,
+          capturados: t.capturados,
+        });
+      });
+    });
+
+    return resultado;
+  };
+
+  const datosSeguimiento = tablaSanitariaPorSeguimiento(seguimientos);
+
+  const totalesSeguimiento = datosSeguimiento.reduce(
+    (acc: any, row: any) => {
+      acc.trampas += row.trampas;
+      acc.cebo_inicial += row.cebo_inicial;
+      acc.merma += row.merma;
+      acc.cebo_actual += row.cebo_actual;
+      acc.capturados += row.capturados;
+      return acc;
+    },
+    {
+      trampas: 0,
+      cebo_inicial: 0,
+      merma: 0,
+      cebo_actual: 0,
+      capturados: 0,
+    },
+  );
+
+  const tablaSeguimientoResumen = (seguimientos: any[]) => {
+    const data: any = {};
+
+    seguimientos.forEach((seg) => {
+      const seguimientoId = seg.id;
+
+      if (!data[seguimientoId]) {
+        data[seguimientoId] = {
+          seguimiento: seguimientoId,
+          fecha: seg.fecha,
+          almacen: seg.almacen.nombre,
+          trampasSet: new Set(),
+          cebo_inicial: 0,
+          merma: 0,
+          cebo_actual: 0,
+          capturados: 0,
+        };
+      }
+
+      seg.roedores.forEach((r: any) => {
+        const d = data[seguimientoId];
+
+        // trampas únicas
+        d.trampasSet.add(r.trampa_id);
+
+        // sumatorias
+        d.cebo_inicial += r.inicial ?? 0;
+        d.merma += r.merma ?? 0;
+        d.cebo_actual += r.actual ?? 0;
+        d.capturados += r.cantidad ?? 0;
+      });
+    });
+
+    return Object.values(data).map((d: any) => ({
+      seguimiento: d.seguimiento,
+      fecha: d.fecha,
+      almacen: d.almacen,
+      trampas: d.trampasSet.size,
+      cebo_inicial: d.cebo_inicial,
+      merma: d.merma,
+      cebo_actual: d.cebo_actual,
+      capturados: d.capturados,
+    }));
+  };
+
+  const datosSeguimientoResumen = tablaSeguimientoResumen(seguimientos);
+
+  const totalesResumen = datosSeguimientoResumen.reduce(
+    (acc: any, row: any) => {
+      acc.trampas += row.trampas;
+      acc.cebo_inicial += row.cebo_inicial;
+      acc.merma += row.merma;
+      acc.cebo_actual += row.cebo_actual;
+      acc.capturados += row.capturados;
+      return acc;
+    },
+    {
+      trampas: 0,
+      cebo_inicial: 0,
+      merma: 0,
+      cebo_actual: 0,
+      capturados: 0,
+    },
+  );
+
+  const porcentajeMerma =
+    totalesResumen.cebo_inicial > 0
+      ? (totalesResumen.merma * 100) / totalesResumen.cebo_inicial
+      : 0;
+
+  // const graficosPorAlmacen = Object.values(
+  //   datosSeguimientoResumen.reduce((acc: any, row: any) => {
+  //     if (!acc[row.almacen]) {
+  //       acc[row.almacen] = {
+  //         almacen: row.almacen,
+  //         data: [],
+  //       };
+  //     }
+
+  //     acc[row.almacen].data.push({
+  //       seguimiento: `S${row.seguimiento}`,
+  //       cebo_inicial: row.cebo_inicial,
+  //       merma: row.merma,
+  //     });
+
+  //     return acc;
+  //   }, {}),
+  // );
+
+  const graficosPorAlmacen = Object.values(
+    datosSeguimientoResumen.reduce((acc: any, row: any) => {
+      if (!acc[row.almacen]) {
+        acc[row.almacen] = {
+          almacen: row.almacen,
+          data: [],
+        };
+      }
+
+      const porcentajeMerma =
+        row.cebo_inicial > 0 ? (row.merma * 100) / row.cebo_inicial : 0;
+
+      acc[row.almacen].data.push({
+        fecha: new Date(row.seguimiento).toLocaleDateString('es-ES'),
+        merma_porcentaje: Number(porcentajeMerma.toFixed(2)),
+      });
+
+      return acc;
+    }, {}),
+  );
+
   // Procesar datos de roedores
   const datosRoedores = useMemo(() => {
     const datosPorFechaTrampa: {
@@ -267,17 +973,17 @@ export default function Lista({
     //   return a.trampa_id - b.trampa_id;
     // });
     // Filtrar solo tipo_seguimiento_id = 3
-    const seguimientosFiltrados = seguimientos.filter(
-      (seg) => seg.tipo_seguimiento_id === 1,
-    );
-    const totalSeguimientos = seguimientosFiltrados.length || 1;
+    // const seguimientosFiltrados = seguimientos.filter(
+    //   (seg) => seg.tipo_seguimiento_id === 1,
+    // );
+    // const totalSeguimientos = seguimientosFiltrados.length || 1;
 
     return Object.values(datosPorFechaTrampa)
       .map((item) => ({
         ...item,
-        inicial: Math.round(item.inicial / totalSeguimientos),
-        merma: Math.round(item.merma / totalSeguimientos),
-        actual: Math.round(item.actual / totalSeguimientos),
+        inicial: Math.round(item.inicial),
+        merma: Math.round(item.merma),
+        actual: Math.round(item.actual),
       }))
       .sort((a, b) => {
         if (a.fecha !== b.fecha) {
@@ -674,92 +1380,97 @@ export default function Lista({
       <Head title="Informes" />
 
       <div className="space-y-6 p-6">
-        {/* Empresa */}
-        <Select value={empresaId} onValueChange={onEmpresaChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Seleccione empresa" />
-          </SelectTrigger>
-          <SelectContent>
-            {empresas.map((e) => (
-              <SelectItem key={e.id} value={String(e.id)}>
-                {e.nombre}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Almacén */}
-        <Select
-          value={almacenId}
-          onValueChange={setAlmacenId}
-          disabled={!empresaId}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Seleccione almacén" />
-          </SelectTrigger>
-          <SelectContent>
-            {almacenes.map((a) => (
-              <SelectItem key={a.id} value={String(a.id)}>
-                {a.nombre}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Fechas */}
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            type="date"
-            value={fechaInicio}
-            onChange={(e) => setFechaInicio(e.target.value)}
-          />
-          <Input
-            type="date"
-            value={fechaFin}
-            onChange={(e) => setFechaFin(e.target.value)}
-          />
-        </div>
-
-        {/* Botones */}
-        <div className="flex gap-4">
-          <Button
-            onClick={buscar}
-            disabled={!empresaId || !almacenId || !fechaInicio || !fechaFin}
+        {/* *********** SECCION BUSQUEDA ************************** */}
+        <div className="space-y-3 p-2">
+          {/* Empresa */}
+          <Select value={empresaId} onValueChange={onEmpresaChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Seleccione empresa" />
+            </SelectTrigger>
+            <SelectContent>
+              {empresas.map((e) => (
+                <SelectItem key={e.id} value={String(e.id)}>
+                  {e.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {/* Almacén */}
+          <Select
+            value={almacenId}
+            onValueChange={setAlmacenId}
+            disabled={!empresaId}
           >
-            Buscar
-          </Button>
+            <SelectTrigger>
+              <SelectValue placeholder="Seleccione almacén" />
+            </SelectTrigger>
+            <SelectContent>
+              {almacenes.map((a) => (
+                <SelectItem key={a.id} value={String(a.id)}>
+                  {a.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {/* Fechas */}
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              type="date"
+              value={fechaInicio}
+              onChange={(e) => setFechaInicio(e.target.value)}
+            />
+            <Input
+              type="date"
+              value={fechaFin}
+              onChange={(e) => setFechaFin(e.target.value)}
+            />
+          </div>
+          {/* Botones */}
+          <div className="flex gap-4">
+            <Button
+              onClick={buscar}
+              // disabled={!empresaId || !almacenId || !fechaInicio || !fechaFin}
+              disabled={!empresaId || !fechaInicio || !fechaFin}
+              className="w-[250px]"
+            >
+              Buscar
+            </Button>
 
-          {seguimientos.length > 0 && (
-            <>
-              <Button
-                onClick={exportarPDF}
-                disabled={exportando}
-                className="bg-red-800 text-white"
-              >
-                {exportando ? (
-                  'Exportando...'
-                ) : (
-                  <>
-                    <Download className="mr-2 h-4 w-4" />
-                    Exportar PDF
-                  </>
-                )}
-              </Button>
-              <Button onClick={exportarWord} className="bg-blue-800 text-white">
-                <Download className="mr-2 h-4 w-4" />
-                Exportar Word
-              </Button>
-            </>
-          )}
+            {seguimientos.length > 0 && (
+              <>
+                <Button
+                  onClick={exportarPDF}
+                  disabled={exportando}
+                  className="bg-red-800 text-white"
+                >
+                  {exportando ? (
+                    'Exportando...'
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" />
+                      Exportar PDF
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={exportarWord}
+                  className="bg-blue-800 text-white"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Exportar Word
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Contenido a exportar */}
-        <div ref={contenidoRef} data-export className="space-y-6 bg-white p-6">
+        <div ref={contenidoRef} data-export className="space-y-6 bg-white">
           {/* --------------------------- DATOS DEL INFORME ----------------------------------------- */}
           {/* Encabezado del informe */}
           <div className="mb-6">
-            <h1 className="text-2xl font-bold">Informe de Seguimiento</h1>
-            <div className="mt-2 text-sm text-gray-600">
+            <h1 className="text-3xl font-bold">Informe de Seguimiento</h1>
+            <div className="mt-2 space-y-3 text-gray-700">
               <p>
                 <strong>Empresa:</strong>{' '}
                 {empresas.find((e) => e.id === Number(empresaId))?.nombre}
@@ -782,385 +1493,687 @@ export default function Lista({
           {/* Tabla SEGUIMIENTOS */}
           <div>
             <div className="mb-2 text-[1rem] font-bold">
-              LISTA DE SEGUIMIENTOS
+              TABLA: LISTA DE SEGUIMIENTOS
             </div>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>TECNICO</TableHead>
+                    <TableHead>ENCARGADO</TableHead>
+                    <TableHead>TIPO</TableHead>
+                    <TableHead>ALMACEN</TableHead>
+                    <TableHead>FECHA</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {seguimientos.length ? (
+                    seguimientos.map((s) => (
+                      <TableRow key={s.id}>
+                        <TableCell>{s.id}</TableCell>
+                        <TableCell>{s.user.name}</TableCell>
+                        <TableCell>{s.encargado_nombre}</TableCell>
+                        <TableCell>{s.tipo_seguimiento.nombre}</TableCell>
+                        <TableCell></TableCell>
+                        <TableCell>
+                          {new Date(s.created_at).toLocaleString()}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={2} className="text-center">
+                        Sin resultados
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* --------------------------- CANTIDAD DE TRAMPAS ----------------------------------------- */}
+
+          <hr />
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold">Desratización</h2>
+            <br />
+            <h2 className="text-xl font-bold">Informe de Trampas</h2>
+          </div>
+
+          <h2 className="text-[1rem] font-bold">
+            TABLA: TOTAL DE CANTIDAD DE TRAMPAS
+          </h2>
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>TECNICO</TableHead>
-                  <TableHead>ENCARGADO</TableHead>
-                  <TableHead>TIPO</TableHead>
-                  <TableHead>FECHA</TableHead>
+                  <TableHead>ALMACEN</TableHead>
+                  <TableHead>CANT. TRAMPAS</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {seguimientos.length ? (
-                  seguimientos.map((s) => (
-                    <TableRow key={s.id}>
-                      <TableCell>{s.id}</TableCell>
-                      <TableCell>{s.user.name}</TableCell>
-                      <TableCell>{s.encargado_nombre}</TableCell>
-                      <TableCell>{s.tipo_seguimiento.nombre}</TableCell>
-                      <TableCell>
-                        {new Date(s.created_at).toLocaleString()}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-center">
-                      Sin resultados
-                    </TableCell>
-                  </TableRow>
-                )}
+                <TableRow>
+                  <TableCell>
+                    {almacenes.find((a) => a.id === Number(almacenId))?.nombre}
+                  </TableCell>
+                  <TableCell>{trampasrat}</TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </div>
 
-          <div className="mb-6">
-            <h2 className="text-xl font-bold">Informe de Insectocutores</h2>
+          {/* ********************* TABLA CANTIDAD DE TRAMPAS x TIPO y CANTIDAD DE ROEDORES CAPTURADOS ***************** ----------------------------------------- */}
+          <h2 className="text-[1rem] font-bold">
+            TABLA: CONTROL DE ROEDORES Y CANTIDAD DE TRAMPAS
+          </h2>
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="text-right">Trampas</TableHead>
+                  <TableHead className="text-right">Revisiones</TableHead>
+                  <TableHead className="text-right">Capturas</TableHead>
+                  <TableHead className="text-right">Incidencia %</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {resumen.map((item: any) => (
+                  <TableRow key={item.tipo}>
+                    <TableCell className="font-medium capitalize">
+                      {item.tipo}
+                    </TableCell>
+
+                    <TableCell className="text-right">{item.trampas}</TableCell>
+
+                    <TableCell className="text-right">
+                      {item.revisiones}
+                    </TableCell>
+
+                    <TableCell className="text-right">
+                      {item.capturas}
+                    </TableCell>
+
+                    <TableCell
+                      className={`text-right font-semibold ${colorIncidencia(
+                        Number(item.incidencia),
+                      )}`}
+                    >
+                      {item.incidencia}%
+                    </TableCell>
+                  </TableRow>
+                ))}
+
+                {/* TOTAL */}
+                <TableRow className="bg-muted font-bold">
+                  <TableCell>TOTAL</TableCell>
+
+                  <TableCell className="text-right">{total.trampas}</TableCell>
+
+                  <TableCell className="text-right">
+                    {totalSeguimientos}
+                  </TableCell>
+
+                  <TableCell className="text-right">{total.capturas}</TableCell>
+
+                  <TableCell
+                    className={`text-right ${colorIncidencia(Number(incidenciaTotal))}`}
+                  >
+                    {incidenciaTotal}%
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+            {/* <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="text-right">Trampas</TableHead>
+                  <TableHead className="text-right">Revisiones</TableHead>
+                  <TableHead className="text-right">Capturas</TableHead>
+                  <TableHead className="text-right">Incidencia %</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {resumen.map((item: any) => (
+                  <TableRow key={item.tipo}>
+                    <TableCell className="font-medium">{item.tipo}</TableCell>
+
+                    <TableCell className="text-right">{item.trampas}</TableCell>
+
+                    <TableCell className="text-right">
+                      {item.revisiones}
+                    </TableCell>
+
+                    <TableCell className="text-right">
+                      {item.capturas}
+                    </TableCell>
+
+                    <TableCell className="text-right">
+                      {item.incidencia}%
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table> */}
+            {/* <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tipo de trampa</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {resumenTrampas.map((item: any) => (
+                  <TableRow key={item.tipo}>
+                    <TableCell className="font-medium">{item.tipo}</TableCell>
+
+                    <TableCell className="text-right">{item.total}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table> */}
+            {/* <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>FECHA</TableHead>
+                  <TableHead>CANTIDAD</TableHead>
+                  <TableHead>TIPO</TableHead>
+                  <TableHead>CAPTURADOS</TableHead>
+                  <TableHead>OBSERVACIONES</TableHead>
+                  <TableHead>AREAS</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {seguimientosRoedores.length ? (
+                  seguimientosRoedores.map((s) => (
+                    <TableRow>
+                      <TableCell>{s.created_at}</TableCell>
+                      <TableCell>{}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell>Sin resultados</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table> */}
           </div>
-          {/* --------------------------- CANTIDAD DE INSECTOCUTORES ----------------------------------------- */}
+
+          {/* ********************* TABLA FECHAS DE SEGUIMIENTOS (DESRATIZACION) ***************** ----------------------------------------- */}
+          <h2 className="text-[1rem] font-bold">
+            TABLA: FECHAS DE SEGUIMIENTOS EMPRESA
+          </h2>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Mes</TableHead>
+                  <TableHead className="text-right">Seguimientos</TableHead>
+                  <TableHead className="text-right">Trampas</TableHead>
+                  <TableHead className="text-right">Capturas</TableHead>
+                  <TableHead className="text-right">Incidencia (%)</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {resumenMeses.map((item: any, index: number) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium capitalize">
+                      {item.mes}
+                    </TableCell>
+
+                    <TableCell className="text-right">
+                      {item.seguimientos}
+                    </TableCell>
+
+                    <TableCell className="text-right">{item.trampas}</TableCell>
+
+                    <TableCell className="text-right">
+                      {item.capturas}
+                    </TableCell>
+
+                    <TableCell className="text-right font-semibold">
+                      {item.incidencia} %
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            {/* <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Mes</TableHead>
+                  <TableHead className="text-right">Seguimientos</TableHead>
+                  <TableHead className="text-right">
+                    Trampas revisadas
+                  </TableHead>
+                  <TableHead className="text-right">Capturas</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {resumenMeses.map((item: any, index: number) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium capitalize">
+                      {item.mes}
+                    </TableCell>
+
+                    <TableCell className="text-right">
+                      {item.seguimientos}
+                    </TableCell>
+
+                    <TableCell className="text-right">{item.trampas}</TableCell>
+
+                    <TableCell className="text-right">
+                      {item.capturas}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table> */}
+
+            {/* <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead colSpan={2}>DESRATIZACION</TableHead>
+                </TableRow>
+                <TableRow>
+                  <TableHead colSpan={2}>EMPRESA</TableHead>
+                </TableRow>
+                <TableRow>
+                  <TableHead>MES</TableHead>
+                  <TableHead>FECHAS</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody></TableBody>
+            </Table> */}
+          </div>
+
+          {/* ********************* TABLA CANTIDAD DE TRAMPAS x TIPO y CANTIDAD DE ROEDORES CAPTURADOS (EN CADA SEGUIMIENTO) ***************** ----------------------------------------- */}
+          <h2 className="text-[1rem] font-bold">
+            TABLA: CAPTURA DE ROEDORES POR TRAMPAS POR ALMACEN
+          </h2>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Almacén</TableHead>
+                  <TableHead className="text-right">Seguimientos</TableHead>
+                  <TableHead className="text-right">Trampas</TableHead>
+                  <TableHead className="text-right">Capturas</TableHead>
+                  <TableHead className="text-right">Incidencia</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {tablaAlmacenes.map((item: any, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{item.almacen}</TableCell>
+                    <TableCell className="text-right">
+                      {item.seguimientos}
+                    </TableCell>
+                    <TableCell className="text-right">{item.trampas}</TableCell>
+                    <TableCell className="text-right">
+                      {item.capturas}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {item.incidencia}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {/* <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>FECHA</TableHead>
+                  <TableHead>CANTIDAD</TableHead>
+                  <TableHead>TIPO</TableHead>
+                  <TableHead>CAPTURADOS</TableHead>
+                  <TableHead>OBSERVACIONES</TableHead>
+                  <TableHead>AREAS</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody></TableBody>
+            </Table> */}
+          </div>
+
+          {/* ********************* TABLA RESUMEN X (CADA SEGUIMIENTO Y CADA ALMACEN) ***************** ----------------------------------------- */}
+          <h2 className="text-[1rem] font-bold">
+            TABLA: ANALISIS ALMACEN: XXXX
+          </h2>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ALMACÉN</TableHead>
+                  <TableHead className="text-right">TRAMPAS</TableHead>
+                  <TableHead className="text-right">CEBO INICIAL</TableHead>
+                  <TableHead className="text-right">MERMA</TableHead>
+                  <TableHead className="text-right">CEBO ACTUAL</TableHead>
+                  <TableHead className="text-right">
+                    ROEDORES CAPTURADOS
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {tablaCebo.map((item: any, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{item.almacen}</TableCell>
+                    <TableCell className="text-right">{item.trampas}</TableCell>
+                    <TableCell className="text-right">
+                      {item.ceboInicial}
+                    </TableCell>
+                    <TableCell className="text-right">{item.merma}</TableCell>
+                    <TableCell className="text-right">
+                      {item.ceboActual}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {item.capturados}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {/* <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>FECHA</TableHead>
+                  <TableHead>TOTAL</TableHead>
+                  <TableHead>ACTUAL</TableHead>
+                  <TableHead>MERMA</TableHead>
+                  <TableHead>PORCENTAJE</TableHead>
+                  <TableHead>CAUSAS</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody></TableBody>
+            </Table> */}
+          </div>
 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ALMACEN</TableHead>
-                <TableHead>CANT. INSECTOCUTORES</TableHead>
+                <TableHead>ALMACÉN</TableHead>
+                <TableHead className="text-right">TIPO TRAMPA</TableHead>
+                <TableHead className="text-right">TRAMPAS</TableHead>
+                <TableHead className="text-right">CEBO INICIAL</TableHead>
+                <TableHead className="text-right">MERMA</TableHead>
+                <TableHead className="text-right">CEBO ACTUAL</TableHead>
+                <TableHead className="text-right">
+                  ROEDORES CAPTURADOS
+                </TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
-              <TableRow>
-                <TableCell>
-                  {almacenes.find((a) => a.id === Number(almacenId))?.nombre}
+              {datosSanitarios.map((row: any, index: number) => (
+                <TableRow key={index}>
+                  <TableCell>{row.almacen}</TableCell>
+                  <TableCell className="text-right">{row.tipo}</TableCell>
+                  <TableCell className="text-right">{row.trampas}</TableCell>
+                  <TableCell className="text-right">
+                    {row.cebo_inicial}
+                  </TableCell>
+                  <TableCell className="text-right">{row.merma}</TableCell>
+                  <TableCell className="text-right">
+                    {row.cebo_actual}
+                  </TableCell>
+                  <TableCell className="text-right">{row.capturados}</TableCell>
+                </TableRow>
+              ))}
+              <TableRow className="bg-muted font-bold">
+                <TableCell colSpan={2}>TOTAL</TableCell>
+                <TableCell className="text-right">
+                  {totalesDatosSanitario.trampas}
                 </TableCell>
-                <TableCell>{trampasinsect}</TableCell>
+                <TableCell className="text-right">
+                  {totalesDatosSanitario.cebo_inicial}
+                </TableCell>
+                <TableCell className="text-right">
+                  {totalesDatosSanitario.merma}
+                </TableCell>
+                <TableCell className="text-right">
+                  {totalesDatosSanitario.cebo_actual}
+                </TableCell>
+                <TableCell className="text-right">
+                  {totalesDatosSanitario.capturados}
+                </TableCell>
               </TableRow>
             </TableBody>
           </Table>
-
-          {/* GRÁFICO 1: Totales por Especie (Barras) */}
-          {datosInsectocutores.especies.length > 0 && (
-            <div>
-              <div className="mb-4 text-[1rem] font-bold">
-                GRÁFICO: TOTAL DE INSECTOS POR ESPECIE
-              </div>
-              <ChartContainer
-                config={chartConfigInsectos}
-                className="h-[300px]"
-                ref={chartInsectosRef}
-              >
-                <BarChart
-                  data={Object.entries(datosInsectocutores.totales).map(
-                    ([especie, total]) => ({
-                      especie,
-                      cantidad: total,
-                      fill: chartConfigInsectos[especie]?.color,
-                    }),
-                  )}
-                  barCategoryGap="20%"
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="especie" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="cantidad" radius={8} />
-                </BarChart>
-              </ChartContainer>
-            </div>
-          )}
-
-          {/* --------------------------- INCIDENCIA ----------------------------------------- */}
-          {/* TABLA DE INSECTOCUTORES "INCIDENCIA" */}
-          <div>
-            <div className="mb-2 text-[1rem] font-bold">
-              INCIDENCIA DE INSECTOS VOLADORES{' '}
-              {/* <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-                Cálculo {datosInsectocutores.datosPorFecha.length} seguimientos
-              </Badge> */}
-            </div>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-bold">
-                      Fecha de Seguimiento
-                    </TableHead>
-                    {datosInsectocutores.especies.map((especie) => (
-                      <TableHead
-                        key={especie}
-                        className="text-center font-bold"
-                      >
-                        {especie}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {datosInsectocutores.datosPorFecha.length > 0 ? (
-                    <>
-                      {datosInsectocutores.datosPorFecha.map((dato, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">
-                            {dato.fecha}
-                          </TableCell>
-                          {datosInsectocutores.especies.map((especie) => (
-                            <TableCell key={especie} className="text-center">
-                              {dato.cantidades[especie]}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))}
-                      <TableRow className="bg-muted/50 font-bold">
-                        <TableCell>TOTAL</TableCell>
-                        {datosInsectocutores.especies.map((especie) => (
-                          <TableCell key={especie} className="text-center">
-                            {datosInsectocutores.totales[especie]}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>PROMEDIO</TableCell>
-                        {datosInsectocutores.especies.map((especie) => (
-                          <TableCell key={especie} className="text-center">
-                            {datosInsectocutores.promedios[especie].toFixed(2)}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    </>
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={datosInsectocutores.especies.length + 1}
-                        className="text-center"
-                      >
-                        Sin resultados
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-
-          {/* GRÁFICO INCIDENCIA */}
-          {datosInsectocutores.especies.length > 0 && (
-            <div>
-              <div className="mb-4 text-[1rem] font-bold">
-                GRÁFICO DE INCIDENCIA: EVOLUCIÓN DE INSECTOS POR FECHA
-              </div>
-              <ChartContainer
-                config={chartConfigInsectos}
-                className="h-[300px]"
-                ref={chartEvolucionRef}
-              >
-                <BarChart
-                  data={datosInsectocutores.datosPorFecha.map((dato) => ({
-                    fecha: dato.fecha,
-                    ...dato.cantidades,
-                  }))}
-                  barGap={4}
-                  barCategoryGap="20%"
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="fecha" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Legend />
-                  {datosInsectocutores.especies.map((especie) => (
-                    <Bar
-                      key={especie}
-                      dataKey={especie}
-                      fill={chartConfigInsectos[especie]?.color}
-                      radius={4}
-                    />
-                  ))}
-                </BarChart>
-              </ChartContainer>
-            </div>
-          )}
-
-          {/* --------------------------- SEVERIDAD ----------------------------------------- */}
-          {/* TABLA DE INSECTOCUTORES "SEVERIDAD" */}
-          <div>
-            <div className="mb-2 text-[1rem] font-bold">
-              SEVERIDAD DE INSECTOS VOLADORES{' '}
-              {/* <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-                Cálculo {datosInsectocutores.datosPorFecha.length} seguimientos
-              </Badge> */}
-            </div>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-bold">
-                      Fecha de Seguimiento
-                    </TableHead>
-                    {datosInsectocutores.especies.map((especie) => (
-                      <TableHead
-                        key={especie}
-                        className="text-center font-bold"
-                      >
-                        {especie}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {datosInsectocutores.datosPorFecha.length > 0 ? (
-                    <>
-                      {datosInsectocutores.datosPorFecha.map((dato, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">
-                            {dato.fecha}
-                          </TableCell>
-                          {datosInsectocutores.especies.map((especie) => (
-                            <TableCell key={especie} className="text-center">
-                              {Math.floor(
-                                dato.cantidades[especie] /
-                                  datosInsectocutores.datosPorFecha.length,
-                              )}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))}
-                      <TableRow className="bg-muted/50 font-bold">
-                        <TableCell>TOTAL</TableCell>
-                        {datosInsectocutores.especies.map((especie) => (
-                          <TableCell key={especie} className="text-center">
-                            {datosInsectocutores.totales[especie]}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>PROMEDIO</TableCell>
-                        {datosInsectocutores.especies.map((especie) => (
-                          <TableCell key={especie} className="text-center">
-                            {(
-                              datosInsectocutores.promedios[especie] /
-                              datosInsectocutores.datosPorFecha.length
-                            ).toFixed(2)}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    </>
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={datosInsectocutores.especies.length + 1}
-                        className="text-center"
-                      >
-                        Sin resultados
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-
-          {/* GRÁFICO SEVERIDAD */}
-          {datosInsectocutores.especies.length > 0 && (
-            <div>
-              <div className="mb-4 text-[1rem] font-bold">
-                GRÁFICO DE SEVERIDAD
-              </div>
-              <ChartContainer
-                config={chartConfigInsectos}
-                className="h-[300px]"
-                ref={chartEvolucionRef}
-              >
-                <BarChart
-                  data={dataSeveridadPivot}
-                  barGap={4}
-                  barCategoryGap="20%"
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-
-                  {/* AHORA X ES ESPECIE */}
-                  <XAxis dataKey="especie" />
-
-                  <YAxis />
-
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Legend />
-
-                  {/* LAS BARRAS SON LAS FECHAS */}
-                  {datosInsectocutores.datosPorFecha.map((dato, index) => (
-                    <Bar
-                      key={dato.fecha}
-                      dataKey={dato.fecha}
-                      fill={`hsl(${(index * 360) / datosInsectocutores.datosPorFecha.length},70%,50%)`}
-                      radius={4}
-                      name={dato.fecha}
-                    />
-                  ))}
-                </BarChart>
-              </ChartContainer>
-            </div>
-          )}
-
-          {/* {datosInsectocutores.especies.length > 0 && (
-            <div>
-              <div className="mb-4 text-[1rem] font-bold">
-                GRÁFICO DE SEVERIDAD
-              </div>
-              <ChartContainer
-                config={chartConfigInsectos}
-                className="h-[300px]"
-                ref={chartEvolucionRef}
-              >
-                <BarChart
-                  // data={datosInsectocutores.datosPorFecha.map((dato) => ({
-                  //   fecha: dato.fecha,
-                  //   ...dato.cantidades,
-                  // }))}
-                  data={dataPromedio}
-                  barGap={4}
-                  barCategoryGap="20%"
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="fecha" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Legend />
-                  {datosInsectocutores.especies.map((especie) => (
-                    <Bar
-                      key={especie}
-                      dataKey={especie}
-                      fill={chartConfigInsectos[especie]?.color}
-                      radius={4}
-                    />
-                  ))}
-                </BarChart>
-              </ChartContainer>
-            </div>
-          )} */}
-
-          <div className="mb-6">
-            <h2 className="text-xl font-bold">Informe de Trampas</h2>
-          </div>
-          {/* --------------------------- CANTIDAD DE INSECTOCUTORES ----------------------------------------- */}
 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ALMACEN</TableHead>
-                <TableHead>CANT. TRAMPAS</TableHead>
+                <TableHead>SEGUIMIENTO</TableHead>
+                <TableHead className="text-right">ALMACÉN</TableHead>
+                <TableHead className="text-right">TIPO TRAMPA</TableHead>
+                <TableHead className="text-right">TRAMPAS</TableHead>
+                <TableHead className="text-right">CEBO INICIAL</TableHead>
+                <TableHead className="text-right">MERMA</TableHead>
+                <TableHead className="text-right">CEBO ACTUAL</TableHead>
+                <TableHead className="text-right">
+                  ROEDORES CAPTURADOS
+                </TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
-              <TableRow>
-                <TableCell>
-                  {almacenes.find((a) => a.id === Number(almacenId))?.nombre}
+              {datosSeguimiento.map((row: any, index: number) => (
+                <TableRow key={index}>
+                  {/* <TableCell>{row.seguimiento}</TableCell> */}
+                  <TableCell className="font-mono text-xs text-muted-foreground sm:text-sm">
+                    {new Date(row.seguimiento).toLocaleDateString('es-ES')}
+                  </TableCell>
+                  <TableCell className="text-right">{row.almacen}</TableCell>
+                  <TableCell className="text-right">{row.tipo}</TableCell>
+                  <TableCell className="text-right">{row.trampas}</TableCell>
+                  <TableCell className="text-right">
+                    {row.cebo_inicial}
+                  </TableCell>
+                  <TableCell className="text-right">{row.merma}</TableCell>
+                  <TableCell className="text-right">
+                    {row.cebo_actual}
+                  </TableCell>
+                  <TableCell className="text-right">{row.capturados}</TableCell>
+                </TableRow>
+              ))}
+              {/* FILA TOTAL */}
+              <TableRow className="bg-muted font-bold">
+                <TableCell colSpan={3}>TOTAL</TableCell>
+                <TableCell className="text-right">
+                  {totalesSeguimiento.trampas}
                 </TableCell>
-                <TableCell>{trampasrat}</TableCell>
+                <TableCell className="text-right">
+                  {totalesSeguimiento.cebo_inicial}
+                </TableCell>
+                <TableCell className="text-right">
+                  {totalesSeguimiento.merma}
+                </TableCell>
+                <TableCell className="text-right">
+                  {totalesSeguimiento.cebo_actual}
+                </TableCell>
+                <TableCell className="text-right">
+                  {totalesSeguimiento.capturados}
+                </TableCell>
               </TableRow>
             </TableBody>
           </Table>
 
-          {/* TABLA DE ROEDORES */}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>SEGUIMIENTO</TableHead>
+                {/* <TableHead>FECHA</TableHead> */}
+                <TableHead className="text-right">ALMACÉN</TableHead>
+                <TableHead className="text-right">TRAMPAS</TableHead>
+                <TableHead className="text-right">CEBO INICIAL</TableHead>
+                <TableHead className="text-right">MERMA</TableHead>
+                <TableHead className="text-right">CEBO ACTUAL</TableHead>
+                <TableHead className="text-right">PORCENTAJE</TableHead>
+                <TableHead className="text-right">
+                  ROEDORES CAPTURADOS
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {datosSeguimientoResumen.map((row: any, index: number) => (
+                <TableRow key={index}>
+                  {/* <TableCell>{row.seguimiento}</TableCell> */}
+                  <TableCell className="font-mono text-xs text-muted-foreground sm:text-sm">
+                    {new Date(row.seguimiento).toLocaleDateString('es-ES')}
+                  </TableCell>
+                  <TableCell className="text-right">{row.almacen}</TableCell>
+                  <TableCell className="text-right">{row.trampas}</TableCell>
+                  <TableCell className="text-right">
+                    {row.cebo_inicial}
+                  </TableCell>
+                  <TableCell className="text-right">{row.merma}</TableCell>
+                  <TableCell className="text-right">
+                    {row.cebo_actual}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {((row.merma * 100) / row.cebo_inicial).toFixed(1)}%
+                  </TableCell>
+                  <TableCell className="text-right">{row.capturados}</TableCell>
+                </TableRow>
+              ))}
+
+              {/* TOTAL */}
+              <TableRow className="bg-muted font-bold">
+                <TableCell colSpan={2}>TOTAL</TableCell>
+                <TableCell className="text-right">
+                  {totalesResumen.trampas}
+                </TableCell>
+                <TableCell className="text-right">
+                  {totalesResumen.cebo_inicial}
+                </TableCell>
+                <TableCell className="text-right">
+                  {totalesResumen.merma}
+                </TableCell>
+                <TableCell className="text-right">
+                  {totalesResumen.cebo_actual}
+                </TableCell>
+                <TableCell className="text-right">
+                  {(
+                    (totalesResumen.merma * 100) /
+                    totalesResumen.cebo_inicial
+                  ).toFixed(2)}
+                  %
+                </TableCell>
+                <TableCell className="text-right">
+                  {totalesResumen.capturados}
+                </TableCell>
+              </TableRow>
+              <TableRow className="font-bold">
+                <TableCell>TOTAL</TableCell>
+                <TableCell>{totalesResumen.cebo_inicial}</TableCell>
+                <TableCell>100%</TableCell>
+              </TableRow>
+              <TableRow className="font-bold">
+                <TableCell>MERMA</TableCell>
+                <TableCell>{totalesResumen.merma}</TableCell>
+                <TableCell>
+                  {(
+                    (totalesResumen.merma * 100) /
+                    totalesResumen.cebo_inicial
+                  ).toFixed(2)}
+                  %
+                </TableCell>
+              </TableRow>
+              <TableRow className="font-bold">
+                <TableCell>CAUSAS</TableCell>
+                <TableCell>
+                  {porcentajeMerma < 9
+                    ? 'MA'
+                    : porcentajeMerma >= 9 && porcentajeMerma < 15
+                      ? 'MECÁNICO'
+                      : 'CONSUMO'}
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+
+          {/* {graficosPorAlmacen.map((alm: any, index: number) => (
+            <div key={index} className="mb-10">
+              <h3 className="mb-4 text-lg font-semibold">{alm.almacen}</h3>
+
+              <ChartContainer
+                config={{
+                  cebo_inicial: {
+                    label: 'Cebo Inicial',
+                  },
+                  merma: {
+                    label: 'Merma',
+                  },
+                }}
+                // className="h-[300px] w-full"
+                className="h-[300px]"
+              >
+                <BarChart data={alm.data}>
+                  <CartesianGrid vertical={false} />
+
+                  <XAxis
+                    dataKey="seguimiento"
+                    tickLine={false}
+                    axisLine={false}
+                  />
+
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Legend />
+
+                  <Bar dataKey="cebo_inicial" fill="#f11" radius={6} />
+
+                  <Bar dataKey="merma" fill="#0f0" radius={6} />
+                </BarChart>
+              </ChartContainer>
+            </div>
+          ))} */}
+
+          {graficosPorAlmacen.map((alm: any, index: number) => (
+            <div key={index} className="mb-10">
+              <h3 className="mb-4 text-lg font-semibold">{alm.almacen}</h3>
+
+              <ChartContainer
+                config={{
+                  merma_porcentaje: {
+                    label: '% Merma',
+                  },
+                }}
+                // className="h-[300px] w-full"
+                className="h-[300px]"
+              >
+                <BarChart data={alm.data}>
+                  <CartesianGrid vertical={false} />
+
+                  <XAxis dataKey="fecha" tickLine={false} axisLine={false} />
+
+                  <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+
+                  <Tooltip formatter={(value: any) => `${value}%`} />
+
+                  <Bar dataKey="merma_porcentaje" fill="#ef4444" radius={4} />
+                </BarChart>
+              </ChartContainer>
+            </div>
+          ))}
+
+          {/* ************** TABLA DE ROEDORES (CALCULAR POR CADA ALMACEN) ****************************** */}
+          <h2 className="text-[1rem] font-bold">
+            TABLA: ANALISIS ALMACEN: XXXX
+          </h2>
           <div>
             <div className="mb-2 text-[1rem] font-bold">
               SEGUIMIENTO PESO DE TRAMPAS{' '}
@@ -1219,12 +2232,16 @@ export default function Lista({
                             {dato.observaciones.join(', ') || '-'}
                           </TableCell> */}
                           <TableCell className="text-center">
-                            {(dato.merma * 100) / dato.inicial}
+                            {dato.inicial > 0
+                              ? ((dato.merma * 100) / dato.inicial).toFixed(2)
+                              : '-'}
                           </TableCell>
                           <TableCell>
-                            {(dato.merma * 100) / dato.inicial <= 25
-                              ? 'Medio Ambiente'
-                              : 'Consumo'}
+                            {dato.inicial > 0
+                              ? (dato.merma * 100) / dato.inicial <= 25
+                                ? 'Medio Ambiente'
+                                : 'Consumo'
+                              : '-'}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1271,15 +2288,17 @@ export default function Lista({
                           )}
                         </TableCell>
                         <TableCell>
-                          {(datosRoedores.reduce(
-                            (sum, dato) => sum + dato.merma,
-                            0,
-                          ) *
-                            100) /
+                          {(
+                            (datosRoedores.reduce(
+                              (sum, dato) => sum + dato.merma,
+                              0,
+                            ) *
+                              100) /
                             datosRoedores.reduce(
                               (sum, dato) => sum + dato.inicial,
                               0,
-                            )}{' '}
+                            )
+                          ).toFixed(2)}{' '}
                           %
                         </TableCell>
                       </TableRow>
@@ -1292,15 +2311,17 @@ export default function Lista({
                           )}
                         </TableCell>
                         <TableCell>
-                          {(datosRoedores.reduce(
-                            (sum, dato) => sum + (dato.inicial - dato.merma),
-                            0,
-                          ) *
-                            100) /
+                          {(
+                            (datosRoedores.reduce(
+                              (sum, dato) => sum + (dato.inicial - dato.merma),
+                              0,
+                            ) *
+                              100) /
                             datosRoedores.reduce(
                               (sum, dato) => sum + dato.inicial,
                               0,
-                            )}{' '}
+                            )
+                          ).toFixed(2)}{' '}
                           %
                         </TableCell>
                       </TableRow>
@@ -1319,21 +2340,23 @@ export default function Lista({
                           }, 0)}
                         </TableCell>
                         <TableCell>
-                          {(datosRoedores.reduce((sum, dato) => {
-                            const inicial = dato.inicial;
-                            const actual = inicial - dato.merma;
-                            const porcentaje = (dato.merma * 100) / inicial;
+                          {(
+                            (datosRoedores.reduce((sum, dato) => {
+                              const inicial = dato.inicial;
+                              const actual = inicial - dato.merma;
+                              const porcentaje = (dato.merma * 100) / inicial;
 
-                            if (porcentaje > 25) {
-                              return sum + actual;
-                            }
-                            return sum;
-                          }, 0) *
-                            100) /
+                              if (porcentaje > 25) {
+                                return sum + actual;
+                              }
+                              return sum;
+                            }, 0) *
+                              100) /
                             datosRoedores.reduce(
                               (sum, dato) => sum + (dato.inicial - dato.merma),
                               0,
-                            )}{' '}
+                            )
+                          ).toFixed(2)}{' '}
                           %
                         </TableCell>
                       </TableRow>
@@ -1352,21 +2375,23 @@ export default function Lista({
                           }, 0)}
                         </TableCell>
                         <TableCell>
-                          {(datosRoedores.reduce((sum, dato) => {
-                            const inicial = dato.inicial;
-                            const actual = inicial - dato.merma;
-                            const porcentaje = (dato.merma * 100) / inicial;
+                          {(
+                            (datosRoedores.reduce((sum, dato) => {
+                              const inicial = dato.inicial;
+                              const actual = inicial - dato.merma;
+                              const porcentaje = (dato.merma * 100) / inicial;
 
-                            if (porcentaje <= 25) {
-                              return sum + actual;
-                            }
-                            return sum;
-                          }, 0) *
-                            100) /
+                              if (porcentaje <= 25) {
+                                return sum + actual;
+                              }
+                              return sum;
+                            }, 0) *
+                              100) /
                             datosRoedores.reduce(
                               (sum, dato) => sum + (dato.inicial - dato.merma),
                               0,
-                            )}{' '}
+                            )
+                          ).toFixed(2)}{' '}
                           %
                         </TableCell>
                       </TableRow>
@@ -1512,6 +2537,343 @@ export default function Lista({
               </ChartContainer>
             </div>
           )}
+
+          {/* ********************* GRAFICA: MONITOREO DE ROEDORES (X ALMACEN) ***************** ----------------------------------------- */}
+
+          {/* --------------------------- CANTIDAD DE INSECTOCUTORES ----------------------------------------- */}
+          <hr />
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold">Insectocutores</h2>
+            <br />
+            <h2 className="text-xl font-bold">Informe de Insectocutores</h2>
+          </div>
+
+          {/* **************** INSECTOCUTORES POR ALMACEN ************************ */}
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ALMACEN</TableHead>
+                  <TableHead>CANT. INSECTOCUTORES</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>
+                    {almacenes.find((a) => a.id === Number(almacenId))?.nombre}
+                  </TableCell>
+                  <TableCell>{trampasinsect}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* **************** GRAFICOS DE TODOS LOS ALMACENES ************************ */}
+          {/* GRÁFICO 1: CANTIDAD Totales por Especie (Barras) */}
+          {datosInsectocutores.especies.length > 0 && (
+            <div>
+              <div className="mb-4 text-[1rem] font-bold">
+                GRÁFICO: TOTAL DE INSECTOS POR ESPECIE
+              </div>
+              <ChartContainer
+                config={chartConfigInsectos}
+                className="h-[300px]"
+                ref={chartInsectosRef}
+              >
+                <BarChart
+                  data={Object.entries(datosInsectocutores.totales).map(
+                    ([especie, total]) => ({
+                      especie,
+                      cantidad: total,
+                      fill: chartConfigInsectos[especie]?.color,
+                    }),
+                  )}
+                  barCategoryGap="20%"
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="especie" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="cantidad" radius={8} />
+                </BarChart>
+              </ChartContainer>
+            </div>
+          )}
+
+          {/* **************** SECCION POR ALMACEN ************************ */}
+
+          {/* --------------------------- INCIDENCIA ----------------------------------------- */}
+          {/* TABLA DE INSECTOCUTORES "INCIDENCIA" */}
+          <div>
+            <div className="mb-2 text-[1rem] font-bold">
+              INCIDENCIA DE INSECTOS VOLADORES{' '}
+              {/* <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+                Cálculo {datosInsectocutores.datosPorFecha.length} seguimientos
+              </Badge> */}
+            </div>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-bold">
+                      Fecha de Seguimiento
+                    </TableHead>
+                    {datosInsectocutores.especies.map((especie) => (
+                      <TableHead
+                        key={especie}
+                        className="text-center font-bold"
+                      >
+                        {especie}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {datosInsectocutores.datosPorFecha.length > 0 ? (
+                    <>
+                      {datosInsectocutores.datosPorFecha.map((dato, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">
+                            {dato.fecha}
+                          </TableCell>
+                          {datosInsectocutores.especies.map((especie) => (
+                            <TableCell key={especie} className="text-center">
+                              {dato.cantidades[especie]}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-muted/50 font-bold">
+                        <TableCell>TOTAL</TableCell>
+                        {datosInsectocutores.especies.map((especie) => (
+                          <TableCell key={especie} className="text-center">
+                            {datosInsectocutores.totales[especie]}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>PROMEDIO</TableCell>
+                        {datosInsectocutores.especies.map((especie) => (
+                          <TableCell key={especie} className="text-center">
+                            {datosInsectocutores.promedios[especie].toFixed(2)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </>
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={datosInsectocutores.especies.length + 1}
+                        className="text-center"
+                      >
+                        Sin resultados
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* GRÁFICO INCIDENCIA */}
+          {datosInsectocutores.especies.length > 0 && (
+            <div>
+              <div className="mb-4 text-[1rem] font-bold">
+                GRÁFICO DE INCIDENCIA: EVOLUCIÓN DE INSECTOS POR FECHA
+              </div>
+              <ChartContainer
+                config={chartConfigInsectos}
+                className="h-[300px]"
+                ref={chartEvolucionRef}
+              >
+                <BarChart
+                  data={datosInsectocutores.datosPorFecha.map((dato) => ({
+                    fecha: dato.fecha,
+                    ...dato.cantidades,
+                  }))}
+                  barGap={4}
+                  barCategoryGap="20%"
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="fecha" />
+                  <YAxis
+                    domain={[0, 100]}
+                    tickFormatter={(value) => `${value}`}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Legend />
+                  {datosInsectocutores.especies.map((especie) => (
+                    <Bar
+                      key={especie}
+                      dataKey={especie}
+                      fill={chartConfigInsectos[especie]?.color}
+                      radius={4}
+                    />
+                  ))}
+                </BarChart>
+              </ChartContainer>
+            </div>
+          )}
+
+          {/* --------------------------- SEVERIDAD ----------------------------------------- */}
+          {/* TABLA DE INSECTOCUTORES "SEVERIDAD" */}
+          <div>
+            <div className="mb-2 text-[1rem] font-bold">
+              SEVERIDAD DE INSECTOS VOLADORES{' '}
+              {/* <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+                Cálculo {datosInsectocutores.datosPorFecha.length} seguimientos
+              </Badge> */}
+            </div>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-bold">
+                      Fecha de Seguimiento
+                    </TableHead>
+                    {datosInsectocutores.especies.map((especie) => (
+                      <TableHead
+                        key={especie}
+                        className="text-center font-bold"
+                      >
+                        {especie}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {datosInsectocutores.datosPorFecha.length > 0 ? (
+                    <>
+                      {datosInsectocutores.datosPorFecha.map((dato, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">
+                            {dato.fecha}
+                          </TableCell>
+                          {datosInsectocutores.especies.map((especie) => (
+                            <TableCell key={especie} className="text-center">
+                              {Math.floor(
+                                dato.cantidades[especie] /
+                                  datosInsectocutores.datosPorFecha.length,
+                              )}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-muted/50 font-bold">
+                        <TableCell>TOTAL</TableCell>
+                        {datosInsectocutores.especies.map((especie) => (
+                          <TableCell key={especie} className="text-center">
+                            {datosInsectocutores.totales[especie]}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>PROMEDIO</TableCell>
+                        {datosInsectocutores.especies.map((especie) => (
+                          <TableCell key={especie} className="text-center">
+                            {(
+                              datosInsectocutores.promedios[especie] /
+                              datosInsectocutores.datosPorFecha.length
+                            ).toFixed(2)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </>
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={datosInsectocutores.especies.length + 1}
+                        className="text-center"
+                      >
+                        Sin resultados
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* GRÁFICO SEVERIDAD */}
+          {datosInsectocutores.especies.length > 0 && (
+            <div>
+              <div className="mb-4 text-[1rem] font-bold">
+                GRÁFICO DE SEVERIDAD
+              </div>
+              <ChartContainer
+                config={chartConfigInsectos}
+                className="h-[300px]"
+                ref={chartEvolucionRef}
+              >
+                <BarChart
+                  data={dataSeveridadPivot}
+                  barGap={4}
+                  barCategoryGap="20%"
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+
+                  {/* AHORA X ES ESPECIE */}
+                  <XAxis dataKey="especie" />
+
+                  <YAxis
+                    domain={[0, 33]}
+                    tickFormatter={(value) => `${value}`}
+                  />
+
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Legend />
+
+                  {/* LAS BARRAS SON LAS FECHAS */}
+                  {datosInsectocutores.datosPorFecha.map((dato, index) => (
+                    <Bar
+                      key={dato.fecha}
+                      dataKey={dato.fecha}
+                      fill={`hsl(${(index * 360) / datosInsectocutores.datosPorFecha.length},70%,50%)`}
+                      radius={4}
+                      name={dato.fecha}
+                    />
+                  ))}
+                </BarChart>
+              </ChartContainer>
+            </div>
+          )}
+
+          {/* {datosInsectocutores.especies.length > 0 && (
+            <div>
+              <div className="mb-4 text-[1rem] font-bold">
+                GRÁFICO DE SEVERIDAD
+              </div>
+              <ChartContainer
+                config={chartConfigInsectos}
+                className="h-[300px]"
+                ref={chartEvolucionRef}
+              >
+                <BarChart
+                  // data={datosInsectocutores.datosPorFecha.map((dato) => ({
+                  //   fecha: dato.fecha,
+                  //   ...dato.cantidades,
+                  // }))}
+                  data={dataPromedio}
+                  barGap={4}
+                  barCategoryGap="20%"
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="fecha" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Legend />
+                  {datosInsectocutores.especies.map((especie) => (
+                    <Bar
+                      key={especie}
+                      dataKey={especie}
+                      fill={chartConfigInsectos[especie]?.color}
+                      radius={4}
+                    />
+                  ))}
+                </BarChart>
+              </ChartContainer>
+            </div>
+          )} */}
         </div>
       </div>
     </AppLayout>

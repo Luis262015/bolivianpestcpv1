@@ -20,12 +20,24 @@ interface TrampaTipo {
   nombre: string;
 }
 
+interface Almacen {
+  id: number;
+  nombre: string;
+}
+
+interface Mapa {
+  id: number;
+  titulo: string;
+}
+
 interface Trampa {
   id: number;
   numero: number;
   identificador: string;
   mapa_id: number;
   trampa_tipo: TrampaTipo;
+  almacen: Almacen;
+  mapa: Mapa;
 }
 
 interface Especie {
@@ -40,6 +52,7 @@ export interface TrampaEspecieSeguimientos {
 }
 
 export interface TrampaRoedoresSeguimiento {
+  almacen: string;
   trampa_id: number;
   observacion?: string;
   cantidad: number;
@@ -103,6 +116,8 @@ export default function SeguimientoTrampas({
           insectosInit[t.id] = [];
         } else {
           roedoresInit[t.id] = {
+            almacen: t.almacen.nombre,
+            mapa: t.mapa.titulo,
             trampa_id: t.id,
             observacion: '',
             cantidad: 0,
@@ -225,6 +240,9 @@ export default function SeguimientoTrampas({
                     <p className="text-sm text-muted-foreground">
                       Tipo: {trampa.trampa_tipo.nombre}
                     </p>
+                    <p className="text-sm text-muted-foreground">
+                      Mapa: {trampa.mapa.titulo}
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
@@ -267,6 +285,7 @@ export default function SeguimientoTrampas({
                             Number(e.target.value),
                           )
                         }
+                        disabled={trampa.trampa_tipo.id === 4}
                       />
                     </div>
 
@@ -283,6 +302,7 @@ export default function SeguimientoTrampas({
                             Number(e.target.value),
                           )
                         }
+                        disabled={trampa.trampa_tipo.id === 4}
                       />
                     </div>
                     <div>

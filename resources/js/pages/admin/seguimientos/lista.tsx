@@ -10,7 +10,7 @@ import {
 import { usePermissions } from '@/hooks/usePermissions';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Edit2, FileChartColumn, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -133,6 +133,11 @@ export default function Lista({
                       <Plus className="h-4 w-4" />
                       Nuevo
                     </Button>
+                    <Link href="/acciones">
+                      <Button className="bg-sky-700">
+                        Acciones complementarias
+                      </Button>
+                    </Link>
                     {/* <Button
                       onClick={() => setModalTrapsOpen(true)}
                       className="me-3"

@@ -534,13 +534,16 @@ export default function Lista() {
                     >
                       <GripVertical className="h-3.5 w-3.5 opacity-70" />
                       <span className="flex-1 truncate font-medium">
+                        <span className="me-2 bg-black p-1 text-white">
+                          {task.id}
+                        </span>
                         {task.title}
                       </span>
-                      {user && (
+                      {/* {user && (
                         <span className="text-[10px] opacity-90">
                           {user.nombre.split(' ')[0]}
                         </span>
-                      )}
+                      )} */}
                       <div
                         className={cn(
                           'text-xs',

@@ -1,0 +1,1360 @@
+import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
+import { useForm } from '@inertiajs/react';
+import axios from 'axios';
+import { Check, ChevronsUpDown, InfoIcon, Plus, Trash2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+
+interface Empresa {
+  id: number;
+  nombre: string;
+}
+interface Almacen {
+  id: number;
+  nombre: string;
+}
+
+interface Unidad {
+  id: number;
+  nombre: string;
+}
+
+interface Producto {
+  id: number;
+  nombre: string;
+  precio_compra: number;
+  precio_venta: number;
+  unidad: Unidad;
+}
+
+interface ProductoUsado {
+  producto_id: number;
+  nombre_producto: string;
+  producto: string;
+  cantidad: string;
+}
+
+interface Especie {
+  id: number;
+  nombre: string;
+}
+
+interface EspecieCantidad {
+  especie_id: number;
+  nombre: string;
+  cantidad: number;
+}
+
+interface TipoSeguimiento {
+  id: number;
+  nombre: string;
+}
+
+interface ModalSeguimientoProps {
+  open: boolean;
+  onClose: () => void;
+  empresas: Empresa[];
+  almacenes: Almacen[];
+  especies: Especie[];
+  tipoSeguimiento: TipoSeguimiento[];
+}
+
+export default function ModalAccion({
+  open,
+  onClose,
+  empresas,
+  almacenes,
+
+  especies,
+  tipoSeguimiento,
+}: ModalSeguimientoProps) {
+  const [step, setStep] = useState(1);
+
+  const [verificando, setVerificando] = useState(false);
+  const [cronogramaInfo, setCronogramaInfo] = useState<any>(null);
+  const [cronogramaError, setCronogramaError] = useState<string | null>(null);
+
+  // Estados locales
+  const [biologicosSel, setBiologicosSel] = useState<number[]>([]);
+  const [metodosSel, setMetodosSel] = useState<number[]>([]);
+  const [eppsSel, setEppsSel] = useState<number[]>([]);
+  const [proteccionesSel, setProteccionesSel] = useState<number[]>([]);
+  const [signosSel, setSignosSel] = useState<number[]>([]);
+
+  const [almacenesFiltrados, setAlmacenesFiltrados] =
+    useState<Almacen[]>(almacenes);
+
+  // const [especiesSel, setEspeciesSel] = useState<number[]>([]);
+  // const [especiesCantidad, setEspeciesCantidad] = useState<EspecieCantidad[]>(
+  //   especies.map((e) => ({
+  //     especie_id: e.id,
+  //     nombre: e.nombre,
+  //     cantidad: 0,
+  //   })),
+  // );
+  const buildInitialEspecies = () =>
+    especies.map((e) => ({
+      especie_id: e.id,
+      nombre: e.nombre,
+      cantidad: 0,
+    }));
+
+  const [especiesCantidad, setEspeciesCantidad] = useState<EspecieCantidad[]>(
+    buildInitialEspecies(),
+  );
+
+  console.log(tipoSeguimiento);
+
+  const updateEspecieCantidad = (id: number, value: string) => {
+    const cantidad = value === '' ? 0 : Number(value);
+
+    setEspeciesCantidad((prev) =>
+      prev.map((e) => (e.especie_id === id ? { ...e, cantidad } : e)),
+    );
+  };
+
+  const emptyAplicacion: Aplicacion = {
+    // Fumigacion
+    paredes_internas: 0,
+    pisos: 0,
+    // Desinfeccion
+    ambientes: 0,
+    // Control de roedores
+    trampas: 0,
+    trampas_cambiar: 0,
+    internas: 0,
+    externas: 0,
+    roedores: 0,
+  };
+
+  const [aplicacion, setAplicacion] = useState<Aplicacion>(emptyAplicacion);
+  const [productos, setProductos] = useState<ProductoUsado[]>([]);
+
+  // Estados para búsqueda de productos
+  const [openP, setOpenP] = useState(false);
+  const [query, setQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Producto[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [quantity, setQuantity] = useState('1');
+
+  const { data, setData, post, processing, errors, reset } = useForm({
+    empresa_id: '',
+    almacen_id: '',
+    tipo_seguimiento_id: '',
+    // labores: Array(11).fill(''),
+    aplicacion_data: aplicacion,
+    biologicos_ids: [] as number[],
+    metodos_ids: [] as number[],
+    epps_ids: [] as number[],
+    protecciones_ids: [] as number[],
+    signos_ids: [] as number[],
+    // especies_ids: [] as number[],
+    especies_ids: [] as {
+      especie_id: number;
+      cantidad: number;
+    }[],
+    productos_usados: [] as ProductoUsado[],
+    observaciones_especificas: '',
+    encargado_nombre: '',
+    encargado_cargo: '',
+    firma_encargado: '',
+    firma_supervisor: '',
+    observaciones_generales: '',
+    imagenes: [] as File[],
+    numero_tarea: 0,
+    /* PASO 9 */
+    trampa_especies_seguimientos: [] as TrampaEspecieSeguimientos[],
+    trampa_roedores_seguimientos: [] as TrampaRoedoresSeguimiento[],
+  });
+
+  console.log(errors);
+
+  const updateAplicacion = (field: keyof Aplicacion, value: string) => {
+    const numericValue = value === '' ? 0 : Number(value);
+
+    setAplicacion((prev) => ({
+      ...prev,
+      [field]: numericValue,
+    }));
+  };
+
+  // Búsqueda de productos con debounce
+  useEffect(() => {
+    if (query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    const delayDebounce = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const { data } = await axios.get(`/productos/search?q=${query}`);
+        console.log(data);
+        setSearchResults(data);
+      } catch (error) {
+        console.error('Error al buscar productos:', error);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [query]);
+
+  const toggle = (
+    arr: number[],
+    setArr: React.Dispatch<React.SetStateAction<number[]>>,
+    id: number,
+  ) => {
+    setArr((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  const handleNext = () => {
+    if (
+      step === 1 &&
+      (!data.empresa_id ||
+        !data.almacen_id ||
+        !data.tipo_seguimiento_id ||
+        data.numero_tarea === 0)
+    )
+      return;
+    if (step === 2) setData('aplicacion_data', aplicacion);
+    if (step === 3) setData('metodos_ids', metodosSel);
+    if (step === 4) setData('productos_usados', productos);
+    if (step === 5) setData('epps_ids', eppsSel);
+    if (step === 6) setData('protecciones_ids', proteccionesSel);
+    if (step === 7) setData('biologicos_ids', biologicosSel);
+    if (step === 8) setData('signos_ids', signosSel);
+    // if (step === 9) setData('especies_ids', especiesSel);
+    if (step === 9) {
+      setData(
+        'especies_ids',
+        especiesCantidad
+          .filter((e) => e.cantidad > 0)
+          .map((e) => ({
+            especie_id: e.especie_id,
+            cantidad: e.cantidad,
+          })),
+      );
+    }
+    if (step === 10)
+      setData('observaciones_especificas', data.observaciones_especificas);
+    if (
+      step === 11 &&
+      (data.encargado_nombre == '' || data.encargado_cargo == '')
+    )
+      return;
+
+    setStep((s) => Math.min(s + 1, 13));
+  };
+
+  const handleBack = () => setStep((s) => Math.max(s - 1, 1));
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // console.log('tareaNumero: ' + tareaNumero);
+
+    // Actualizar todos los datos antes de enviar
+    const finalData = {
+      ...data,
+      biologicos_ids: biologicosSel,
+      metodos_ids: metodosSel,
+      epps_ids: eppsSel,
+      protecciones_ids: proteccionesSel,
+      signos_ids: signosSel,
+      // especies_ids: especiesSel,
+      especies_ids: especiesCantidad
+        .filter((e) => e.cantidad > 0)
+        .map((e) => ({
+          especie_id: e.especie_id,
+          cantidad: e.cantidad,
+        })),
+      productos_usados: productos,
+      firma_encargado: firmaEncargado, // base64
+      firma_supervisor: firmaSupervisor, // base64
+      aplicacion_data: aplicacion,
+    };
+
+    // Primero actualizar el estado
+    setData(finalData);
+
+    // Luego enviar (Inertia enviará el estado actual de 'data')
+    post('/seguimientos', {
+      onSuccess: handleClose,
+    });
+  };
+
+  // const handleClose = () => {
+  //   reset();
+  //   setStep(1);
+  //   setBiologicosSel([]);
+  //   setMetodosSel([]);
+  //   setEppsSel([]);
+  //   setProteccionesSel([]);
+  //   setSignosSel([]);
+  //   // setEspeciesSel([]);
+  //   setEspeciesCantidad([]);
+  //   setAplicacion(emptyAplicacion);
+  //   setProductos([]);
+  //   setSelectedProduct(null);
+  //   setQuery('');
+  //   setQuantity('1');
+  //   onClose();
+  // };
+
+  const handleClose = () => {
+    resetDialogState();
+    onClose();
+  };
+
+  const resetDialogState = () => {
+    reset(); // inertia
+
+    setStep(1);
+
+    setBiologicosSel([]);
+    setMetodosSel([]);
+    setEppsSel([]);
+    setProteccionesSel([]);
+    setSignosSel([]);
+
+    setEspeciesCantidad(buildInitialEspecies());
+
+    setAplicacion(emptyAplicacion);
+    setProductos([]);
+
+    setSelectedProduct(null);
+    setQuery('');
+    setQuantity('1');
+
+    setFirmaEncargado('');
+    setFirmaSupervisor('');
+
+    setCronogramaInfo(null);
+    setCronogramaError(null);
+    setTipoSeguimientoSel('TIPO');
+  };
+
+  // Helpers productos
+  const addProducto = () => {
+    if (!selectedProduct || !quantity || parseFloat(quantity) < 1) return;
+
+    const existe = productos.some((p) => p.producto_id === selectedProduct.id);
+    if (existe) {
+      alert('Este producto ya fue agregado');
+      return;
+    }
+
+    const nuevo: ProductoUsado = {
+      producto_id: selectedProduct.id,
+      nombre_producto: selectedProduct.nombre,
+      producto: selectedProduct.nombre,
+      cantidad: quantity,
+    };
+
+    const updated = [...productos, nuevo];
+    setProductos(updated);
+    setData('productos_usados', updated);
+    setSelectedProduct(null);
+    setQuery('');
+    setQuantity('1');
+    setOpenP(false);
+  };
+
+  const removeProducto = (i: number) => {
+    const updated = productos.filter((_, idx) => idx !== i);
+    setProductos(updated);
+    setData('productos_usados', updated);
+  };
+
+  const updateProducto = (
+    i: number,
+    field: 'producto' | 'cantidad',
+    value: string,
+  ) => {
+    const updated = [...productos];
+    updated[i][field] = value;
+    setProductos(updated);
+    setData('productos_usados', updated);
+  };
+
+  const [firmaEncargado, setFirmaEncargado] = useState<string>('');
+  const [firmaSupervisor, setFirmaSupervisor] = useState<string>('');
+
+  // En el paso 11, actualiza el useEffect o maneja las firmas así:
+  useEffect(() => {
+    if (firmaEncargado) {
+      setData('firma_encargado', firmaEncargado);
+    }
+  }, [firmaEncargado]);
+
+  useEffect(() => {
+    if (firmaSupervisor) {
+      setData('firma_supervisor', firmaSupervisor);
+    }
+  }, [firmaSupervisor]);
+
+  const [tipoSeguimientoSel, setTipoSeguimientoSel] = useState<string>('TIPO');
+
+  const metodosGrupoA = metodos.filter((m) => m.id >= 1 && m.id <= 3);
+
+  const metodosGrupoB = metodos.filter((m) => m.id > 3);
+
+  const verificarTarea = async () => {
+    if (!data.numero_tarea) return;
+
+    setVerificando(true);
+    setCronogramaError(null);
+    setCronogramaInfo(null);
+
+    try {
+      const res = await axios.get(
+        `/cronogramas/verificar/${data.numero_tarea}`,
+      );
+
+      if (!res.data.exists) {
+        setCronogramaError('No existe el número de tarea');
+        return;
+      }
+
+      console.log(res.data.data);
+      if (res.data.data.status !== 'pendiente') {
+        setCronogramaError('La tarea tiene un estado distinto a pendiente');
+        return;
+      }
+
+      setCronogramaInfo(res.data.data);
+
+      // OPCIONAL: autocompletar datos
+      setData('empresa_id', res.data.data.empresa_id.toString());
+      setData('almacen_id', res.data.data.almacen_id.toString());
+      setData(
+        'tipo_seguimiento_id',
+        res.data.data.tipo_seguimiento_id.toString(),
+      );
+      const tipo = tipoSeguimiento.find(
+        (t) => t.id === res.data.data.tipo_seguimiento_id,
+      );
+
+      setTipoSeguimientoSel(tipo?.nombre ?? '');
+    } catch (error) {
+      setCronogramaError('Error al verificar');
+    } finally {
+      setVerificando(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      // onOpenChange={(isOpen) => {
+      //   if (!isOpen) onClose();
+      // }}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) handleClose();
+      }}
+    >
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto sm:max-w-[800px]"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle className="text-[1rem]">
+            Nuevo Seguimiento - Paso {step} de 13
+          </DialogTitle>
+          <div className="mt-3 h-2 w-full rounded-full bg-muted">
+            <div
+              className="h-2 rounded-full bg-primary transition-all"
+              style={{ width: `${(step / 13) * 100}%` }}
+            />
+          </div>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit}>
+          {/* PASO 1: Empresa, Almacén y Tipo de Seguimiento */}
+          {step === 1 && (
+            <div className="space-y-6 py-6">
+              <div className="space-y-2">
+                <Label>Numero de Tarea en Cronograma *</Label>
+
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    value={data.numero_tarea}
+                    onChange={(e) =>
+                      setData('numero_tarea', Number(e.target.value))
+                    }
+                  />
+
+                  <Button
+                    type="button"
+                    variant="default"
+                    className="bg-cyan-800 text-cyan-500"
+                    onClick={verificarTarea}
+                    disabled={verificando || !data.numero_tarea}
+                  >
+                    {verificando ? '...' : 'VERIFICAR'}
+                  </Button>
+                </div>
+
+                {cronogramaError && (
+                  <p className="text-sm text-red-500">{cronogramaError}</p>
+                )}
+
+                {cronogramaInfo && (
+                  <p className="text-sm text-green-600">Tarea válida</p>
+                )}
+              </div>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Empresa *</Label>
+                  <Select
+                    value={data.empresa_id}
+                    onValueChange={async (v) => {
+                      setData('empresa_id', v);
+                      setData('almacen_id', ''); // resetear almacén seleccionado
+
+                      if (v) {
+                        try {
+                          const response = await axios.get(
+                            `/empresas/${v}/almacenes`,
+                          );
+                          setAlmacenesFiltrados(response.data);
+                        } catch (error) {
+                          console.error('Error al cargar almacenes:', error);
+                          setAlmacenesFiltrados([]);
+                        }
+                      } else {
+                        setAlmacenesFiltrados([]);
+                      }
+                    }}
+                    disabled
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar empresa" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {empresas.map((e) => (
+                        <SelectItem key={e.id} value={e.id.toString()}>
+                          {e.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.empresa_id && (
+                    <p className="text-sm text-red-500">
+                      {errors.empresa_id || 'Error en empresa'}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Almacén *</Label>
+                  <Select
+                    value={data.almacen_id}
+                    onValueChange={(v) => setData('almacen_id', v)}
+                    disabled
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar almacén" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {almacenesFiltrados.map((a) => (
+                        <SelectItem key={a.id} value={a.id.toString()}>
+                          {a.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Tipo de Seguimiento *</Label>
+                <Select
+                  value={data.tipo_seguimiento_id}
+                  onValueChange={(v) => {
+                    setData('tipo_seguimiento_id', v);
+                    const tipo = tipoSeguimiento.find(
+                      (t) => t.id.toString() === v,
+                    );
+
+                    setTipoSeguimientoSel(tipo?.nombre ?? '');
+                  }}
+                  disabled
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar tipo de seguimiento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tipoSeguimiento.map((t) => (
+                      <SelectItem key={t.id} value={t.id.toString()}>
+                        {t.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.tipo_seguimiento_id && (
+                  <p className="text-sm text-red-500">
+                    {errors.tipo_seguimiento_id}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* PASO 2: 11 Labores */}
+          {step === 2 && (
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Labores Desarrolladas</div>
+
+              {tipoSeguimientoSel === 'DESRATIZACION' ? (
+                <>
+                  {/* <div className="text-[.9rem] text-gray-500">
+                    Control de roedores
+                  </div> */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Cantidad Trampas</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Cantidad Trampas"
+                        type="number"
+                        value={aplicacion.trampas}
+                        onChange={(e) =>
+                          updateAplicacion('trampas', e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <Label>Trampas Cambiadas</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Trampas Cambiadas"
+                        type="number"
+                        value={aplicacion.trampas_cambiar}
+                        onChange={(e) =>
+                          updateAplicacion('trampas_cambiar', e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <Label>Trampas Internas</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Trampas Internas"
+                        type="number"
+                        value={aplicacion.internas}
+                        onChange={(e) =>
+                          updateAplicacion('internas', e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <Label>Trampas Externas</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Trampas Externas"
+                        type="number"
+                        value={aplicacion.externas}
+                        onChange={(e) =>
+                          updateAplicacion('externas', e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <Label>Roedores encontrados</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Roedores encontrados"
+                        type="number"
+                        value={aplicacion.roedores}
+                        onChange={(e) =>
+                          updateAplicacion('roedores', e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="my-3 text-[.9rem] text-gray-500">
+                    Desinfeccion
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Cantidad Ambientes</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Cantidad Oficinas"
+                        type="number"
+                        value={aplicacion.ambientes}
+                        onChange={(e) =>
+                          updateAplicacion('ambientes', e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="my-3 text-[.9rem] text-gray-500">
+                    Fumigacion
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Cantidad Pisos</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Cantidad Pisos"
+                        type="number"
+                        value={aplicacion.pisos}
+                        onChange={(e) =>
+                          updateAplicacion('pisos', e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <Label>Paredes Internas</Label>
+                      <Input
+                        className="w-auto"
+                        placeholder="Paredes Internas"
+                        type="number"
+                        value={aplicacion.paredes_internas}
+                        onChange={(e) =>
+                          updateAplicacion('paredes_internas', e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* PASO 3: Métodos */}
+          {step === 3 && (
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Método Utilizado</div>
+              {/* <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                {metodos.map((m) => (
+                  <label
+                    key={m.id}
+                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                  >
+                    <Checkbox
+                      checked={metodosSel.includes(m.id)}
+                      onCheckedChange={() =>
+                        toggle(metodosSel, setMetodosSel, m.id)
+                      }
+                    />
+                    <span>{m.nombre}</span>
+                  </label>
+                ))}
+              </div> */}
+
+              {tipoSeguimientoSel === 'DESRATIZACION' ? (
+                <>
+                  {/* GRUPO 1 */}
+                  <div>
+                    {/* <Label className="mb-3 block text-sm text-muted-foreground">
+                      Métodos principales
+                    </Label> */}
+
+                    <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                      {metodosGrupoA.map((m) => (
+                        <label
+                          key={m.id}
+                          className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                        >
+                          <Checkbox
+                            checked={metodosSel.includes(m.id)}
+                            onCheckedChange={() =>
+                              toggle(metodosSel, setMetodosSel, m.id)
+                            }
+                          />
+                          <span>{m.nombre}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* GRUPO 2 */}
+                  <div>
+                    {/* <Label className="mb-3 block text-sm text-muted-foreground">
+                      Otros métodos
+                    </Label> */}
+
+                    <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                      {metodosGrupoB.map((m) => (
+                        <label
+                          key={m.id}
+                          className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                        >
+                          <Checkbox
+                            checked={metodosSel.includes(m.id)}
+                            onCheckedChange={() =>
+                              toggle(metodosSel, setMetodosSel, m.id)
+                            }
+                          />
+                          <span>{m.nombre}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* PASO 4: Productos y Cantidades */}
+          {step === 4 && (
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Productos Utilizados</div>
+              {/* <Label className="mb-3 block text-sm text-muted-foreground">
+                Otros métodos
+              </Label> */}
+
+              {/* Búsqueda de Producto */}
+              <div className="flex items-end gap-3">
+                <div className="flex-grow space-y-2">
+                  <Label>Buscar Producto</Label>
+                  <Popover open={openP} onOpenChange={setOpenP}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between"
+                      >
+                        {selectedProduct
+                          ? selectedProduct.nombre +
+                            ' (unidad = ' +
+                            selectedProduct.unidad.nombre +
+                            ')'
+                          : 'Buscar producto...'}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <Command shouldFilter={false}>
+                        <CommandInput
+                          placeholder="Escribe para buscar..."
+                          value={query}
+                          onValueChange={setQuery}
+                        />
+                        <CommandList>
+                          {loading && <CommandEmpty>Buscando...</CommandEmpty>}
+                          {!loading && query.length < 2 && (
+                            <CommandEmpty>
+                              Escribe al menos 2 caracteres
+                            </CommandEmpty>
+                          )}
+                          {!loading &&
+                            searchResults.length === 0 &&
+                            query.length >= 2 && (
+                              <CommandEmpty>
+                                No se encontraron productos
+                              </CommandEmpty>
+                            )}
+                          <CommandGroup>
+                            {searchResults.map((product) => (
+                              <CommandItem
+                                key={product.id}
+                                onSelect={() => {
+                                  setSelectedProduct(product);
+                                  setQuery(product.nombre);
+                                  setOpenP(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    'mr-2 h-4 w-4',
+                                    selectedProduct?.id === product.id
+                                      ? 'opacity-100'
+                                      : 'opacity-0',
+                                  )}
+                                />
+                                <div>
+                                  <div>{product.nombre}</div>
+                                  <div className="text-xs text-gray-500">
+                                    Unidad: {product.unidad.nombre}
+                                    {/* Compra: ${product.precio_compra} | Venta: $
+                                    {product.precio_venta} */}
+                                  </div>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="space-y-2">
+                  {/* <Label>Cantidad Usada</Label> */}
+                  <div className="flex items-center gap-1.5">
+                    <Label>Cantidad Usada</Label>
+
+                    <HoverCard openDelay={200} closeDelay={100}>
+                      <HoverCardTrigger asChild>
+                        <InfoIcon className="h-4 w-4 cursor-help text-muted-foreground transition-colors hover:text-foreground" />
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-72 text-sm">
+                        La cantidad usada es en cantidad de la{' '}
+                        <strong>unidad del producto</strong>.
+                        <br />
+                        Ejemplo: si el producto es "Caja de 12 unidades", aquí
+                        va la cantidad de cajas usadas.
+                      </HoverCardContent>
+                    </HoverCard>
+                  </div>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    placeholder="Cantidad"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    className="w-32"
+                  />
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={addProducto}
+                  disabled={!selectedProduct || !quantity}
+                  className="h-10"
+                >
+                  <Plus className="mr-1 h-4 w-4" />
+                  Añadir
+                </Button>
+              </div>
+
+              {/* Lista de productos agregados */}
+              <div className="space-y-4">
+                {productos.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">
+                    No hay productos agregados. Busca y añade productos usando
+                    el buscador.
+                  </p>
+                ) : (
+                  productos.map((p, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-3 rounded-lg border p-3"
+                    >
+                      <div className="flex-1">
+                        <p className="font-medium">{p.nombre_producto}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Cantidad: {p.cantidad}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeProducto(i)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* PASO 5: EPP */}
+          {step === 5 && (
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">
+                Equipos de Protección Personal Utilizados (EPP)
+              </div>
+
+              <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                {epps.map((e) => (
+                  <label
+                    key={e.id}
+                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                  >
+                    <Checkbox
+                      checked={eppsSel.includes(e.id)}
+                      onCheckedChange={() => toggle(eppsSel, setEppsSel, e.id)}
+                    />
+                    <span>{e.nombre}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* PASO 6: Métodos de Protección */}
+          {step === 6 && (
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">
+                Métodos de Protección Adoptadas para Terceros
+              </div>
+
+              <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                {protecciones.map((p) => (
+                  <label
+                    key={p.id}
+                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                  >
+                    <Checkbox
+                      checked={proteccionesSel.includes(p.id)}
+                      onCheckedChange={() =>
+                        toggle(proteccionesSel, setProteccionesSel, p.id)
+                      }
+                    />
+                    <span>{p.nombre}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* PASO 7: Biológicos */}
+          {step === 7 && (
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Observaciones de Ciclos Biológicos</div>
+
+              {/* <Label className="mb-3 block text-sm text-muted-foreground">
+                Solo en DESINFECCION o DESINSECTACION
+              </Label> */}
+
+              {tipoSeguimientoSel !== 'DESRATIZACION' && (
+                <>
+                  <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                    {biologicos.map((b) => (
+                      <label
+                        key={b.id}
+                        className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                      >
+                        <Checkbox
+                          checked={biologicosSel.includes(b.id)}
+                          onCheckedChange={() =>
+                            toggle(biologicosSel, setBiologicosSel, b.id)
+                          }
+                        />
+                        <span>{b.nombre}</span>
+                      </label>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* PASO 8: Signos / Síntomas */}
+          {step === 8 && (
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Observaciones de Signos de Roedores</div>
+
+              {/* <Label className="mb-3 block text-sm text-muted-foreground">
+                Solo en DESRATIZACION
+              </Label> */}
+              {tipoSeguimientoSel === 'DESRATIZACION' && (
+                <>
+                  <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                    {signos.map((s) => (
+                      <label
+                        key={s.id}
+                        className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                      >
+                        <Checkbox
+                          checked={signosSel.includes(s.id)}
+                          onCheckedChange={() =>
+                            toggle(signosSel, setSignosSel, s.id)
+                          }
+                        />
+                        <span>{s.nombre}</span>
+                      </label>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* PASO 9: Especies */}
+          {step === 9 && (
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Seguimiento de trampas</div>
+
+              <SeguimientoTrampas
+                almacenId={Number(data.almacen_id)!}
+                tipoSeguimiento={data.tipo_seguimiento_id}
+                value={{
+                  trampa_especies_seguimientos:
+                    data.trampa_especies_seguimientos,
+                  trampa_roedores_seguimientos:
+                    data.trampa_roedores_seguimientos,
+                }}
+                onChange={(val) => {
+                  setData(
+                    'trampa_especies_seguimientos',
+                    val.trampa_especies_seguimientos,
+                  );
+                  setData(
+                    'trampa_roedores_seguimientos',
+                    val.trampa_roedores_seguimientos,
+                  );
+                }}
+              />
+            </div>
+          )}
+
+          {/* PASO 10: Observaciones Específicas */}
+          {step === 10 && (
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Observaciones Bolivian PEST</div>
+
+              <Textarea
+                rows={8}
+                placeholder="Detalles adicionales del seguimiento..."
+                value={data.observaciones_especificas}
+                onChange={(e) =>
+                  setData('observaciones_especificas', e.target.value)
+                }
+              />
+            </div>
+          )}
+
+          {/* PASO 11: Datos del Encargado y Firmas */}
+          {step === 11 && (
+            <div className="space-y-6">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Responsable y Firmas</div>
+
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Nombre del Encargado *</Label>
+                  <Input
+                    value={data.encargado_nombre}
+                    onChange={(e) =>
+                      setData('encargado_nombre', e.target.value)
+                    }
+                    required
+                  />
+                  <InputError message={errors.encargado_nombre} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Cargo *</Label>
+                  <Input
+                    value={data.encargado_cargo}
+                    onChange={(e) => setData('encargado_cargo', e.target.value)}
+                    required
+                  />
+                  <InputError message={errors.encargado_cargo} />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Firma Encargado (texto o dibujar después)</Label>
+                  <SignaturePad onChange={(data) => setFirmaEncargado(data)} />
+                  {firmaEncargado && (
+                    <img
+                      src={firmaEncargado}
+                      alt="Firma Encargado"
+                      className="w-40 border"
+                    />
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Firma Supervisor</Label>
+                  <SignaturePad onChange={(data) => setFirmaSupervisor(data)} />
+
+                  {firmaSupervisor && (
+                    <img
+                      src={firmaSupervisor}
+                      alt="Firma Supervisor"
+                      className="w-40 border"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* PASO 12: Imagenes */}
+          {step === 12 && (
+            <div className="space-y-4">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Subir imágenes</div>
+
+              {/* <p className="text-sm text-muted-foreground">
+                Puedes adjuntar imágenes relacionadas al seguimiento (opcional).
+              </p> */}
+
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                className="rounded-2xl border-2 p-3"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    setData('imagenes', Array.from(e.target.files));
+                  }
+                }}
+              />
+
+              {/* Preview */}
+              {data.imagenes.length > 0 && (
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  {data.imagenes.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex flex-col items-center rounded-md border p-2"
+                    >
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt="preview"
+                        className="h-32 w-full rounded object-cover"
+                      />
+                      <span className="mt-1 text-xs">{file.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PASO 13: Observaciones Generales + Final */}
+          {step === 13 && (
+            <div className="space-y-6 py-6 text-center">
+              <div className="mx-auto mb-4 size-20 rounded-full bg-green-100 p-5">
+                <svg
+                  className="size-full text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold">¡Todo listo!</h3>
+              <p className="text-muted-foreground">
+                Revisa y guarda el seguimiento.
+              </p>
+              <Textarea
+                rows={5}
+                placeholder="Observaciones generales finales (opcional)"
+                value={data.observaciones_generales}
+                onChange={(e) =>
+                  setData('observaciones_generales', e.target.value)
+                }
+              />
+            </div>
+          )}
+
+          {/* Footer */}
+          <DialogFooter className="mt-8 flex flex-wrap justify-between gap-3">
+            {step > 1 && (
+              <Button type="button" variant="outline" onClick={handleBack}>
+                Atrás
+              </Button>
+            )}
+            <Button type="button" variant="outline" onClick={handleClose}>
+              Cancelar
+            </Button>
+
+            {step < 13 ? (
+              <Button asChild>
+                <button type="button" onClick={handleNext}>
+                  Siguiente
+                </button>
+              </Button>
+            ) : (
+              <Button type="submit" disabled={processing}>
+                {processing ? 'Guardando...' : 'Guardar Seguimiento'}
+              </Button>
+            )}
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -17,4 +17,9 @@ class Trampa extends Model
     {
         return $this->belongsTo(Almacen::class);
     }
+
+    public function mapa()
+    {
+        return $this->belongsTo(Mapa::class);
+    }
 }
