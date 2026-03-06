@@ -23,9 +23,19 @@ use PhpOffice\PhpWord\Style\Language;
 
 class InformesController extends Controller
 {
+  /**
+   * Requerimiento de datos para realizar un INFORME
+   * @param Request $request
+   * @return \Inertia\Response
+   */
   public function index(Request $request)
   {
+
+    // dd($request->all());
+
     $user = $request->user();
+
+    // CONSEGUIMOS DATOS DE EMPRESAS
     if ($user->HasRole('cliente')) {
       $empresasUser = User::with('empresas')->find($user->id);
       $empresaUser = $empresasUser->empresas[0];
@@ -34,41 +44,52 @@ class InformesController extends Controller
       $empresas = Empresa::select('id', 'nombre')->get();
     }
 
+    // CONSEGUIMOS DATOS DE ALMACENES
     $almacenes = [];
     if ($request->empresa_id) {
       $almacenes = Almacen::where('empresa_id', $request->empresa_id)
         ->select('id', 'nombre')
         ->get();
     }
+
     // 🔴 SOLO buscar si presiona el botón
     $seguimientos = [];
     $trampas_insect = 0;
     $trampas_rat = 0;
     $totales = [];
+
     if (
       $request->filled('buscar') &&
-      $request->almacen_id &&
+      // $request->almacen_id &&
       $request->fecha_inicio &&
       $request->fecha_fin
     ) {
-      $seguimientos = Seguimiento::with(['roedores', 'insectocutores.especie', 'tipoSeguimiento', 'user'])->where('almacen_id', $request->almacen_id)
-        ->whereBetween('created_at', [
-          $request->fecha_inicio . ' 00:00:00',
-          $request->fecha_fin . ' 23:59:59',
-        ])
-        ->orderBy('created_at', 'desc')
-        ->get(['id', 'tipo_seguimiento_id', 'user_id', 'created_at', 'encargado_nombre', 'encargado_cargo']);
-      $trampas = Trampa::where('almacen_id', $request->almacen_id)->get();
-      $trampas_insect = $trampas->where('trampa_tipo_id', 2)->count();
-      $trampas_rat = $trampas->where('trampa_tipo_id', '!=', 2)->count();
-      $totales = TrampaRoedorSeguimiento::query()
-        ->join('seguimientos', 'seguimientos.id', '=', 'trampa_roedor_seguimientos.seguimiento_id')
-        ->where('seguimientos.almacen_id', $request->almacen_id)
-        ->whereBetween('seguimientos.created_at', [
-          $request->fecha_inicio . ' 00:00:00',
-          $request->fecha_fin . ' 23:59:59',
-        ])
-        ->selectRaw("
+
+      // Validar si quieres asegurarte que venga empresa_id
+      $request->validate([
+        'empresa_id' => 'required|integer|exists:empresas,id',
+      ]);
+
+      if ($request->almacen_id) {
+        // dd("LISTA DE SEGUIMIENTOS POR ALMACEN");
+        // LISTA DE SEGUIMIENTOS
+        $seguimientos = Seguimiento::with(['almacen', 'roedores.trampa.trampa_tipo', 'insectocutores.especie', 'tipoSeguimiento', 'user'])
+          ->where('almacen_id', $request->almacen_id)
+          ->whereBetween('created_at', [
+            $request->fecha_inicio . ' 00:00:00',
+            $request->fecha_fin . ' 23:59:59',
+          ])
+          ->orderBy('created_at', 'desc')
+          ->get(['id', 'tipo_seguimiento_id', 'user_id', 'created_at', 'encargado_nombre', 'encargado_cargo', 'almacen_id']);
+
+        $totales = TrampaRoedorSeguimiento::query()
+          ->join('seguimientos', 'seguimientos.id', '=', 'trampa_roedor_seguimientos.seguimiento_id')
+          ->where('seguimientos.almacen_id', $request->almacen_id)
+          ->whereBetween('seguimientos.created_at', [
+            $request->fecha_inicio . ' 00:00:00',
+            $request->fecha_fin . ' 23:59:59',
+          ])
+          ->selectRaw("
         DATE_FORMAT(seguimientos.created_at, '%Y-%m') as mes,
         SUM(trampa_roedor_seguimientos.inicial) as inicial_sum,
         SUM(trampa_roedor_seguimientos.merma) as merma_sum,
@@ -78,9 +99,52 @@ class InformesController extends Controller
         AVG(trampa_roedor_seguimientos.merma) as merma_avg,
         AVG(trampa_roedor_seguimientos.actual) as actual_avg
     ")
-        ->groupBy(DB::raw("DATE_FORMAT(seguimientos.created_at, '%Y-%m')"))
-        ->orderBy('mes')
-        ->get();
+          ->groupBy(DB::raw("DATE_FORMAT(seguimientos.created_at, '%Y-%m')"))
+          ->orderBy('mes')
+          ->get();
+      } else {
+        // dd("LISTA DE SEGUIMIENTOS COMPLETO");
+        $seguimientos = Seguimiento::with(['almacen', 'roedores.trampa.trampa_tipo', 'insectocutores.especie', 'tipoSeguimiento', 'user'])
+          ->whereHas('almacen', function ($query) use ($request) {
+            $query->where('empresa_id', $request->empresa_id);
+          })
+          ->whereBetween('created_at', [
+            $request->fecha_inicio . ' 00:00:00',
+            $request->fecha_fin . ' 23:59:59',
+          ])
+          ->orderBy('created_at', 'desc')
+          ->get(['id', 'tipo_seguimiento_id', 'user_id', 'created_at', 'encargado_nombre', 'encargado_cargo', 'almacen_id']);
+
+        $totales = TrampaRoedorSeguimiento::query()
+          ->join('seguimientos', 'seguimientos.id', '=', 'trampa_roedor_seguimientos.seguimiento_id')
+          ->whereHas('seguimiento.almacen', function ($query) use ($request) {
+            $query->where('empresa_id', $request->empresa_id);
+          })
+          ->whereBetween('seguimientos.created_at', [
+            $request->fecha_inicio . ' 00:00:00',
+            $request->fecha_fin . ' 23:59:59',
+          ])
+          ->selectRaw("
+        DATE_FORMAT(seguimientos.created_at, '%Y-%m') as mes,
+        SUM(trampa_roedor_seguimientos.inicial) as inicial_sum,
+        SUM(trampa_roedor_seguimientos.merma) as merma_sum,
+        SUM(trampa_roedor_seguimientos.actual) as actual_sum,
+        AVG(trampa_roedor_seguimientos.inicial) as inicial_avg,
+        AVG(trampa_roedor_seguimientos.merma) as merma_avg,
+        AVG(trampa_roedor_seguimientos.actual) as actual_avg
+    ")
+          ->groupBy(DB::raw("DATE_FORMAT(seguimientos.created_at, '%Y-%m')"))
+          ->orderBy('mes')
+          ->get();
+      }
+
+      // dd($totales);
+      // dd($seguimientos);
+
+      // CONTEO DE TRAMPAS
+      $trampas = Trampa::where('almacen_id', $request->almacen_id)->get();
+      $trampas_insect = $trampas->where('trampa_tipo_id', 2)->count();
+      $trampas_rat = $trampas->where('trampa_tipo_id', '!=', 2)->count();
     }
     return inertia('admin/informes/index', [
       'empresas'     => $empresas,
@@ -98,13 +162,13 @@ class InformesController extends Controller
     ]);
 
 
-    $seguimientos = Seguimiento::with(['roedores'])->where('almacen_id', $request->almacen_id)
-      ->whereBetween('created_at', [
-        $request->fecha_inicio . ' 00:00:00',
-        $request->fecha_fin . ' 23:59:59',
-      ])
-      ->orderBy('created_at', 'desc')
-      ->get(['id', 'created_at']);
+    // $seguimientos = Seguimiento::with(['roedores'])->where('almacen_id', $request->almacen_id)
+    //   ->whereBetween('created_at', [
+    //     $request->fecha_inicio . ' 00:00:00',
+    //     $request->fecha_fin . ' 23:59:59',
+    //   ])
+    //   ->orderBy('created_at', 'desc')
+    //   ->get(['id', 'created_at']);
 
     // trampa_roedor_seguimientos(id, seguimiento_id, trampa_id, inicial, merma, actual)
   }
@@ -406,6 +470,7 @@ class InformesController extends Controller
       'marginLeft' => 2500,
     ]);
 
+    // ---------------------SECCION: TITULO GENERAL DEL DOCUMENTO ----------------------------
     // INFORME TECNICO
     $section->addText('INFORME TECNICO', [
       'bold' => true,
@@ -431,6 +496,8 @@ class InformesController extends Controller
       'alignment' => Jc::CENTER,
       'lineHeight' => 1,
     ]);
+
+    // ---------------------SECCION: INTRODUCCION ----------------------------
     $section->addText('INTRODUCCIÓN:', [
       'bold' => true,
       'size' => 11,
@@ -483,22 +550,33 @@ class InformesController extends Controller
     $section->addListItem('El balance análisis.');
     $section->addListItem('Las recomendaciones para el próximo mes.');
 
-    // Lo que se realizo en la visita
+
+    // ---------------------SECCION: LO QUE SE REALIZO EN LA VISITA ----------------------------
+
     $section->addText('LO QUE SE REALIZO EN LA VISITA', [
       'bold' => true,
       'size' => 11,
       'underline' => 'single',
     ]);
-    // FOTOS
 
-    // Balance y análisis
-    $section->addText('BALANCE Y ANALISIS.', [
+    // ---------------------SUBSECCION: DESRATIZACION ----------------------------
+
+    $section->addText('1) DESRATIZACIÓN', [
       'bold' => true,
       'size' => 11,
       'underline' => 'single',
     ]);
+
+    // ************************************************************************************
+    // FOTOS DE VISITAS POR SEGUIMIENTO ***********************************************
+    // ************************************************************************************
+
+    // ************************************************************************************
+    // TABLA CANTIDAD DE TRAMPAS x TIPO y CANTIDAD DE ROEDORES CAPTURADOS *****************
+    // ************************************************************************************
+
     $section->addText(
-      'Se cumplió con el mantenimiento del control integral de plagas propuesto con el seguimiento de las [X] unidades de control de roedores para el pesaje de las unidades de control',
+      'Los rodenticidas utilizados para el trabajo son  en presentación de pellets  y bloques parafinados de acuerdo a la ubicación de las trampas sea exterior o interior se coloca el respectivo rodenticida esto esta en función tambien del nivel de riesgo de la presencia de plaga.',
       [],
       [
         'alignment' => Jc::BOTH,
@@ -506,6 +584,146 @@ class InformesController extends Controller
       ]
     );
 
+    $table = $section->addTable('tablaCebo');
+
+    $table->addRow();
+    $table->addCell(2000)->addText('NOMBRE COMERCIAL', ['bold' => true]);
+    $table->addCell(2000)->addText('INGREDIENTE ACTIVO', ['bold' => true]);
+    $table->addCell(2000)->addText('COMPOSICION', ['bold' => true]);
+    $table->addCell(2000)->addText('CLASE', ['bold' => true]);
+
+    $table->addCell(2000)->addText('RODENTICIDA KLERAT');
+    $table->addCell(2000)->addText('BRODIFACOUM (3-3-4 bromo 1-1 bifenil-4-il-1-2-3-4 tetrahidro1-naftalenil-4 hidrocumarina)');
+    $table->addCell(2000)->addText('Rodenticida Monosodico de Actividad Prolongada Cebo en Granos.');
+    $table->addCell(2000)->addText('CLARODENTICIDA RATICIDA MONOSODICOSE');
+
+    $table->addCell(2000)->addText('GRUPO QUIMICO', ['bold' => true]);
+    $table->addCell(2000)->addText('TIPO FORMULACION', ['bold' => true]);
+    $table->addCell(2000)->addText('NUMERO DE REGISTRO', ['bold' => true]);
+    $table->addCell(2000)->addText('PRESENTACION', ['bold' => true]);
+
+    $table->addCell(2000)->addText('BRODIFACOUM   WARFARINICO');
+    $table->addCell(2000)->addText('CEBO EN PELLETS');
+    $table->addCell(2000)->addText('INSO NRO. BR1020ROAB01');
+    $table->addCell(2000)->addText('IMG');
+
+    $table = $section->addTable('tablaBloques');
+
+    $table->addRow();
+    $table->addCell(2000)->addText('NOMBRE COMERCIAL', ['bold' => true]);
+    $table->addCell(2000)->addText('INGREDIENTE ACTIVO', ['bold' => true]);
+    $table->addCell(2000)->addText('COMPOSICION', ['bold' => true]);
+    $table->addCell(2000)->addText('CLASE', ['bold' => true]);
+
+    $table->addCell(2000)->addText('RODENTICIDA KLERAT');
+    $table->addCell(2000)->addText('BRODIFACOUM');
+    $table->addCell(2000)->addText('Brodifacoum……0.05g Beozoato de denatonium …..0.01 g Excipientes c.s. 1kg Cebo en Granos.');
+    $table->addCell(2000)->addText('RODENTICIDA RATICIDA MONOSODICO');
+
+    $table->addCell(2000)->addText('GRUPO QUIMICO', ['bold' => true]);
+    $table->addCell(2000)->addText('TIPO FORMULACION', ['bold' => true]);
+    $table->addCell(2000)->addText('NUMERO DE REGISTRO', ['bold' => true]);
+    $table->addCell(2000)->addText('PRESENTACION', ['bold' => true]);
+
+    $table->addCell(2000)->addText('BRODIFACOUM   WARFARINICO');
+    $table->addCell(2000)->addText('BLOQUES PARAFINICOS');
+    $table->addCell(2000)->addText('INSO NRO. BRO913ROBB01');
+    $table->addCell(2000)->addText('IMG');
+
+    // ---------------------SUBSECCION: SEGUIMIENTO DE LAS UNIDADES DE CONTROL ----------------------------
+    $section->addText('SEGUIMIENTO DE LAS UNIDADES DE CONTROL', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
+
+    // ************************************************************************************
+    // TABLA FECHAS DE SEGUIMIENTOS *****************
+    // ************************************************************************************
+
+    // ************************************************************************************
+    // TABLA CANTIDAD DE TRAMPAS x TIPO y CANTIDAD DE ROEDORES CAPTURADOS (EN CADA SEGUIMIENTO) ***
+    // ************************************************************************************    
+
+    // ---------------------SUBSECCION: BALANCE Y ANALISIS ----------------------------    
+    $section->addText('BALANCE Y ANALISIS.', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
+    $section->addText(
+      'Se cumplió con el seguimiento de las 68 unidades de control de roedores procediendo al pesaje de los cebos de las trampas a continuación se muestras los cuadros resúmenes de estas  actividades.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+
+    $section->addText(
+      'Los cuadros muestran los pesos obtenidos por fechas de seguimiento se verifica el peso total la merma y peso actual de las 68 unidades de control de roedores.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+
+    // ************************************************************************************
+    // TABLA RESUMEN X (CADA SEGUIMIENTO Y CADA ALMACEN) ***
+    // ************************************************************************************    
+
+    $section->addText(
+      'Analizando las tablas de pesos respecto al porcentaje de merma se establece que este no pasa del 5% con relación al Peso Total 100% lo que significa que no ha existido consumo por parte de roedores ni su presencia en las fechas evaluadas. Este porcentaje esta relacionado con perdidas por medio ambiente vale decir condiciones de humedad, temperatura, vientos lluvia, etc. que afectan a los cebos colocados.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+
+    $section->addText(
+      'La Grafica 1 muestra la DL50 (dosis letal media) de los ingredientes activos de los rodenticidas mostrando que brodifacoum es el ingrediente mas efectivo ya que su porcentaje tanto para rata y raton es el mas bajo por lo tanto mas toxico necesitando menor consumo para ser mas efectivo.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+
+
+    // ************************************************************************************
+    // GRAFICA: IMAGEN DESDE PUBLIC ***
+    // ************************************************************************************    
+
+    $section->addText(
+      'La Grafica 2 muestra la cantidad de cebo que debe ingerir un roedor según los ingredientes activos para que se cumpla la DL50 (dosis letal media) y pueda ser eliminado. Corroborando que el ingrediente activo BRODIFACOUM es el mas efectivo con un consumo minimo.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+
+    // ************************************************************************************
+    // GRAFICA: IMAGEN DESDE PUBLIC ***
+    // ************************************************************************************    
+
+    $section->addText(
+      'La Grafica 3 muestra el % de consumo quincenal  de los tres segumientos mensuales en la planta de produccion VF y los Almacenes dos y eventos, a la fecha de evaluación esta merma es debido a causas medioambientales ya que no se tuvo reporte de presencia y/o captura de roedor. ',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+
+    // ************************************************************************************
+    // GRAFICA: MONITOREO DE ROEDORES (X ALMACEN)
+    // ************************************************************************************    
+
+
+    // -------------------------------- xxxxxx (INICIO) SECCION NO AGREGADA EN INFORME xxxxxxxxxxxxx
     // [TABLA DE TRAMPAS]
     // Crear tabla
     $section->addTextBreak();
@@ -543,12 +761,15 @@ class InformesController extends Controller
       $section->addText('Valores por trampa', ['bold' => true]);
       $section->addImage($chart4, ['width' => 300]);
     }
+    // -------------------------------- xxxxxx (FIN) SECCION NO AGREGADA EN INFORME xxxxxxxxxxxxx    
 
-    // [RESUMEN DE SEGUIMIENTOS DE TRAMPAS]
-    // [TABLA RESUMEN]
-    // [GRAFICO DE REGISTRO QUINCENAL]
+    // ---------------------SECCION: BARRERAS FISICAS DE EXCLUCION (INSECTOCUTORES) ----------------------------        
+    $section->addText('BARRERAS FISICAS DE EXCLUCION (INSECTOCUTORES)', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
 
-    $section->addText('BARRERAS FISICAS DE EXCLUCION (INSECTOCUTORES)');
     $section->addText(
       'Para el control de insectos voladores se ha implementado tres insectocutores se realizó el seguimiento de cada uno de los insectocutores revisando el tipo de insecto encontrado y la cantidad, con esta información se ha podido calcular la incidencia y severidad se muestra a través de gráficos las tendencias y análisis respectivos',
       [],
@@ -583,8 +804,6 @@ class InformesController extends Controller
       }
     }
 
-
-
     $section->addText(
       'La incidencia es el número de individuos que están presentes en un determinado lugar la gráfica de incidencia muestra la presencia en estado adulto de los tres tipos de insectos que se ha logrado capturar que son mosca, mosquito y polillas en este estado no realizan daño directo sino tienen una actividad de colocar huevos para completar su metamorfosis.',
       [],
@@ -603,8 +822,6 @@ class InformesController extends Controller
     );
     $section->addText('');
 
-
-
     if ($chart1) {
       $section->addTextBreak();
       $section->addText('Total insectos por especie');
@@ -615,7 +832,7 @@ class InformesController extends Controller
 
     if ($chart2) {
       // $section->addPageBreak();
-      $section->addText('Evolución de insectos');
+      $section->addText('INCIDENCIA DE INSECTOS VOLADORES');
       $section->addImage($chart2, ['width' => 300]);
     }
 
@@ -623,12 +840,33 @@ class InformesController extends Controller
 
     if ($chart2) {
       // $section->addPageBreak();
-      $section->addText('Evolución de insectos');
+      $section->addText('SEVERIDAD DE INSECTOS VOLADORES');
       $section->addImage($chart2, ['width' => 300]);
     }
 
+    $section->addText(
+      'Los resultados de la severidad para el mes de enero y febrero muestran en promedio una concentración muy baja de moscas (1%) mosquitos (2%) y polilla (1%) porcentajes que para fines de análisis no se tomara en cuenta ya que no afectan a la producción de las bebidas en la planta.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+
     $section->addTextBreak();
 
+    // ---------------------SECCION: ACTIVIDADES COMPLEMENTARIAS DE CONTROL ----------------------------        
+    $section->addText('ACTIVIDADES COMPLEMENTARIAS DE CONTROL', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
+
+    // [DESCRIPCION]
+    // [IMAGENES]
+
+
+    // ---------------------SECCION: RECOMENDACIONES PARA LA PROXIMA VISITA: ----------------------------        
     $section->addText('RECOMENDACIONES PARA LA PROXIMA VISITA:', [
       'bold' => true,
       'size' => 11,

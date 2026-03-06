@@ -14,7 +14,7 @@ return new class extends Migration
     Schema::create('trampas', function (Blueprint $table) {
       $table->id();
       $table->foreignId('almacen_id')->constrained('almacenes');
-      $table->foreignId('mapa_id')->constrained('mapas');
+      $table->foreignId('mapa_id')->nullable()->constrained('mapas');
       $table->foreignId('trampa_tipo_id')->constrained('trampa_tipos');
       $table->integer('numero');
       $table->string('tipo')->nullable();

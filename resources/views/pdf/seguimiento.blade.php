@@ -345,6 +345,9 @@
           </td>
         </tr>
       </table> --}}
+
+      <div style="margin-top: 20px"></div>
+
       <table>
         <thead>
           <tr>
@@ -352,7 +355,7 @@
           </tr>
           <tr>
             <td>#</td>
-            <td>ID</td>
+            <td>IDENT.</td>
             <td>Observación</td>
             <td>Inicial</td>
             <td>Actual</td>
@@ -364,7 +367,8 @@
           @foreach ($seguimiento->roedores as $roedor)
             <tr>
               <td>{{ $loop->iteration }}</td>
-              <td>{{ $roedor->trampa_id }}</td>
+              {{-- <td>{{ $roedor->trampa_id }}</td> --}}
+              <td>{{ $roedor->trampa->identificador }}</td>
               <td>{{ $roedor->observacion }}</td>
               <td>{{ $roedor->inicial }}</td>
               <td>{{ $roedor->actual }}</td>
