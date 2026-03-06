@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 06-03-2026 a las 17:09:23
+-- Tiempo de generación: 06-03-2026 a las 17:35:57
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -20,6 +20,67 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `bolivianpest`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `acciones`
+--
+
+CREATE TABLE `acciones` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `empresa_id` bigint(20) UNSIGNED NOT NULL,
+  `almacen_id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `descripcion` text NOT NULL,
+  `costo` double NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `accion_imagenes`
+--
+
+CREATE TABLE `accion_imagenes` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `accion_id` bigint(20) UNSIGNED NOT NULL,
+  `imagen` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `accion_productos`
+--
+
+CREATE TABLE `accion_productos` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `accion_id` bigint(20) UNSIGNED NOT NULL,
+  `producto_id` bigint(20) UNSIGNED NOT NULL,
+  `unidad_id` bigint(20) UNSIGNED NOT NULL,
+  `cantidad` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `accion_trampas`
+--
+
+CREATE TABLE `accion_trampas` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `accion_id` bigint(20) UNSIGNED NOT NULL,
+  `trampa_id` bigint(20) UNSIGNED NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -151,12 +212,12 @@ CREATE TABLE `biologicos` (
 --
 
 INSERT INTO `biologicos` (`id`, `nombre`, `created_at`, `updated_at`) VALUES
-(1, 'Adulto', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(2, 'Huevo', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(3, 'Larva', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(4, 'Ninfa', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(5, 'Pupa', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(6, 'Otros', '2026-03-06 16:05:03', '2026-03-06 16:05:03');
+(1, 'Adulto', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(2, 'Huevo', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(3, 'Larva', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(4, 'Ninfa', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(5, 'Pupa', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(6, 'Otros', '2026-03-06 16:34:34', '2026-03-06 16:34:34');
 
 -- --------------------------------------------------------
 
@@ -511,12 +572,12 @@ CREATE TABLE `cuenta_extras` (
 --
 
 INSERT INTO `cuenta_extras` (`id`, `nombre`, `created_at`, `updated_at`) VALUES
-(1, 'Gastos bancarios operativos', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(2, 'Capacitacion y cursos', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(3, 'Licencias de Software', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(4, 'Gastos de representación', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(5, 'Eventos y actividades', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(6, 'Seguridad y vigilancia', '2026-03-06 16:05:03', '2026-03-06 16:05:03');
+(1, 'Gastos bancarios operativos', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(2, 'Capacitacion y cursos', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(3, 'Licencias de Software', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(4, 'Gastos de representación', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(5, 'Eventos y actividades', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(6, 'Seguridad y vigilancia', '2026-03-06 16:34:34', '2026-03-06 16:34:34');
 
 -- --------------------------------------------------------
 
@@ -536,17 +597,17 @@ CREATE TABLE `cuenta_financieros` (
 --
 
 INSERT INTO `cuenta_financieros` (`id`, `nombre`, `created_at`, `updated_at`) VALUES
-(1, 'Sueldos administrativos', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(2, 'Honorarios profesionales', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(3, 'Utiles de oficina', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(4, 'Alquiler de oficina', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(5, 'Energia Electrica', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(6, 'Agua', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(7, 'Telefono', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(8, 'Mantenimiento y reparaciones', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(9, 'Limpieza', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(10, 'Seguros', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(11, 'Depresiacion', '2026-03-06 16:05:03', '2026-03-06 16:05:03');
+(1, 'Sueldos administrativos', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(2, 'Honorarios profesionales', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(3, 'Utiles de oficina', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(4, 'Alquiler de oficina', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(5, 'Energia Electrica', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(6, 'Agua', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(7, 'Telefono', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(8, 'Mantenimiento y reparaciones', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(9, 'Limpieza', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(10, 'Seguros', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(11, 'Depresiacion', '2026-03-06 16:34:34', '2026-03-06 16:34:34');
 
 -- --------------------------------------------------------
 
@@ -566,14 +627,14 @@ CREATE TABLE `cuenta_operativos` (
 --
 
 INSERT INTO `cuenta_operativos` (`id`, `nombre`, `created_at`, `updated_at`) VALUES
-(1, 'Sueldos personal', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(2, 'Comisiones sobre ventas', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(3, 'Marketing digital', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(4, 'Material promocional', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(5, 'Transporte y distribucion', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(6, 'Combustible', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(7, 'Viaticos y movilidad', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(8, 'Empaques y embalajes', '2026-03-06 16:05:03', '2026-03-06 16:05:03');
+(1, 'Sueldos personal', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(2, 'Comisiones sobre ventas', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(3, 'Marketing digital', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(4, 'Material promocional', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(5, 'Transporte y distribucion', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(6, 'Combustible', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(7, 'Viaticos y movilidad', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(8, 'Empaques y embalajes', '2026-03-06 16:34:34', '2026-03-06 16:34:34');
 
 -- --------------------------------------------------------
 
@@ -627,17 +688,17 @@ CREATE TABLE `epps` (
 --
 
 INSERT INTO `epps` (`id`, `nombre`, `created_at`, `updated_at`) VALUES
-(1, 'Ropa de trabajo', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(2, 'Casco de proteccion', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(3, 'Gorra', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(4, 'Guantes', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(5, 'Overol', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(6, 'Botas', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(7, 'Gafas', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(8, 'Antiparras', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(9, 'Respirados', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(10, 'Full face', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(11, 'Otros', '2026-03-06 16:05:03', '2026-03-06 16:05:03');
+(1, 'Ropa de trabajo', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(2, 'Casco de proteccion', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(3, 'Gorra', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(4, 'Guantes', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(5, 'Overol', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(6, 'Botas', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(7, 'Gafas', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(8, 'Antiparras', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(9, 'Respirados', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(10, 'Full face', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(11, 'Otros', '2026-03-06 16:34:34', '2026-03-06 16:34:34');
 
 -- --------------------------------------------------------
 
@@ -657,9 +718,9 @@ CREATE TABLE `especies` (
 --
 
 INSERT INTO `especies` (`id`, `nombre`, `created_at`, `updated_at`) VALUES
-(1, 'Moscas', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(2, 'Polillas', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(3, 'Mosquitos', '2026-03-06 16:05:03', '2026-03-06 16:05:03');
+(1, 'Moscas', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(2, 'Polillas', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(3, 'Mosquitos', '2026-03-06 16:34:34', '2026-03-06 16:34:34');
 
 -- --------------------------------------------------------
 
@@ -1001,14 +1062,14 @@ CREATE TABLE `metodos` (
 --
 
 INSERT INTO `metodos` (`id`, `nombre`, `created_at`, `updated_at`) VALUES
-(1, 'Alimento con veneno', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(2, 'Sustancia pegajosa', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(3, 'Alimento', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(4, 'Aspersion', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(5, 'Niebla', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(6, 'Nebulizacion', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(7, 'Fumigacion', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(8, 'Otros', '2026-03-06 16:05:03', '2026-03-06 16:05:03');
+(1, 'Alimento con veneno', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(2, 'Sustancia pegajosa', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(3, 'Alimento', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(4, 'Aspersion', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(5, 'Niebla', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(6, 'Nebulizacion', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(7, 'Fumigacion', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(8, 'Otros', '2026-03-06 16:34:34', '2026-03-06 16:34:34');
 
 -- --------------------------------------------------------
 
@@ -1108,7 +1169,11 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (79, '2026_01_13_143244_create_trampa_seguimientos_table', 1),
 (80, '2026_01_13_143646_create_trampa_especie_seguimientos_table', 1),
 (81, '2026_01_13_143809_create_trampa_roedor_seguimientos_table', 1),
-(82, '2026_02_25_082320_create_buffer_productos_table', 1);
+(82, '2026_02_25_082320_create_buffer_productos_table', 1),
+(83, '2026_03_03_111616_create_acciones_table', 1),
+(84, '2026_03_03_112149_create_accion_trampas_table', 1),
+(85, '2026_03_03_112205_create_accion_productos_table', 1),
+(86, '2026_03_04_021409_create_accion_imagenes_table', 1);
 
 -- --------------------------------------------------------
 
@@ -1208,31 +1273,31 @@ CREATE TABLE `permissions` (
 --
 
 INSERT INTO `permissions` (`id`, `name`, `guard_name`, `created_at`, `updated_at`) VALUES
-(1, 'empresas', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(2, 'cotizaciones', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(3, 'contratos', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(4, 'almacenes', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(5, 'cronogramas', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(6, 'mapas', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(7, 'seguimientos', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(8, 'certificados', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(9, 'cuentascobrar', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(10, 'cuentaspagar', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(11, 'compras', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(12, 'ingresos', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(13, 'retiros', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(14, 'gastos', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(15, 'productos', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(16, 'categorias', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(17, 'subcategorias', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(18, 'marcas', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(19, 'etiquetas', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(20, 'proveedores', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(21, 'inventario', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(22, 'agenda', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(23, 'documentos', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(24, 'usuarios', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(25, 'configuraciones', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03');
+(1, 'empresas', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(2, 'cotizaciones', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(3, 'contratos', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(4, 'almacenes', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(5, 'cronogramas', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(6, 'mapas', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(7, 'seguimientos', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(8, 'certificados', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(9, 'cuentascobrar', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(10, 'cuentaspagar', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(11, 'compras', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(12, 'ingresos', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(13, 'retiros', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(14, 'gastos', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(15, 'productos', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(16, 'categorias', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(17, 'subcategorias', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(18, 'marcas', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(19, 'etiquetas', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(20, 'proveedores', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(21, 'inventario', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(22, 'agenda', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(23, 'documentos', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(24, 'usuarios', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(25, 'configuraciones', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34');
 
 -- --------------------------------------------------------
 
@@ -1324,9 +1389,9 @@ CREATE TABLE `protecciones` (
 --
 
 INSERT INTO `protecciones` (`id`, `nombre`, `created_at`, `updated_at`) VALUES
-(1, 'Señalizacion', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(2, 'Hoja de seguimiento', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(3, 'Otros', '2026-03-06 16:05:03', '2026-03-06 16:05:03');
+(1, 'Señalizacion', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(2, 'Hoja de seguimiento', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(3, 'Otros', '2026-03-06 16:34:34', '2026-03-06 16:34:34');
 
 -- --------------------------------------------------------
 
@@ -1379,10 +1444,10 @@ CREATE TABLE `roles` (
 --
 
 INSERT INTO `roles` (`id`, `name`, `guard_name`, `created_at`, `updated_at`) VALUES
-(1, 'superadmin', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(2, 'admin', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(3, 'tecnico', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(4, 'cliente', 'web', '2026-03-06 16:05:03', '2026-03-06 16:05:03');
+(1, 'superadmin', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(2, 'admin', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(3, 'tecnico', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(4, 'cliente', 'web', '2026-03-06 16:34:34', '2026-03-06 16:34:34');
 
 -- --------------------------------------------------------
 
@@ -1569,7 +1634,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('cHUaSCYlQKaADUd7OjdjQPOTIGQ6MxJhKbnDiKDv', 2, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiYTFFY3JjYTRPZ2pvWUpHVFpOS3JXdXJmMUVneVZUNVFQeFRqaHNPZiI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czozOiJ1cmwiO2E6MDp7fXM6OToiX3ByZXZpb3VzIjthOjI6e3M6MzoidXJsIjtzOjI3OiJodHRwOi8vbG9jYWxob3N0OjgwMDAvbG9naW4iO3M6NToicm91dGUiO3M6NToibG9naW4iO31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToyO30=', 1772813321);
+('pUFSpehPwcFQEBVmO3aAI50qKjCCBENObB9YAGmY', 2, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiZXhFZ2pvOXBGNldZdGhMNXBWbVJBbUhhaUc4QlZodm9JeTFBT2VTbSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czozOiJ1cmwiO2E6MDp7fXM6OToiX3ByZXZpb3VzIjthOjI6e3M6MzoidXJsIjtzOjI3OiJodHRwOi8vbG9jYWxob3N0OjgwMDAvbG9naW4iO3M6NToicm91dGUiO3M6NToibG9naW4iO31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToyO30=', 1772814934);
 
 -- --------------------------------------------------------
 
@@ -1589,13 +1654,13 @@ CREATE TABLE `signos` (
 --
 
 INSERT INTO `signos` (`id`, `nombre`, `created_at`, `updated_at`) VALUES
-(1, 'Huellas', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(2, 'Roeduras', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(3, 'Madriguera', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(4, 'Senda', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(5, 'Excrementos', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(6, 'Marca de orina', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(7, 'Otros', '2026-03-06 16:05:03', '2026-03-06 16:05:03');
+(1, 'Huellas', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(2, 'Roeduras', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(3, 'Madriguera', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(4, 'Senda', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(5, 'Excrementos', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(6, 'Marca de orina', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(7, 'Otros', '2026-03-06 16:34:34', '2026-03-06 16:34:34');
 
 -- --------------------------------------------------------
 
@@ -1629,10 +1694,10 @@ CREATE TABLE `tipo_seguimientos` (
 --
 
 INSERT INTO `tipo_seguimientos` (`id`, `nombre`, `created_at`, `updated_at`) VALUES
-(1, 'DESRATIZACION', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(2, 'DESINFECCION', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(3, 'DESINSECTACION', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(4, 'CONTROL DE AVES', '2026-03-06 16:05:03', '2026-03-06 16:05:03');
+(1, 'DESRATIZACION', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(2, 'DESINFECCION', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(3, 'DESINSECTACION', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(4, 'CONTROL DE AVES', '2026-03-06 16:34:34', '2026-03-06 16:34:34');
 
 -- --------------------------------------------------------
 
@@ -1643,7 +1708,7 @@ INSERT INTO `tipo_seguimientos` (`id`, `nombre`, `created_at`, `updated_at`) VAL
 CREATE TABLE `trampas` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `almacen_id` bigint(20) UNSIGNED NOT NULL,
-  `mapa_id` bigint(20) UNSIGNED NOT NULL,
+  `mapa_id` bigint(20) UNSIGNED DEFAULT NULL,
   `trampa_tipo_id` bigint(20) UNSIGNED NOT NULL,
   `numero` int(11) NOT NULL,
   `tipo` varchar(255) DEFAULT NULL,
@@ -1725,11 +1790,11 @@ CREATE TABLE `trampa_tipos` (
 --
 
 INSERT INTO `trampa_tipos` (`id`, `nombre`, `imagen`, `created_at`, `updated_at`) VALUES
-(1, 'golpe', '/images/trampas/trampa_raton.jpg', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(2, 'insecto', '/images/trampas/trampa_insecto.jpg', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(3, 'caja', '/images/trampas/caja_negra.jpg', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(4, 'viva', '/images/trampas/captura_viva.jpg', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(5, 'pegajosa', '/images/trampas/pegajosa.png', '2026-03-06 16:05:03', '2026-03-06 16:05:03');
+(1, 'golpe', '/images/trampas/trampa_raton.jpg', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(2, 'insecto', '/images/trampas/trampa_insecto.jpg', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(3, 'caja', '/images/trampas/caja_negra.jpg', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(4, 'viva', '/images/trampas/captura_viva.jpg', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(5, 'pegajosa', '/images/trampas/pegajosa.png', '2026-03-06 16:34:34', '2026-03-06 16:34:34');
 
 -- --------------------------------------------------------
 
@@ -1749,10 +1814,10 @@ CREATE TABLE `unidades` (
 --
 
 INSERT INTO `unidades` (`id`, `nombre`, `created_at`, `updated_at`) VALUES
-(1, 'Gramos', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(2, 'C.C.', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(3, 'Unidad', '2026-03-06 16:05:03', '2026-03-06 16:05:03'),
-(4, 'Litros', '2026-03-06 16:05:03', '2026-03-06 16:05:03');
+(1, 'Gramos', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(2, 'C.C.', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(3, 'Unidad', '2026-03-06 16:34:34', '2026-03-06 16:34:34'),
+(4, 'Litros', '2026-03-06 16:34:34', '2026-03-06 16:34:34');
 
 -- --------------------------------------------------------
 
@@ -1779,8 +1844,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `two_factor_secret`, `two_factor_recovery_codes`, `two_factor_confirmed_at`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'Luis Isla', 'islaluis25@gmail.com', NULL, '$2y$12$3pjS.qx8ujA1oYSL.TXGNOmrvYOlIoilspFCzlayvNOk6oaaDvFmS', NULL, NULL, NULL, NULL, '2026-03-06 16:06:09', '2026-03-06 16:06:09'),
-(2, 'admin', 'admin@admin.com', NULL, '$2y$12$hrXWaRD7vfKuHURmq3SQCO1KmzVw0PuRt13WTJW0w0ubKTtnQjerW', NULL, NULL, NULL, NULL, '2026-03-06 16:08:32', '2026-03-06 16:08:32');
+(1, 'Luis Isla', 'islaluis25@gmail.com', NULL, '$2y$12$MmzxmX45jUbBjjwp5kdamu5GgEq5Xn8fGaizcKTOagz5mJh9FkNtO', NULL, NULL, NULL, NULL, '2026-03-06 16:35:05', '2026-03-06 16:35:05'),
+(2, 'admin', 'admin@admin.com', NULL, '$2y$12$yIsXV2S3pkUQhDbAJFwPUeHo9oCvQqiSksdC8R0M.M4vNUoQEBW4G', NULL, NULL, NULL, NULL, '2026-03-06 16:35:31', '2026-03-06 16:35:31');
 
 -- --------------------------------------------------------
 
@@ -1833,6 +1898,39 @@ CREATE TABLE `venta_detalles` (
 --
 -- Índices para tablas volcadas
 --
+
+--
+-- Indices de la tabla `acciones`
+--
+ALTER TABLE `acciones`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `acciones_empresa_id_foreign` (`empresa_id`),
+  ADD KEY `acciones_almacen_id_foreign` (`almacen_id`),
+  ADD KEY `acciones_user_id_foreign` (`user_id`);
+
+--
+-- Indices de la tabla `accion_imagenes`
+--
+ALTER TABLE `accion_imagenes`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `accion_imagenes_accion_id_foreign` (`accion_id`);
+
+--
+-- Indices de la tabla `accion_productos`
+--
+ALTER TABLE `accion_productos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `accion_productos_accion_id_foreign` (`accion_id`),
+  ADD KEY `accion_productos_producto_id_foreign` (`producto_id`),
+  ADD KEY `accion_productos_unidad_id_foreign` (`unidad_id`);
+
+--
+-- Indices de la tabla `accion_trampas`
+--
+ALTER TABLE `accion_trampas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `accion_trampas_accion_id_foreign` (`accion_id`),
+  ADD KEY `accion_trampas_trampa_id_foreign` (`trampa_id`);
 
 --
 -- Indices de la tabla `agendas`
@@ -2500,6 +2598,30 @@ ALTER TABLE `venta_detalles`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `acciones`
+--
+ALTER TABLE `acciones`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `accion_imagenes`
+--
+ALTER TABLE `accion_imagenes`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `accion_productos`
+--
+ALTER TABLE `accion_productos`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `accion_trampas`
+--
+ALTER TABLE `accion_trampas`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `agendas`
 --
 ALTER TABLE `agendas`
@@ -2803,7 +2925,7 @@ ALTER TABLE `metodos`
 -- AUTO_INCREMENT de la tabla `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
 
 --
 -- AUTO_INCREMENT de la tabla `pagar_cuotas`
@@ -3000,6 +3122,35 @@ ALTER TABLE `venta_detalles`
 --
 -- Restricciones para tablas volcadas
 --
+
+--
+-- Filtros para la tabla `acciones`
+--
+ALTER TABLE `acciones`
+  ADD CONSTRAINT `acciones_almacen_id_foreign` FOREIGN KEY (`almacen_id`) REFERENCES `almacenes` (`id`),
+  ADD CONSTRAINT `acciones_empresa_id_foreign` FOREIGN KEY (`empresa_id`) REFERENCES `empresas` (`id`),
+  ADD CONSTRAINT `acciones_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
+-- Filtros para la tabla `accion_imagenes`
+--
+ALTER TABLE `accion_imagenes`
+  ADD CONSTRAINT `accion_imagenes_accion_id_foreign` FOREIGN KEY (`accion_id`) REFERENCES `acciones` (`id`);
+
+--
+-- Filtros para la tabla `accion_productos`
+--
+ALTER TABLE `accion_productos`
+  ADD CONSTRAINT `accion_productos_accion_id_foreign` FOREIGN KEY (`accion_id`) REFERENCES `acciones` (`id`),
+  ADD CONSTRAINT `accion_productos_producto_id_foreign` FOREIGN KEY (`producto_id`) REFERENCES `productos` (`id`),
+  ADD CONSTRAINT `accion_productos_unidad_id_foreign` FOREIGN KEY (`unidad_id`) REFERENCES `unidades` (`id`);
+
+--
+-- Filtros para la tabla `accion_trampas`
+--
+ALTER TABLE `accion_trampas`
+  ADD CONSTRAINT `accion_trampas_accion_id_foreign` FOREIGN KEY (`accion_id`) REFERENCES `acciones` (`id`),
+  ADD CONSTRAINT `accion_trampas_trampa_id_foreign` FOREIGN KEY (`trampa_id`) REFERENCES `trampas` (`id`);
 
 --
 -- Filtros para la tabla `agendas`
