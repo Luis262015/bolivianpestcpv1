@@ -457,6 +457,38 @@
   background: #013147;
 }
 /* PORTAFOLIO */
+.tiktok-video-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 12px; /* opcional */
+}
+
+.tiktok-embed {
+  margin: 0 !important;
+}
+
+/* Para que el overlay se mantenga funcional si lo quieres encima del video */
+.portfolio-item {
+  position: relative;
+}
+
+.portfolio-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5); /* semi-transparente */
+  opacity: 0;
+  transition: opacity 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.portfolio-item:hover .portfolio-overlay {
+  opacity: 1;
+}
+
 .portfolioFilters {
   margin-bottom: 60px;
 }

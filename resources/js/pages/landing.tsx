@@ -8,7 +8,7 @@ import {
 import { Head } from '@inertiajs/react';
 import { Autoplay, EffectFade, Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
-
+import { Textarea } from "@/components/ui/textarea"
 import styles from './landing.module.css';
 
 import SplashScreen from '@/components/SplashScreen';
@@ -31,6 +31,17 @@ import {
   Siren,
   Snail,
 } from 'lucide-react';
+import WhyHighlightCard from '@/components/WhyHighlightCard';
+import { Input } from "@/components/ui/input";
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import 'swiper/css';
 import 'swiper/css/autoplay';
 import 'swiper/css/effect-fade';
@@ -49,6 +60,7 @@ export default function Landing() {
           href="https://fonts.bunny.net/css?family=inter:200,300,300i,400,400i,500,500i,600,600i,700,800,900"
           rel="stylesheet"
         />
+        <script async src="https://www.tiktok.com/embed.js"></script>
       </Head>
 
       <Navbar logo="/images/LogoHFCWhite.png" />
@@ -647,66 +659,68 @@ export default function Landing() {
               </span>
             </h2>
           </div>
-
-          {/* <!-- Filtros --> */}
-          {/* <div className={`portfolio-filters ${styles.portfolioFilters}`}>
-            <button
-              className={`filter-btn ${styles.portfolioFilterBtn}`}
-              data-filter="*"
-            >
-              Todo
-            </button>
-            <button
-              className={`filter-btn ${styles.portfolioFilterBtn}`}
-              data-filter=".home"
-            >
-              Plaga en Hogar
-            </button>
-            <button
-              className={`filter-btn ${styles.portfolioFilterBtn}`}
-              data-filter=".commercial"
-            >
-              Plaga Comercial
-            </button>
-            <button
-              className={`filter-btn ${styles.portfolioFilterBtn}`}
-              data-filter=".eco"
-            >
-              Eco-Friendly
-            </button>
-            <button
-              className={`filter-btn ${styles.portfolioFilterBtn}`}
-              data-filter=".termite"
-            >
-              Termitas y Roedores
-            </button>
-            <button
-              className={`filter-btn ${styles.portfolioFilterBtn}`}
-              data-filter=".outdoor"
-            >
-              Plagas en Exteriores
-            </button>
-          </div> */}
-
-          {/* <!-- Galería con hover + overlay --> */}
           <div
             className={`portfolio-grid mt-8 md:mt-16 lg:mt-24 ${styles.portfolioGrid}`}
             id="portfolioGrid"
-          >
-            <div className={`portfolio-item home ${styles.portfolioItem}`}>
-              <img src="/images/portfolio/ocho.webp" alt="Plaga en Hogar" />
-              <div className={`portfolio-overlay ${styles.portfolioOverlay}`}>
-                <div className="overlay-content">
-                  <h4>Control de Plagas en Hogar</h4>
-                  <p>
-                    Soluciones efectivas y seguras para mantener tu hogar libre
-                    de insectos y roedores.
-                  </p>
+            >
+              {/* Item 1 - Control de Plagas en Hogar */}
+              <div className={`portfolio-item home ${styles.portfolioItem}`}>
+                {/* Reemplazamos img + overlay por el embed de TikTok */}
+                <div className="tiktok-video-wrapper">
+                  <blockquote
+                    className="tiktok-embed"
+                    cite="https://www.tiktok.com/@bolivian_pest/video/7471413968603467063"
+                    data-video-id="7471413968603467063"
+                    style={{ maxWidth: "325px", minWidth: "325px" }}
+                  >
+                    <section>
+                      <a href="https://www.tiktok.com/@bolivian_pest/video/7471413968603467063?refer=embed">
+                      </a>
+                    </section>
+                  </blockquote>
+                </div>
+
+              </div>
+
+              {/* Item 2 - Plagas en Negocios */}
+              <div className={`portfolio-item commercial ${styles.portfolioItem}`}>
+                <div className="tiktok-video-wrapper">
+                  <blockquote
+                    className="tiktok-embed"
+                    cite="https://www.tiktok.com/@bolivian_pest/video/7470332967810780422"
+                    data-video-id="7471413968603467063"
+                    style={{ maxWidth: "325px", minWidth: "325px" }}
+                  >
+                    <section>
+                      <a href="https://www.tiktok.com/@bolivian_pest/video/7470332967810780422?refer=embed">
+                      </a>
+                    </section>
+                  </blockquote>
+                </div>
+              </div>
+
+              {/* Repite el mismo patrón para los otros 4 items... */}
+
+              {/* Ejemplo para el último */}
+              <div className={`portfolio-item outdoor ${styles.portfolioItem}`}>
+                <div className="tiktok-video-wrapper">
+                  <blockquote
+                    className="tiktok-embed"
+                    cite="https://www.tiktok.com/@bolivian_pest/video/7468916199028509957"
+                    data-video-id="7471413968603467063"
+                    style={{ maxWidth: "325px", minWidth: "325px" }}
+                  >
+                    <section>
+                      <a href="https://www.tiktok.com/@bolivian_pest/video/7468916199028509957?refer=embed">
+                      </a>
+                    </section>
+                  </blockquote>
                 </div>
               </div>
             </div>
 
-            <div
+          {/* <!-- Galería con hover + overlay --> */}
+            {/* <div
               className={`portfolio-item commercial ${styles.portfolioItem}`}
             >
               <img src="/images/portfolio/nueve.webp" alt="Plaga Comercial" />
@@ -772,9 +786,9 @@ export default function Landing() {
                   </p>
                 </div>
               </div>
-            </div>
+            </div> */}
+
           </div>
-        </div>
       </section>
 
       {/* <!-- por que elegirnos --> */}
@@ -790,58 +804,31 @@ export default function Landing() {
             </span>
             <h2 className={`section-title ${styles.sectionTitle}`}>
               ¿Qué nos convierte en la mejor opción
-              <span className="text-green">para usted?</span>
+              <span className="text-green"> para usted?</span>
             </h2>
             <p className={`section-desc ${styles.sectionDescription}`}>
-              Entendemos lo frustrantes y molestas que pueden ser las plagas,
-              por eso nos comprometemos a brindar soluciones rápidas, confiables
-              y efectivas..
+              En BolivianPest nos distinguimos por combinar calidad comprobada, atención personalizada y un compromiso total con la formalidad y transparencia que todo cliente merece.
             </p>
           </div>
 
           <div className={`why-grid ${styles.whyGrid}`}>
-            {/* Tarjeta 1 - Servicios de emergencia */}
-            <div className={`why-card ${styles.whyCard}`}>
-              <div className={`why-icon ${styles.whyIcon}`}>
-                <Clock className="text-white-600 h-10 w-10" strokeWidth={2} />
-              </div>
-              <h3 className="text-center">Servicios de emergencia</h3>
-              <p className="text-center">
-                Atención inmediata 24/7, incluso feriados.
-              </p>
-            </div>
-
-            {/* Tarjeta 2 - Tratamientos personalizados */}
-            <div className={`why-card ${styles.whyCard}`}>
-              <div className={`why-icon ${styles.whyIcon}`}>
-                <Settings
-                  className="text-white-600 h-10 w-10"
-                  strokeWidth={2}
-                />
-                {/* o también puedes usar: <Target /> o <Wrench /> */}
-              </div>
-              <h3 className="text-center">Tratamientos personalizados</h3>
-              <p className="text-center">
-                Soluciones adaptadas al tipo de plaga y propiedad.
-              </p>
-            </div>
-
-            {/* Tarjeta 3 - Profesionales certificados */}
+            
+            {/* Tarjeta 3 - Profesionales certificados 
             <div className={`why-card ${styles.whyCard}`}>
               <div className={`why-icon ${styles.whyIcon}`}>
                 <ShieldCheck
                   className="text-white-600 h-10 w-10"
                   strokeWidth={2}
                 />
-                {/* Alternativas bonitas: <Award />, <UserCheck />, <Certificate /> */}
+                {/* Alternativas bonitas: <Award />, <UserCheck />, <Certificate />
               </div>
               <h3 className="text-center">Profesionales certificados</h3>
               <p className="text-center">
                 Técnicos capacitados y con licencia oficial.
               </p>
-            </div>
+            </div>*/}
 
-            {/* Tarjeta destacada con imagen */}
+            {/* Tarjeta destacada con imagen 
             <div className={`why-highlight-card ${styles.whyHighCard}`}>
               <img
                 src="/images/choice/seis.webp"
@@ -860,7 +847,32 @@ export default function Landing() {
                   Llame ahora +591 76738282
                 </a>
               </div>
-            </div>
+            </div>*/}
+            <WhyHighlightCard
+              imageSrc="/images/choice/nit.png"
+              imageAlt="Control de plagas en cocina"
+              //title="¡Recupere su hogar de las plagas hoy mismo!"
+              //phoneNumber="59176738282"
+              //phoneDisplay="+591 76738282"
+            />
+
+            <WhyHighlightCard
+              imageSrc="/images/choice/gestora.png"
+              imageAlt="Fumigación profesional en hogar"
+            />
+
+            <WhyHighlightCard
+              imageSrc="/images/choice/certiS.png"
+              imageAlt="Servicio rápido y efectivo"
+            />
+
+            <WhyHighlightCard
+              imageSrc="/images/choice/seprec.png"
+              imageAlt="Servicio rápido y efectivo"
+              
+            />
+
+
           </div>
 
           {/* <!-- CTA final --> */}
@@ -1111,67 +1123,174 @@ export default function Landing() {
       </section>
       {/* <!-- CTA --> */}
       <section
-        className={`about-your mt-2 md:mt-6 lg:mt-10 ${styles.ctaSection}`}
-        id="contacto"
-      >
-        <div className="container w-full">
-          <div className={`about-your-wrapper ${styles.ctaWrapper}`}>
-            {/* <!-- Imagen del técnico (izquierda) --> */}
-            <div className={`about-your-image ${styles.ctaImage}`}>
-              <img
-                src="/images/cta/personaje.webp"
-                alt="Técnico profesional listo para ayudarte"
+  className={`about-your mt-2 md:mt-6 lg:mt-10 ${styles.ctaSection} bg-gray-50 dark:bg-gray-900 py-12 md:py-16 lg:py-20`}
+  id="contacto"
+>
+  <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+      
+      {/* Columna izquierda - Información / Imagen / Mensaje motivador */}
+      <div className="space-y-6 lg:space-y-8 order-2 lg:order-1">
+        {/* Imagen decorativa o ilustración (puedes cambiarla) */}
+        <div className="relative rounded-2xl overflow-hidden shadow-xl">
+          {/* <img
+            src="https://images.unsplash.com/photo-1557426272-fc91fdb8f385?auto=format&fit=crop&q=80&w=800"
+            alt="Equipo trabajando o imagen de contacto"
+            className="w-full h-64 md:h-80 lg:h-[500px] object-cover"
+          /> */}
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d239.0954346072869!2d-68.12636138046955!3d-16.499473655781642!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x915f210059ecf6c7%3A0xca158fcbb8866f59!2sBolivianPest!5e0!3m2!1ses!2sbo!4v1772571664453!5m2!1ses!2sbo" 
+          width="600" height="450"  loading="lazy"></iframe>
+          {/* Overlay opcional con gradiente */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        </div>
+
+        {/* <div>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
+            Acerca de Bolivian Pest
+          </h2>
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+            Nos dedicamos a crear entornos seguros y libres de plagas para hogares y negocios. Contamos con años de experiencia en el sector del control de plagas. Nos enorgullecemos de ofrecer soluciones eficaces y ecológicas adaptadas a sus necesidades.
+          </p>
+        </div> */}
+
+        {/* Información adicional (opcional pero profesional) */}
+        <div className="space-y-4 text-gray-600 dark:text-gray-300">
+          {/* <div className="flex items-center gap-3">
+            <span className="text-xl">📧</span>
+            <span>hola@tuempresa.com</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xl">📱</span>
+            <span>+591 777-88899</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xl">📍</span>
+            <span>La Paz, Bolivia</span>
+          </div> 
+          <h3 className="mb-6 text-xl font-bold">Contáctanos</h3>*/}
+
+              <div className="space-y-4">
+                {/* Teléfono */}
+                <div
+                  className={`contact-item flex items-center gap-4 ${styles.footerContactItem}`}
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cyan-600 text-white">
+                    <Phone className="h-5 w-5" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Teléfono / WhatsApp</p>
+                    <a
+                      href="https://wa.me/59176738282"
+                      className="hover:text-white-400 text-white transition"
+                    >
+                      +591 76738282
+                    </a>
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div
+                  className={`contact-item flex items-center gap-4 ${styles.footerContactItem}`}
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cyan-600 text-white">
+                    <Mail className="h-5 w-5" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Correo electrónico</p>
+                    <a
+                      href="mailto:info@bolivianpest.com"
+                      className="hover:text-white-400 text-white transition"
+                    >
+                      info@bolivianpest.com
+                    </a>
+                  </div>
+                </div>
+              </div>
+        </div> 
+      </div>
+
+      {/* Columna derecha - Formulario */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 lg:p-10 order-1 lg:order-2">
+        <form className="space-y-8">
+          <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Contáctanos
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Nombre completo
+              </label>
+              <input
+                type="text"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+                placeholder="Tu nombre"
+                required
               />
             </div>
 
-            {/* <!-- Contenido (derecha) --> */}
-            <div className={`about-your-content ${styles.ctaContent}`}>
-              <h2 className={`section-title mb-5 ${styles.sectionTitle}`}>
-                Hablemos de sus necesidades de
-                <span className="text-green"> control de plagas</span>
-              </h2>
-
-              <ul className={`about-your-list ${styles.ctaList}`}>
-                <li className="group flex items-center gap-4">
-                  <CheckCircle2 className="h-9 w-9 shrink-0 text-emerald-500 transition-transform group-hover:scale-110" />
-                  <span className="transition-colors group-hover:text-emerald-600">
-                    Agende su inspección gratuita
-                  </span>
-                </li>
-                <li className="group flex items-center gap-4">
-                  <CheckCircle2 className="h-9 w-9 shrink-0 text-emerald-500 transition-transform group-hover:scale-110" />
-                  <span className="transition-colors group-hover:text-emerald-600">
-                    Prevenga futuras infestaciones
-                  </span>
-                </li>
-                <li className="group flex items-center gap-4">
-                  <CheckCircle2 className="h-9 w-9 shrink-0 text-emerald-500 transition-transform group-hover:scale-110" />
-                  <span className="transition-colors group-hover:text-emerald-600">
-                    Reserva fácil y rápida
-                  </span>
-                </li>
-                {/* <li>
-                  <span className={`list-icon ${styles.ctaListIcon}`}>
-                    Check
-                  </span>
-                  Reserva fácil y rápida
-                </li> */}
-              </ul>
-
-              <a
-                href="https://wa.me/59176738282"
-                target="_blank"
-                className={`btn-membership ${styles.ctaBtnMember}`}
-              >
-                Empieza Ahora
-                <span className={`arrow-circle ${styles.ctaArrowCircle}`}>
-                  <CheckCircle2 className="text-white-500 h-9 w-9 shrink-0 transition-transform group-hover:scale-110" />
-                </span>
-              </a>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Ciudad
+              </label>
+              <input
+                type="text"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+                placeholder="La Paz, Santa Cruz, etc."
+              />
             </div>
           </div>
-        </div>
-      </section>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Email
+              </label>
+              <input
+                type="email"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+                placeholder="tu@email.com"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Teléfono
+              </label>
+              <input
+                type="tel"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+                placeholder="+591 7XXX XXXX"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Mensaje
+            </label>
+            <textarea
+              rows={5}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition resize-none"
+              placeholder="Cuéntanos sobre tu proyecto, requerimientos o cualquier consulta..."
+              required
+            />
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className="px-8 py-3 bg-primary/10 hover:bg-primary/50 font-medium rounded-lg shadow-md transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            >
+              Enviar mensaje
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* <!-- Footer --> */}
       <footer className={`footer flex justify-center ${styles.footer}`}>
@@ -1236,11 +1355,11 @@ export default function Landing() {
               </ul>
             </div>
 
-            <div className={`footer-column contact ${styles.footerColumn}`}>
+            {/* <div className={`footer-column contact ${styles.footerColumn}`}>
               <h3 className="mb-6 text-xl font-bold">Contáctanos</h3>
 
               <div className="space-y-4">
-                {/* Teléfono */}
+                {/* Teléfono 
                 <div
                   className={`contact-item flex items-center gap-4 ${styles.footerContactItem}`}
                 >
@@ -1258,7 +1377,7 @@ export default function Landing() {
                   </div>
                 </div>
 
-                {/* Email */}
+                {/* Email 
                 <div
                   className={`contact-item flex items-center gap-4 ${styles.footerContactItem}`}
                 >
@@ -1276,7 +1395,7 @@ export default function Landing() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           <hr className={`footer-divider${styles.footerDivider}`} />
