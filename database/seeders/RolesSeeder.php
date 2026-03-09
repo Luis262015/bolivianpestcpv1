@@ -154,7 +154,8 @@ class RolesSeeder extends Seeder
 
         DB::table('tipo_seguimientos')->insert([
             ['nombre' => 'DESRATIZACION'],
-            ['nombre' => 'DESINFECCION'],
+            // ['nombre' => 'DESINFECCION'],
+            ['nombre' => 'FUMIGACION'],
             ['nombre' => 'DESINSECTACION'],
             ['nombre' => 'CONTROL DE AVES'],
         ]);

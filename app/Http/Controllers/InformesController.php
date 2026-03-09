@@ -31,7 +31,7 @@ class InformesController extends Controller
   public function index(Request $request)
   {
 
-    // dd($request->all());
+    //dd($request->all());
 
     $user = $request->user();
 
@@ -60,36 +60,38 @@ class InformesController extends Controller
 
     if (
       $request->filled('buscar') &&
-      // $request->almacen_id &&
+      $request->almacen_id &&
       $request->fecha_inicio &&
       $request->fecha_fin
     ) {
+
+      //dd("jkvbksjvbdkjsdb");
 
       // Validar si quieres asegurarte que venga empresa_id
       $request->validate([
         'empresa_id' => 'required|integer|exists:empresas,id',
       ]);
 
-      if ($request->almacen_id) {
-        // dd("LISTA DE SEGUIMIENTOS POR ALMACEN");
-        // LISTA DE SEGUIMIENTOS
-        $seguimientos = Seguimiento::with(['almacen', 'roedores.trampa.trampa_tipo', 'insectocutores.especie', 'tipoSeguimiento', 'user'])
-          ->where('almacen_id', $request->almacen_id)
-          ->whereBetween('created_at', [
-            $request->fecha_inicio . ' 00:00:00',
-            $request->fecha_fin . ' 23:59:59',
-          ])
-          ->orderBy('created_at', 'desc')
-          ->get(['id', 'tipo_seguimiento_id', 'user_id', 'created_at', 'encargado_nombre', 'encargado_cargo', 'almacen_id']);
+      // if ($request->almacen_id) {
+      // dd("LISTA DE SEGUIMIENTOS POR ALMACEN");
+      // LISTA DE SEGUIMIENTOS
+      $seguimientos = Seguimiento::with(['almacen', 'roedores.trampa.trampa_tipo', 'roedores.trampa.mapa', 'insectocutores.especie', 'tipoSeguimiento', 'user'])
+        ->where('almacen_id', $request->almacen_id)
+        ->whereBetween('created_at', [
+          $request->fecha_inicio . ' 00:00:00',
+          $request->fecha_fin . ' 23:59:59',
+        ])
+        ->orderBy('created_at', 'asc')
+        ->get(['id', 'tipo_seguimiento_id', 'user_id', 'created_at', 'encargado_nombre', 'encargado_cargo', 'almacen_id']);
 
-        $totales = TrampaRoedorSeguimiento::query()
-          ->join('seguimientos', 'seguimientos.id', '=', 'trampa_roedor_seguimientos.seguimiento_id')
-          ->where('seguimientos.almacen_id', $request->almacen_id)
-          ->whereBetween('seguimientos.created_at', [
-            $request->fecha_inicio . ' 00:00:00',
-            $request->fecha_fin . ' 23:59:59',
-          ])
-          ->selectRaw("
+      $totales = TrampaRoedorSeguimiento::query()
+        ->join('seguimientos', 'seguimientos.id', '=', 'trampa_roedor_seguimientos.seguimiento_id')
+        ->where('seguimientos.almacen_id', $request->almacen_id)
+        ->whereBetween('seguimientos.created_at', [
+          $request->fecha_inicio . ' 00:00:00',
+          $request->fecha_fin . ' 23:59:59',
+        ])
+        ->selectRaw("
         DATE_FORMAT(seguimientos.created_at, '%Y-%m') as mes,
         SUM(trampa_roedor_seguimientos.inicial) as inicial_sum,
         SUM(trampa_roedor_seguimientos.merma) as merma_sum,
@@ -99,44 +101,48 @@ class InformesController extends Controller
         AVG(trampa_roedor_seguimientos.merma) as merma_avg,
         AVG(trampa_roedor_seguimientos.actual) as actual_avg
     ")
-          ->groupBy(DB::raw("DATE_FORMAT(seguimientos.created_at, '%Y-%m')"))
-          ->orderBy('mes')
-          ->get();
-      } else {
-        // dd("LISTA DE SEGUIMIENTOS COMPLETO");
-        $seguimientos = Seguimiento::with(['almacen', 'roedores.trampa.trampa_tipo', 'insectocutores.especie', 'tipoSeguimiento', 'user'])
-          ->whereHas('almacen', function ($query) use ($request) {
-            $query->where('empresa_id', $request->empresa_id);
-          })
-          ->whereBetween('created_at', [
-            $request->fecha_inicio . ' 00:00:00',
-            $request->fecha_fin . ' 23:59:59',
-          ])
-          ->orderBy('created_at', 'desc')
-          ->get(['id', 'tipo_seguimiento_id', 'user_id', 'created_at', 'encargado_nombre', 'encargado_cargo', 'almacen_id']);
+        ->groupBy(DB::raw("DATE_FORMAT(seguimientos.created_at, '%Y-%m')"))
+        ->orderBy('mes')
+        ->get();
+      // }
 
-        $totales = TrampaRoedorSeguimiento::query()
-          ->join('seguimientos', 'seguimientos.id', '=', 'trampa_roedor_seguimientos.seguimiento_id')
-          ->whereHas('seguimiento.almacen', function ($query) use ($request) {
-            $query->where('empresa_id', $request->empresa_id);
-          })
-          ->whereBetween('seguimientos.created_at', [
-            $request->fecha_inicio . ' 00:00:00',
-            $request->fecha_fin . ' 23:59:59',
-          ])
-          ->selectRaw("
-        DATE_FORMAT(seguimientos.created_at, '%Y-%m') as mes,
-        SUM(trampa_roedor_seguimientos.inicial) as inicial_sum,
-        SUM(trampa_roedor_seguimientos.merma) as merma_sum,
-        SUM(trampa_roedor_seguimientos.actual) as actual_sum,
-        AVG(trampa_roedor_seguimientos.inicial) as inicial_avg,
-        AVG(trampa_roedor_seguimientos.merma) as merma_avg,
-        AVG(trampa_roedor_seguimientos.actual) as actual_avg
-    ")
-          ->groupBy(DB::raw("DATE_FORMAT(seguimientos.created_at, '%Y-%m')"))
-          ->orderBy('mes')
-          ->get();
-      }
+      // ******************* PARTE DE CODIGO PARA BUSQUEDA DE TODOS LOS ALMACENES DE LA EMPRESA *********
+      //   else {
+      //     // dd("LISTA DE SEGUIMIENTOS COMPLETO");
+      //     $seguimientos = Seguimiento::with(['almacen', 'roedores.trampa.trampa_tipo', 'insectocutores.especie', 'tipoSeguimiento', 'user'])
+      //       ->whereHas('almacen', function ($query) use ($request) {
+      //         $query->where('empresa_id', $request->empresa_id);
+      //       })
+      //       ->whereBetween('created_at', [
+      //         $request->fecha_inicio . ' 00:00:00',
+      //         $request->fecha_fin . ' 23:59:59',
+      //       ])
+      //       ->orderBy('created_at', 'desc')
+      //       ->get(['id', 'tipo_seguimiento_id', 'user_id', 'created_at', 'encargado_nombre', 'encargado_cargo', 'almacen_id']);
+
+      //     $totales = TrampaRoedorSeguimiento::query()
+      //       ->join('seguimientos', 'seguimientos.id', '=', 'trampa_roedor_seguimientos.seguimiento_id')
+      //       ->whereHas('seguimiento.almacen', function ($query) use ($request) {
+      //         $query->where('empresa_id', $request->empresa_id);
+      //       })
+      //       ->whereBetween('seguimientos.created_at', [
+      //         $request->fecha_inicio . ' 00:00:00',
+      //         $request->fecha_fin . ' 23:59:59',
+      //       ])
+      //       ->selectRaw("
+      //     DATE_FORMAT(seguimientos.created_at, '%Y-%m') as mes,
+      //     SUM(trampa_roedor_seguimientos.inicial) as inicial_sum,
+      //     SUM(trampa_roedor_seguimientos.merma) as merma_sum,
+      //     SUM(trampa_roedor_seguimientos.actual) as actual_sum,
+      //     AVG(trampa_roedor_seguimientos.inicial) as inicial_avg,
+      //     AVG(trampa_roedor_seguimientos.merma) as merma_avg,
+      //     AVG(trampa_roedor_seguimientos.actual) as actual_avg
+      // ")
+      //       ->groupBy(DB::raw("DATE_FORMAT(seguimientos.created_at, '%Y-%m')"))
+      //       ->orderBy('mes')
+      //       ->get();
+      //   }
+      // *****************************************************************************************
 
       // dd($totales);
       // dd($seguimientos);
@@ -211,8 +217,9 @@ class InformesController extends Controller
 
   public function storeWord(Request $request)
   {
-    // Log::info($request->seguimiento_ids);
-    $seguimientoIds = $request->input('seguimiento_ids', []);
+
+    // $seguimientoIds = $request->input('seguimiento_ids', []);
+
     $seguimientos = Seguimiento::with([
       'insectocutores.especie',
       'roedores'
@@ -319,151 +326,8 @@ class InformesController extends Controller
       'differentFirstPageHeaderFooter' => true
     ]);
 
-    $header = $section1->addHeader('first');
+    $this->caratula($section1, $request);
 
-    $header->addImage(
-      public_path('images/informe/membretado.png'),
-      [
-        'width' => 595,
-        'height' => 842,
-
-        'positioning' => 'absolute',
-
-        'posHorizontal' => 'left',
-        'posHorizontalRel' => 'page',
-        'posHorizontalOffset' => 0,
-
-        'posVertical' => 'top',
-        'posVerticalRel' => 'page',
-        'posVerticalOffset' => 0,
-
-        'wrappingStyle' => 'behind'
-      ]
-    );
-
-    // $header->addImage(
-    //   public_path('images/informe/membretado.png'),
-    //   [
-    //     'width' => 595,
-    //     'height' => 842,
-    //     'positioning' => 'absolute',
-    //     'posHorizontal' => 'center',
-    //     'posVertical' => 'top',
-    //     'marginTop' => 0,
-    //     'marginLeft' => 0,
-    //     'wrappingStyle' => 'behind'
-    //   ]
-    // );
-
-    // $header->addImage(
-    //   public_path('images/informe/membretado.png'),
-    //   [
-    //     'width' => 595,
-    //     'height' => 842,
-    //     'positioning' => 'absolute',
-    //     'posHorizontal' => 'left',
-    //     'posVertical' => 'top',
-    //     'wrappingStyle' => 'behind'
-    //   ]
-    // );
-
-    // Imagen de fondo
-    // $section1->addWatermark(
-    //   public_path('images/informe/membretado.png'),
-    //   [
-    //     'width' => 794,   // A4 px aprox
-    //     'height' => 1123,
-    //     'positioning' => 'absolute',
-    //     'posHorizontal' => 'center',
-    //     'posVertical' => 'center',
-    //     'wrappingStyle' => 'behind'
-    //   ]
-    // );
-
-
-    $section1->addText('La Paz ' . Carbon::now()->translatedFormat('d \d\e F \d\e Y'), [
-      'name' => 'Calibri',
-      'size' => 11,
-      'lang' => 'es-ES'
-    ]);
-    $section1->addText('CITE: ', [
-      'bold' => true,
-      'size' => 12,
-      'underline' => 'single',
-    ]);
-    $section1->addTextBreak(3);
-
-    $section1->addText('Señor:');
-    $section1->addText('___________________');
-    $section1->addText('Presente .-');
-    $section1->addTextBreak(4);
-
-    $section1->addText(
-      'De mi mayor consideración:',
-      [
-        'name' => 'Calibri',
-        'size' => 11,
-        'lang' => 'es-ES'
-      ]
-    );
-    $section1->addText(
-      'Adjunto al presente remito a usted el Informe técnico sobre el Control Integral de Plagas realizado en los almacenes _______________, valido por el mes de __________ desratización y fumigación.',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-    $section1->addText(
-      'Sin otro particular saludo a usted con las consideraciones más distinguidas de mi respeto personal.',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-    $section1->addText('Atentamente');
-    $section1->addTextBreak(4);
-
-    $section1->addText(
-      'Ing. Agr. Freddy Montero Castillo',
-      ['size' => 10],
-      [
-        'alignment' => Jc::CENTER,
-        'lineHeight' => 1,
-        'spaceAfter' => 0
-      ]
-    );
-    $section1->addText(
-      'GERENTE PROPIETARIO',
-      ['size' => 10, 'bold' => true],
-      [
-        'alignment' => Jc::CENTER,
-        'lineHeight' => 1,
-        'spaceAfter' => 0
-      ]
-    );
-    $section1->addText(
-      'BOLIVIAN PEST HIGIENE AMBIENTAL',
-      ['size' => 10],
-      [
-        'alignment' => Jc::CENTER,
-        'lineHeight' => 1,
-        'spaceAfter' => 0
-      ]
-    );
-    $section1->addText(
-      'Telf: 2240974, Cel: 76738282',
-      ['size' => 10],
-      [
-        'alignment' => Jc::CENTER,
-        'lineHeight' => 1,
-        'spaceAfter' => 0
-      ]
-    );
-
-
-    $section1->addPageBreak();
 
     $section = $phpWord->addSection([
       'orientation' => 'portrait',
@@ -558,6 +422,7 @@ class InformesController extends Controller
       'size' => 11,
       'underline' => 'single',
     ]);
+
 
     // ---------------------SUBSECCION: DESRATIZACION ----------------------------
 
@@ -691,6 +556,12 @@ class InformesController extends Controller
       ]
     );
 
+    $section->addImage(public_path('images/informe/Tabla-DL50.png'), [
+      'width'  => 200,
+      'height' => 100,
+      'alignment' => Jc::CENTER,
+    ]);
+
 
     // ************************************************************************************
     // GRAFICA: IMAGEN DESDE PUBLIC ***
@@ -704,6 +575,12 @@ class InformesController extends Controller
         'lineHeight' => 1.15
       ]
     );
+
+    $section->addImage(public_path('images/informe/Grafica-3.png'), [
+      'width'  => 200,
+      'height' => 100,
+      'alignment' => Jc::CENTER,
+    ]);
 
     // ************************************************************************************
     // GRAFICA: IMAGEN DESDE PUBLIC ***
@@ -867,6 +744,129 @@ class InformesController extends Controller
 
 
     // ---------------------SECCION: RECOMENDACIONES PARA LA PROXIMA VISITA: ----------------------------        
+    $this->pie($section, $request);
+
+    $file = storage_path('app/informe.docx');
+    if (!$file) {
+      $file = storage_path('app\\informe.docx');
+    }
+
+    IOFactory::createWriter($phpWord, 'Word2007')->save($file);
+
+    return response()->json(['ok XXXX' => true]);
+  }
+
+  public function caratula($section, $request)
+  {
+    $header = $section->addHeader('first');
+
+    $header->addImage(
+      public_path('images/informe/membretado.png'),
+      [
+        'width' => 595,
+        'height' => 842,
+
+        'positioning' => 'absolute',
+
+        'posHorizontal' => 'left',
+        'posHorizontalRel' => 'page',
+        'posHorizontalOffset' => 0,
+
+        'posVertical' => 'top',
+        'posVerticalRel' => 'page',
+        'posVerticalOffset' => 0,
+
+        'wrappingStyle' => 'behind'
+      ]
+    );
+
+    $section->addText('La Paz ' . Carbon::now()->translatedFormat('d \d\e F \d\e Y'), [
+      'name' => 'Calibri',
+      'size' => 11,
+      'lang' => 'es-ES'
+    ]);
+    $section->addText('CITE: ', [
+      'bold' => true,
+      'size' => 12,
+      'underline' => 'single',
+    ]);
+    $section->addTextBreak(3);
+
+    $section->addText('Señor:');
+    $section->addText('___________________');
+    $section->addText('Presente .-');
+    $section->addTextBreak(4);
+
+    $section->addText(
+      'De mi mayor consideración:',
+      [
+        'name' => 'Calibri',
+        'size' => 11,
+        'lang' => 'es-ES'
+      ]
+    );
+    $section->addText(
+      'Adjunto al presente remito a usted el Informe técnico sobre el Control Integral de Plagas realizado en los almacenes _______________, valido por el mes de __________ desratización y fumigación.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addText(
+      'Sin otro particular saludo a usted con las consideraciones más distinguidas de mi respeto personal.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addText('Atentamente');
+    $section->addTextBreak(4);
+
+    $section->addText(
+      'Ing. Agr. Freddy Montero Castillo',
+      ['size' => 10],
+      [
+        'alignment' => Jc::CENTER,
+        'lineHeight' => 1,
+        'spaceAfter' => 0
+      ]
+    );
+    $section->addText(
+      'GERENTE PROPIETARIO',
+      ['size' => 10, 'bold' => true],
+      [
+        'alignment' => Jc::CENTER,
+        'lineHeight' => 1,
+        'spaceAfter' => 0
+      ]
+    );
+    $section->addText(
+      'BOLIVIAN PEST HIGIENE AMBIENTAL',
+      ['size' => 10],
+      [
+        'alignment' => Jc::CENTER,
+        'lineHeight' => 1,
+        'spaceAfter' => 0
+      ]
+    );
+    $section->addText(
+      'Telf: 2240974, Cel: 76738282',
+      ['size' => 10],
+      [
+        'alignment' => Jc::CENTER,
+        'lineHeight' => 1,
+        'spaceAfter' => 0
+      ]
+    );
+
+
+    $section->addPageBreak();
+  }
+
+  public function pie($section, $request)
+  {
     $section->addText('RECOMENDACIONES PARA LA PROXIMA VISITA:', [
       'bold' => true,
       'size' => 11,
@@ -933,26 +933,6 @@ class InformesController extends Controller
       ]
 
     );
-    // $section->addImage(
-    //   realpath($imagePath),
-    //   [
-    //     'width' => 300,
-    //     'alignment' => 'center'
-    //   ]
-    // );
-
-
-
-
-
-    $file = storage_path('app/informe.docx');
-    if (!$file) {
-      $file = storage_path('app\\informe.docx');
-    }
-
-    IOFactory::createWriter($phpWord, 'Word2007')->save($file);
-
-    return response()->json(['ok' => true]);
   }
 
   public function downloadWord()
