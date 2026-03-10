@@ -19,8 +19,6 @@ use PhpOffice\PhpWord\SimpleType\Jc;
 use PhpOffice\PhpWord\Style\Language;
 
 
-
-
 class InformesController extends Controller
 {
   /**
@@ -30,8 +28,6 @@ class InformesController extends Controller
    */
   public function index(Request $request)
   {
-
-    //dd($request->all());
 
     $user = $request->user();
 
@@ -65,15 +61,11 @@ class InformesController extends Controller
       $request->fecha_fin
     ) {
 
-      //dd("jkvbksjvbdkjsdb");
-
       // Validar si quieres asegurarte que venga empresa_id
       $request->validate([
         'empresa_id' => 'required|integer|exists:empresas,id',
       ]);
 
-      // if ($request->almacen_id) {
-      // dd("LISTA DE SEGUIMIENTOS POR ALMACEN");
       // LISTA DE SEGUIMIENTOS
       $seguimientos = Seguimiento::with(['almacen', 'roedores.trampa.trampa_tipo', 'roedores.trampa.mapa', 'insectocutores.especie', 'tipoSeguimiento', 'user'])
         ->where('almacen_id', $request->almacen_id)
@@ -104,48 +96,6 @@ class InformesController extends Controller
         ->groupBy(DB::raw("DATE_FORMAT(seguimientos.created_at, '%Y-%m')"))
         ->orderBy('mes')
         ->get();
-      // }
-
-      // ******************* PARTE DE CODIGO PARA BUSQUEDA DE TODOS LOS ALMACENES DE LA EMPRESA *********
-      //   else {
-      //     // dd("LISTA DE SEGUIMIENTOS COMPLETO");
-      //     $seguimientos = Seguimiento::with(['almacen', 'roedores.trampa.trampa_tipo', 'insectocutores.especie', 'tipoSeguimiento', 'user'])
-      //       ->whereHas('almacen', function ($query) use ($request) {
-      //         $query->where('empresa_id', $request->empresa_id);
-      //       })
-      //       ->whereBetween('created_at', [
-      //         $request->fecha_inicio . ' 00:00:00',
-      //         $request->fecha_fin . ' 23:59:59',
-      //       ])
-      //       ->orderBy('created_at', 'desc')
-      //       ->get(['id', 'tipo_seguimiento_id', 'user_id', 'created_at', 'encargado_nombre', 'encargado_cargo', 'almacen_id']);
-
-      //     $totales = TrampaRoedorSeguimiento::query()
-      //       ->join('seguimientos', 'seguimientos.id', '=', 'trampa_roedor_seguimientos.seguimiento_id')
-      //       ->whereHas('seguimiento.almacen', function ($query) use ($request) {
-      //         $query->where('empresa_id', $request->empresa_id);
-      //       })
-      //       ->whereBetween('seguimientos.created_at', [
-      //         $request->fecha_inicio . ' 00:00:00',
-      //         $request->fecha_fin . ' 23:59:59',
-      //       ])
-      //       ->selectRaw("
-      //     DATE_FORMAT(seguimientos.created_at, '%Y-%m') as mes,
-      //     SUM(trampa_roedor_seguimientos.inicial) as inicial_sum,
-      //     SUM(trampa_roedor_seguimientos.merma) as merma_sum,
-      //     SUM(trampa_roedor_seguimientos.actual) as actual_sum,
-      //     AVG(trampa_roedor_seguimientos.inicial) as inicial_avg,
-      //     AVG(trampa_roedor_seguimientos.merma) as merma_avg,
-      //     AVG(trampa_roedor_seguimientos.actual) as actual_avg
-      // ")
-      //       ->groupBy(DB::raw("DATE_FORMAT(seguimientos.created_at, '%Y-%m')"))
-      //       ->orderBy('mes')
-      //       ->get();
-      //   }
-      // *****************************************************************************************
-
-      // dd($totales);
-      // dd($seguimientos);
 
       // CONTEO DE TRAMPAS
       $trampas = Trampa::where('almacen_id', $request->almacen_id)->get();
@@ -166,17 +116,6 @@ class InformesController extends Controller
         'fecha_fin'
       ),
     ]);
-
-
-    // $seguimientos = Seguimiento::with(['roedores'])->where('almacen_id', $request->almacen_id)
-    //   ->whereBetween('created_at', [
-    //     $request->fecha_inicio . ' 00:00:00',
-    //     $request->fecha_fin . ' 23:59:59',
-    //   ])
-    //   ->orderBy('created_at', 'desc')
-    //   ->get(['id', 'created_at']);
-
-    // trampa_roedor_seguimientos(id, seguimiento_id, trampa_id, inicial, merma, actual)
   }
 
   public function obtenerEstado(Request $request)
@@ -225,6 +164,11 @@ class InformesController extends Controller
       'roedores'
     ])->whereIn('id', $request->seguimiento_ids)->get();
 
+    // Log::info($seguimientos);
+
+
+
+
     $especies = [];
     $datosPorFecha = [];
 
@@ -255,6 +199,10 @@ class InformesController extends Controller
 
     $especies = array_keys($especies);
 
+    // Log::info($especies);
+
+
+
     $datosRoedores = [];
 
     foreach ($seguimientos as $seg) {
@@ -277,13 +225,17 @@ class InformesController extends Controller
       }
     }
 
-    // Log::info($seguimientos);
-    // return;
+    // Log::info(print_r($datosRoedores, true));
+
 
     $chart1 = $this->saveBase64Image($request->chart1, 'chart1');
     $chart2 = $this->saveBase64Image($request->chart2, 'chart2');
     $chart3 = $this->saveBase64Image($request->chart3, 'chart3');
     $chart4 = $this->saveBase64Image($request->chart4, 'chart4');
+    $chart5 = $this->saveBase64Image($request->chart5, 'chart5');
+    $chart6 = $this->saveBase64Image($request->chart6, 'chart6');
+
+
 
     // Crear Word
     $phpWord = new PhpWord();
@@ -317,6 +269,8 @@ class InformesController extends Controller
     //   'orientation' => 'landscape'
     // ]);
 
+
+
     $section1 = $phpWord->addSection([
       'orientation' => 'portrait',
       'marginTop' => 2500,
@@ -326,13 +280,20 @@ class InformesController extends Controller
       'differentFirstPageHeaderFooter' => true
     ]);
 
+    Log::info('CONFIGURACIONES');
+
     $this->caratula($section1, $request);
 
+    Log::info('PRIMERA SECCION');
 
     $section = $phpWord->addSection([
       'orientation' => 'portrait',
       'marginLeft' => 2500,
     ]);
+
+    Log::info('SEGUNDA SECCION');
+
+    return;
 
     // ---------------------SECCION: TITULO GENERAL DEL DOCUMENTO ----------------------------
     // INFORME TECNICO
