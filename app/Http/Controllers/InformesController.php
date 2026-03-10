@@ -280,20 +280,18 @@ class InformesController extends Controller
       'differentFirstPageHeaderFooter' => true
     ]);
 
-    Log::info('CONFIGURACIONES');
+    // Log::info('CONFIGURACIONES');
 
     $this->caratula($section1, $request);
 
-    Log::info('PRIMERA SECCION');
+    // Log::info('PRIMERA SECCION');
 
     $section = $phpWord->addSection([
       'orientation' => 'portrait',
       'marginLeft' => 2500,
     ]);
 
-    Log::info('SEGUNDA SECCION');
 
-    return;
 
     // ---------------------SECCION: TITULO GENERAL DEL DOCUMENTO ----------------------------
     // INFORME TECNICO
@@ -374,6 +372,8 @@ class InformesController extends Controller
     $section->addListItem('Lo que se realizó el presente mes');
     $section->addListItem('El balance análisis.');
     $section->addListItem('Las recomendaciones para el próximo mes.');
+
+
 
 
     // ---------------------SECCION: LO QUE SE REALIZO EN LA VISITA ----------------------------
@@ -462,6 +462,8 @@ class InformesController extends Controller
       'size' => 11,
       'underline' => 'single',
     ]);
+
+
 
     // ************************************************************************************
     // TABLA FECHAS DE SEGUIMIENTOS *****************
@@ -556,6 +558,8 @@ class InformesController extends Controller
       ]
     );
 
+
+
     // ************************************************************************************
     // GRAFICA: MONITOREO DE ROEDORES (X ALMACEN)
     // ************************************************************************************    
@@ -599,6 +603,8 @@ class InformesController extends Controller
       $section->addText('Valores por trampa', ['bold' => true]);
       $section->addImage($chart4, ['width' => 300]);
     }
+
+
     // -------------------------------- xxxxxx (FIN) SECCION NO AGREGADA EN INFORME xxxxxxxxxxxxx    
 
     // ---------------------SECCION: BARRERAS FISICAS DE EXCLUCION (INSECTOCUTORES) ----------------------------        
@@ -658,6 +664,10 @@ class InformesController extends Controller
         'lineHeight' => 1.15
       ]
     );
+
+
+
+
     $section->addText('');
 
     if ($chart1) {
@@ -704,6 +714,9 @@ class InformesController extends Controller
     // [IMAGENES]
 
 
+
+
+
     // ---------------------SECCION: RECOMENDACIONES PARA LA PROXIMA VISITA: ----------------------------        
     $this->pie($section, $request);
 
@@ -713,6 +726,9 @@ class InformesController extends Controller
     }
 
     IOFactory::createWriter($phpWord, 'Word2007')->save($file);
+
+    Log::info('SEGUNDA SECCION GGGGGG');
+    return;
 
     return response()->json(['ok XXXX' => true]);
   }

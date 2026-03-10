@@ -6,6 +6,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -22,6 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
+import { tableStyles } from '@/lib/table-styles';
 import { Head, router } from '@inertiajs/react';
 // import html2canvas from 'html2canvas';
 import * as htmlToImage from 'html-to-image';
@@ -62,6 +64,10 @@ interface Insectocutor {
   cantidad: number;
 }
 
+interface Trampa {
+  trampa_tipo_id: number;
+}
+
 interface Roedor {
   id: number;
   trampa_id: number;
@@ -69,6 +75,7 @@ interface Roedor {
   inicial: number;
   actual: number;
   merma: number;
+  trampa: Trampa;
 }
 
 interface TipoSeguimiento {
@@ -667,23 +674,26 @@ export default function Lista({
       .forEach((seg) => {
         seg.roedores.forEach((roedor) => {
           const trampaId = roedor.trampa_id;
+          console.log('**** TRAMPA_TIPO_ID: ' + roedor.trampa.trampa_tipo_id);
 
-          if (!datosPorTrampa[trampaId]) {
-            datosPorTrampa[trampaId] = {
-              trampa_id: trampaId,
-              inicial: 0,
-              merma: 0,
-              actual: 0,
-              observaciones: [],
-            };
-          }
+          if (roedor.trampa.trampa_tipo_id !== 4) {
+            if (!datosPorTrampa[trampaId]) {
+              datosPorTrampa[trampaId] = {
+                trampa_id: trampaId,
+                inicial: 0,
+                merma: 0,
+                actual: 0,
+                observaciones: [],
+              };
+            }
 
-          datosPorTrampa[trampaId].inicial += roedor.inicial;
-          datosPorTrampa[trampaId].merma += roedor.merma;
-          datosPorTrampa[trampaId].actual += roedor.actual;
+            datosPorTrampa[trampaId].inicial += roedor.inicial;
+            datosPorTrampa[trampaId].merma += roedor.merma;
+            datosPorTrampa[trampaId].actual += roedor.actual;
 
-          if (roedor.observacion) {
-            datosPorTrampa[trampaId].observaciones.push(roedor.observacion);
+            if (roedor.observacion) {
+              datosPorTrampa[trampaId].observaciones.push(roedor.observacion);
+            }
           }
         });
       });
@@ -758,11 +768,15 @@ export default function Lista({
 
       const porcentajeMerma =
         row.cebo_inicial > 0 ? (row.merma * 100) / row.cebo_inicial : 0;
+      const porcentajeActual =
+        row.cebo_inicial > 0 ? (row.cebo_actual * 100) / row.cebo_inicial : 0;
 
       acc[key].data.push({
         fecha: new Date(row.fecha).toLocaleDateString('es-ES'),
         fechaRaw: new Date(row.fecha), // ← para ordenar
         merma_porcentaje: Number(porcentajeMerma.toFixed(2)),
+        total_porcentaje: Number(100),
+        actual_porcentaje: Number(porcentajeActual.toFixed(2)),
       });
 
       return acc;
@@ -1216,6 +1230,7 @@ export default function Lista({
         {/* *********** SECCION BUSQUEDA ************************** */}
         <div className="space-y-3 p-2">
           {/* Empresa */}
+          <Label>Seleccione una empresa</Label>
           <Select value={empresaId} onValueChange={onEmpresaChange}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccione empresa" />
@@ -1229,6 +1244,7 @@ export default function Lista({
             </SelectContent>
           </Select>
           {/* Almacén */}
+          <Label>Seleccione un almacen</Label>
           <Select
             value={almacenId}
             // onValueChange={setAlmacenId}
@@ -1247,19 +1263,26 @@ export default function Lista({
             </SelectContent>
           </Select>
           {/* Fechas */}
+
           <div className="grid grid-cols-2 gap-4">
-            <Input
-              type="date"
-              value={fechaInicio}
-              // onChange={(e) => setFechaInicio(e.target.value)}
-              onChange={(e) => onFechaChange(e.target.value, fechaFin)}
-            />
-            <Input
-              type="date"
-              value={fechaFin}
-              // onChange={(e) => setFechaFin(e.target.value)}
-              onChange={(e) => onFechaChange(fechaInicio, e.target.value)}
-            />
+            <div>
+              <Label>Fecha inicial</Label>
+              <Input
+                type="date"
+                value={fechaInicio}
+                // onChange={(e) => setFechaInicio(e.target.value)}
+                onChange={(e) => onFechaChange(e.target.value, fechaFin)}
+              />
+            </div>
+            <div>
+              <Label>Fecha final</Label>
+              <Input
+                type="date"
+                value={fechaFin}
+                // onChange={(e) => setFechaFin(e.target.value)}
+                onChange={(e) => onFechaChange(fechaInicio, e.target.value)}
+              />
+            </div>
           </div>
           {/* Botones */}
           <div className="flex gap-4">
@@ -1316,11 +1339,13 @@ export default function Lista({
                 {almacenes.find((a) => a.id === Number(almacenId))?.nombre}
               </p>
               <p>
-                <strong>Período:</strong> {fechaInicio} - {fechaFin}
+                <strong>Período:</strong>{' '}
+                {new Date(fechaInicio).toLocaleDateString('es-ES')} -{' '}
+                {new Date(fechaFin).toLocaleDateString('es-ES')}
               </p>
               <p>
                 <strong>Fecha de generación:</strong>{' '}
-                {new Date().toLocaleDateString()}
+                {new Date().toLocaleDateString('es-ES')}
               </p>
             </div>
           </div>
@@ -1328,32 +1353,52 @@ export default function Lista({
           {/* --------------------------- LISTA DE SEGUIMIENTOS ----------------------------------------- */}
           {/* Tabla SEGUIMIENTOS */}
           <div>
-            <div className="mb-2 text-[1rem] font-bold">
+            <div className="font-mono text-[1rem] underline">
               TABLA: LISTA DE SEGUIMIENTOS
             </div>
-            <div className="rounded-md border">
-              <Table>
+            <div className="w-full overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
+              <Table className={tableStyles.table}>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>TECNICO</TableHead>
-                    <TableHead>ENCARGADO</TableHead>
-                    <TableHead>TIPO</TableHead>
-                    <TableHead>ALMACEN</TableHead>
-                    <TableHead>FECHA</TableHead>
+                  <TableRow className={tableStyles.header.row}>
+                    <TableHead className={tableStyles.header.cell}>
+                      ID
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      TECNICO
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      ENCARGADO
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      TIPO
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      FECHA
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {seguimientos.length ? (
-                    seguimientos.map((s) => (
-                      <TableRow key={s.id}>
-                        <TableCell>{s.id}</TableCell>
-                        <TableCell>{s.user.name}</TableCell>
-                        <TableCell>{s.encargado_nombre}</TableCell>
-                        <TableCell>{s.tipo_seguimiento.nombre}</TableCell>
-                        <TableCell></TableCell>
-                        <TableCell>
-                          {new Date(s.created_at).toLocaleString()}
+                    seguimientos.map((s, idx) => (
+                      <TableRow
+                        key={s.id}
+                        className={tableStyles.row(idx % 2 === 0)}
+                      >
+                        <TableCell className={tableStyles.cell}>
+                          {s.id}
+                        </TableCell>
+                        <TableCell className={tableStyles.cell}>
+                          {s.user.name}
+                        </TableCell>
+                        <TableCell className={tableStyles.cell}>
+                          {s.encargado_nombre}
+                        </TableCell>
+                        <TableCell className={tableStyles.cell}>
+                          {s.tipo_seguimiento.nombre}
+                        </TableCell>
+                        <TableCell className={tableStyles.datestr}>
+                          {/* {new Date(s.created_at).toLocaleString()} */}
+                          {new Date(s.created_at).toLocaleDateString('es-ES')}
                         </TableCell>
                       </TableRow>
                     ))
@@ -1375,146 +1420,174 @@ export default function Lista({
           <div className="bg-amber-300/12 p-5">
             <div className="mb-6">
               <h2 className="text-2xl font-bold">Desratización</h2>
-              <h2 className="text-[1rem] font-bold">Informe de Trampas</h2>
+              <h2 className="text-[1rem]">Informe de Trampas</h2>
             </div>
-            <h2 className="text-[1rem] font-bold">
-              TABLA: TOTAL DE CANTIDAD DE TRAMPAS
+            <h2 className="font-mono text-[1rem] underline">
+              TABLA 1: CANTIDAD TOTAL DE TRAMPAS
             </h2>
             <div className="rounded-md border">
-              <Table>
+              <Table className={tableStyles.table}>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>ALMACEN</TableHead>
-                    <TableHead>CANT. TRAMPAS</TableHead>
+                  <TableRow className={tableStyles.header.row}>
+                    <TableHead className={tableStyles.header.cell}>
+                      ALMACEN
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      CANT. TRAMPAS
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell>
+                    <TableCell className={tableStyles.cell}>
                       {
                         almacenes.find((a) => a.id === Number(almacenId))
                           ?.nombre
                       }
                     </TableCell>
-                    <TableCell>{trampasrat}</TableCell>
+                    <TableCell className="text-center font-mono">
+                      {trampasrat}
+                    </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </div>
             <br />
             {/* ********************* TABLA CANTIDAD DE TRAMPAS x TIPO y CANTIDAD DE ROEDORES CAPTURADOS ***************** ----------------------------------------- */}
-            <h2 className="text-[1rem] font-bold">
-              TABLA: CANTIDAD DE TRAMPAS POR TIPO
+            <h2 className="font-mono text-[1rem] underline">
+              TABLA 2: CANTIDAD DE TRAMPAS POR TIPO
             </h2>
             <div className="rounded-md border">
-              <Table className="">
+              <Table className={tableStyles.table}>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Trampas</TableHead>
-                    <TableHead className="text-right">Revisiones</TableHead>
-                    <TableHead className="text-right">Capturas</TableHead>
-                    <TableHead className="text-right">Incidencia %</TableHead>
+                  <TableRow className={tableStyles.header.row}>
+                    <TableHead className={tableStyles.header.cell}>
+                      Tipo
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Trampas
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Seguimientos
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Capturas
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Incidencia %
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
                   {resumen.map((item: any) => (
                     <TableRow key={item.tipo}>
-                      <TableCell className="font-medium capitalize">
+                      <TableCell className={tableStyles.cell}>
                         {item.tipo}
                       </TableCell>
 
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {item.trampas}
                       </TableCell>
 
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {item.revisiones}
                       </TableCell>
 
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {item.capturas}
                       </TableCell>
 
-                      <TableCell
-                        className={`text-right font-semibold ${colorIncidencia(
-                          Number(item.incidencia),
-                        )}`}
-                      >
+                      <TableCell className={tableStyles.numeric}>
                         {item.incidencia}%
                       </TableCell>
                     </TableRow>
                   ))}
 
                   {/* TOTAL */}
-                  <TableRow className="font-bold">
-                    <TableCell>TOTAL</TableCell>
+                  <TableRow className={tableStyles.totalRow}>
+                    <TableCell className={tableStyles.totalCell}>
+                      TOTAL
+                    </TableCell>
 
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {total.trampas}
                     </TableCell>
 
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {totalSeguimientos}
                     </TableCell>
 
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {total.capturas}
                     </TableCell>
 
-                    <TableCell
-                      className={`text-right ${colorIncidencia(Number(incidenciaTotal))}`}
-                    >
+                    <TableCell className={tableStyles.totalNumeric}>
                       {incidenciaTotal}%
                     </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </div>
+            <div className="my-2 text-[0.8rem] italic">
+              Cálculo de incidencia: ((capturas * 100) / trampas) / seguimientos
+            </div>
             <br />
             {/* ********************* TABLA FECHAS DE SEGUIMIENTOS (DESRATIZACION) ***************** ----------------------------------------- */}
-            <h2 className="text-[1rem] font-bold">
-              TABLA: FECHAS DE SEGUIMIENTOS EMPRESA
+            <h2 className="font-mono text-[1rem] underline">
+              TABLA 3: FECHAS DE SEGUIMIENTOS EN ALMACEN
             </h2>
             <div className="rounded-md border">
-              <Table>
+              <Table className={tableStyles.table}>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Mes</TableHead>
-                    <TableHead className="text-right">Seguimientos</TableHead>
-                    <TableHead className="text-right">Trampas</TableHead>
-                    <TableHead className="text-right">Capturas</TableHead>
-                    <TableHead className="text-right">Incidencia (%)</TableHead>
+                  <TableRow className={tableStyles.header.row}>
+                    <TableHead className={tableStyles.header.cell}>
+                      Mes
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Seguimientos
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Trampas
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Capturas
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Incidencia (%)
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
                   {resumenMeses.map((item: any, index: number) => (
                     <TableRow key={index}>
-                      <TableCell className="font-medium capitalize">
+                      <TableCell className={tableStyles.cell}>
                         {item.mes}
                       </TableCell>
 
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {item.seguimientos}
                       </TableCell>
 
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {item.trampas}
                       </TableCell>
 
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {item.capturas}
                       </TableCell>
 
-                      <TableCell className="text-right font-semibold">
+                      <TableCell className={tableStyles.numeric}>
                         {item.incidencia} %
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+            </div>
+            <div className="my-2 text-[0.8rem] italic">
+              Cálculo de incidencia: ((capturas * 100) / trampas) / seguimientos
             </div>
             <br />
             {/* ********************* TABLA CANTIDAD DE TRAMPAS x TIPO y CANTIDAD DE ROEDORES CAPTURADOS (EN CADA SEGUIMIENTO) ***************** ----------------------------------------- */}
@@ -1555,19 +1628,29 @@ export default function Lista({
               </Table>
             </div> */}
             {/* ********************* TABLA RESUMEN X (CADA SEGUIMIENTO Y CADA ALMACEN) ***************** ----------------------------------------- */}
-            <h2 className="text-[1rem] font-bold">
-              TABLA: ANALISIS DE ALMACEN
+            <h2 className="font-mono text-[1rem] underline">
+              TABLA 4: ANALISIS TOTALES DE ALMACEN
             </h2>
             <div className="rounded-md border">
-              <Table>
+              <Table className={tableStyles.table}>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>ALMACÉN</TableHead>
-                    <TableHead className="text-right">TRAMPAS</TableHead>
-                    <TableHead className="text-right">CEBO INICIAL</TableHead>
-                    <TableHead className="text-right">MERMA</TableHead>
-                    <TableHead className="text-right">CEBO ACTUAL</TableHead>
-                    <TableHead className="text-right">
+                  <TableRow className={tableStyles.header.row}>
+                    <TableHead className={tableStyles.header.cell}>
+                      ALMACÉN
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      TRAMPAS
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      CEBO INICIAL
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      MERMA
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      CEBO ACTUAL
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
                       ROEDORES CAPTURADOS
                     </TableHead>
                   </TableRow>
@@ -1576,18 +1659,22 @@ export default function Lista({
                 <TableBody>
                   {tablaCebo.map((item: any, index) => (
                     <TableRow key={index}>
-                      <TableCell>{item.almacen}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
+                        {item.almacen}
+                      </TableCell>
+                      <TableCell className={tableStyles.cell}>
                         {item.trampas}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {item.ceboInicial}
                       </TableCell>
-                      <TableCell className="text-right">{item.merma}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
+                        {item.merma}
+                      </TableCell>
+                      <TableCell className={tableStyles.cell}>
                         {item.ceboActual}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {item.capturados}
                       </TableCell>
                     </TableRow>
@@ -1650,22 +1737,32 @@ export default function Lista({
               </TableBody>
             </Table> */}
 
-            <h2 className="text-[1rem] font-bold">
-              TABLA: ANALISIS POR FECHA DE SEGUIMIENTO
+            <h2 className="font-mono text-[1rem] underline">
+              TABLA 5: ANALISIS POR FECHA DE SEGUIMIENTO
             </h2>
             <div>
-              <Table>
+              <Table className={tableStyles.table}>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>SEGUIMIENTO</TableHead>
-                    {/* <TableHead>FECHA</TableHead> */}
-                    {/* <TableHead className="text-right">ALMACÉN</TableHead> */}
-                    <TableHead className="text-right">TRAMPAS</TableHead>
-                    <TableHead className="text-right">CEBO INICIAL</TableHead>
-                    <TableHead className="text-right">MERMA</TableHead>
-                    <TableHead className="text-right">CEBO ACTUAL</TableHead>
-                    <TableHead className="text-right">PORCENTAJE</TableHead>
-                    <TableHead className="text-right">
+                  <TableRow className={tableStyles.header.row}>
+                    <TableHead className={tableStyles.header.cell}>
+                      SEGUIMIENTO
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      TRAMPAS
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      CEBO INICIAL
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      MERMA
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      CEBO ACTUAL
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      % MERMA
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
                       ROEDORES CAPTURADOS
                     </TableHead>
                   </TableRow>
@@ -1674,65 +1771,78 @@ export default function Lista({
                 <TableBody>
                   {datosSeguimientoResumen.map((row: any, index: number) => (
                     <TableRow key={index}>
-                      {/* <TableCell>{row.seguimiento}</TableCell> */}
-                      <TableCell className="font-mono text-xs text-muted-foreground sm:text-sm">
+                      <TableCell className={tableStyles.datestr}>
                         {new Date(row.fecha).toLocaleDateString('es-ES')}
                       </TableCell>
-                      {/* <TableCell className="text-right">{row.almacen}</TableCell> */}
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {row.trampas}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {row.cebo_inicial}
                       </TableCell>
-                      <TableCell className="text-right">{row.merma}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
+                        {row.merma}
+                      </TableCell>
+                      <TableCell className={tableStyles.cell}>
                         {row.cebo_actual}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {((row.merma * 100) / row.cebo_inicial).toFixed(1)}%
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {row.capturados}
                       </TableCell>
                     </TableRow>
                   ))}
 
                   {/* TOTAL */}
-                  <TableRow className="bg-muted font-bold">
-                    <TableCell colSpan={1}>TOTAL</TableCell>
-                    <TableCell className="text-right">
+                  <TableRow className={tableStyles.totalRow}>
+                    <TableCell className={tableStyles.totalCell} colSpan={1}>
+                      TOTAL
+                    </TableCell>
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesResumen.trampas}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesResumen.cebo_inicial}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesResumen.merma}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesResumen.cebo_actual}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {(
                         (totalesResumen.merma * 100) /
                         totalesResumen.cebo_inicial
                       ).toFixed(2)}
                       %
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesResumen.capturados}
                     </TableCell>
                   </TableRow>
-                  <TableRow className="font-bold">
-                    <TableCell>TOTAL</TableCell>
-                    <TableCell>{totalesResumen.cebo_inicial}</TableCell>
-                    <TableCell>100%</TableCell>
+
+                  <TableRow className={tableStyles.totalRow}>
+                    <TableCell className={tableStyles.totalCell}>
+                      TOTAL
+                    </TableCell>
+                    <TableCell className={tableStyles.totalNumeric}>
+                      {totalesResumen.cebo_inicial}
+                    </TableCell>
+                    <TableCell className={tableStyles.totalNumeric}>
+                      100%
+                    </TableCell>
                   </TableRow>
-                  <TableRow className="font-bold">
-                    <TableCell>MERMA</TableCell>
-                    <TableCell>{totalesResumen.merma}</TableCell>
-                    <TableCell>
+                  <TableRow className={tableStyles.totalRow}>
+                    <TableCell className={tableStyles.totalCell}>
+                      MERMA
+                    </TableCell>
+                    <TableCell className={tableStyles.totalNumeric}>
+                      {totalesResumen.merma}
+                    </TableCell>
+                    <TableCell className={tableStyles.totalNumeric}>
                       {(
                         (totalesResumen.merma * 100) /
                         totalesResumen.cebo_inicial
@@ -1740,35 +1850,44 @@ export default function Lista({
                       %
                     </TableCell>
                   </TableRow>
-                  <TableRow className="font-bold">
-                    <TableCell>CAUSAS</TableCell>
-                    <TableCell>
-                      {porcentajeMerma < 9
-                        ? 'MA'
-                        : porcentajeMerma >= 9 && porcentajeMerma < 15
-                          ? 'MECÁNICO'
-                          : 'CONSUMO'}
+                  <TableRow className={tableStyles.totalRow}>
+                    <TableCell className={tableStyles.totalCell}>
+                      CAUSAS
+                    </TableCell>
+                    <TableCell className={tableStyles.totalNumeric} colSpan={2}>
+                      {porcentajeMerma <= 10 ? 'MEDIO AMBIENTE' : 'CONSUMO'}
                     </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </div>
             <br />
-            <h2 className="text-[1rem] font-bold">
-              TABLA: ANALISIS POR FECHA DE SEGUIMIENTO Y TIPO DE TRAMPA
+            <h2 className="font-mono text-[1rem] underline">
+              TABLA 6: ANALISIS POR FECHA DE SEGUIMIENTO Y TIPO DE TRAMPA
             </h2>
             <div className="rounded-md border">
-              <Table>
+              <Table className={tableStyles.table}>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>SEGUIMIENTO</TableHead>
-                    {/* <TableHead className="text-right">ALMACÉN</TableHead> */}
-                    <TableHead className="text-right">TIPO TRAMPA</TableHead>
-                    <TableHead className="text-right">TRAMPAS</TableHead>
-                    <TableHead className="text-right">CEBO INICIAL</TableHead>
-                    <TableHead className="text-right">MERMA</TableHead>
-                    <TableHead className="text-right">CEBO ACTUAL</TableHead>
-                    <TableHead className="text-right">
+                  <TableRow className={tableStyles.header.row}>
+                    <TableHead className={tableStyles.header.cell}>
+                      SEGUIMIENTO
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      TIPO TRAMPA
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      TRAMPAS
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      CEBO INICIAL
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      MERMA
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      CEBO ACTUAL
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
                       ROEDORES CAPTURADOS
                     </TableHead>
                   </TableRow>
@@ -1777,45 +1896,47 @@ export default function Lista({
                 <TableBody>
                   {datosSeguimiento.map((row: any, index: number) => (
                     <TableRow key={index}>
-                      {/* <TableCell>{row.seguimiento}</TableCell> */}
-                      <TableCell className="font-mono text-xs text-muted-foreground sm:text-sm">
+                      <TableCell className={tableStyles.datestr}>
                         {new Date(row.seguimiento).toLocaleDateString('es-ES')}
                       </TableCell>
-                      {/* <TableCell className="text-right">
-                        {row.almacen}
-                      </TableCell> */}
-                      <TableCell className="text-right">{row.tipo}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
+                        {row.tipo}
+                      </TableCell>
+                      <TableCell className={tableStyles.cell}>
                         {row.trampas}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {row.cebo_inicial}
                       </TableCell>
-                      <TableCell className="text-right">{row.merma}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
+                        {row.merma}
+                      </TableCell>
+                      <TableCell className={tableStyles.cell}>
                         {row.cebo_actual}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {row.capturados}
                       </TableCell>
                     </TableRow>
                   ))}
                   {/* FILA TOTAL */}
-                  <TableRow className="bg-muted font-bold">
-                    <TableCell colSpan={2}>TOTAL</TableCell>
-                    <TableCell className="text-right">
+                  <TableRow className={tableStyles.totalRow}>
+                    <TableCell className={tableStyles.totalCell} colSpan={2}>
+                      TOTAL
+                    </TableCell>
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesSeguimiento.trampas}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesSeguimiento.cebo_inicial}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesSeguimiento.merma}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesSeguimiento.cebo_actual}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesSeguimiento.capturados}
                     </TableCell>
                   </TableRow>
@@ -1824,22 +1945,35 @@ export default function Lista({
             </div>
             <br />
 
-            <h2 className="text-[1rem] font-bold">
-              TABLA: ANALISIS POR FECHA DE SEGUIMIENTO Y MAPA
+            <h2 className="font-mono text-[1rem] font-bold underline">
+              TABLA 7: ANALISIS POR FECHA DE SEGUIMIENTO Y MAPA
             </h2>
-            <div className="rounded-md border">
-              <Table>
+            <div className="rounded-md border bg-amber-100 p-4">
+              <Table className={tableStyles.table}>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>SEGUIMIENTO</TableHead>
-                    {/* <TableHead className="text-right">ALMACÉN</TableHead> */}
-                    <TableHead className="text-right">MAPA</TableHead>
-                    <TableHead className="text-right">TRAMPAS</TableHead>
-                    <TableHead className="text-right">CEBO INICIAL</TableHead>
-                    <TableHead className="text-right">MERMA</TableHead>
-                    <TableHead className="text-right">CEBO ACTUAL</TableHead>
-                    <TableHead className="text-right">PORCENTAJE</TableHead>
-                    <TableHead className="text-right">
+                  <TableRow className={tableStyles.header.row}>
+                    <TableHead className={tableStyles.header.cell}>
+                      SEGUIMIENTO
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      MAPA
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      TRAMPAS
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      CEBO INICIAL
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      MERMA
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      CEBO ACTUAL
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      % MERMA
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
                       ROEDORES CAPTURADOS
                     </TableHead>
                   </TableRow>
@@ -1848,67 +1982,80 @@ export default function Lista({
                 <TableBody>
                   {datosSeguimientoResumenX.map((row: any, index: number) => (
                     <TableRow key={index}>
-                      <TableCell className="font-mono text-xs text-muted-foreground sm:text-sm">
+                      <TableCell className={tableStyles.datestr}>
                         {new Date(row.fecha).toLocaleDateString('es-ES')}
                       </TableCell>
-                      {/* <TableCell className="text-right">
-                        {row.almacen}
-                      </TableCell> */}
-                      <TableCell className="text-right">{row.mapa}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
+                        {row.mapa}
+                      </TableCell>
+                      <TableCell className={tableStyles.cell}>
                         {row.trampas}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {row.cebo_inicial}
                       </TableCell>
-                      <TableCell className="text-right">{row.merma}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
+                        {row.merma}
+                      </TableCell>
+                      <TableCell className={tableStyles.cell}>
                         {row.cebo_actual}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {((row.merma * 100) / row.cebo_inicial).toFixed(1)}%
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={tableStyles.cell}>
                         {row.capturados}
                       </TableCell>
                     </TableRow>
                   ))}
 
                   {/* TOTAL - colSpan aumenta a 3 para cubrir seguimiento + almacen + mapa */}
-                  <TableRow className="bg-muted font-bold">
-                    <TableCell colSpan={2}>TOTAL</TableCell>
-                    <TableCell className="text-right">
+                  <TableRow className={tableStyles.totalRow}>
+                    <TableCell className={tableStyles.totalCell} colSpan={2}>
+                      TOTAL
+                    </TableCell>
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesResumen.trampas}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesResumen.cebo_inicial}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesResumen.merma}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesResumen.cebo_actual}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {(
                         (totalesResumen.merma * 100) /
                         totalesResumen.cebo_inicial
                       ).toFixed(2)}
                       %
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className={tableStyles.totalCell}>
                       {totalesResumen.capturados}
                     </TableCell>
                   </TableRow>
-                  <TableRow className="font-bold">
-                    <TableCell>TOTAL</TableCell>
-                    <TableCell>{totalesResumen.cebo_inicial}</TableCell>
-                    <TableCell>100%</TableCell>
+                  <TableRow className={tableStyles.totalRow}>
+                    <TableCell className={tableStyles.totalCell}>
+                      TOTAL
+                    </TableCell>
+                    <TableCell className={tableStyles.totalNumeric}>
+                      {totalesResumen.cebo_inicial}
+                    </TableCell>
+                    <TableCell className={tableStyles.totalNumeric}>
+                      100%
+                    </TableCell>
                   </TableRow>
-                  <TableRow className="font-bold">
-                    <TableCell>MERMA</TableCell>
-                    <TableCell>{totalesResumen.merma}</TableCell>
-                    <TableCell>
+                  <TableRow className={tableStyles.totalRow}>
+                    <TableCell className={tableStyles.totalCell}>
+                      MERMA
+                    </TableCell>
+                    <TableCell className={tableStyles.totalNumeric}>
+                      {totalesResumen.merma}
+                    </TableCell>
+                    <TableCell className={tableStyles.totalNumeric}>
                       {(
                         (totalesResumen.merma * 100) /
                         totalesResumen.cebo_inicial
@@ -1916,21 +2063,20 @@ export default function Lista({
                       %
                     </TableCell>
                   </TableRow>
-                  <TableRow className="font-bold">
-                    <TableCell>CAUSAS</TableCell>
-                    <TableCell>
-                      {porcentajeMerma < 9
-                        ? 'MA'
-                        : porcentajeMerma >= 9 && porcentajeMerma < 15
-                          ? 'MECÁNICO'
-                          : 'CONSUMO'}
+                  <TableRow className={tableStyles.totalRow}>
+                    <TableCell className={tableStyles.totalCell}>
+                      CAUSAS
+                    </TableCell>
+                    <TableCell className={tableStyles.totalNumeric} colSpan={2}>
+                      {porcentajeMerma <= 10 ? 'MEDIO AMBIENTE' : 'CONSUMO'}
                     </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </div>
+            <br />
 
-            {graficosPorAlmacen.map((alm: any, index: number) => (
+            {/* {graficosPorAlmacen.map((alm: any, index: number) => (
               <div key={index} className="mb-10">
                 <h3 className="mb-4 text-lg font-semibold">{alm.almacen}</h3>
 
@@ -1956,7 +2102,7 @@ export default function Lista({
                   </BarChart>
                 </ChartContainer>
               </div>
-            ))}
+            ))} */}
 
             {graficosPorMapa.map((item: any, index: number) => (
               <div
@@ -1982,244 +2128,255 @@ export default function Lista({
                     <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
                     <Tooltip formatter={(value: any) => `${value}%`} />
                     <Bar dataKey="merma_porcentaje" fill="#ef4444" radius={4} />
+                    <Bar
+                      dataKey="actual_porcentaje"
+                      fill="#ef4444"
+                      radius={4}
+                    />
+                    <Bar dataKey="total_porcentaje" fill="#ef4444" radius={4} />
                   </BarChart>
                 </ChartContainer>
               </div>
             ))}
             {/* ************** TABLA DE ROEDORES (CALCULAR POR CADA ALMACEN) ****************************** */}
-            <h2 className="text-[1rem] font-bold">
-              TABLA: SEGUIMIENTO PESO DE TRAMPAS
+            <h2 className="font-mono text-[1rem] underline">
+              TABLA 8: SEGUIMIENTO PESO DE TRAMPAS
             </h2>
             <div className="rounded-md border">
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      {/* <TableHead className="font-bold">
-                      Fecha de Seguimiento
-                    </TableHead> */}
-                      <TableHead className="text-center font-bold">
-                        Nro Trampa
-                      </TableHead>
-                      <TableHead className="text-center font-bold">
-                        Inicial
-                      </TableHead>
-                      <TableHead className="text-center font-bold">
-                        Merma
-                      </TableHead>
-                      <TableHead className="text-center font-bold">
-                        Actual
-                      </TableHead>
-                      {/* <TableHead className="font-bold">Observación</TableHead> */}
-                      <TableHead className="text-center font-bold">
-                        % merma
-                      </TableHead>
-                      <TableHead className="font-bold">RESULTADO</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {datosRoedores.length > 0 ? (
-                      <>
-                        {datosRoedores.map((dato, index) => (
-                          <TableRow key={index}>
-                            {/* <TableCell className="font-medium">
-                            {dato.fecha}
-                          </TableCell> */}
-                            <TableCell className="text-center">
-                              {dato.trampa_id}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {dato.inicial}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {dato.merma}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {dato.actual}
-                              {/* {dato.inicial - dato.merma} */}
-                            </TableCell>
-                            {/* <TableCell>
-                            {dato.observaciones.join(', ') || '-'}
-                          </TableCell> */}
-                            <TableCell className="text-center">
-                              {dato.inicial > 0
-                                ? ((dato.merma * 100) / dato.inicial).toFixed(2)
-                                : '-'}
-                            </TableCell>
-                            <TableCell>
-                              {dato.inicial > 0
-                                ? (dato.merma * 100) / dato.inicial <= 25
-                                  ? 'Medio Ambiente'
-                                  : 'Consumo'
-                                : '-'}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        <TableRow className="bg-muted/50 font-bold">
-                          <TableCell className="text-center">TOTAL</TableCell>
-                          <TableCell className="text-center">
-                            {datosRoedores.reduce(
-                              (sum, dato) => sum + dato.inicial,
-                              0,
-                            )}
+              <Table className={tableStyles.table}>
+                <TableHeader>
+                  <TableRow className={tableStyles.header.row}>
+                    <TableHead className={tableStyles.header.cell}>
+                      Nro Trampa
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Inicial
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Merma
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Actual
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      % merma
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      RESULTADO
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {datosRoedores.length > 0 ? (
+                    <>
+                      {datosRoedores.map((dato, index) => (
+                        <TableRow key={index}>
+                          <TableCell className={tableStyles.cell}>
+                            {dato.trampa_id}
                           </TableCell>
-                          <TableCell className="text-center">
-                            {datosRoedores.reduce(
-                              (sum, dato) => sum + dato.merma,
-                              0,
-                            )}
+                          <TableCell className={tableStyles.cell}>
+                            {dato.inicial}
                           </TableCell>
-                          <TableCell className="text-center">
-                            {datosRoedores.reduce(
-                              // (sum, dato) => sum + (dato.inicial - dato.merma),
-                              (sum, dato) => sum + dato.actual,
-                              0,
-                            )}
+                          <TableCell className={tableStyles.cell}>
+                            {dato.merma}
                           </TableCell>
-                          <TableCell>-</TableCell>
-                          <TableCell>-</TableCell>
-                        </TableRow>
-                        <TableRow className="text-center">
-                          <TableCell>TOTAL</TableCell>
-                          <TableCell>
-                            {datosRoedores.reduce(
-                              (sum, dato) => sum + dato.inicial,
-                              0,
-                            )}
+                          <TableCell className={tableStyles.cell}>
+                            {dato.actual}
                           </TableCell>
-                          <TableCell>100 %</TableCell>
-                        </TableRow>
-                        <TableRow className="text-center">
-                          <TableCell>MERMA</TableCell>
-                          <TableCell>
-                            {datosRoedores.reduce(
-                              (sum, dato) => sum + dato.merma,
-                              0,
-                            )}
+                          <TableCell className={tableStyles.datestr}>
+                            {dato.inicial > 0
+                              ? ((dato.merma * 100) / dato.inicial).toFixed(2)
+                              : '-'}
                           </TableCell>
-                          <TableCell>
-                            {(
-                              (datosRoedores.reduce(
-                                (sum, dato) => sum + dato.merma,
-                                0,
-                              ) *
-                                100) /
-                              datosRoedores.reduce(
-                                (sum, dato) => sum + dato.inicial,
-                                0,
-                              )
-                            ).toFixed(2)}{' '}
-                            %
+                          <TableCell className={tableStyles.cell}>
+                            {dato.inicial > 0
+                              ? (dato.merma * 100) / dato.inicial <= 10
+                                ? 'Medio Ambiente'
+                                : 'Consumo'
+                              : '-'}
                           </TableCell>
                         </TableRow>
-                        <TableRow className="text-center">
-                          <TableCell>PESO ACTUAL</TableCell>
-                          <TableCell>
-                            {datosRoedores.reduce(
-                              (sum, dato) => sum + (dato.inicial - dato.merma),
-                              0,
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {(
-                              (datosRoedores.reduce(
-                                (sum, dato) =>
-                                  sum + (dato.inicial - dato.merma),
-                                0,
-                              ) *
-                                100) /
-                              datosRoedores.reduce(
-                                (sum, dato) => sum + dato.inicial,
-                                0,
-                              )
-                            ).toFixed(2)}{' '}
-                            %
-                          </TableCell>
-                        </TableRow>
-                        <TableRow className="text-center">
-                          <TableCell>CONSUMO</TableCell>
-                          <TableCell>
-                            {datosRoedores.reduce((sum, dato) => {
-                              const inicial = dato.inicial;
-                              const actual = inicial - dato.merma;
-                              const porcentaje = (dato.merma * 100) / inicial;
-
-                              if (porcentaje > 25) {
-                                return sum + actual;
-                              }
-                              return sum;
-                            }, 0)}
-                          </TableCell>
-                          <TableCell>
-                            {(
-                              (datosRoedores.reduce((sum, dato) => {
-                                const inicial = dato.inicial;
-                                const actual = inicial - dato.merma;
-                                const porcentaje = (dato.merma * 100) / inicial;
-
-                                if (porcentaje > 25) {
-                                  return sum + actual;
-                                }
-                                return sum;
-                              }, 0) *
-                                100) /
-                              datosRoedores.reduce(
-                                (sum, dato) =>
-                                  sum + (dato.inicial - dato.merma),
-                                0,
-                              )
-                            ).toFixed(2)}{' '}
-                            %
-                          </TableCell>
-                        </TableRow>
-                        <TableRow className="text-center">
-                          <TableCell>MEDIO AMBIENTE</TableCell>
-                          <TableCell>
-                            {datosRoedores.reduce((sum, dato) => {
-                              const inicial = dato.inicial;
-                              const actual = inicial - dato.merma;
-                              const porcentaje = (dato.merma * 100) / inicial;
-
-                              if (porcentaje <= 25) {
-                                return sum + actual;
-                              }
-                              return sum;
-                            }, 0)}
-                          </TableCell>
-                          <TableCell>
-                            {(
-                              (datosRoedores.reduce((sum, dato) => {
-                                const inicial = dato.inicial;
-                                const actual = inicial - dato.merma;
-                                const porcentaje = (dato.merma * 100) / inicial;
-
-                                if (porcentaje <= 25) {
-                                  return sum + actual;
-                                }
-                                return sum;
-                              }, 0) *
-                                100) /
-                              datosRoedores.reduce(
-                                (sum, dato) =>
-                                  sum + (dato.inicial - dato.merma),
-                                0,
-                              )
-                            ).toFixed(2)}{' '}
-                            %
-                          </TableCell>
-                        </TableRow>
-                      </>
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center">
-                          Sin resultados
+                      ))}
+                      <TableRow className={tableStyles.totalRow}>
+                        <TableCell className={tableStyles.totalCell}>
+                          TOTAL
+                        </TableCell>
+                        <TableCell className={tableStyles.totalCell}>
+                          {datosRoedores.reduce(
+                            (sum, dato) => sum + dato.inicial,
+                            0,
+                          )}
+                        </TableCell>
+                        <TableCell className={tableStyles.totalCell}>
+                          {datosRoedores.reduce(
+                            (sum, dato) => sum + dato.merma,
+                            0,
+                          )}
+                        </TableCell>
+                        <TableCell className={tableStyles.totalCell}>
+                          {datosRoedores.reduce(
+                            // (sum, dato) => sum + (dato.inicial - dato.merma),
+                            (sum, dato) => sum + dato.actual,
+                            0,
+                          )}
+                        </TableCell>
+                        <TableCell className={tableStyles.totalCell}>
+                          -
+                        </TableCell>
+                        <TableCell className={tableStyles.totalCell}>
+                          -
                         </TableCell>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                      <TableRow className={tableStyles.totalRow}>
+                        <TableCell className={tableStyles.totalCell}>
+                          TOTAL
+                        </TableCell>
+                        <TableCell className={tableStyles.totalNumeric}>
+                          {datosRoedores.reduce(
+                            (sum, dato) => sum + dato.inicial,
+                            0,
+                          )}
+                        </TableCell>
+                        <TableCell className={tableStyles.totalNumeric}>
+                          100 %
+                        </TableCell>
+                      </TableRow>
+                      <TableRow className={tableStyles.totalRow}>
+                        <TableCell className={tableStyles.totalCell}>
+                          MERMA
+                        </TableCell>
+                        <TableCell className={tableStyles.totalNumeric}>
+                          {datosRoedores.reduce(
+                            (sum, dato) => sum + dato.merma,
+                            0,
+                          )}
+                        </TableCell>
+                        <TableCell className={tableStyles.totalNumeric}>
+                          {(
+                            (datosRoedores.reduce(
+                              (sum, dato) => sum + dato.merma,
+                              0,
+                            ) *
+                              100) /
+                            datosRoedores.reduce(
+                              (sum, dato) => sum + dato.inicial,
+                              0,
+                            )
+                          ).toFixed(2)}{' '}
+                          %
+                        </TableCell>
+                      </TableRow>
+                      <TableRow className={tableStyles.totalRow}>
+                        <TableCell className={tableStyles.totalCell}>
+                          PESO ACTUAL
+                        </TableCell>
+                        <TableCell className={tableStyles.totalNumeric}>
+                          {datosRoedores.reduce(
+                            (sum, dato) => sum + (dato.inicial - dato.merma),
+                            0,
+                          )}
+                        </TableCell>
+                        <TableCell className={tableStyles.totalNumeric}>
+                          {(
+                            (datosRoedores.reduce(
+                              (sum, dato) => sum + (dato.inicial - dato.merma),
+                              0,
+                            ) *
+                              100) /
+                            datosRoedores.reduce(
+                              (sum, dato) => sum + dato.inicial,
+                              0,
+                            )
+                          ).toFixed(2)}{' '}
+                          %
+                        </TableCell>
+                      </TableRow>
+                      <TableRow className={tableStyles.totalRow}>
+                        <TableCell className={tableStyles.totalCell}>
+                          MERMA CONSUMO
+                        </TableCell>
+                        <TableCell className={tableStyles.totalNumeric}>
+                          {datosRoedores.reduce((sum, dato) => {
+                            const inicial = dato.inicial;
+                            const actual = inicial - dato.merma;
+                            const porcentaje = (dato.merma * 100) / inicial;
+
+                            if (porcentaje > 10) {
+                              return sum + dato.merma;
+                            }
+                            return sum;
+                          }, 0)}
+                        </TableCell>
+                        <TableCell className={tableStyles.totalNumeric}>
+                          {(
+                            (datosRoedores.reduce((sum, dato) => {
+                              const inicial = dato.inicial;
+                              const actual = inicial - dato.merma;
+                              const porcentaje = (dato.merma * 100) / inicial;
+
+                              if (porcentaje > 10) {
+                                return sum + dato.merma;
+                              }
+                              return sum;
+                            }, 0) *
+                              100) /
+                            datosRoedores.reduce(
+                              (sum, dato) => sum + dato.merma,
+                              0,
+                            )
+                          ).toFixed(2)}{' '}
+                          %
+                        </TableCell>
+                      </TableRow>
+                      <TableRow className={tableStyles.totalRow}>
+                        <TableCell className={tableStyles.totalCell}>
+                          MERMA MA
+                        </TableCell>
+                        <TableCell className={tableStyles.totalNumeric}>
+                          {datosRoedores.reduce((sum, dato) => {
+                            const inicial = dato.inicial;
+                            const actual = inicial - dato.merma;
+                            const porcentaje = (dato.merma * 100) / inicial;
+
+                            if (porcentaje <= 10) {
+                              return sum + dato.merma;
+                            }
+                            return sum;
+                          }, 0)}
+                        </TableCell>
+                        <TableCell className={tableStyles.totalNumeric}>
+                          {(
+                            (datosRoedores.reduce((sum, dato) => {
+                              const inicial = dato.inicial;
+                              const actual = inicial - dato.merma;
+                              const porcentaje = (dato.merma * 100) / inicial;
+
+                              if (porcentaje <= 10) {
+                                return sum + dato.merma;
+                              }
+                              return sum;
+                            }, 0) *
+                              100) /
+                            datosRoedores.reduce(
+                              (sum, dato) => sum + dato.merma,
+                              0,
+                            )
+                          ).toFixed(2)}{' '}
+                          %
+                        </TableCell>
+                      </TableRow>
+                    </>
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className={tableStyles.totalRow}>
+                        Sin resultados
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </div>
+
             <br />
 
             {/* GRÁFICO 3: Comparación Inicial/Merma/Actual (Líneas) */}
@@ -2371,31 +2528,40 @@ export default function Lista({
           <div className="bg-red-700/10 p-5">
             <div className="mb-6">
               <h2 className="text-2xl font-bold">Insectocutores</h2>
-              <br />
-              <h2 className="text-xl font-bold">Informe de Insectocutores</h2>
+              <h2 className="text-[1rem]">Informe de Insectocutores</h2>
             </div>
             {/* **************** INSECTOCUTORES POR ALMACEN ************************ */}
+            <h2 className="font-mono text-[1rem] underline">
+              TABLA 9: CANTIDAD TOTAL DE INSECTOCUTORES
+            </h2>
             <div className="rounded-md border">
-              <Table>
+              <Table className={tableStyles.table}>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>ALMACEN</TableHead>
-                    <TableHead>CANT. INSECTOCUTORES</TableHead>
+                  <TableRow className={tableStyles.header.row}>
+                    <TableHead className={tableStyles.header.cell}>
+                      ALMACEN
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      CANT. INSECTOCUTORES
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell>
+                    <TableCell className={tableStyles.cell}>
                       {
                         almacenes.find((a) => a.id === Number(almacenId))
                           ?.nombre
                       }
                     </TableCell>
-                    <TableCell>{trampasinsect}</TableCell>
+                    <TableCell className={tableStyles.cell}>
+                      {trampasinsect}
+                    </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </div>
+            <br />
             {/* **************** GRAFICOS DE TODOS LOS ALMACENES ************************ */}
             {/* GRÁFICO 1: CANTIDAD Totales por Especie (Barras) */}
             {datosInsectocutores.especies.length > 0 && (
@@ -2431,20 +2597,20 @@ export default function Lista({
             {/* --------------------------- INCIDENCIA ----------------------------------------- */}
             {/* TABLA DE INSECTOCUTORES "INCIDENCIA" */}
             <div>
-              <div className="mb-2 text-[1rem] font-bold">
-                INCIDENCIA DE INSECTOS VOLADORES{' '}
+              <div className="font-mono text-[1rem] underline">
+                TABLA 10: INCIDENCIA DE INSECTOS VOLADORES{' '}
               </div>
               <div className="rounded-md border">
-                <Table>
+                <Table className={tableStyles.table}>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead className="font-bold">
+                    <TableRow className={tableStyles.header.row}>
+                      <TableHead className={tableStyles.header.cell}>
                         Fecha de Seguimiento
                       </TableHead>
                       {datosInsectocutores.especies.map((especie) => (
                         <TableHead
+                          className={tableStyles.header.cell}
                           key={especie}
-                          className="text-center font-bold"
                         >
                           {especie}
                         </TableHead>
@@ -2457,13 +2623,13 @@ export default function Lista({
                         {datosInsectocutores.datosPorFecha.map(
                           (dato, index) => (
                             <TableRow key={index}>
-                              <TableCell className="font-medium">
+                              <TableCell className={tableStyles.datestr}>
                                 {dato.fecha}
                               </TableCell>
                               {datosInsectocutores.especies.map((especie) => (
                                 <TableCell
+                                  className={tableStyles.cell}
                                   key={especie}
-                                  className="text-center"
                                 >
                                   {dato.cantidades[especie]}
                                 </TableCell>
@@ -2471,18 +2637,28 @@ export default function Lista({
                             </TableRow>
                           ),
                         )}
-                        <TableRow className="bg-muted/50 font-bold">
-                          <TableCell>TOTAL</TableCell>
+                        <TableRow className={tableStyles.totalRow}>
+                          <TableCell className={tableStyles.totalCell}>
+                            TOTAL
+                          </TableCell>
                           {datosInsectocutores.especies.map((especie) => (
-                            <TableCell key={especie} className="text-center">
+                            <TableCell
+                              className={tableStyles.totalCell}
+                              key={especie}
+                            >
                               {datosInsectocutores.totales[especie]}
                             </TableCell>
                           ))}
                         </TableRow>
-                        <TableRow>
-                          <TableCell>PROMEDIO</TableCell>
+                        <TableRow className={tableStyles.totalRow}>
+                          <TableCell className={tableStyles.totalCell}>
+                            PROMEDIO
+                          </TableCell>
                           {datosInsectocutores.especies.map((especie) => (
-                            <TableCell key={especie} className="text-center">
+                            <TableCell
+                              className={tableStyles.totalCell}
+                              key={especie}
+                            >
                               {datosInsectocutores.promedios[especie].toFixed(
                                 2,
                               )}
@@ -2493,8 +2669,8 @@ export default function Lista({
                     ) : (
                       <TableRow>
                         <TableCell
+                          className={tableStyles.totalCell}
                           colSpan={datosInsectocutores.especies.length + 1}
-                          className="text-center"
                         >
                           Sin resultados
                         </TableCell>
@@ -2504,6 +2680,7 @@ export default function Lista({
                 </Table>
               </div>
             </div>
+            <br />
             {/* GRÁFICO INCIDENCIA */}
             {datosInsectocutores.especies.length > 0 && (
               <div>
@@ -2543,23 +2720,24 @@ export default function Lista({
                 </ChartContainer>
               </div>
             )}
+            <br />
             {/* --------------------------- SEVERIDAD ----------------------------------------- */}
             {/* TABLA DE INSECTOCUTORES "SEVERIDAD" */}
             <div>
-              <div className="mb-2 text-[1rem] font-bold">
-                SEVERIDAD DE INSECTOS VOLADORES{' '}
+              <div className="font-mono text-[1rem] underline">
+                TABLA 11: SEVERIDAD DE INSECTOS VOLADORES{' '}
               </div>
               <div className="rounded-md border">
-                <Table>
+                <Table className={tableStyles.table}>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead className="font-bold">
+                    <TableRow className={tableStyles.header.row}>
+                      <TableHead className={tableStyles.header.cell}>
                         Fecha de Seguimiento
                       </TableHead>
                       {datosInsectocutores.especies.map((especie) => (
                         <TableHead
+                          className={tableStyles.header.cell}
                           key={especie}
-                          className="text-center font-bold"
                         >
                           {especie}
                         </TableHead>
@@ -2572,13 +2750,13 @@ export default function Lista({
                         {datosInsectocutores.datosPorFecha.map(
                           (dato, index) => (
                             <TableRow key={index}>
-                              <TableCell className="font-medium">
+                              <TableCell className={tableStyles.datestr}>
                                 {dato.fecha}
                               </TableCell>
                               {datosInsectocutores.especies.map((especie) => (
                                 <TableCell
+                                  className={tableStyles.cell}
                                   key={especie}
-                                  className="text-center"
                                 >
                                   {Math.floor(
                                     dato.cantidades[especie] /
@@ -2589,18 +2767,28 @@ export default function Lista({
                             </TableRow>
                           ),
                         )}
-                        <TableRow className="bg-muted/50 font-bold">
-                          <TableCell>TOTAL</TableCell>
+                        <TableRow className={tableStyles.totalRow}>
+                          <TableCell className={tableStyles.totalCell}>
+                            TOTAL
+                          </TableCell>
                           {datosInsectocutores.especies.map((especie) => (
-                            <TableCell key={especie} className="text-center">
+                            <TableCell
+                              className={tableStyles.totalCell}
+                              key={especie}
+                            >
                               {datosInsectocutores.totales[especie]}
                             </TableCell>
                           ))}
                         </TableRow>
-                        <TableRow>
-                          <TableCell>PROMEDIO</TableCell>
+                        <TableRow className={tableStyles.totalRow}>
+                          <TableCell className={tableStyles.totalCell}>
+                            PROMEDIO
+                          </TableCell>
                           {datosInsectocutores.especies.map((especie) => (
-                            <TableCell key={especie} className="text-center">
+                            <TableCell
+                              className={tableStyles.totalCell}
+                              key={especie}
+                            >
                               {(
                                 datosInsectocutores.promedios[especie] /
                                 datosInsectocutores.datosPorFecha.length
@@ -2610,10 +2798,10 @@ export default function Lista({
                         </TableRow>
                       </>
                     ) : (
-                      <TableRow>
+                      <TableRow className={tableStyles.totalRow}>
                         <TableCell
+                          className={tableStyles.totalCell}
                           colSpan={datosInsectocutores.especies.length + 1}
-                          className="text-center"
                         >
                           Sin resultados
                         </TableCell>
@@ -2623,6 +2811,7 @@ export default function Lista({
                 </Table>
               </div>
             </div>
+            <br />
             {/* GRÁFICO SEVERIDAD */}
             {datosInsectocutores.especies.length > 0 && (
               <div>
