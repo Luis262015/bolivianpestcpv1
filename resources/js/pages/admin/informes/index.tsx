@@ -34,6 +34,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  LabelList,
   Legend,
   Line,
   LineChart,
@@ -153,6 +154,42 @@ export default function Lista({
   const chartSeveridadRef = useRef<HTMLDivElement>(null); // SEVERIDAD
 
   const graficosPorMapaRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // console.log('@@@@');
+  // console.log(totales);
+  // console.log('@@@@');
+
+  const totalesPorcentajes = (totales: TotalData[]) => {
+    const data: any = {};
+    totales.forEach((tot, index) => {
+      // console.log('--');
+      // console.log(tot);
+      data[index] = {
+        mes: tot.mes,
+        inicial_sum: tot.inicial_sum,
+        inicial_por: (100).toFixed(2),
+        merma_sum: tot.merma_sum,
+        merma_por: ((tot.merma_sum * 100) / tot.inicial_sum).toFixed(2),
+        actual_sum: tot.actual_sum,
+        actual_por: ((tot.actual_sum * 100) / tot.inicial_sum).toFixed(2),
+      };
+    });
+
+    return Object.values(data).map((d: any) => ({
+      mes: d.mes,
+      inicial_sum: d.inicial_sum,
+      inicial_por: d.inicial_por,
+      merma_sum: d.merma_sum,
+      merma_por: d.merma_por,
+      actual_sum: d.actual_sum,
+      actual_por: d.actual_por,
+    }));
+  };
+
+  const totalesPorcentajesValues = totalesPorcentajes(totales);
+  console.log('***************');
+  console.log(totalesPorcentajesValues);
+  console.log('***************');
 
   /**
    * SEGUIMIENTOS
@@ -894,7 +931,7 @@ export default function Lista({
     datosInsectocutores.especies.forEach((especie, index) => {
       config[especie] = {
         label: especie,
-        color: `hsl(${(index * 360) / datosInsectocutores.especies.length}, 70%, 50%)`,
+        color: `hsl(${(index * 160) / datosInsectocutores.especies.length}, 60%, 48%)`,
       };
     });
     return config;
@@ -1220,6 +1257,28 @@ export default function Lista({
     } finally {
       setExportando(false);
     }
+  };
+
+  // COLORES
+  const coloresRoedores = {
+    inicial: {
+      label: 'inicial',
+      color: '#8064a2',
+    },
+    merma: {
+      label: 'merma',
+      color: '#bb4d4b',
+    },
+    actual: {
+      label: 'actual',
+      color: '#9bbb59',
+    },
+  };
+
+  const coloresInsectos = {
+    mosquito: '#f79647',
+    mosca: '#33558b',
+    polilla: '#4aacc5',
   };
 
   return (
@@ -2112,7 +2171,10 @@ export default function Lista({
                   graficosPorMapaRefs.current[index] = el;
                 }}
               >
-                <h3 className="mb-4 text-lg font-semibold">{item.mapa}</h3>
+                <h3 className="font-mono">
+                  GRAFICO: {item.mapa} - PORCENTAJES
+                </h3>
+                <br />
 
                 <ChartContainer
                   config={{
@@ -2124,16 +2186,65 @@ export default function Lista({
                 >
                   <BarChart data={item.data}>
                     <CartesianGrid vertical={false} />
-                    <XAxis dataKey="fecha" tickLine={false} axisLine={false} />
-                    <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                    <XAxis
+                      dataKey="fecha"
+                      tickLine={false}
+                      axisLine={false}
+                      className="font-bold"
+                      label={{
+                        value: '--- Fecha seguimiento ---',
+                        position: 'insideBottom',
+                        offset: 0,
+                      }}
+                    />
+                    <YAxis
+                      domain={[0, 100]}
+                      tickFormatter={(v) => `${v}%`}
+                      className="font-bold"
+                      label={{
+                        value: 'Porcentaje de consumo',
+                        angle: -90,
+                        position: 'insideCenter',
+                        dx: -20,
+                      }}
+                    />
                     <Tooltip formatter={(value: any) => `${value}%`} />
-                    <Bar dataKey="merma_porcentaje" fill="#ef4444" radius={4} />
+                    <Bar
+                      dataKey="merma_porcentaje"
+                      fill={coloresRoedores.merma.color}
+                      radius={4}
+                    >
+                      <LabelList
+                        dataKey="merma_porcentaje"
+                        position="top"
+                        fontSize={12}
+                        // formatter={(value: number) => value.toFixed(2)}
+                      />
+                    </Bar>
                     <Bar
                       dataKey="actual_porcentaje"
-                      fill="#ef4444"
+                      fill={coloresRoedores.actual.color}
                       radius={4}
-                    />
-                    <Bar dataKey="total_porcentaje" fill="#ef4444" radius={4} />
+                    >
+                      <LabelList
+                        dataKey="actual_porcentaje"
+                        position="top"
+                        fontSize={12}
+                        // formatter={(value: number) => value.toFixed(2)}
+                      />
+                    </Bar>
+                    <Bar
+                      dataKey="total_porcentaje"
+                      fill={coloresRoedores.inicial.color}
+                      radius={4}
+                    >
+                      <LabelList
+                        dataKey="total_porcentaje"
+                        position="top"
+                        fontSize={12}
+                        // formatter={(value: number) => value.toFixed(2)}
+                      />
+                    </Bar>
                   </BarChart>
                 </ChartContainer>
               </div>
@@ -2330,7 +2441,7 @@ export default function Lista({
                       </TableRow>
                       <TableRow className={tableStyles.totalRow}>
                         <TableCell className={tableStyles.totalCell}>
-                          MERMA MA
+                          MERMA M.A.
                         </TableCell>
                         <TableCell className={tableStyles.totalNumeric}>
                           {datosRoedores.reduce((sum, dato) => {
@@ -2382,9 +2493,10 @@ export default function Lista({
             {/* GRÁFICO 3: Comparación Inicial/Merma/Actual (Líneas) */}
             {datosRoedores.length > 0 && (
               <div>
-                <div className="mb-4 text-[1rem] font-bold">
+                <div className="font-mono">
                   GRÁFICO: COMPARACIÓN DE PESOS POR TRAMPA
                 </div>
+                <br />
                 <ChartContainer
                   config={chartConfigRoedores}
                   className="h-[300px]"
@@ -2395,31 +2507,66 @@ export default function Lista({
                     <XAxis
                       dataKey="trampa_id"
                       tickFormatter={(value) => `T${value}`}
+                      className="font-bold"
+                      label={{
+                        value: '--- TRAMPA ---',
+                        position: 'insideBottom',
+                        offset: 0,
+                      }}
                     />
-                    <YAxis />
+                    <YAxis
+                      className="font-bold"
+                      label={{
+                        value: 'Cantidad de consumo',
+                        angle: -90,
+                        position: 'insideCenter',
+                        dx: -10,
+                      }}
+                    />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Legend />
                     <Line
                       type="monotone"
                       dataKey="inicial"
-                      stroke="var(--color-inicial)"
+                      stroke={coloresRoedores.inicial.color}
                       strokeWidth={2}
                       name="Inicial"
-                    />
+                    >
+                      <LabelList
+                        dataKey="inicial"
+                        position="top"
+                        fontSize={12}
+                        // formatter={(value: number) => value.toFixed(2)}
+                      />
+                    </Line>
                     <Line
                       type="monotone"
                       dataKey="merma"
-                      stroke="var(--color-merma)"
+                      stroke={coloresRoedores.merma.color}
                       strokeWidth={2}
                       name="Merma"
-                    />
+                    >
+                      <LabelList
+                        dataKey="merma"
+                        position="top"
+                        fontSize={12}
+                        // formatter={(value: number) => value.toFixed(2)}
+                      />
+                    </Line>
                     <Line
                       type="monotone"
                       dataKey="actual"
-                      stroke="var(--color-actual)"
+                      stroke={coloresRoedores.actual.color}
                       strokeWidth={2}
                       name="Actual"
-                    />
+                    >
+                      <LabelList
+                        dataKey="actual"
+                        position="top"
+                        fontSize={12}
+                        // formatter={(value: number) => value.toFixed(2)}
+                      />
+                    </Line>
                   </LineChart>
                 </ChartContainer>
               </div>
@@ -2429,9 +2576,8 @@ export default function Lista({
             {/* GRÁFICO 4: Barras agrupadas por trampa */}
             {datosRoedores.length > 0 && (
               <div>
-                <div className="mb-4 text-[1rem] font-bold">
-                  GRÁFICO: VALORES POR TRAMPA
-                </div>
+                <div className="font-mono">GRÁFICO: VALORES POR TRAMPA</div>
+                <br />
                 <ChartContainer
                   config={chartConfigRoedores}
                   className="h-[300px]"
@@ -2442,28 +2588,63 @@ export default function Lista({
                     <XAxis
                       dataKey="trampa_id"
                       tickFormatter={(value) => `T${value}`}
+                      className="font-bold"
+                      label={{
+                        value: '--- TRAMPA ---',
+                        position: 'insideBottom',
+                        offset: 0,
+                      }}
                     />
-                    <YAxis />
+                    <YAxis
+                      className="font-bold"
+                      label={{
+                        value: 'Cantidad de consumo',
+                        angle: -90,
+                        position: 'insideCenter',
+                        dx: -10,
+                      }}
+                    />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Legend />
                     <Bar
                       dataKey="inicial"
-                      fill="var(--color-inicial)"
+                      fill={coloresRoedores.inicial.color}
                       radius={4}
                       name="Inicial"
-                    />
+                    >
+                      <LabelList
+                        dataKey="inicial"
+                        position="top"
+                        fontSize={12}
+                        // formatter={(value: number) => value.toFixed(2)}
+                      />
+                    </Bar>
                     <Bar
                       dataKey="merma"
-                      fill="var(--color-merma)"
+                      fill={coloresRoedores.merma.color}
                       radius={4}
                       name="Merma"
-                    />
+                    >
+                      <LabelList
+                        dataKey="merma"
+                        position="top"
+                        fontSize={12}
+                        // formatter={(value: number) => value.toFixed(2)}
+                      />
+                    </Bar>
                     <Bar
                       dataKey="actual"
-                      fill="var(--color-actual)"
+                      fill={coloresRoedores.actual.color}
                       radius={4}
                       name="Actual"
-                    />
+                    >
+                      <LabelList
+                        dataKey="actual"
+                        position="top"
+                        fontSize={12}
+                        // formatter={(value: number) => value.toFixed(2)}
+                      />
+                    </Bar>
                   </BarChart>
                 </ChartContainer>
               </div>
@@ -2474,7 +2655,7 @@ export default function Lista({
               <h2 className="text-xl font-bold">Informe de Trampas</h2>
             </div>
             {/* GRÁFICO 4: Barras agrupadas por trampa */}
-            {totales.length > 0 && (
+            {totalesPorcentajesValues.length > 0 && (
               <div>
                 <div className="mb-4 text-[1rem] font-bold">
                   GRÁFICO: RESUMEN
@@ -2484,33 +2665,69 @@ export default function Lista({
                   className="h-[300px]"
                   ref={chartResumenTrampasRef}
                 >
-                  <BarChart data={totales}>
+                  <BarChart data={totalesPorcentajesValues}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="mes"
-                      tickFormatter={(value) => `T${value}`}
+                      tickFormatter={(value) => `${value}`}
+                      className="font-bold"
+                      label={{
+                        value: '--- Fechas de seguimiento ---',
+                        position: 'insideBottom',
+                        offset: 0,
+                      }}
                     />
-                    <YAxis />
+                    <YAxis
+                      className="font-bold"
+                      label={{
+                        value: 'Porcentaje de consumo',
+                        angle: -90,
+                        position: 'insideCenter',
+                        dx: -10,
+                      }}
+                      // domain={[0, (dataMax: number) => dataMax * 1.2]}
+                    />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Legend />
                     <Bar
-                      dataKey="inicial_avg"
-                      fill="var(--color-inicial)"
+                      dataKey="inicial_por"
+                      fill={coloresRoedores.inicial.color}
                       radius={4}
                       name="Inicial"
-                    />
+                    >
+                      <LabelList
+                        dataKey="inicial_por"
+                        position="top"
+                        fontSize={12}
+                        // formatter={(value: number) => value.toFixed(2)}
+                      />
+                    </Bar>
                     <Bar
-                      dataKey="merma_avg"
-                      fill="var(--color-merma)"
+                      dataKey="merma_por"
+                      fill={coloresRoedores.merma.color}
                       radius={4}
                       name="Merma"
-                    />
+                    >
+                      <LabelList
+                        dataKey="merma_por"
+                        position="top"
+                        fontSize={12}
+                        // formatter={(value: number) => value.toFixed(2)}
+                      />
+                    </Bar>
                     <Bar
-                      dataKey="actual_avg"
-                      fill="var(--color-actual)"
+                      dataKey="actual_por"
+                      fill={coloresRoedores.actual.color}
                       radius={4}
                       name="Actual"
-                    />
+                    >
+                      <LabelList
+                        dataKey="actual_por"
+                        position="top"
+                        fontSize={12}
+                        // formatter={(value: number) => value.toFixed(2)}
+                      />
+                    </Bar>
                   </BarChart>
                 </ChartContainer>
               </div>
@@ -2566,9 +2783,10 @@ export default function Lista({
             {/* GRÁFICO 1: CANTIDAD Totales por Especie (Barras) */}
             {datosInsectocutores.especies.length > 0 && (
               <div>
-                <div className="mb-4 text-[1rem] font-bold">
-                  GRÁFICO: TOTAL DE INSECTOS POR ESPECIE
+                <div className="font-mono">
+                  GRAFICO: TOTAL DE INSECTOS POR ESPECIE
                 </div>
+                <br />
                 <ChartContainer
                   config={chartConfigInsectos}
                   className="h-[300px]"
@@ -2585,14 +2803,37 @@ export default function Lista({
                     barCategoryGap="20%"
                   >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="especie" />
-                    <YAxis />
+                    <XAxis
+                      dataKey="especie"
+                      className="font-bold"
+                      label={{
+                        value: '--- ESPECIES ---',
+                        position: 'insideBottom',
+                        offset: 0,
+                      }}
+                    />
+                    <YAxis
+                      className="font-bold"
+                      label={{
+                        value: 'Cantidad capturados',
+                        angle: -90,
+                        position: 'insideCenter',
+                        dx: -10,
+                      }}
+                    />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="cantidad" radius={8} />
+                    <Bar dataKey="cantidad" radius={8}>
+                      <LabelList
+                        dataKey="cantidad"
+                        position="top"
+                        fontSize={12}
+                      />
+                    </Bar>
                   </BarChart>
                 </ChartContainer>
               </div>
             )}
+            <br />
             {/* **************** SECCION POR ALMACEN ************************ */}
             {/* --------------------------- INCIDENCIA ----------------------------------------- */}
             {/* TABLA DE INSECTOCUTORES "INCIDENCIA" */}
@@ -2684,9 +2925,10 @@ export default function Lista({
             {/* GRÁFICO INCIDENCIA */}
             {datosInsectocutores.especies.length > 0 && (
               <div>
-                <div className="mb-4 text-[1rem] font-bold">
+                <div className="font-mono">
                   GRÁFICO DE INCIDENCIA: EVOLUCIÓN DE INSECTOS POR FECHA
                 </div>
+                <br />
                 <ChartContainer
                   config={chartConfigInsectos}
                   className="h-[300px]"
@@ -2701,10 +2943,25 @@ export default function Lista({
                     barCategoryGap="20%"
                   >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="fecha" />
+                    <XAxis
+                      dataKey="fecha"
+                      className="font-bold"
+                      label={{
+                        value: '--- Fechas de seguimiento ---',
+                        position: 'insideBottom',
+                        offset: 0,
+                      }}
+                    />
                     <YAxis
                       domain={[0, 100]}
                       tickFormatter={(value) => `${value}`}
+                      className="font-bold"
+                      label={{
+                        value: 'Nivel de incidencia',
+                        angle: -90,
+                        position: 'insideCenter',
+                        dx: -10,
+                      }}
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Legend />
@@ -2714,7 +2971,13 @@ export default function Lista({
                         dataKey={especie}
                         fill={chartConfigInsectos[especie]?.color}
                         radius={4}
-                      />
+                      >
+                        <LabelList
+                          dataKey={especie}
+                          position="top"
+                          fontSize={12}
+                        />
+                      </Bar>
                     ))}
                   </BarChart>
                 </ChartContainer>
@@ -2815,9 +3078,8 @@ export default function Lista({
             {/* GRÁFICO SEVERIDAD */}
             {datosInsectocutores.especies.length > 0 && (
               <div>
-                <div className="mb-4 text-[1rem] font-bold">
-                  GRÁFICO DE SEVERIDAD
-                </div>
+                <div className="font-mono">GRÁFICO DE SEVERIDAD</div>
+                <br />
                 <ChartContainer
                   config={chartConfigInsectos}
                   className="h-[300px]"
@@ -2831,11 +3093,27 @@ export default function Lista({
                     <CartesianGrid strokeDasharray="3 3" />
 
                     {/* AHORA X ES ESPECIE */}
-                    <XAxis dataKey="especie" />
+
+                    <XAxis
+                      dataKey="especie"
+                      className="font-bold"
+                      label={{
+                        value: '--- ESPECIES ---',
+                        position: 'insideBottom',
+                        offset: 0,
+                      }}
+                    />
 
                     <YAxis
                       domain={[0, 33]}
                       tickFormatter={(value) => `${value}`}
+                      className="font-bold"
+                      label={{
+                        value: 'Nivel de severidad',
+                        angle: -90,
+                        position: 'insideCenter',
+                        dx: -10,
+                      }}
                     />
 
                     <ChartTooltip content={<ChartTooltipContent />} />
@@ -2846,10 +3124,17 @@ export default function Lista({
                       <Bar
                         key={dato.fecha}
                         dataKey={dato.fecha}
-                        fill={`hsl(${(index * 360) / datosInsectocutores.datosPorFecha.length},70%,50%)`}
+                        // fill={`hsl(${(index * 360) / datosInsectocutores.datosPorFecha.length},70%,50%)`}
+                        fill={`hsl(${(index * 160) / datosInsectocutores.especies.length}, 60%, 48%)`}
                         radius={4}
                         name={dato.fecha}
-                      />
+                      >
+                        <LabelList
+                          dataKey={dato.fecha}
+                          position="top"
+                          fontSize={12}
+                        />
+                      </Bar>
                     ))}
                   </BarChart>
                 </ChartContainer>

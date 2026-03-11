@@ -700,127 +700,137 @@ export default function ModalSeguimiento({
               </div>
               <div className="my-2">Labores Desarrolladas</div>
 
-              {tipoSeguimientoSel === 'DESRATIZACION' ? (
+              {tipoSeguimientoSel !== 'INSECTOCUTORES' && (
                 <>
-                  {/* <div className="text-[.9rem] text-gray-500">
+                  {tipoSeguimientoSel === 'DESRATIZACION' ? (
+                    <>
+                      {/* <div className="text-[.9rem] text-gray-500">
                     Control de roedores
                   </div> */}
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="flex items-center justify-between">
-                      <Label>Cantidad Trampas</Label>
-                      <Input
-                        className="w-auto"
-                        placeholder="Cantidad Trampas"
-                        type="number"
-                        value={aplicacion.trampas}
-                        onChange={(e) =>
-                          updateAplicacion('trampas', e.target.value)
-                        }
-                      />
-                    </div>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div className="flex items-center justify-between">
+                          <Label>Cantidad Trampas</Label>
+                          <Input
+                            className="w-auto"
+                            placeholder="Cantidad Trampas"
+                            type="number"
+                            value={aplicacion.trampas}
+                            onChange={(e) =>
+                              updateAplicacion('trampas', e.target.value)
+                            }
+                          />
+                        </div>
 
-                    <div className="flex items-center justify-between">
-                      <Label>Trampas Cambiadas</Label>
-                      <Input
-                        className="w-auto"
-                        placeholder="Trampas Cambiadas"
-                        type="number"
-                        value={aplicacion.trampas_cambiar}
-                        onChange={(e) =>
-                          updateAplicacion('trampas_cambiar', e.target.value)
-                        }
-                      />
-                    </div>
+                        <div className="flex items-center justify-between">
+                          <Label>Trampas Cambiadas</Label>
+                          <Input
+                            className="w-auto"
+                            placeholder="Trampas Cambiadas"
+                            type="number"
+                            value={aplicacion.trampas_cambiar}
+                            onChange={(e) =>
+                              updateAplicacion(
+                                'trampas_cambiar',
+                                e.target.value,
+                              )
+                            }
+                          />
+                        </div>
 
-                    <div className="flex items-center justify-between">
-                      <Label>Trampas Internas</Label>
-                      <Input
-                        className="w-auto"
-                        placeholder="Trampas Internas"
-                        type="number"
-                        value={aplicacion.internas}
-                        onChange={(e) =>
-                          updateAplicacion('internas', e.target.value)
-                        }
-                      />
-                    </div>
+                        <div className="flex items-center justify-between">
+                          <Label>Trampas Internas</Label>
+                          <Input
+                            className="w-auto"
+                            placeholder="Trampas Internas"
+                            type="number"
+                            value={aplicacion.internas}
+                            onChange={(e) =>
+                              updateAplicacion('internas', e.target.value)
+                            }
+                          />
+                        </div>
 
-                    <div className="flex items-center justify-between">
-                      <Label>Trampas Externas</Label>
-                      <Input
-                        className="w-auto"
-                        placeholder="Trampas Externas"
-                        type="number"
-                        value={aplicacion.externas}
-                        onChange={(e) =>
-                          updateAplicacion('externas', e.target.value)
-                        }
-                      />
-                    </div>
+                        <div className="flex items-center justify-between">
+                          <Label>Trampas Externas</Label>
+                          <Input
+                            className="w-auto"
+                            placeholder="Trampas Externas"
+                            type="number"
+                            value={aplicacion.externas}
+                            onChange={(e) =>
+                              updateAplicacion('externas', e.target.value)
+                            }
+                          />
+                        </div>
 
-                    <div className="flex items-center justify-between">
-                      <Label>Roedores encontrados</Label>
-                      <Input
-                        className="w-auto"
-                        placeholder="Roedores encontrados"
-                        type="number"
-                        value={aplicacion.roedores}
-                        onChange={(e) =>
-                          updateAplicacion('roedores', e.target.value)
-                        }
-                      />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="my-3 text-[.9rem] text-gray-500">
-                    Desinfeccion
-                  </div>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="flex items-center justify-between">
-                      <Label>Cantidad Ambientes</Label>
-                      <Input
-                        className="w-auto"
-                        placeholder="Cantidad Oficinas"
-                        type="number"
-                        value={aplicacion.ambientes}
-                        onChange={(e) =>
-                          updateAplicacion('ambientes', e.target.value)
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div className="my-3 text-[.9rem] text-gray-500">
-                    Fumigacion
-                  </div>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="flex items-center justify-between">
-                      <Label>Cantidad Pisos</Label>
-                      <Input
-                        className="w-auto"
-                        placeholder="Cantidad Pisos"
-                        type="number"
-                        value={aplicacion.pisos}
-                        onChange={(e) =>
-                          updateAplicacion('pisos', e.target.value)
-                        }
-                      />
-                    </div>
+                        <div className="flex items-center justify-between">
+                          <Label>Roedores encontrados</Label>
+                          <Input
+                            className="w-auto"
+                            placeholder="Roedores encontrados"
+                            type="number"
+                            value={aplicacion.roedores}
+                            onChange={(e) =>
+                              updateAplicacion('roedores', e.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="my-3 text-[.9rem] text-gray-500">
+                        Desinfeccion
+                      </div>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div className="flex items-center justify-between">
+                          <Label>Cantidad Ambientes</Label>
+                          <Input
+                            className="w-auto"
+                            placeholder="Cantidad Oficinas"
+                            type="number"
+                            value={aplicacion.ambientes}
+                            onChange={(e) =>
+                              updateAplicacion('ambientes', e.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div className="my-3 text-[.9rem] text-gray-500">
+                        Fumigacion
+                      </div>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div className="flex items-center justify-between">
+                          <Label>Cantidad Pisos</Label>
+                          <Input
+                            className="w-auto"
+                            placeholder="Cantidad Pisos"
+                            type="number"
+                            value={aplicacion.pisos}
+                            onChange={(e) =>
+                              updateAplicacion('pisos', e.target.value)
+                            }
+                          />
+                        </div>
 
-                    <div className="flex items-center justify-between">
-                      <Label>Paredes Internas</Label>
-                      <Input
-                        className="w-auto"
-                        placeholder="Paredes Internas"
-                        type="number"
-                        value={aplicacion.paredes_internas}
-                        onChange={(e) =>
-                          updateAplicacion('paredes_internas', e.target.value)
-                        }
-                      />
-                    </div>
-                  </div>
+                        <div className="flex items-center justify-between">
+                          <Label>Paredes Internas</Label>
+                          <Input
+                            className="w-auto"
+                            placeholder="Paredes Internas"
+                            type="number"
+                            value={aplicacion.paredes_internas}
+                            onChange={(e) =>
+                              updateAplicacion(
+                                'paredes_internas',
+                                e.target.value,
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -833,74 +843,48 @@ export default function ModalSeguimiento({
                 Seguimiento {tipoSeguimientoSel}
               </div>
               <div className="my-2">Método Utilizado</div>
-              {/* <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
-                {metodos.map((m) => (
-                  <label
-                    key={m.id}
-                    className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
-                  >
-                    <Checkbox
-                      checked={metodosSel.includes(m.id)}
-                      onCheckedChange={() =>
-                        toggle(metodosSel, setMetodosSel, m.id)
-                      }
-                    />
-                    <span>{m.nombre}</span>
-                  </label>
-                ))}
-              </div> */}
 
-              {tipoSeguimientoSel === 'DESRATIZACION' ? (
+              {tipoSeguimientoSel !== 'INSECTOCUTORES' && (
                 <>
-                  {/* GRUPO 1 */}
-                  <div>
-                    {/* <Label className="mb-3 block text-sm text-muted-foreground">
-                      Métodos principales
-                    </Label> */}
-
-                    <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
-                      {metodosGrupoA.map((m) => (
-                        <label
-                          key={m.id}
-                          className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
-                        >
-                          <Checkbox
-                            checked={metodosSel.includes(m.id)}
-                            onCheckedChange={() =>
-                              toggle(metodosSel, setMetodosSel, m.id)
-                            }
-                          />
-                          <span>{m.nombre}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* GRUPO 2 */}
-                  <div>
-                    {/* <Label className="mb-3 block text-sm text-muted-foreground">
-                      Otros métodos
-                    </Label> */}
-
-                    <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
-                      {metodosGrupoB.map((m) => (
-                        <label
-                          key={m.id}
-                          className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
-                        >
-                          <Checkbox
-                            checked={metodosSel.includes(m.id)}
-                            onCheckedChange={() =>
-                              toggle(metodosSel, setMetodosSel, m.id)
-                            }
-                          />
-                          <span>{m.nombre}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                  {tipoSeguimientoSel === 'DESRATIZACION' ? (
+                    <>
+                      <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                        {metodosGrupoA.map((m) => (
+                          <label
+                            key={m.id}
+                            className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                          >
+                            <Checkbox
+                              checked={metodosSel.includes(m.id)}
+                              onCheckedChange={() =>
+                                toggle(metodosSel, setMetodosSel, m.id)
+                              }
+                            />
+                            <span>{m.nombre}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
+                        {metodosGrupoB.map((m) => (
+                          <label
+                            key={m.id}
+                            className="flex cursor-pointer items-center space-x-3 rounded-lg border p-4 hover:bg-accent has-[:checked]:bg-primary/10"
+                          >
+                            <Checkbox
+                              checked={metodosSel.includes(m.id)}
+                              onCheckedChange={() =>
+                                toggle(metodosSel, setMetodosSel, m.id)
+                              }
+                            />
+                            <span>{m.nombre}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -1136,7 +1120,7 @@ export default function ModalSeguimiento({
                 Solo en DESINFECCION o DESINSECTACION
               </Label> */}
 
-              {tipoSeguimientoSel !== 'DESRATIZACION' && (
+              {tipoSeguimientoSel === 'FUMIGACION' && (
                 <>
                   <div className="mt-6 grid max-h-96 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
                     {biologicos.map((b) => (
@@ -1201,26 +1185,28 @@ export default function ModalSeguimiento({
               </div>
               <div className="my-2">Seguimiento de trampas</div>
 
-              <SeguimientoTrampas
-                almacenId={Number(data.almacen_id)!}
-                tipoSeguimiento={data.tipo_seguimiento_id}
-                value={{
-                  trampa_especies_seguimientos:
-                    data.trampa_especies_seguimientos,
-                  trampa_roedores_seguimientos:
-                    data.trampa_roedores_seguimientos,
-                }}
-                onChange={(val) => {
-                  setData(
-                    'trampa_especies_seguimientos',
-                    val.trampa_especies_seguimientos,
-                  );
-                  setData(
-                    'trampa_roedores_seguimientos',
-                    val.trampa_roedores_seguimientos,
-                  );
-                }}
-              />
+              {tipoSeguimientoSel !== 'FUMIGACION' && (
+                <SeguimientoTrampas
+                  almacenId={Number(data.almacen_id)!}
+                  tipoSeguimiento={data.tipo_seguimiento_id}
+                  value={{
+                    trampa_especies_seguimientos:
+                      data.trampa_especies_seguimientos,
+                    trampa_roedores_seguimientos:
+                      data.trampa_roedores_seguimientos,
+                  }}
+                  onChange={(val) => {
+                    setData(
+                      'trampa_especies_seguimientos',
+                      val.trampa_especies_seguimientos,
+                    );
+                    setData(
+                      'trampa_roedores_seguimientos',
+                      val.trampa_roedores_seguimientos,
+                    );
+                  }}
+                />
+              )}
             </div>
           )}
 

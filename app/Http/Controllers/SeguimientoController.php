@@ -388,7 +388,9 @@ class SeguimientoController extends Controller
 
   public function pdf(Request $request, string $id)
   {
-    $seguimiento = Seguimiento::with(['empresa', 'almacen', 'user', 'tipoSeguimiento', 'aplicacion', 'metodos', 'epps', 'proteccions', 'biologicos', 'signos', 'images', 'especies', 'productoUsos.unidad', 'productoUsos.producto', 'roedores.trampa', 'insectocutores.especie'])->find($id);
+    $seguimiento = Seguimiento::with(['empresa', 'almacen', 'user', 'tipoSeguimiento', 'aplicacion', 'metodos', 'epps', 'proteccions', 'biologicos', 'signos', 'images', 'especies', 'productoUsos.unidad', 'productoUsos.producto', 'roedores.trampa.mapa', 'insectocutores.especie', 'insectocutores.trampa.mapa'])->find($id);
+
+    // dd($seguimiento);
     // Conseguir siguiente registro de cronograma del mismo tipo y misma empresa
     // cronogramas(id,empresa_id,almacen_id,tipo_seguimiento_id)
     // Si hiciera una funcion devolver(id, almacen_id, tipo_seguimiento_id), como conseguiria

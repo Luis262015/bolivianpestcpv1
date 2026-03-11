@@ -21,6 +21,7 @@ use PhpOffice\PhpWord\Style\Language;
 
 class InformesController extends Controller
 {
+
   /**
    * Requerimiento de datos para realizar un INFORME
    * @param Request $request
@@ -157,14 +158,18 @@ class InformesController extends Controller
   public function storeWord(Request $request)
   {
 
+
+
     // $seguimientoIds = $request->input('seguimiento_ids', []);
 
     $seguimientos = Seguimiento::with([
       'insectocutores.especie',
-      'roedores'
+      'roedores',
+      'images'
     ])->whereIn('id', $request->seguimiento_ids)->get();
 
     // Log::info($seguimientos);
+
 
 
 
@@ -303,7 +308,7 @@ class InformesController extends Controller
       'alignment' => Jc::CENTER,
       'lineHeight' => 1,
     ]);
-    $section->addText('CONTROL DE PLAGAS', [
+    $section->addText('CONTROL INTEGRAL DE PLAGAS', [
       'bold' => true,
       'size' => 11,
       'underline' => 'single',
@@ -311,7 +316,7 @@ class InformesController extends Controller
       'alignment' => Jc::CENTER,
       'lineHeight' => 1,
     ]);
-    $section->addText('"ALMACEN _________"', [
+    $section->addText('"_________"', [
       'bold' => true,
       'size' => 11,
       'underline' => 'single',
@@ -319,6 +324,7 @@ class InformesController extends Controller
       'alignment' => Jc::CENTER,
       'lineHeight' => 1,
     ]);
+    $section->addTextBreak();
 
     // ---------------------SECCION: INTRODUCCION ----------------------------
     $section->addText('INTRODUCCIÓN:', [
@@ -326,6 +332,8 @@ class InformesController extends Controller
       'size' => 11,
       'underline' => 'single',
     ]);
+    $section->addTextBreak();
+
     $section->addText(
       'Las Buenas Prácticas de Almacenamiento BPAS son una herramienta básica para la obtención de productos seguros para el consumo y se focaliza en la higiene y en cómo se deben manipular estos siendo su aplicación obligatoria.',
       [],
@@ -334,6 +342,8 @@ class InformesController extends Controller
         'lineHeight' => 1.15
       ]
     );
+    $section->addTextBreak();
+
     $section->addText(
       'La importancia de controlar las plagas radica en las pérdidas que estas ocasionan a través de mercaderías arruinadas, alimentos contaminados, potenciales demandas, productos mal utilizados para el control, daños a estructuras físicas de la empresa, pérdida de imagen, etc. ',
       [],
@@ -342,6 +352,8 @@ class InformesController extends Controller
         'lineHeight' => 1.15
       ]
     );
+    $section->addTextBreak();
+
     $section->addText(
       'Dando cumplimiento al CONTROL DE PLAGAS para esta gestión que se realiza a la empresa “____________________” pasamos a desglosar las actividades alcanzadas para el mes de ___________ en lo que se refiere al almacén de productos.',
       [],
@@ -350,6 +362,8 @@ class InformesController extends Controller
         'lineHeight' => 1.15
       ]
     );
+    $section->addTextBreak();
+
     $section->addText('OBJETIVO:', [
       'bold' => true,
       'size' => 11,
@@ -363,6 +377,8 @@ class InformesController extends Controller
         'lineHeight' => 1.15
       ]
     );
+    $section->addTextBreak();
+
     $section->addText('METODOLOGIA:', [
       'bold' => true,
       'size' => 11,
@@ -372,9 +388,7 @@ class InformesController extends Controller
     $section->addListItem('Lo que se realizó el presente mes');
     $section->addListItem('El balance análisis.');
     $section->addListItem('Las recomendaciones para el próximo mes.');
-
-
-
+    $section->addTextBreak();
 
     // ---------------------SECCION: LO QUE SE REALIZO EN LA VISITA ----------------------------
 
@@ -383,7 +397,7 @@ class InformesController extends Controller
       'size' => 11,
       'underline' => 'single',
     ]);
-
+    $section->addTextBreak();
 
     // ---------------------SUBSECCION: DESRATIZACION ----------------------------
 
@@ -396,6 +410,11 @@ class InformesController extends Controller
     // ************************************************************************************
     // FOTOS DE VISITAS POR SEGUIMIENTO ***********************************************
     // ************************************************************************************
+
+    if ($seguimientos->images) {
+      foreach ($seguimientos as $value) {
+      }
+    }
 
     // ************************************************************************************
     // TABLA CANTIDAD DE TRAMPAS x TIPO y CANTIDAD DE ROEDORES CAPTURADOS *****************

@@ -12,4 +12,9 @@ class TrampaEspecieSeguimiento extends Model
     {
         return $this->belongsTo(Especie::class);
     }
+
+    public function trampa()
+    {
+        return $this->belongsTo(Trampa::class);
+    }
 }

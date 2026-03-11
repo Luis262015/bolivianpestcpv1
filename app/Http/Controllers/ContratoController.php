@@ -191,7 +191,7 @@ class ContratoController extends Controller
           $cronograma->user_id = Auth::id();
           $cronograma->tecnico_id = Auth::id();
           $cronograma->tipo_seguimiento_id = 2;
-          $cronograma->title = 'DESINFECCION';
+          $cronograma->title = 'FUMIGACION';
           $cronograma->date = $fecha;
           $cronograma->color = 'bg-blue-500';
           $cronograma->status = 'pendiente';
@@ -205,7 +205,7 @@ class ContratoController extends Controller
           $cronograma->user_id = Auth::id();
           $cronograma->tecnico_id = Auth::id();
           $cronograma->tipo_seguimiento_id = 3;
-          $cronograma->title = 'DESINSECTACION';
+          $cronograma->title = 'INSECTOCUTORES';
           $cronograma->date = $fecha;
           $cronograma->color = 'bg-pink-600';
           $cronograma->status = 'pendiente';

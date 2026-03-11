@@ -119,6 +119,8 @@
         </td>
       </tr>
     </table>
+
+
     <table>
       <tr>
         <td class="titulo">
@@ -144,7 +146,7 @@
                 <td class="titulo">ROEDORES: <span>{{ $seguimiento->aplicacion->roedores ?? 'No disponible' }}</span>
                 </td>
               </tr>
-            @else
+            @elseif($seguimiento->tipoSeguimiento->nombre === 'FUMIGACION')
               <tr>
                 <td colspan="5" class="titulo">FUMIGACIONES</td>
               </tr>
@@ -176,91 +178,91 @@
         </td>
       </tr>
     </table>
-    <table>
-      <tr>
-        <td class="titulo">METODO UTILIZADO</td>
-      </tr>
-      <tr>
-        <td>
-          @foreach ($seguimiento->metodos as $metodo)
-            {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $metodo->nombre }}</span>
-          @endforeach
-        </td>
-      </tr>
-    </table>
-    <table>
-      <tr>
-        <td class="titulo">PRODUCTO UTILIZADO</td>
-      </tr>
-      <tr>
-        <td>
 
-
-          @foreach ($seguimiento->productoUsos as $productoUso)
-            {{ $loop->iteration }} : <span> {{ $productoUso->producto->nombre }}
-              {{ $productoUso->unidad->nombre }} </span><br>
-          @endforeach
-
-        </td>
-      </tr>
-    </table>
-    <table>
-      <tr>
-        <td class="titulo">
-          EPP UTILIZADO
-        </td>
-      </tr>
-      <tr>
-        <td>
-          @foreach ($seguimiento->epps as $epp)
-            {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $epp->nombre }}</span>
-          @endforeach
-        </td>
-      </tr>
-    </table>
-    <table>
-      <tr>
-        <td class="titulo">MEDIDAS DE PROTECCION ADOPTADAS PARA TERCEROS</td>
-      </tr>
-      <tr>
-        <td>
-          @foreach ($seguimiento->proteccions as $proteccion)
-            {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $proteccion->nombre }}</span>
-          @endforeach
-        </td>
-      </tr>
-    </table>
-    @if ($seguimiento->tipoSeguimiento->nombre === 'DESRATIZACION')
+    @if ($seguimiento->tipoSeguimiento->nombre !== 'INSECTOCUTORES')
       <table>
         <tr>
-          <td class="titulo">OBSERVACIONES DE SIGNOS DE ROEDORES</td>
+          <td class="titulo">METODO UTILIZADO</td>
         </tr>
         <tr>
           <td>
-            @foreach ($seguimiento->signos as $signo)
-              {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $signo->nombre }}</span>
+            @foreach ($seguimiento->metodos as $metodo)
+              {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $metodo->nombre }}</span>
             @endforeach
           </td>
         </tr>
       </table>
-    @else
+
       <table>
         <tr>
-          <td class="titulo">OBSERVACIONES DE CICLO BIOLOGICO</td>
+          <td class="titulo">PRODUCTO UTILIZADO</td>
         </tr>
         <tr>
           <td>
-            @foreach ($seguimiento->biologicos as $biologico)
-              {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $biologico->nombre }}</span>
+
+
+            @foreach ($seguimiento->productoUsos as $productoUso)
+              {{ $loop->iteration }} : <span> {{ $productoUso->producto->nombre }}
+                {{ $productoUso->unidad->nombre }} </span><br>
+            @endforeach
+
+          </td>
+        </tr>
+      </table>
+      <table>
+        <tr>
+          <td class="titulo">
+            EPP UTILIZADO
+          </td>
+        </tr>
+        <tr>
+          <td>
+            @foreach ($seguimiento->epps as $epp)
+              {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $epp->nombre }}</span>
             @endforeach
           </td>
         </tr>
       </table>
+      <table>
+        <tr>
+          <td class="titulo">MEDIDAS DE PROTECCION ADOPTADAS PARA TERCEROS</td>
+        </tr>
+        <tr>
+          <td>
+            @foreach ($seguimiento->proteccions as $proteccion)
+              {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $proteccion->nombre }}</span>
+            @endforeach
+          </td>
+        </tr>
+      </table>
+      @if ($seguimiento->tipoSeguimiento->nombre === 'DESRATIZACION')
+        <table>
+          <tr>
+            <td class="titulo">OBSERVACIONES DE SIGNOS DE ROEDORES</td>
+          </tr>
+          <tr>
+            <td>
+              @foreach ($seguimiento->signos as $signo)
+                {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $signo->nombre }}</span>
+              @endforeach
+            </td>
+          </tr>
+        </table>
+      @else
+        <table>
+          <tr>
+            <td class="titulo">OBSERVACIONES DE CICLO BIOLOGICO</td>
+          </tr>
+          <tr>
+            <td>
+              @foreach ($seguimiento->biologicos as $biologico)
+                {{ $loop->iteration }} : <span style="margin-right: 20px">{{ $biologico->nombre }}</span>
+              @endforeach
+            </td>
+          </tr>
+        </table>
+      @endif
     @endif
-
-
-
-
 
     <table>
       <tr>
@@ -314,52 +316,20 @@
 
 
     @if ($seguimiento->tipoSeguimiento->nombre === 'DESRATIZACION')
-      {{-- <table>
-        <tr>
-          <td class="titulo">TRAMPAS ROEDORES</td>
-        </tr>
-        <tr>
-          <td>
-            <table>
-              <tr>
-                <td>#</td>
-                <td>ID</td>
-                <td>Observación</td>
-                <td>Inicial</td>
-                <td>Actual</td>
-                <td>Merma</td>
-              </tr>
-              @foreach ($seguimiento->roedores as $roedor)
-                <tr>
-                  <td>{{ $loop->iteration }}</td>
-                  <td>{{ $roedor->trampa_id }}</td>
-                  <td>{{ $roedor->observacion }}</td>
-                  <td>{{ $roedor->inicial }}</td>
-                  <td>{{ $roedor->actual }}</td>
-                  <td> {{ $roedor->merma }}</td>
-                </tr>
-              @endforeach
-
-            </table>
-
-          </td>
-        </tr>
-      </table> --}}
-
       <div style="margin-top: 20px"></div>
-
       <table>
         <thead>
           <tr>
-            <td colspan="6" class="titulo">TRAMPAS ROEDORES</td>
+            <td colspan="7" class="titulo">TRAMPAS ROEDORES</td>
           </tr>
           <tr>
             <td>#</td>
+            <td>MAPA</td>
             <td>IDENT.</td>
-            <td>Observación</td>
             <td>Inicial</td>
             <td>Actual</td>
             <td>Merma</td>
+            <td>Observación</td>
           </tr>
         </thead>
 
@@ -368,24 +338,28 @@
             <tr>
               <td>{{ $loop->iteration }}</td>
               {{-- <td>{{ $roedor->trampa_id }}</td> --}}
+              <td>{{ $roedor->trampa->mapa->titulo }}</td>
               <td>{{ $roedor->trampa->identificador }}</td>
-              <td>{{ $roedor->observacion }}</td>
               <td>{{ $roedor->inicial }}</td>
               <td>{{ $roedor->actual }}</td>
               <td>{{ $roedor->merma }}</td>
+              <td>{{ $roedor->observacion }}</td>
             </tr>
           @endforeach
         </tbody>
       </table>
-    @else
+    @elseif($seguimiento->tipoSeguimiento->nombre === 'INSECTOCUTORES')
+      <div style="margin-top: 20px"></div>
       <table>
         <thead>
           <tr>
-            <td class="titulo">INSECTOCUTORES</td>
+            <td class="titulo" colspan="5">INSECTOCUTORES</td>
           </tr>
           <tr>
             <td>#</td>
-            <td>ID</td>
+            {{-- <td>ID</td> --}}
+            <td>MAPA</td>
+            <td>IDENT.</td>
             <td>Especie</td>
             <td>Cantidad</td>
           </tr>
@@ -394,39 +368,15 @@
           @foreach ($seguimiento->insectocutores as $insect)
             <tr>
               <td>{{ $loop->iteration }}</td>
-              <td>{{ $insect->trampa_id }}</td>
+              {{-- <td>{{ $insect->trampa_id }}</td> --}}
+              <td>{{ $insect->trampa->mapa->titulo }}</td>
+              <td>{{ $insect->trampa->identificador }}</td>
               <td>{{ $insect->especie->nombre }}</td>
               <td>{{ $insect->cantidad }}</td>
             </tr>
           @endforeach
         </tbody>
       </table>
-      {{-- <table>
-        <tr>
-          <td class="titulo">INSECTOCUTORES</td>
-        </tr>
-        <tr>
-          <td>
-            <table>
-              <tr>
-                <td>#</td>
-                <td>ID</td>
-                <td>Especie</td>
-                <td>Cantidad</td>
-              </tr>
-
-              @foreach ($seguimiento->insectocutores as $insect)
-                <tr>
-                  <td>{{ $loop->iteration }}</td>
-                  <td>{{ $insect->trampa_id }}</td>
-                  <td>{{ $insect->especie->nombre }}</td>
-                  <td>{{ $insect->cantidad }}</td>
-                </tr>
-              @endforeach
-            </table>
-          </td>
-        </tr>
-      </table> --}}
     @endif
 
   </div>

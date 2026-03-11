@@ -156,7 +156,8 @@ class RolesSeeder extends Seeder
             ['nombre' => 'DESRATIZACION'],
             // ['nombre' => 'DESINFECCION'],
             ['nombre' => 'FUMIGACION'],
-            ['nombre' => 'DESINSECTACION'],
+            // ['nombre' => 'DESINSECTACION'],
+            ['nombre' => 'INSECTOCUTORES'],
             ['nombre' => 'CONTROL DE AVES'],
         ]);
 
