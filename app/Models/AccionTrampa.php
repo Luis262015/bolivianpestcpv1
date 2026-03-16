@@ -12,4 +12,9 @@ class AccionTrampa extends Model
     {
         return $this->belongsTo(TrampaTipo::class);
     }
+
+    public function trampa()
+    {
+        return $this->belongsTo(Trampa::class);
+    }
 }

@@ -112,10 +112,23 @@ interface Seguimiento {
   totales: TotalData[];
 }
 
+interface Imagen {
+  id: number;
+  imagen: string;
+}
+
+interface Accion {
+  id: number;
+  descripcion: string;
+  imagenes: Imagen[];
+  created_at: string;
+}
+
 interface Props {
   empresas: Empresa[];
   almacenes: Almacen[];
   seguimientos: Seguimiento[];
+  acciones: Accion[];
   trampasinsect?: number;
   trampasrat?: number;
   totales: TotalData[];
@@ -131,6 +144,7 @@ export default function Lista({
   empresas,
   almacenes,
   seguimientos,
+  acciones,
   trampasinsect,
   trampasrat,
   totales,
@@ -155,9 +169,9 @@ export default function Lista({
 
   const graficosPorMapaRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // console.log('@@@@');
-  // console.log(totales);
-  // console.log('@@@@');
+  console.log('@@@@');
+  console.log(acciones);
+  console.log('@@@@');
 
   const totalesPorcentajes = (totales: TotalData[]) => {
     const data: any = {};
@@ -456,7 +470,8 @@ export default function Lista({
     const data: any = {};
 
     seguimientos.forEach((seg) => {
-      const seguimientoId = seg.id;
+      // const seguimientoId = seg.id;
+      const seguimientoId = seg.created_at;
       const almacenNombre = seg.almacen.nombre;
 
       if (!data[seguimientoId]) {
@@ -1241,6 +1256,7 @@ export default function Lista({
         chart6,
         // 👇 NUEVO
         charts_por_mapa: chartsPorMapa,
+        charts_por_mapa_titulos: graficosPorMapa.map((g: any) => g.mapa), // ← títulos
         seguimiento_ids: seguimientoIds,
         datosInsectocutores,
         datosRoedores,
@@ -1250,7 +1266,7 @@ export default function Lista({
         fecha_fin: fechaFin,
       });
 
-      // window.open('/informes/exportar-word-download');
+      window.open('/informes/exportar-word-download');
     } catch (error) {
       console.error(error);
       alert('Error al generar Word');
@@ -2164,13 +2180,7 @@ export default function Lista({
             ))} */}
 
             {graficosPorMapa.map((item: any, index: number) => (
-              <div
-                key={index}
-                className="mb-10"
-                ref={(el) => {
-                  graficosPorMapaRefs.current[index] = el;
-                }}
-              >
+              <div key={index} className="mb-10">
                 <h3 className="font-mono">
                   GRAFICO: {item.mapa} - PORCENTAJES
                 </h3>
@@ -2183,6 +2193,9 @@ export default function Lista({
                     },
                   }}
                   className="h-[300px]"
+                  ref={(el) => {
+                    graficosPorMapaRefs.current[index] = el;
+                  }}
                 >
                   <BarChart data={item.data}>
                     <CartesianGrid vertical={false} />
@@ -3140,6 +3153,30 @@ export default function Lista({
                 </ChartContainer>
               </div>
             )}
+          </div>
+          <div className="mt-10">
+            <div className="text-2xl font-bold underline">
+              ACCIONES COMPLEMENTARIAS
+            </div>
+            {acciones.map((dato, index) => (
+              <div className="">
+                <div>
+                  Fecha:{' '}
+                  <span>
+                    {new Date(dato.created_at).toLocaleDateString('es-ES')}
+                  </span>
+                </div>
+                <div>
+                  Descripcion: <span>{dato.descripcion}</span>
+                </div>
+                <div>
+                  IMAGENES:
+                  {dato.imagenes.map((img) => (
+                    <img src={img.imagen} alt="" width={300} />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
