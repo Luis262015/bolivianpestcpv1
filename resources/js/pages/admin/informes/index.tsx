@@ -911,10 +911,11 @@ export default function Lista({
       const row: any = { especie };
 
       datosInsectocutores.datosPorFecha.forEach((dato) => {
-        row[dato.fecha] = Math.floor(
-          dato.cantidades[especie] /
-            (datosInsectocutores.datosPorFecha.length || 1),
-        );
+        // row[dato.fecha] = Math.floor(
+        //   dato.cantidades[especie] /
+        //     (datosInsectocutores.datosPorFecha.length || 1),
+        // );
+        row[dato.fecha] = Math.floor(dato.cantidades[especie] / 3);
       });
 
       return row;
@@ -3034,10 +3035,11 @@ export default function Lista({
                                   className={tableStyles.cell}
                                   key={especie}
                                 >
-                                  {Math.floor(
+                                  {/* {Math.floor(
                                     dato.cantidades[especie] /
                                       datosInsectocutores.datosPorFecha.length,
-                                  )}
+                                  )} */}
+                                  {Math.floor(dato.cantidades[especie] / 3)}
                                 </TableCell>
                               ))}
                             </TableRow>
@@ -3052,7 +3054,10 @@ export default function Lista({
                               className={tableStyles.totalCell}
                               key={especie}
                             >
-                              {datosInsectocutores.totales[especie]}
+                              {/* {datosInsectocutores.totales[especie]} */}
+                              {(
+                                datosInsectocutores.totales[especie] / 3
+                              ).toFixed(0)}
                             </TableCell>
                           ))}
                         </TableRow>
@@ -3065,10 +3070,13 @@ export default function Lista({
                               className={tableStyles.totalCell}
                               key={especie}
                             >
-                              {(
+                              {/* {(
                                 datosInsectocutores.promedios[especie] /
                                 datosInsectocutores.datosPorFecha.length
-                              ).toFixed(2)}
+                              ).toFixed(2)} */}
+                              {(
+                                datosInsectocutores.promedios[especie] / 3
+                              ).toFixed(0)}
                             </TableCell>
                           ))}
                         </TableRow>
@@ -3118,7 +3126,7 @@ export default function Lista({
                     />
 
                     <YAxis
-                      domain={[0, 33]}
+                      domain={[0, 10]}
                       tickFormatter={(value) => `${value}`}
                       className="font-bold"
                       label={{

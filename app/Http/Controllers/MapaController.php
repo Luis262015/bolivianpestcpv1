@@ -355,10 +355,53 @@ class MapaController extends Controller
     }
   }
 
+  public function destroy(Request $request, string $id)
+  {
+
+    // dd($id);
+
+    try {
+      DB::beginTransaction();
+
+      // Eliminar trampas
+      $trampas = Trampa::where('mapa_id', $id)->get('id');
+      if ($trampas) {
+        foreach ($trampas as $trampa) {
+          $t = Trampa::find($trampa->id);
+          $t->delete();
+        }
+      }
+
+      // Eliminar mapa
+      $mapa = Mapa::findOrFail($id);
+      $mapa->delete();
+
+      DB::commit();
+
+      // return redirect()
+      //   ->route('mapas.index')
+      //   ->with('success', 'Mapa creado correctamente');
+      return redirect()->route('mapas.index', [
+        'almacen_id' => $request->almacen_id // 👈 importante si usas filtro
+      ]);
+    } catch (Exception | \Error | QueryException $e) {
+      DB::rollBack();
+      return response()->json([
+        'message' => 'Error al actualizar el mapa',
+        'error' => $e->getMessage(),
+      ], 500);
+    }
+
+
+
+
+
+
+    return back()->with('success', 'Mapa eliminado');
+  }
 
   /** FUNCIONES NO USADAS */
   // public function create() {}
   // public function show(string $id) {}
   // public function edit(string $id) {}
-  // public function destroy(string $id) {}
 }
