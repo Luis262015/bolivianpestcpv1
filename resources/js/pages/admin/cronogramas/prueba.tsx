@@ -128,6 +128,9 @@ export default function Lista() {
     filters,
   } = props;
 
+  // console.log(empresas);
+  // console.log(almacenes);
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [tasks, setTasks] = useState<Task[]>(initialTasks || []);
@@ -199,15 +202,40 @@ export default function Lista() {
   }, [initialTasks]);
 
   // 3. Filtrar almacenes según empresa seleccionada
+  // const almacenesFiltrados = selectedEmpresaId
+  //   ? almacenes.filter((a: Almacen) => a.empresa_id === selectedEmpresaId)
+  //   : [];
+
   const almacenesFiltrados = selectedEmpresaId
-    ? almacenes.filter((a: Almacen) => a.empresa_id === selectedEmpresaId)
+    ? almacenes.filter(
+        (a: Almacen) => Number(a.empresa_id) === Number(selectedEmpresaId),
+      )
     : [];
 
   // 4. Resetear almacén si ya no pertenece a la empresa seleccionada
   useEffect(() => {
+    // console.log('***************************** INI');
+    // console.log(' @@ EMPRESA ID: ' + selectedEmpresaId);
+
+    // console.log(almacenesFiltrados);
+    // almacenes.forEach((element: Almacen) => {
+    //   console.log(element);
+    //   console.log(' @@@ ID DE ALMACEN ' + element.id);
+    //   console.log(' @@@ ID DE EMPRESA ' + element.empresa_id);
+    //   console.log(' @@@ IGUALES ' + (selectedEmpresaId === element.empresa_id));
+    // });
+    // console.log('***************************** END');
+    // if (
+    //   selectedAlmacenId &&
+    //   !almacenesFiltrados.some((a: Almacen) => a.id === selectedAlmacenId)
+    // ) {
+    //   setSelectedAlmacenId(null);
+    // }
     if (
       selectedAlmacenId &&
-      !almacenesFiltrados.some((a: Almacen) => a.id === selectedAlmacenId)
+      !almacenesFiltrados.some(
+        (a: Almacen) => Number(a.id) === Number(selectedAlmacenId),
+      )
     ) {
       setSelectedAlmacenId(null);
     }

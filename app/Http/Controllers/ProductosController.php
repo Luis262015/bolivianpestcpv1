@@ -124,7 +124,7 @@ class ProductosController extends Controller
     $productos = Producto::query()
       ->where('nombre', 'like', "%{$query}%")
       ->with(['unidad:id,nombre'])
-      ->select('id', 'nombre', 'precio_venta', 'precio_compra', 'unidad_id')
+      ->select('id', 'nombre', 'precio_venta', 'precio_compra', 'unidad_id', 'stock')
       ->take(20)
       ->get();
     return response()->json($productos);

@@ -227,13 +227,13 @@ export default function Lista({
         }
 
         acc[tipo].trampas.add(trampaId);
-        acc[tipo].capturas += r.cantidad ?? 0;
+        acc[tipo].capturas += Number(r.cantidad) ?? 0;
 
         return acc;
       }, {}),
   ).map((item: any) => {
     const trampas = item.trampas.size;
-    const capturas = item.capturas;
+    const capturas = Number(item.capturas);
 
     const incidencia =
       trampas * totalSeguimientos > 0
@@ -252,7 +252,7 @@ export default function Lista({
   const total = resumen.reduce(
     (acc: any, item: any) => {
       acc.trampas += item.trampas;
-      acc.capturas += item.capturas;
+      acc.capturas += Number(item.capturas);
       return acc;
     },
     { trampas: 0, capturas: 0 },
@@ -286,7 +286,7 @@ export default function Lista({
 
       s.roedores.forEach((r: any) => {
         acc[key].trampas.add(r.trampa.id);
-        acc[key].capturas += r.cantidad ?? 0;
+        acc[key].capturas += Number(r.cantidad) ?? 0;
       });
 
       return acc;
@@ -295,14 +295,17 @@ export default function Lista({
     const trampas = item.trampas.size;
     const incidencia =
       trampas && item.seguimientos
-        ? ((item.capturas / (trampas * item.seguimientos)) * 100).toFixed(2)
+        ? (
+            (Number(item.capturas) / (trampas * item.seguimientos)) *
+            100
+          ).toFixed(2)
         : 0;
 
     return {
       mes: item.mes,
       seguimientos: item.seguimientos,
       trampas,
-      capturas: item.capturas,
+      capturas: Number(item.capturas),
       incidencia,
     };
   });
@@ -331,7 +334,7 @@ export default function Lista({
         almacenes[almacenId].trampasSet.add(r.trampa_id);
 
         // sumar capturas
-        almacenes[almacenId].capturas += r.cantidad ?? 0;
+        almacenes[almacenId].capturas += Number(r.cantidad) ?? 0;
       });
     });
 
@@ -342,9 +345,11 @@ export default function Lista({
         almacen: a.almacen,
         seguimientos: a.seguimientos,
         trampas: trampas,
-        capturas: a.capturas,
+        capturas: Number(a.capturas),
         incidencia:
-          trampas > 0 ? ((a.capturas / trampas) * 100).toFixed(2) + '%' : '0%',
+          trampas > 0
+            ? ((Number(a.capturas) / trampas) * 100).toFixed(2) + '%'
+            : '0%',
       };
     });
   };
@@ -374,20 +379,20 @@ export default function Lista({
         almacenes[almacenId].trampasSet.add(r.trampa_id);
 
         // sumar valores
-        almacenes[almacenId].ceboInicial += r.inicial ?? 0;
-        almacenes[almacenId].merma += r.merma ?? 0;
-        almacenes[almacenId].ceboActual += r.actual ?? 0;
-        almacenes[almacenId].capturados += r.cantidad ?? 0;
+        almacenes[almacenId].ceboInicial += Number(r.inicial) ?? 0;
+        almacenes[almacenId].merma += Number(r.merma) ?? 0;
+        almacenes[almacenId].ceboActual += Number(r.actual) ?? 0;
+        almacenes[almacenId].capturados += Number(r.cantidad) ?? 0;
       });
     });
 
     return Object.values(almacenes).map((a: any) => ({
       almacen: a.almacen,
       trampas: a.trampasSet.size,
-      ceboInicial: a.ceboInicial,
-      merma: a.merma,
-      ceboActual: a.ceboActual,
-      capturados: a.capturados,
+      ceboInicial: Number(a.ceboInicial),
+      merma: Number(a.merma),
+      ceboActual: Number(a.ceboActual),
+      capturados: Number(a.capturados),
     }));
   };
 
@@ -426,10 +431,10 @@ export default function Lista({
         data.trampasSet.add(r.trampa_id);
 
         // sumatorias
-        data.cebo_inicial += r.inicial ?? 0;
-        data.merma += r.merma ?? 0;
-        data.cebo_actual += r.actual ?? 0;
-        data.capturados += r.cantidad ?? 0;
+        data.cebo_inicial += Number(r.inicial) ?? 0;
+        data.merma += Number(r.merma) ?? 0;
+        data.cebo_actual += Number(r.actual) ?? 0;
+        data.capturados += Number(r.cantidad) ?? 0;
       });
     });
 
@@ -441,10 +446,10 @@ export default function Lista({
           almacen: a.almacen,
           tipo: tipo.toUpperCase(),
           trampas: data.trampasSet.size,
-          cebo_inicial: data.cebo_inicial,
-          merma: data.merma,
-          cebo_actual: data.cebo_actual,
-          capturados: data.capturados,
+          cebo_inicial: Number(data.cebo_inicial),
+          merma: Number(data.merma),
+          cebo_actual: Number(data.cebo_actual),
+          capturados: Number(data.capturados),
         });
       });
     });
@@ -502,10 +507,10 @@ export default function Lista({
         t.trampasSet.add(r.trampa_id);
 
         // sumatorias
-        t.cebo_inicial += r.inicial ?? 0;
-        t.merma += r.merma ?? 0;
-        t.cebo_actual += r.actual ?? 0;
-        t.capturados += r.cantidad ?? 0;
+        t.cebo_inicial += Number(r.inicial) ?? 0;
+        t.merma += Number(r.merma) ?? 0;
+        t.cebo_actual += Number(r.actual) ?? 0;
+        t.capturados += Number(r.cantidad) ?? 0;
       });
     });
 
@@ -519,10 +524,10 @@ export default function Lista({
           fecha: s.fecha,
           tipo: tipo.toUpperCase(),
           trampas: t.trampasSet.size,
-          cebo_inicial: t.cebo_inicial,
-          merma: t.merma,
-          cebo_actual: t.cebo_actual,
-          capturados: t.capturados,
+          cebo_inicial: Number(t.cebo_inicial),
+          merma: Number(t.merma),
+          cebo_actual: Number(t.cebo_actual),
+          capturados: Number(t.capturados),
         });
       });
     });
@@ -534,11 +539,11 @@ export default function Lista({
 
   const totalesSeguimiento = datosSeguimiento.reduce(
     (acc: any, row: any) => {
-      acc.trampas += row.trampas;
-      acc.cebo_inicial += row.cebo_inicial;
-      acc.merma += row.merma;
-      acc.cebo_actual += row.cebo_actual;
-      acc.capturados += row.capturados;
+      acc.trampas += Number(row.trampas);
+      acc.cebo_inicial += Number(row.cebo_inicial);
+      acc.merma += Number(row.merma);
+      acc.cebo_actual += Number(row.cebo_actual);
+      acc.capturados += Number(row.capturados);
       return acc;
     },
     {
@@ -554,7 +559,7 @@ export default function Lista({
     const data: any = {};
 
     const seguimientosFiltrados = seguimientos.filter(
-      (seg) => seg.tipo_seguimiento_id === 1, // ← solo DESRATIZACION
+      (seg) => Number(seg.tipo_seguimiento_id) === 1, // ← solo DESRATIZACION
     );
 
     console.log('++++++++++++++++++++++++');
@@ -562,7 +567,7 @@ export default function Lista({
     console.log('++++++++++++++++++++++++');
 
     seguimientosFiltrados.forEach((seg) => {
-      const seguimientoId = seg.id;
+      const seguimientoId = Number(seg.id);
 
       console.log(seg.created_at);
 
@@ -586,10 +591,10 @@ export default function Lista({
         d.trampasSet.add(r.trampa_id);
 
         // sumatorias
-        d.cebo_inicial += r.inicial ?? 0;
-        d.merma += r.merma ?? 0;
-        d.cebo_actual += r.actual ?? 0;
-        d.capturados += r.cantidad ?? 0;
+        d.cebo_inicial += Number(r.inicial) ?? 0;
+        d.merma += Number(r.merma) ?? 0;
+        d.cebo_actual += Number(r.actual) ?? 0;
+        d.capturados += Number(r.cantidad) ?? 0;
       });
     });
 
@@ -602,10 +607,10 @@ export default function Lista({
       fecha: d.fecha,
       almacen: d.almacen,
       trampas: d.trampasSet.size,
-      cebo_inicial: d.cebo_inicial,
-      merma: d.merma,
-      cebo_actual: d.cebo_actual,
-      capturados: d.capturados,
+      cebo_inicial: Number(d.cebo_inicial),
+      merma: Number(d.merma),
+      cebo_actual: Number(d.cebo_actual),
+      capturados: Number(d.capturados),
     }));
   };
 
@@ -613,11 +618,11 @@ export default function Lista({
 
   const totalesResumen = datosSeguimientoResumen.reduce(
     (acc: any, row: any) => {
-      acc.trampas += row.trampas;
-      acc.cebo_inicial += row.cebo_inicial;
-      acc.merma += row.merma;
-      acc.cebo_actual += row.cebo_actual;
-      acc.capturados += row.capturados;
+      acc.trampas += Number(row.trampas);
+      acc.cebo_inicial += Number(row.cebo_inicial);
+      acc.merma += Number(row.merma);
+      acc.cebo_actual += Number(row.cebo_actual);
+      acc.capturados += Number(row.capturados);
       return acc;
     },
     {
@@ -644,7 +649,9 @@ export default function Lista({
       }
 
       const porcentajeMerma =
-        row.cebo_inicial > 0 ? (row.merma * 100) / row.cebo_inicial : 0;
+        Number(row.cebo_inicial) > 0
+          ? (Number(row.merma) * 100) / Number(row.cebo_inicial)
+          : 0;
 
       acc[row.almacen].data.push({
         fecha: new Date(row.seguimiento).toLocaleDateString('es-ES'),
@@ -722,13 +729,13 @@ export default function Lista({
     } = {};
 
     seguimientos
-      .filter((seg) => seg.tipo_seguimiento_id === 1) // solo DESRATIZACION
+      .filter((seg) => Number(seg.tipo_seguimiento_id) === 1) // solo DESRATIZACION
       .forEach((seg) => {
         seg.roedores.forEach((roedor) => {
-          const trampaId = roedor.trampa_id;
+          const trampaId = Number(roedor.trampa_id);
           console.log('**** TRAMPA_TIPO_ID: ' + roedor.trampa.trampa_tipo_id);
 
-          if (roedor.trampa.trampa_tipo_id !== 4) {
+          if (Number(roedor.trampa.trampa_tipo_id) !== 4) {
             if (!datosPorTrampa[trampaId]) {
               datosPorTrampa[trampaId] = {
                 trampa_id: trampaId,
@@ -739,9 +746,9 @@ export default function Lista({
               };
             }
 
-            datosPorTrampa[trampaId].inicial += roedor.inicial;
-            datosPorTrampa[trampaId].merma += roedor.merma;
-            datosPorTrampa[trampaId].actual += roedor.actual;
+            datosPorTrampa[trampaId].inicial += Number(roedor.inicial);
+            datosPorTrampa[trampaId].merma += Number(roedor.merma);
+            datosPorTrampa[trampaId].actual += Number(roedor.actual);
 
             if (roedor.observacion) {
               datosPorTrampa[trampaId].observaciones.push(roedor.observacion);
@@ -786,10 +793,10 @@ export default function Lista({
 
         const d = data[key];
         d.trampasSet.add(r.trampa_id);
-        d.cebo_inicial += r.inicial ?? 0;
-        d.merma += r.merma ?? 0;
-        d.cebo_actual += r.actual ?? 0;
-        d.capturados += r.cantidad ?? 0;
+        d.cebo_inicial += Number(r.inicial) ?? 0;
+        d.merma += Number(r.merma) ?? 0;
+        d.cebo_actual += Number(r.actual) ?? 0;
+        d.capturados += Number(r.cantidad) ?? 0;
       });
     });
 
@@ -798,10 +805,10 @@ export default function Lista({
       fecha: d.fecha, // ← agrega esto
       mapa: d.mapa,
       trampas: d.trampasSet.size,
-      cebo_inicial: d.cebo_inicial,
-      merma: d.merma,
-      cebo_actual: d.cebo_actual,
-      capturados: d.capturados,
+      cebo_inicial: Number(d.cebo_inicial),
+      merma: Number(d.merma),
+      cebo_actual: Number(d.cebo_actual),
+      capturados: Number(d.capturados),
     }));
   };
 
@@ -847,7 +854,7 @@ export default function Lista({
   const datosInsectocutores = useMemo(() => {
     // Filtrar solo tipo_seguimiento_id = 3
     const seguimientosFiltrados = seguimientos.filter(
-      (seg) => seg.tipo_seguimiento_id === 3,
+      (seg) => Number(seg.tipo_seguimiento_id) === 3,
     );
     const especiesSet = new Set<string>();
     seguimientosFiltrados.forEach((seg) => {
@@ -867,7 +874,7 @@ export default function Lista({
       });
 
       seg.insectocutores.forEach((ins) => {
-        cantidadesPorEspecie[ins.especie.nombre] += ins.cantidad;
+        cantidadesPorEspecie[ins.especie.nombre] += Number(ins.cantidad);
       });
 
       return { fecha, cantidades: cantidadesPorEspecie };
@@ -876,7 +883,7 @@ export default function Lista({
     const totales: { [especie: string]: number } = {};
     especies.forEach((esp) => {
       totales[esp] = datosPorFecha.reduce(
-        (sum, dato) => sum + dato.cantidades[esp],
+        (sum, dato) => sum + Number(dato.cantidades[esp]),
         0,
       );
     });
@@ -915,7 +922,7 @@ export default function Lista({
         //   dato.cantidades[especie] /
         //     (datosInsectocutores.datosPorFecha.length || 1),
         // );
-        row[dato.fecha] = Math.floor(dato.cantidades[especie] / 3);
+        row[dato.fecha] = Math.floor(Number(dato.cantidades[especie]) / 3);
       });
 
       return row;

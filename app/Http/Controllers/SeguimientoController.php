@@ -240,7 +240,7 @@ class SeguimientoController extends Controller
               'tipo' => 'Salida',
               'cantidad' => $parte_entera,
               'cantidad_saldo' => $producto->stock - $parte_entera,
-              'costo_unitario' => $producto->precio_compra,
+              'costo_unitario' => $producto->precio_compra ?? 0,
             ]);
 
             // Descontar la parte entera del STOCK
@@ -264,7 +264,7 @@ class SeguimientoController extends Controller
               'tipo' => 'Salida',
               'cantidad' => $parte_entera,
               'cantidad_saldo' => $producto->stock - $parte_entera,
-              'costo_unitario' => $producto->precio_compra,
+              'costo_unitario' => $producto->precio_compra ?? 0,
             ]);
 
             // Descontar la parte entera del STOCK

@@ -7,6 +7,7 @@ use App\Models\Cronograma;
 use App\Models\Empresa;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CronogramaController extends Controller
 {

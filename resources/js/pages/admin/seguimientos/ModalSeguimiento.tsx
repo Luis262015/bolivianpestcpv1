@@ -87,6 +87,7 @@ interface Producto {
   nombre: string;
   precio_compra: number;
   precio_venta: number;
+  stock: number;
   unidad: Unidad;
 }
 
@@ -523,7 +524,8 @@ export default function ModalSeguimiento({
         res.data.data.tipo_seguimiento_id.toString(),
       );
       const tipo = tipoSeguimiento.find(
-        (t) => t.id === res.data.data.tipo_seguimiento_id,
+        // (t) => t.id === res.data.data.tipo_seguimiento_id,
+        (t) => Number(t.id) === Number(res.data.data.tipo_seguimiento_id),
       );
 
       setTipoSeguimientoSel(tipo?.nombre ?? '');
@@ -948,6 +950,9 @@ export default function ModalSeguimiento({
                               <CommandItem
                                 key={product.id}
                                 onSelect={() => {
+                                  if (product.stock <= 0) {
+                                    return;
+                                  }
                                   setSelectedProduct(product);
                                   setQuery(product.nombre);
                                   setOpenP(false);
@@ -964,7 +969,8 @@ export default function ModalSeguimiento({
                                 <div>
                                   <div>{product.nombre}</div>
                                   <div className="text-xs text-gray-500">
-                                    Unidad: {product.unidad.nombre}
+                                    Unidad: {product.unidad.nombre} <br />
+                                    Stock: {product.stock}
                                     {/* Compra: ${product.precio_compra} | Venta: $
                                     {product.precio_venta} */}
                                   </div>

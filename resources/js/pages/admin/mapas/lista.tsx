@@ -81,6 +81,20 @@ export default function MapaEditor(props: Props) {
   ======================= */
 
   useEffect(() => {
+    // if (!selectedEmpresa) {
+    //   setFilteredAlmacenes([]);
+    //   setSelectedAlmacen(null);
+    //   return;
+    // }
+
+    // const list = props.allAlmacenes.filter(
+    //   (a) => a.empresa_id === selectedEmpresa,
+    // );
+    // setFilteredAlmacenes(list);
+
+    // if (selectedAlmacen && !list.some((a) => a.id === selectedAlmacen)) {
+    //   setSelectedAlmacen(null);
+    // }
     if (!selectedEmpresa) {
       setFilteredAlmacenes([]);
       setSelectedAlmacen(null);
@@ -88,11 +102,15 @@ export default function MapaEditor(props: Props) {
     }
 
     const list = props.allAlmacenes.filter(
-      (a) => a.empresa_id === selectedEmpresa,
+      (a) => Number(a.empresa_id) === Number(selectedEmpresa),
     );
+
     setFilteredAlmacenes(list);
 
-    if (selectedAlmacen && !list.some((a) => a.id === selectedAlmacen)) {
+    if (
+      selectedAlmacen &&
+      !list.some((a) => Number(a.id) === Number(selectedAlmacen))
+    ) {
       setSelectedAlmacen(null);
     }
   }, [selectedEmpresa, props.allAlmacenes]);
@@ -252,8 +270,6 @@ export default function MapaEditor(props: Props) {
       },
     );
   };
-
-  
 
   /* =======================
      Render
