@@ -17,7 +17,10 @@ use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\SimpleType\Jc;
+use PhpOffice\PhpWord\SimpleType\JcTable;
+use PhpOffice\PhpWord\SimpleType\TblWidth;
 use PhpOffice\PhpWord\Style\Language;
+use PhpOffice\PhpWord\Style\Cell;
 
 
 class InformesController extends Controller
@@ -166,7 +169,6 @@ class InformesController extends Controller
   {
     return SeguimientoImage::whereBetween('created_at', [$inicio, $fin])->where('almacen');
   }
-
 
   private function procesarDatosTrampas($seguimientos)
   {
@@ -916,14 +918,34 @@ class InformesController extends Controller
             'underline' => 'single',
           ]);
 
+          // if ($value->images) {
+          //   foreach ($value->images as $v) {
+
+          //     $section->addImage(public_path($v->imagen), [
+          //       'width'  => 200,
+          //       'height' => 100,
+          //       'alignment' => Jc::CENTER,
+          //     ]);
+          //   }
+          // }
           if ($value->images) {
             foreach ($value->images as $v) {
+              $imagePath = public_path($v->imagen);
 
-              $section->addImage(public_path($v->imagen), [
-                'width'  => 200,
-                'height' => 100,
-                'alignment' => Jc::CENTER,
-              ]);
+              if (!empty($v->imagen) && file_exists($imagePath) && is_file($imagePath)) {
+                try {
+                  $section->addImage($imagePath, [
+                    'width' => 200,
+                    'height' => 100,
+                    'alignment' => Jc::CENTER,
+                  ]);
+                } catch (\Exception $e) {
+                  Log::warning('No se pudo agregar la imagen al documento', [
+                    'path' => $imagePath,
+                    'error' => $e->getMessage(),
+                  ]);
+                }
+              }
             }
           }
         }
@@ -1043,6 +1065,17 @@ class InformesController extends Controller
     // TABLA FECHAS DE SEGUIMIENTOS *****************
     // ************************************************************************************
 
+    $phpWord->addTableStyle('tablaFechaSeguimientos', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
+
     $section->addText('TABLA: Cronograma de actividades', [
       'bold' => true,
       'size' => 11,
@@ -1053,13 +1086,35 @@ class InformesController extends Controller
 
     $table = $section->addTable('tablaFechaSeguimientos');
     $table->addRow();
-    $table->addCell()->addText("FECHA SEGUIMIENTO", ['bold' => true]);
-    $table->addCell()->addText("TIPO SEGUIMIENTO", ['bold' => true]);
+    // $table->addCell()->addText("FECHA SEGUIMIENTO", ['bold' => true]);
+    // $table->addCell()->addText("TIPO SEGUIMIENTO", ['bold' => true]);
+    $table->addCell(5000, ['valign' => 'center'])->addText(
+      "FECHA SEGUIMIENTO",
+      ['bold' => true],
+      ['alignment' => 'center']
+    );
 
+    $table->addCell(5000, ['valign' => 'center'])->addText(
+      "TIPO SEGUIMIENTO",
+      ['bold' => true],
+      ['alignment' => 'center']
+    );
+
+    // foreach ($seguimientos as $seg) {
+    //   $table->addRow();
+    //   $table->addCell()->addText($seg->created_at); // fecha
+    //   $table->addCell()->addText($seg->tipoSeguimiento->nombre); // tipo      
+    // }
     foreach ($seguimientos as $seg) {
       $table->addRow();
-      $table->addCell()->addText($seg->created_at); // fecha
-      $table->addCell()->addText($seg->tipoSeguimiento->nombre); // tipo      
+
+      $table->addCell(5000)->addText(
+        Carbon::parse($seg->created_at)->format('d/m/Y H:i')
+      );
+
+      $table->addCell(5000)->addText(
+        $seg->tipoSeguimiento->nombre ?? ''
+      );
     }
     $section->addTextBreak();
     $section->addTextBreak();

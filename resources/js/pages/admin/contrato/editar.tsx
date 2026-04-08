@@ -154,9 +154,9 @@ export default function CotizacionForm({ contrato, almacenes }: Props) {
     return data.almacenes.reduce((sum, a) => {
       return (
         sum +
-        a.almacen_trampa.total +
-        a.almacen_area.total +
-        a.almacen_insectocutor.total
+        Number(a.almacen_trampa.total) +
+        Number(a.almacen_area.total) +
+        Number(a.almacen_insectocutor.total)
       );
     }, 0);
   }, [data.almacenes]);
@@ -593,7 +593,9 @@ export default function CotizacionForm({ contrato, almacenes }: Props) {
                       )} */}
 
                       <p className="mt-4 text-right text-lg font-bold">
-                        Total anual: Bs. {a.almacen_trampa.total.toFixed(2)}
+                        {/* Total anual: Bs. {a.almacen_trampa.total.toFixed(2)} */}
+                        Total anual: Bs.{' '}
+                        {Number(a.almacen_trampa.total).toFixed(2)}
                       </p>
                     </div>
 
@@ -678,7 +680,9 @@ export default function CotizacionForm({ contrato, almacenes }: Props) {
                       )} */}
 
                       <p className="mt-4 text-right text-lg font-bold">
-                        Total anual: Bs. {a.almacen_area.total.toFixed(2)}
+                        {/* Total anual: Bs. {a.almacen_area.total.toFixed(2)} */}
+                        Total anual: Bs.{' '}
+                        {Number(a.almacen_area.total).toFixed(2)}
                       </p>
                     </div>
 
@@ -727,7 +731,8 @@ export default function CotizacionForm({ contrato, almacenes }: Props) {
 
                       <p className="mt-4 text-right text-lg font-bold">
                         Total anual: Bs.{' '}
-                        {a.almacen_insectocutor.total.toFixed(2)}
+                        {/* {a.almacen_insectocutor.total.toFixed(2)} */}
+                        {Number(a.almacen_insectocutor.total).toFixed(2)}
                       </p>
                     </div>
 
@@ -738,10 +743,15 @@ export default function CotizacionForm({ contrato, almacenes }: Props) {
                         </p>
                         <p className="text-2xl font-bold text-primary">
                           Bs.{' '}
-                          {(
+                          {/* {(
                             a.almacen_trampa.total +
                             a.almacen_area.total +
                             a.almacen_insectocutor.total
+                          ).toFixed(2)} */}
+                          {Number(
+                            Number(a.almacen_trampa.total) +
+                              Number(a.almacen_area.total) +
+                              Number(a.almacen_insectocutor.total),
                           ).toFixed(2)}
                         </p>
                       </div>
@@ -751,7 +761,8 @@ export default function CotizacionForm({ contrato, almacenes }: Props) {
               ))}
 
               <div className="text-right text-2xl font-bold text-primary">
-                TOTAL CONTRATO: Bs. {granTotal.toFixed(2)}
+                {/* TOTAL CONTRATO: Bs. {granTotal.toFixed(2)} */}
+                TOTAL CONTRATO: Bs. {Number(granTotal).toFixed(2)}
               </div>
 
               <div className="flex justify-end gap-4">
