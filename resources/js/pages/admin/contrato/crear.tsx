@@ -163,6 +163,8 @@ export default function CotizacionForm({ contrato }: Props) {
           ],
   });
 
+  console.log(errors);
+
   // === CÁLCULO AUTOMÁTICO DE TOTALES ===
   const calcularTotalTrampas = (
     cantidad: number,
@@ -615,7 +617,7 @@ export default function CotizacionForm({ contrato }: Props) {
                               <Label>Visitas/año</Label>
                               <Input
                                 type="number"
-                                min="1"
+                                min="0"
                                 value={almacen.almacen_trampa.visitas}
                                 onChange={(e) =>
                                   updateTrampaField(
@@ -710,7 +712,7 @@ export default function CotizacionForm({ contrato }: Props) {
                               <Label>Visitas/año</Label>
                               <Input
                                 type="number"
-                                min="1"
+                                min="0"
                                 value={almacen.almacen_area.visitas}
                                 onChange={(e) =>
                                   updateAreaField(
@@ -809,7 +811,7 @@ export default function CotizacionForm({ contrato }: Props) {
                               <Label>Visitas/año</Label>
                               <Input
                                 type="number"
-                                min="1"
+                                min="0"
                                 value={almacen.almacen_insectocutor.visitas}
                                 onChange={(e) =>
                                   updateInsectocutorField(

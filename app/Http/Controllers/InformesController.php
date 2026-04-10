@@ -441,7 +441,7 @@ class InformesController extends Controller
     ]);
   }
 
-  private function agregarTablaPorMapa($section, $mapaTitulo, $datos)
+  private function agregarTablaPorMapa($section, $mapaTitulo, $datos, $phpWord)
   {
     $filas = $datos['filas'];
     $totales = $datos['totales'];
@@ -456,6 +456,17 @@ class InformesController extends Controller
       strtoupper($mapaTitulo),
       ['size' => 12, 'bold' => true]
     );
+
+    $phpWord->addTableStyle('tabla_reporte', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
 
     // Crear tabla
     $table = $section->addTable('tabla_reporte');
@@ -758,7 +769,7 @@ class InformesController extends Controller
         'borderSize' => 6,
         'borderColor' => '000000',
         'cellMargin' => 80,
-        'alignment' => \PhpOffice\PhpWord\SimpleType\JcTable::CENTER,
+        'alignment' => JcTable::CENTER,
         // 'layout' => \PhpOffice\PhpWord\Style\Table::LAYOUT_FIXED,
       ],
       [
@@ -955,6 +966,17 @@ class InformesController extends Controller
     // ************************************************************************************
     // TABLA CANTIDAD DE TRAMPAS x TIPO y CANTIDAD DE ROEDORES CAPTURADOS *****************
     // ************************************************************************************
+    $phpWord->addTableStyle('tablaCantidadDeTrampasPorTipo', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
+
     $table = $section->addTable('tablaCantidadDeTrampasPorTipo');
     $table->addRow();
     $table->addCell()->addText('TIPOS DE TRAMPAS', ['bold' => true]);
@@ -987,6 +1009,17 @@ class InformesController extends Controller
       ]
     );
 
+    $phpWord->addTableStyle('tablaCebo', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
+
     $table = $section->addTable('tablaCebo');
 
     $table->addRow();
@@ -1014,6 +1047,17 @@ class InformesController extends Controller
     $table->addCell(2000)->addText('IMG');
 
     $section->addTextBreak();
+
+    $phpWord->addTableStyle('tablaBloques', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
 
     $table = $section->addTable('tablaBloques');
 
@@ -1120,6 +1164,16 @@ class InformesController extends Controller
     $section->addTextBreak();
 
 
+    $phpWord->addTableStyle('tablaResumenGlobal', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
 
     $table = $section->addTable('tablaResumenGlobal');
     $table->addRow();
@@ -1175,11 +1229,8 @@ class InformesController extends Controller
 
     // Tablas por Mapa
     foreach ($datosPorMapa as $mapaTitulo => $datos) {
-      $this->agregarTablaPorMapa($section, $mapaTitulo, $datos);
+      $this->agregarTablaPorMapa($section, $mapaTitulo, $datos, $phpWord);
     }
-
-
-
 
     $section->addText(
       'Analizando las tablas de pesos respecto al porcentaje de merma se establece que este no pasa del 5% con relación al Peso Total 100% lo que significa que no ha existido consumo por parte de roedores ni su presencia en las fechas evaluadas. Este porcentaje esta relacionado con perdidas por medio ambiente vale decir condiciones de humedad, temperatura, vientos lluvia, etc. que afectan a los cebos colocados.',
@@ -1376,6 +1427,17 @@ class InformesController extends Controller
     //   ['size' => 11, 'color' => '666666', 'name' => 'Arial', 'align' => 'center', 'spaceAfter' => 200]
     // );
 
+    $phpWord->addTableStyle('tabla_reporte', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
+
     // Tabla
     $table = $section->addTable('tabla_reporte');
 
@@ -1521,7 +1583,18 @@ class InformesController extends Controller
     $section->addTextBreak();
     $section->addText('Incidencia de insectos', ['bold' => true]);
 
-    $table = $section->addTable();
+    $phpWord->addTableStyle('tabla_reporte_incidencia', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
+
+    $table = $section->addTable('tabla_reporte_incidencia');
 
     $table->addRow();
     $table->addCell()->addText('Fecha');
@@ -1605,7 +1678,19 @@ class InformesController extends Controller
 
     $section->addTextBreak();
     $section->addTextBreak();
-    $table = $section->addTable();
+
+    $phpWord->addTableStyle('tabla_reporte_severidad', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
+
+    $table = $section->addTable('tabla_reporte_severidad');
 
     $table->addRow();
     $table->addCell()->addText('Fecha');

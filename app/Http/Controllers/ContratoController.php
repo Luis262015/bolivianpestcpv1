@@ -49,7 +49,7 @@ class ContratoController extends Controller
     'almacenes.*.almacen_trampa.visitas' => 'required|numeric|min:0',
     'almacenes.*.almacen_trampa.precio' => 'required|numeric|min:0',
     'almacenes.*.almacen_trampa.total' => 'required|numeric|min:0',
-    'almacenes.*.almacen_trampa.fechas_visitas' => 'sometimes|required|array|min:1',
+    'almacenes.*.almacen_trampa.fechas_visitas' => 'sometimes|array|min:0',
 
     'almacenes.*.almacen_area' => 'required|array|min:1',
     'almacenes.*.almacen_area.id' => 'integer',
@@ -57,7 +57,7 @@ class ContratoController extends Controller
     'almacenes.*.almacen_area.visitas' => 'required|numeric|min:0',
     'almacenes.*.almacen_area.precio' => 'required|numeric|min:0',
     'almacenes.*.almacen_area.total' => 'required|numeric|min:0',
-    'almacenes.*.almacen_area.fechas_visitas' => 'sometimes|required|array|min:1',
+    'almacenes.*.almacen_area.fechas_visitas' => 'sometimes|array|min:0',
 
     'almacenes.*.almacen_insectocutor' => 'required|array|min:1',
     'almacenes.*.almacen_insectocutor.id' => 'integer',
@@ -65,7 +65,7 @@ class ContratoController extends Controller
     'almacenes.*.almacen_insectocutor.visitas' => 'required|numeric|min:0',
     'almacenes.*.almacen_insectocutor.precio' => 'required|numeric|min:0',
     'almacenes.*.almacen_insectocutor.total' => 'required|numeric|min:0',
-    'almacenes.*.almacen_insectocutor.fechas_visitas' => 'sometimes|required|array|min:1',
+    'almacenes.*.almacen_insectocutor.fechas_visitas' => 'sometimes|array|min:0',
   ];
 
   public function index()
@@ -85,7 +85,14 @@ class ContratoController extends Controller
 
   public function store(Request $request)
   {
+
+    // dd($request);
+
+
     $validated = $request->validate($this->toValidated);
+
+    // dd($validated);
+
     try {
       DB::beginTransaction();
 
@@ -239,13 +246,74 @@ class ContratoController extends Controller
 
   public function edit(string $id)
   {
+    // $contrato = Contrato::with(['detalles', 'empresa'])->findOrFail($id);
+    // $almacenes = Almacen::where('empresa_id', $contrato->empresa_id)->with(['almacenTrampa', 'almacenArea', 'almacenInsectocutor'])->get();
+    // return inertia('admin/contrato/editar', ['contrato' => $contrato, 'almacenes' => $almacenes]);
+
+    // $contrato = Contrato::with(['detalles', 'empresa'])->findOrFail($id);
+    // $almacenes = Almacen::where('empresa_id', $contrato->empresa_id)
+    //   ->with(['almacenTrampa', 'almacenArea', 'almacenInsectocutor'])
+    //   ->get();
+
+    // return inertia('admin/contrato/editar', [
+    //   'contrato'  => $contrato,
+    //   'almacenes' => $almacenes,
+    // ]);
+
+
     $contrato = Contrato::with(['detalles', 'empresa'])->findOrFail($id);
-    $almacenes = Almacen::where('empresa_id', $contrato->empresa_id)->with(['almacenTrampa', 'almacenArea', 'almacenInsectocutor'])->get();
-    return inertia('admin/contrato/editar', ['contrato' => $contrato, 'almacenes' => $almacenes]);
+
+    $almacenes = Almacen::where('empresa_id', $contrato->empresa_id)
+      ->with(['almacenTrampa', 'almacenArea', 'almacenInsectocutor'])
+      ->get()
+      ->map(function ($almacen) {
+        // Cargar fechas pendientes del cronograma por tipo
+        $fechasTrampas = Cronograma::where('almacen_id', $almacen->id)
+          ->where('tipo_seguimiento_id', 1)
+          ->where('status', 'pendiente')
+          ->orderBy('date')
+          ->pluck('date')
+          ->toArray();
+
+        $fechasArea = Cronograma::where('almacen_id', $almacen->id)
+          ->where('tipo_seguimiento_id', 2)
+          ->where('status', 'pendiente')
+          ->orderBy('date')
+          ->pluck('date')
+          ->toArray();
+
+        $fechasInsectocutor = Cronograma::where('almacen_id', $almacen->id)
+          ->where('tipo_seguimiento_id', 3)
+          ->where('status', 'pendiente')
+          ->orderBy('date')
+          ->pluck('date')
+          ->toArray();
+
+        // Inyectar fechas dentro de cada sub-relación
+        if ($almacen->almacenTrampa) {
+          $almacen->almacenTrampa->fechas_visitas = $fechasTrampas;
+        }
+        if ($almacen->almacenArea) {
+          $almacen->almacenArea->fechas_visitas = $fechasArea;
+        }
+        if ($almacen->almacenInsectocutor) {
+          $almacen->almacenInsectocutor->fechas_visitas = $fechasInsectocutor;
+        }
+
+        return $almacen;
+      });
+
+    return inertia('admin/contrato/editar', [
+      'contrato'  => $contrato,
+      'almacenes' => $almacenes,
+    ]);
   }
 
   public function update(Request $request, string $id)
   {
+
+    // dd($request);
+    // return;
 
     $validated = $request->validate($this->toValidated);
 
@@ -254,148 +322,582 @@ class ContratoController extends Controller
 
       $totalSuma = 0;
       foreach ($validated['almacenes'] as $almacen) {
-        $totalSuma += $almacen['almacen_trampa']['total'] + $almacen['almacen_area']['total'] + $almacen['almacen_insectocutor']['total'];
+        $totalSuma += $almacen['almacen_trampa']['total']
+          + $almacen['almacen_area']['total']
+          + $almacen['almacen_insectocutor']['total'];
       }
 
       $contrato = Contrato::with(['detalles', 'empresa'])->findOrFail($id);
 
       $contrato->update([
-        'total' => $totalSuma,
+        'total'      => $totalSuma,
         'expiracion' => $validated['expiracion'],
       ]);
 
-      $empresa = Empresa::find($contrato->empresa_id);
+      $empresa = Empresa::findOrFail($contrato->empresa_id);
       $empresa->update([
-        'nombre' => $validated['nombre'],
+        'nombre'    => $validated['nombre'],
         'direccion' => $validated['direccion'],
-        'telefono' => $validated['telefono'],
-        'email' => $validated['email'],
-        'ciudad' => $validated['ciudad'],
+        'telefono'  => $validated['telefono'],
+        'email'     => $validated['email'],
+        'ciudad'    => $validated['ciudad'],
       ]);
 
       foreach ($validated['almacenes'] as $almacen) {
 
         if (isset($almacen['id'])) {
-          $almacenDB = Almacen::find($almacen['id']);
+          // ── ACTUALIZAR almacén existente ──────────────────────────────
+
+          $almacenDB = Almacen::findOrFail($almacen['id']);
           $almacenDB->update([
-            'nombre' => $almacen['nombre'],
+            'nombre'    => $almacen['nombre'],
             'direccion' => $almacen['direccion'],
-            'telefono' => $almacen['telefono'],
-            'email' => $almacen['email'],
-            'ciudad' => $almacen['ciudad'],
+            'telefono'  => $almacen['telefono'],
+            'email'     => $almacen['email'],
+            'ciudad'    => $almacen['ciudad'],
             'encargado' => $almacen['encargado'],
           ]);
-          // -- Actualizacion de trampas
-          $trampas = AlmacenTrampa::where('almacen_id', $almacen['id'])->first();
-          $trampas->cantidad = $almacen['almacen_trampa']['cantidad'];
-          $trampas->visitas = $almacen['almacen_trampa']['visitas'];
-          $trampas->precio = $almacen['almacen_trampa']['precio'];
-          $trampas->total = $almacen['almacen_trampa']['total'];
-          $trampas->update();
-          // -- Actualizacion de areas
-          $areas = AlmacenArea::where('almacen_id', $almacen['id'])->first();
-          $areas->area = $almacen['almacen_area']['area'];
-          $areas->visitas = $almacen['almacen_area']['visitas'];
-          $areas->precio = $almacen['almacen_area']['precio'];
-          $areas->total = $almacen['almacen_area']['total'];
-          $areas->update();
-          // -- Actualizacion de insectocutores
-          $insect = AlmancenInsectocutor::where('almacen_id', $almacen['id'])->first();
-          $insect->cantidad = $almacen['almacen_insectocutor']['cantidad'];
-          $insect->visitas = $almacen['almacen_insectocutor']['visitas'];
-          $insect->precio = $almacen['almacen_insectocutor']['precio'];
-          $insect->total = $almacen['almacen_insectocutor']['total'];
-          $insect->update();
 
-          $detalles = ContratoDetalles::where('contrato_id', $contrato['id'])->first();
-          $detalles->nombre = $almacen['nombre'];
-          $detalles->t_cantidad = $almacen['almacen_trampa']['cantidad'];
-          $detalles->t_visitas = $almacen['almacen_trampa']['visitas'];
-          $detalles->t_precio = $almacen['almacen_trampa']['precio'];
-          $detalles->t_total = $almacen['almacen_trampa']['total'];
-          $detalles->a_area = $almacen['almacen_area']['area'];
-          $detalles->a_visitas = $almacen['almacen_area']['visitas'];
-          $detalles->a_precio = $almacen['almacen_area']['precio'];
-          $detalles->a_total = $almacen['almacen_area']['total'];
-          $detalles->i_cantidad = $almacen['almacen_insectocutor']['cantidad'];
-          $detalles->i_visitas = $almacen['almacen_insectocutor']['visitas'];
-          $detalles->i_precio = $almacen['almacen_insectocutor']['precio'];
-          $detalles->i_total = $almacen['almacen_insectocutor']['total'];
-          $detalles->update();
+          AlmacenTrampa::where('almacen_id', $almacen['id'])->firstOrFail()->update([
+            'cantidad' => $almacen['almacen_trampa']['cantidad'],
+            'visitas'  => $almacen['almacen_trampa']['visitas'],
+            'precio'   => $almacen['almacen_trampa']['precio'],
+            'total'    => $almacen['almacen_trampa']['total'],
+          ]);
+
+          AlmacenArea::where('almacen_id', $almacen['id'])->firstOrFail()->update([
+            'area'    => $almacen['almacen_area']['area'],
+            'visitas' => $almacen['almacen_area']['visitas'],
+            'precio'  => $almacen['almacen_area']['precio'],
+            'total'   => $almacen['almacen_area']['total'],
+          ]);
+
+          AlmancenInsectocutor::where('almacen_id', $almacen['id'])->firstOrFail()->update([
+            'cantidad' => $almacen['almacen_insectocutor']['cantidad'],
+            'visitas'  => $almacen['almacen_insectocutor']['visitas'],
+            'precio'   => $almacen['almacen_insectocutor']['precio'],
+            'total'    => $almacen['almacen_insectocutor']['total'],
+          ]);
+
+          $detalles = ContratoDetalles::where('contrato_id', $contrato->id)
+            ->where('nombre', $almacenDB->getOriginal('nombre'))
+            ->first();
+
+          if ($detalles) {
+            $detalles->update([
+              'nombre'     => $almacen['nombre'],
+              't_cantidad' => $almacen['almacen_trampa']['cantidad'],
+              't_visitas'  => $almacen['almacen_trampa']['visitas'],
+              't_precio'   => $almacen['almacen_trampa']['precio'],
+              't_total'    => $almacen['almacen_trampa']['total'],
+              'a_area'     => $almacen['almacen_area']['area'],
+              'a_visitas'  => $almacen['almacen_area']['visitas'],
+              'a_precio'   => $almacen['almacen_area']['precio'],
+              'a_total'    => $almacen['almacen_area']['total'],
+              'i_cantidad' => $almacen['almacen_insectocutor']['cantidad'],
+              'i_visitas'  => $almacen['almacen_insectocutor']['visitas'],
+              'i_precio'   => $almacen['almacen_insectocutor']['precio'],
+              'i_total'    => $almacen['almacen_insectocutor']['total'],
+            ]);
+          }
+
+          // ── CRONOGRAMA: borrar pendientes y recrear con nuevas fechas ─
+          // Las visitas ya completadas/canceladas se conservan como historial.
+
+          Cronograma::where('almacen_id', $almacen['id'])
+            ->where('tipo_seguimiento_id', 1)
+            ->where('status', 'pendiente')
+            ->delete();
+          foreach ($almacen['almacen_trampa']['fechas_visitas'] as $fecha) {
+            Cronograma::create([
+              'empresa_id'          => $empresa->id,
+              'almacen_id'          => $almacen['id'],
+              'user_id'             => Auth::id(),
+              'tecnico_id'          => Auth::id(),
+              'tipo_seguimiento_id' => 1,
+              'title'               => 'DESRATIZACION',
+              'date'                => $fecha,
+              'color'               => 'bg-yellow-500',
+              'status'              => 'pendiente',
+            ]);
+          }
+
+          Cronograma::where('almacen_id', $almacen['id'])
+            ->where('tipo_seguimiento_id', 2)
+            ->where('status', 'pendiente')
+            ->delete();
+          foreach ($almacen['almacen_area']['fechas_visitas'] as $fecha) {
+            Cronograma::create([
+              'empresa_id'          => $empresa->id,
+              'almacen_id'          => $almacen['id'],
+              'user_id'             => Auth::id(),
+              'tecnico_id'          => Auth::id(),
+              'tipo_seguimiento_id' => 2,
+              'title'               => 'FUMIGACION',
+              'date'                => $fecha,
+              'color'               => 'bg-blue-500',
+              'status'              => 'pendiente',
+            ]);
+          }
+
+          Cronograma::where('almacen_id', $almacen['id'])
+            ->where('tipo_seguimiento_id', 3)
+            ->where('status', 'pendiente')
+            ->delete();
+          foreach ($almacen['almacen_insectocutor']['fechas_visitas'] as $fecha) {
+            Cronograma::create([
+              'empresa_id'          => $empresa->id,
+              'almacen_id'          => $almacen['id'],
+              'user_id'             => Auth::id(),
+              'tecnico_id'          => Auth::id(),
+              'tipo_seguimiento_id' => 3,
+              'title'               => 'INSECTOCUTORES',
+              'date'                => $fecha,
+              'color'               => 'bg-pink-600',
+              'status'              => 'pendiente',
+            ]);
+          }
         } else {
+          // ── CREAR nuevo almacén (idéntico a store) ────────────────────
 
-          // CREAR DATOS DE ALMACEN
           $almacendb = new Almacen();
           $almacendb->empresa_id = $empresa->id;
-          $almacendb->nombre = $almacen['nombre'];
-          $almacendb->direccion = $almacen['direccion'];
-          $almacendb->encargado = $almacen['encargado'];
-          $almacendb->telefono = $almacen['telefono'];
-          $almacendb->email = $almacen['email'];
-          $almacendb->ciudad = $almacen['ciudad'];
+          $almacendb->nombre     = $almacen['nombre'];
+          $almacendb->direccion  = $almacen['direccion'];
+          $almacendb->encargado  = $almacen['encargado'];
+          $almacendb->telefono   = $almacen['telefono'];
+          $almacendb->email      = $almacen['email'];
+          $almacendb->ciudad     = $almacen['ciudad'];
           $almacendb->save();
-          // - DATOS DE ALMANCEN TRAMPAS
+
           $trampas = new AlmacenTrampa();
           $trampas->almacen_id = $almacendb->id;
-          $trampas->cantidad = $almacen['almacen_trampa']['cantidad'];
-          $trampas->visitas = $almacen['almacen_trampa']['visitas'];
-          $trampas->precio = $almacen['almacen_trampa']['precio'];
-          $trampas->total = $almacen['almacen_trampa']['total'];
+          $trampas->cantidad   = $almacen['almacen_trampa']['cantidad'];
+          $trampas->visitas    = $almacen['almacen_trampa']['visitas'];
+          $trampas->precio     = $almacen['almacen_trampa']['precio'];
+          $trampas->total      = $almacen['almacen_trampa']['total'];
           $trampas->save();
-          // - DATOS DE ALMANCEN AREAS
+
           $areas = new AlmacenArea();
           $areas->almacen_id = $almacendb->id;
-          $areas->area = $almacen['almacen_area']['area'];
-          $areas->visitas = $almacen['almacen_area']['visitas'];
-          $areas->precio = $almacen['almacen_area']['precio'];
-          $areas->total = $almacen['almacen_area']['total'];
+          $areas->area       = $almacen['almacen_area']['area'];
+          $areas->visitas    = $almacen['almacen_area']['visitas'];
+          $areas->precio     = $almacen['almacen_area']['precio'];
+          $areas->total      = $almacen['almacen_area']['total'];
           $areas->save();
-          // - DATOS DE ALMANCEN INSECTOCUTORES
+
           $insect = new AlmancenInsectocutor();
           $insect->almacen_id = $almacendb->id;
-          $insect->cantidad = $almacen['almacen_insectocutor']['cantidad'];
-          $insect->visitas = $almacen['almacen_insectocutor']['visitas'];
-          $insect->precio = $almacen['almacen_insectocutor']['precio'];
-          $insect->total = $almacen['almacen_insectocutor']['total'];
+          $insect->cantidad   = $almacen['almacen_insectocutor']['cantidad'];
+          $insect->visitas    = $almacen['almacen_insectocutor']['visitas'];
+          $insect->precio     = $almacen['almacen_insectocutor']['precio'];
+          $insect->total      = $almacen['almacen_insectocutor']['total'];
           $insect->save();
 
-          // DETALLES DE CONTRATO
           $detalles = new ContratoDetalles();
           $detalles->contrato_id = $contrato->id;
-          $detalles->nombre = $almacen['nombre'];
-          $detalles->t_cantidad = $almacen['almacen_trampa']['cantidad'];
-          $detalles->t_visitas = $almacen['almacen_trampa']['visitas'];
-          $detalles->t_precio = $almacen['almacen_trampa']['precio'];
-          $detalles->t_total = $almacen['almacen_trampa']['total'];
-          $detalles->a_area = $almacen['almacen_area']['area'];
-          $detalles->a_visitas = $almacen['almacen_area']['visitas'];
-          $detalles->a_precio = $almacen['almacen_area']['precio'];
-          $detalles->a_total = $almacen['almacen_area']['total'];
-          $detalles->i_cantidad = $almacen['almacen_insectocutor']['cantidad'];
-          $detalles->i_precio = $almacen['almacen_insectocutor']['precio'];
-          $detalles->i_total = $almacen['almacen_insectocutor']['total'];
-          $detalles->total = 0;
+          $detalles->nombre      = $almacen['nombre'];
+          $detalles->t_cantidad  = $almacen['almacen_trampa']['cantidad'];
+          $detalles->t_visitas   = $almacen['almacen_trampa']['visitas'];
+          $detalles->t_precio    = $almacen['almacen_trampa']['precio'];
+          $detalles->t_total     = $almacen['almacen_trampa']['total'];
+          $detalles->a_area      = $almacen['almacen_area']['area'];
+          $detalles->a_visitas   = $almacen['almacen_area']['visitas'];
+          $detalles->a_precio    = $almacen['almacen_area']['precio'];
+          $detalles->a_total     = $almacen['almacen_area']['total'];
+          $detalles->i_cantidad  = $almacen['almacen_insectocutor']['cantidad'];
+          $detalles->i_visitas   = $almacen['almacen_insectocutor']['visitas'];
+          $detalles->i_precio    = $almacen['almacen_insectocutor']['precio'];
+          $detalles->i_total     = $almacen['almacen_insectocutor']['total'];
+          $detalles->total       = 0;
           $detalles->save();
+
+          foreach ($almacen['almacen_trampa']['fechas_visitas'] as $fecha) {
+            Cronograma::create([
+              'empresa_id'          => $empresa->id,
+              'almacen_id'          => $almacendb->id,
+              'user_id'             => Auth::id(),
+              'tecnico_id'          => Auth::id(),
+              'tipo_seguimiento_id' => 1,
+              'title'               => 'DESRATIZACION',
+              'date'                => $fecha,
+              'color'               => 'bg-yellow-500',
+              'status'              => 'pendiente',
+            ]);
+          }
+
+          foreach ($almacen['almacen_area']['fechas_visitas'] as $fecha) {
+            Cronograma::create([
+              'empresa_id'          => $empresa->id,
+              'almacen_id'          => $almacendb->id,
+              'user_id'             => Auth::id(),
+              'tecnico_id'          => Auth::id(),
+              'tipo_seguimiento_id' => 2,
+              'title'               => 'FUMIGACION',
+              'date'                => $fecha,
+              'color'               => 'bg-blue-500',
+              'status'              => 'pendiente',
+            ]);
+          }
+
+          foreach ($almacen['almacen_insectocutor']['fechas_visitas'] as $fecha) {
+            Cronograma::create([
+              'empresa_id'          => $empresa->id,
+              'almacen_id'          => $almacendb->id,
+              'user_id'             => Auth::id(),
+              'tecnico_id'          => Auth::id(),
+              'tipo_seguimiento_id' => 3,
+              'title'               => 'INSECTOCUTORES',
+              'date'                => $fecha,
+              'color'               => 'bg-pink-600',
+              'status'              => 'pendiente',
+            ]);
+          }
         }
       }
 
-      $cuenta = CuentaCobrar::where('contrato_id', $contrato->id)->first();
-      if ($cuenta->total == $cuenta->saldo) {
+      // Actualizar cuenta por cobrar
+      $cuenta = CuentaCobrar::where('contrato_id', $contrato->id)->firstOrFail();
+      if ($cuenta->saldo == $cuenta->total) {
         $cuenta->saldo = $totalSuma;
       }
       $cuenta->total = $totalSuma;
-      $cuenta->update();
+      $cuenta->save();
 
       DB::commit();
 
       return redirect()->route('contratos.index');
     } catch (Exception | \Error | QueryException $e) {
       DB::rollBack();
-      Log::error('Error:', ['error' => $e->getMessage()]);
+      Log::error('Error al actualizar contrato:', ['error' => $e->getMessage()]);
       return redirect()->back()
         ->withInput()
-        ->with('error', 'Error ' . $e->getMessage());
+        ->with('error', 'Error al actualizar el contrato: ' . $e->getMessage());
     }
+
+    /************ */
+
+    // $validated = $request->validate($this->toValidated);
+
+    // try {
+    //   DB::beginTransaction();
+
+    //   // Calcular total sumando todos los sub-totales
+    //   $totalSuma = 0;
+    //   foreach ($validated['almacenes'] as $almacen) {
+    //     $totalSuma += $almacen['almacen_trampa']['total']
+    //       + $almacen['almacen_area']['total']
+    //       + $almacen['almacen_insectocutor']['total'];
+    //   }
+
+    //   // Obtener contrato y empresa existentes
+    //   $contrato = Contrato::with(['detalles', 'empresa'])->findOrFail($id);
+
+    //   $contrato->update([
+    //     'total'      => $totalSuma,
+    //     'expiracion' => $validated['expiracion'],
+    //   ]);
+
+    //   $empresa = Empresa::findOrFail($contrato->empresa_id);
+    //   $empresa->update([
+    //     'nombre'    => $validated['nombre'],
+    //     'direccion' => $validated['direccion'],
+    //     'telefono'  => $validated['telefono'],
+    //     'email'     => $validated['email'],
+    //     'ciudad'    => $validated['ciudad'],
+    //   ]);
+
+    //   foreach ($validated['almacenes'] as $almacen) {
+
+    //     if (isset($almacen['id'])) {
+    //       // ── ACTUALIZAR almacén existente ──────────────────────────────
+    //       $almacenDB = Almacen::findOrFail($almacen['id']);
+    //       $almacenDB->update([
+    //         'nombre'    => $almacen['nombre'],
+    //         'direccion' => $almacen['direccion'],
+    //         'telefono'  => $almacen['telefono'],
+    //         'email'     => $almacen['email'],
+    //         'ciudad'    => $almacen['ciudad'],
+    //         'encargado' => $almacen['encargado'],
+    //       ]);
+
+    //       // Trampas
+    //       $trampas = AlmacenTrampa::where('almacen_id', $almacen['id'])->firstOrFail();
+    //       $trampas->update([
+    //         'cantidad' => $almacen['almacen_trampa']['cantidad'],
+    //         'visitas'  => $almacen['almacen_trampa']['visitas'],
+    //         'precio'   => $almacen['almacen_trampa']['precio'],
+    //         'total'    => $almacen['almacen_trampa']['total'],
+    //       ]);
+
+    //       // Áreas
+    //       $areas = AlmacenArea::where('almacen_id', $almacen['id'])->firstOrFail();
+    //       $areas->update([
+    //         'area'    => $almacen['almacen_area']['area'],
+    //         'visitas' => $almacen['almacen_area']['visitas'],
+    //         'precio'  => $almacen['almacen_area']['precio'],
+    //         'total'   => $almacen['almacen_area']['total'],
+    //       ]);
+
+    //       // Insectocutores
+    //       $insect = AlmancenInsectocutor::where('almacen_id', $almacen['id'])->firstOrFail();
+    //       $insect->update([
+    //         'cantidad' => $almacen['almacen_insectocutor']['cantidad'],
+    //         'visitas'  => $almacen['almacen_insectocutor']['visitas'],
+    //         'precio'   => $almacen['almacen_insectocutor']['precio'],
+    //         'total'    => $almacen['almacen_insectocutor']['total'],
+    //       ]);
+
+    //       // Detalles del contrato  ← BUG CORREGIDO: se busca por contrato_id Y nombre
+    //       // para no sobreescribir el detalle equivocado cuando hay varios almacenes.
+    //       $detalles = ContratoDetalles::where('contrato_id', $contrato->id)
+    //         ->where('nombre', $almacenDB->getOriginal('nombre')) // nombre anterior
+    //         ->first();
+
+    //       if ($detalles) {
+    //         $detalles->update([
+    //           'nombre'     => $almacen['nombre'],
+    //           't_cantidad' => $almacen['almacen_trampa']['cantidad'],
+    //           't_visitas'  => $almacen['almacen_trampa']['visitas'],
+    //           't_precio'   => $almacen['almacen_trampa']['precio'],
+    //           't_total'    => $almacen['almacen_trampa']['total'],
+    //           'a_area'     => $almacen['almacen_area']['area'],
+    //           'a_visitas'  => $almacen['almacen_area']['visitas'],
+    //           'a_precio'   => $almacen['almacen_area']['precio'],
+    //           'a_total'    => $almacen['almacen_area']['total'],
+    //           'i_cantidad' => $almacen['almacen_insectocutor']['cantidad'],
+    //           'i_visitas'  => $almacen['almacen_insectocutor']['visitas'],
+    //           'i_precio'   => $almacen['almacen_insectocutor']['precio'],
+    //           'i_total'    => $almacen['almacen_insectocutor']['total'],
+    //         ]);
+    //       }
+    //     } else {
+    //       // ── CREAR nuevo almacén ───────────────────────────────────────
+    //       $almacendb = new Almacen();
+    //       $almacendb->empresa_id = $empresa->id;
+    //       $almacendb->nombre     = $almacen['nombre'];
+    //       $almacendb->direccion  = $almacen['direccion'];
+    //       $almacendb->encargado  = $almacen['encargado'];
+    //       $almacendb->telefono   = $almacen['telefono'];
+    //       $almacendb->email      = $almacen['email'];
+    //       $almacendb->ciudad     = $almacen['ciudad'];
+    //       $almacendb->save();
+
+    //       $trampas = new AlmacenTrampa();
+    //       $trampas->almacen_id = $almacendb->id;
+    //       $trampas->cantidad   = $almacen['almacen_trampa']['cantidad'];
+    //       $trampas->visitas    = $almacen['almacen_trampa']['visitas'];
+    //       $trampas->precio     = $almacen['almacen_trampa']['precio'];
+    //       $trampas->total      = $almacen['almacen_trampa']['total'];
+    //       $trampas->save();
+
+    //       $areas = new AlmacenArea();
+    //       $areas->almacen_id = $almacendb->id;
+    //       $areas->area       = $almacen['almacen_area']['area'];
+    //       $areas->visitas    = $almacen['almacen_area']['visitas'];
+    //       $areas->precio     = $almacen['almacen_area']['precio'];
+    //       $areas->total      = $almacen['almacen_area']['total'];
+    //       $areas->save();
+
+    //       $insect = new AlmancenInsectocutor();
+    //       $insect->almacen_id = $almacendb->id;
+    //       $insect->cantidad   = $almacen['almacen_insectocutor']['cantidad'];
+    //       $insect->visitas    = $almacen['almacen_insectocutor']['visitas'];
+    //       $insect->precio     = $almacen['almacen_insectocutor']['precio'];
+    //       $insect->total      = $almacen['almacen_insectocutor']['total'];
+    //       $insect->save();
+
+    //       $detalles = new ContratoDetalles();
+    //       $detalles->contrato_id = $contrato->id;
+    //       $detalles->nombre      = $almacen['nombre'];
+    //       $detalles->t_cantidad  = $almacen['almacen_trampa']['cantidad'];
+    //       $detalles->t_visitas   = $almacen['almacen_trampa']['visitas'];
+    //       $detalles->t_precio    = $almacen['almacen_trampa']['precio'];
+    //       $detalles->t_total     = $almacen['almacen_trampa']['total'];
+    //       $detalles->a_area      = $almacen['almacen_area']['area'];
+    //       $detalles->a_visitas   = $almacen['almacen_area']['visitas'];
+    //       $detalles->a_precio    = $almacen['almacen_area']['precio'];
+    //       $detalles->a_total     = $almacen['almacen_area']['total'];
+    //       $detalles->i_cantidad  = $almacen['almacen_insectocutor']['cantidad'];
+    //       $detalles->i_visitas   = $almacen['almacen_insectocutor']['visitas'];
+    //       $detalles->i_precio    = $almacen['almacen_insectocutor']['precio'];
+    //       $detalles->i_total     = $almacen['almacen_insectocutor']['total'];
+    //       $detalles->total       = 0;
+    //       $detalles->save();
+    //     }
+    //   }
+
+    //   // Actualizar cuenta por cobrar
+    //   $cuenta = CuentaCobrar::where('contrato_id', $contrato->id)->firstOrFail();
+    //   // Solo actualizar saldo si aún no se ha pagado nada (saldo == total anterior)
+    //   if ($cuenta->saldo == $cuenta->total) {
+    //     $cuenta->saldo = $totalSuma;
+    //   }
+    //   $cuenta->total = $totalSuma;
+    //   $cuenta->save();
+
+    //   DB::commit();
+
+    //   return redirect()->route('contratos.index');
+    // } catch (Exception | \Error | QueryException $e) {
+    //   DB::rollBack();
+    //   Log::error('Error al actualizar contrato:', ['error' => $e->getMessage()]);
+    //   return redirect()->back()
+    //     ->withInput()
+    //     ->with('error', 'Error al actualizar el contrato: ' . $e->getMessage());
+    // }
+
+    /*********** */
+
+    // $validated = $request->validate($this->toValidated);
+
+    // try {
+    //   DB::beginTransaction();
+
+    //   $totalSuma = 0;
+    //   foreach ($validated['almacenes'] as $almacen) {
+    //     $totalSuma += $almacen['almacen_trampa']['total'] + $almacen['almacen_area']['total'] + $almacen['almacen_insectocutor']['total'];
+    //   }
+
+    //   $contrato = Contrato::with(['detalles', 'empresa'])->findOrFail($id);
+
+    //   $contrato->update([
+    //     'total' => $totalSuma,
+    //     'expiracion' => $validated['expiracion'],
+    //   ]);
+
+    //   $empresa = Empresa::find($contrato->empresa_id);
+    //   $empresa->update([
+    //     'nombre' => $validated['nombre'],
+    //     'direccion' => $validated['direccion'],
+    //     'telefono' => $validated['telefono'],
+    //     'email' => $validated['email'],
+    //     'ciudad' => $validated['ciudad'],
+    //   ]);
+
+    //   foreach ($validated['almacenes'] as $almacen) {
+
+    //     if (isset($almacen['id'])) {
+    //       $almacenDB = Almacen::find($almacen['id']);
+    //       $almacenDB->update([
+    //         'nombre' => $almacen['nombre'],
+    //         'direccion' => $almacen['direccion'],
+    //         'telefono' => $almacen['telefono'],
+    //         'email' => $almacen['email'],
+    //         'ciudad' => $almacen['ciudad'],
+    //         'encargado' => $almacen['encargado'],
+    //       ]);
+    //       // -- Actualizacion de trampas
+    //       $trampas = AlmacenTrampa::where('almacen_id', $almacen['id'])->first();
+    //       $trampas->cantidad = $almacen['almacen_trampa']['cantidad'];
+    //       $trampas->visitas = $almacen['almacen_trampa']['visitas'];
+    //       $trampas->precio = $almacen['almacen_trampa']['precio'];
+    //       $trampas->total = $almacen['almacen_trampa']['total'];
+    //       $trampas->update();
+    //       // -- Actualizacion de areas
+    //       $areas = AlmacenArea::where('almacen_id', $almacen['id'])->first();
+    //       $areas->area = $almacen['almacen_area']['area'];
+    //       $areas->visitas = $almacen['almacen_area']['visitas'];
+    //       $areas->precio = $almacen['almacen_area']['precio'];
+    //       $areas->total = $almacen['almacen_area']['total'];
+    //       $areas->update();
+    //       // -- Actualizacion de insectocutores
+    //       $insect = AlmancenInsectocutor::where('almacen_id', $almacen['id'])->first();
+    //       $insect->cantidad = $almacen['almacen_insectocutor']['cantidad'];
+    //       $insect->visitas = $almacen['almacen_insectocutor']['visitas'];
+    //       $insect->precio = $almacen['almacen_insectocutor']['precio'];
+    //       $insect->total = $almacen['almacen_insectocutor']['total'];
+    //       $insect->update();
+
+    //       $detalles = ContratoDetalles::where('contrato_id', $contrato['id'])->first();
+    //       $detalles->nombre = $almacen['nombre'];
+    //       $detalles->t_cantidad = $almacen['almacen_trampa']['cantidad'];
+    //       $detalles->t_visitas = $almacen['almacen_trampa']['visitas'];
+    //       $detalles->t_precio = $almacen['almacen_trampa']['precio'];
+    //       $detalles->t_total = $almacen['almacen_trampa']['total'];
+    //       $detalles->a_area = $almacen['almacen_area']['area'];
+    //       $detalles->a_visitas = $almacen['almacen_area']['visitas'];
+    //       $detalles->a_precio = $almacen['almacen_area']['precio'];
+    //       $detalles->a_total = $almacen['almacen_area']['total'];
+    //       $detalles->i_cantidad = $almacen['almacen_insectocutor']['cantidad'];
+    //       $detalles->i_visitas = $almacen['almacen_insectocutor']['visitas'];
+    //       $detalles->i_precio = $almacen['almacen_insectocutor']['precio'];
+    //       $detalles->i_total = $almacen['almacen_insectocutor']['total'];
+    //       $detalles->update();
+    //     } else {
+
+    //       // CREAR DATOS DE ALMACEN
+    //       $almacendb = new Almacen();
+    //       $almacendb->empresa_id = $empresa->id;
+    //       $almacendb->nombre = $almacen['nombre'];
+    //       $almacendb->direccion = $almacen['direccion'];
+    //       $almacendb->encargado = $almacen['encargado'];
+    //       $almacendb->telefono = $almacen['telefono'];
+    //       $almacendb->email = $almacen['email'];
+    //       $almacendb->ciudad = $almacen['ciudad'];
+    //       $almacendb->save();
+    //       // - DATOS DE ALMANCEN TRAMPAS
+    //       $trampas = new AlmacenTrampa();
+    //       $trampas->almacen_id = $almacendb->id;
+    //       $trampas->cantidad = $almacen['almacen_trampa']['cantidad'];
+    //       $trampas->visitas = $almacen['almacen_trampa']['visitas'];
+    //       $trampas->precio = $almacen['almacen_trampa']['precio'];
+    //       $trampas->total = $almacen['almacen_trampa']['total'];
+    //       $trampas->save();
+    //       // - DATOS DE ALMANCEN AREAS
+    //       $areas = new AlmacenArea();
+    //       $areas->almacen_id = $almacendb->id;
+    //       $areas->area = $almacen['almacen_area']['area'];
+    //       $areas->visitas = $almacen['almacen_area']['visitas'];
+    //       $areas->precio = $almacen['almacen_area']['precio'];
+    //       $areas->total = $almacen['almacen_area']['total'];
+    //       $areas->save();
+    //       // - DATOS DE ALMANCEN INSECTOCUTORES
+    //       $insect = new AlmancenInsectocutor();
+    //       $insect->almacen_id = $almacendb->id;
+    //       $insect->cantidad = $almacen['almacen_insectocutor']['cantidad'];
+    //       $insect->visitas = $almacen['almacen_insectocutor']['visitas'];
+    //       $insect->precio = $almacen['almacen_insectocutor']['precio'];
+    //       $insect->total = $almacen['almacen_insectocutor']['total'];
+    //       $insect->save();
+
+    //       // DETALLES DE CONTRATO
+    //       $detalles = new ContratoDetalles();
+    //       $detalles->contrato_id = $contrato->id;
+    //       $detalles->nombre = $almacen['nombre'];
+    //       $detalles->t_cantidad = $almacen['almacen_trampa']['cantidad'];
+    //       $detalles->t_visitas = $almacen['almacen_trampa']['visitas'];
+    //       $detalles->t_precio = $almacen['almacen_trampa']['precio'];
+    //       $detalles->t_total = $almacen['almacen_trampa']['total'];
+    //       $detalles->a_area = $almacen['almacen_area']['area'];
+    //       $detalles->a_visitas = $almacen['almacen_area']['visitas'];
+    //       $detalles->a_precio = $almacen['almacen_area']['precio'];
+    //       $detalles->a_total = $almacen['almacen_area']['total'];
+    //       $detalles->i_cantidad = $almacen['almacen_insectocutor']['cantidad'];
+    //       $detalles->i_precio = $almacen['almacen_insectocutor']['precio'];
+    //       $detalles->i_total = $almacen['almacen_insectocutor']['total'];
+    //       $detalles->total = 0;
+    //       $detalles->save();
+    //     }
+    //   }
+
+    //   $cuenta = CuentaCobrar::where('contrato_id', $contrato->id)->first();
+    //   if ($cuenta->total == $cuenta->saldo) {
+    //     $cuenta->saldo = $totalSuma;
+    //   }
+    //   $cuenta->total = $totalSuma;
+    //   $cuenta->update();
+
+    //   DB::commit();
+
+    //   return redirect()->route('contratos.index');
+    // } catch (Exception | \Error | QueryException $e) {
+    //   DB::rollBack();
+    //   Log::error('Error:', ['error' => $e->getMessage()]);
+    //   return redirect()->back()
+    //     ->withInput()
+    //     ->with('error', 'Error ' . $e->getMessage());
+    // }
   }
 
   public function destroy(string $id)
