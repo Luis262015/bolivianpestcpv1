@@ -48,7 +48,6 @@ import {
   Clock,
   GripVertical,
   Plus,
-  Trash2,
   XCircle,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -389,13 +388,13 @@ export default function Lista() {
     // setSavingTask(false);
   };
 
-  const deleteTask = (id: number) => {
-    if (hasRole('admin') || hasRole('superadmin')) {
-      if (confirm('¿Seguro que quieres eliminar esta tarea?')) {
-        router.delete(`/cronogramas/${id}`);
-      }
-    }
-  };
+  // const deleteTask = (id: number) => {
+  //   if (hasRole('admin') || hasRole('superadmin')) {
+  //     if (confirm('¿Seguro que quieres eliminar esta tarea?')) {
+  //       router.delete(`/cronogramas/${id}`);
+  //     }
+  //   }
+  // };
 
   const handleDragStart = (e: React.DragEvent, task: Task) => {
     if (hasRole('admin') || hasRole('superadmin')) {
@@ -580,7 +579,7 @@ export default function Lista() {
                       >
                         {STATUS_CONFIG[task.status].icon}
                       </div>
-                      <button
+                      {/* <button
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteTask(task.id);
@@ -588,7 +587,7 @@ export default function Lista() {
                         className="opacity-0 transition-opacity group-hover:opacity-100"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      </button> */}
                     </div>
                   );
                 })}

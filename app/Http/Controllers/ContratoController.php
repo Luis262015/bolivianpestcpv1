@@ -270,21 +270,21 @@ class ContratoController extends Controller
         // Cargar fechas pendientes del cronograma por tipo
         $fechasTrampas = Cronograma::where('almacen_id', $almacen->id)
           ->where('tipo_seguimiento_id', 1)
-          ->where('status', 'pendiente')
+          // ->where('status', 'pendiente')
           ->orderBy('date')
           ->pluck('date')
           ->toArray();
 
         $fechasArea = Cronograma::where('almacen_id', $almacen->id)
           ->where('tipo_seguimiento_id', 2)
-          ->where('status', 'pendiente')
+          // ->where('status', 'pendiente')
           ->orderBy('date')
           ->pluck('date')
           ->toArray();
 
         $fechasInsectocutor = Cronograma::where('almacen_id', $almacen->id)
           ->where('tipo_seguimiento_id', 3)
-          ->where('status', 'pendiente')
+          // ->where('status', 'pendiente')
           ->orderBy('date')
           ->pluck('date')
           ->toArray();
@@ -342,6 +342,33 @@ class ContratoController extends Controller
         'email'     => $validated['email'],
         'ciudad'    => $validated['ciudad'],
       ]);
+
+      // Obtener IDs de almacenes que vienen del formulario (los que tienen id = existentes)
+      $almacenesIdsEnviados = collect($validated['almacenes'])
+        ->filter(fn($a) => isset($a['id']))
+        ->pluck('id')
+        ->toArray();
+
+      // Almacenes que ya no vienen = fueron eliminados en el formulario
+      $almacenesEliminados = Almacen::where('empresa_id', $empresa->id)
+        ->whereNotIn('id', $almacenesIdsEnviados)
+        ->get();
+
+      // Eliminar registros relacionados de los almacenes eliminados
+      foreach ($almacenesEliminados as $almacenElim) {
+        Cronograma::where('almacen_id', $almacenElim->id)->delete();
+        AlmacenTrampa::where('almacen_id', $almacenElim->id)->delete();
+        AlmacenArea::where('almacen_id', $almacenElim->id)->delete();
+        AlmancenInsectocutor::where('almacen_id', $almacenElim->id)->delete();
+        ContratoDetalles::where('contrato_id', $contrato->id)
+          ->where('nombre', $almacenElim->nombre)
+          ->delete();
+      }
+
+      // Eliminar los almacenes de una sola vez
+      Almacen::where('empresa_id', $empresa->id)
+        ->whereNotIn('id', $almacenesIdsEnviados)
+        ->delete();
 
       foreach ($validated['almacenes'] as $almacen) {
 

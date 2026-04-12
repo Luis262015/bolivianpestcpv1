@@ -25,6 +25,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { tableStyles } from '@/lib/table-styles';
 import { Head, router } from '@inertiajs/react';
+import axios from 'axios';
 // import html2canvas from 'html2canvas';
 import * as htmlToImage from 'html-to-image';
 import jsPDF from 'jspdf';
@@ -169,9 +170,9 @@ export default function Lista({
 
   const graficosPorMapaRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  console.log('@@@@');
-  console.log(acciones);
-  console.log('@@@@');
+  // console.log('@@@@');
+  // console.log(acciones);
+  // console.log('@@@@');
 
   const totalesPorcentajes = (totales: TotalData[]) => {
     const data: any = {};
@@ -201,9 +202,9 @@ export default function Lista({
   };
 
   const totalesPorcentajesValues = totalesPorcentajes(totales);
-  console.log('***************');
-  console.log(totalesPorcentajesValues);
-  console.log('***************');
+  // console.log('***************');
+  // console.log(totalesPorcentajesValues);
+  // console.log('***************');
 
   /**
    * SEGUIMIENTOS
@@ -1255,16 +1256,37 @@ export default function Lista({
         graficosPorMapaRefs.current.map((ref) => capturarGrafico(ref)),
       );
 
-      router.post('/informes/exportar-word', {
+      // router.post('/informes/exportar-word', {
+      //   chart1,
+      //   chart2,
+      //   chart3,
+      //   chart4,
+      //   chart5,
+      //   chart6,
+      //   // 👇 NUEVO
+      //   charts_por_mapa: chartsPorMapa,
+      //   charts_por_mapa_titulos: graficosPorMapa.map((g: any) => g.mapa), // ← títulos
+      //   seguimiento_ids: seguimientoIds,
+      //   datosInsectocutores,
+      //   datosRoedores,
+      //   empresa_id: empresaId,
+      //   almacen_id: almacenId,
+      //   fecha_inicio: fechaInicio,
+      //   fecha_fin: fechaFin,
+      // });
+
+      console.log('EMPRESA ID: ' + empresaId);
+      console.log('ALMACEN ID: ' + almacenId);
+
+      await axios.post('/informes/exportar-word', {
         chart1,
         chart2,
         chart3,
         chart4,
         chart5,
         chart6,
-        // 👇 NUEVO
         charts_por_mapa: chartsPorMapa,
-        charts_por_mapa_titulos: graficosPorMapa.map((g: any) => g.mapa), // ← títulos
+        charts_por_mapa_titulos: graficosPorMapa.map((g: any) => g.mapa),
         seguimiento_ids: seguimientoIds,
         datosInsectocutores,
         datosRoedores,
@@ -1282,6 +1304,77 @@ export default function Lista({
       setExportando(false);
     }
   };
+
+  // const exportarWord = async () => {
+  //   if (!contenidoRef.current) return;
+
+  //   setExportando(true);
+
+  //   try {
+  //     const seguimientoIds = seguimientos.map((s) => s.id);
+
+  //     const capturarGrafico = async (ref: HTMLDivElement | null) => {
+  //       if (!ref) return null;
+  //       return await htmlToImage.toPng(ref, {
+  //         pixelRatio: 2,
+  //         backgroundColor: '#ffffff',
+  //         skipFonts: true,
+  //       });
+  //     };
+
+  //     const [chart1, chart2, chart3, chart4, chart5, chart6] =
+  //       await Promise.all([
+  //         capturarGrafico(chartInsectosRef.current),
+  //         capturarGrafico(chartEvolucionRef.current),
+  //         capturarGrafico(chartRoedoresLineRef.current),
+  //         capturarGrafico(chartRoedoresBarRef.current),
+  //         capturarGrafico(chartSeveridadRef.current),
+  //         capturarGrafico(chartResumenTrampasRef.current),
+  //       ]);
+
+  //     const chartsPorMapa = await Promise.all(
+  //       graficosPorMapaRefs.current.map((ref) => capturarGrafico(ref)),
+  //     );
+
+  //     // Obtener el token CSRF desde la meta tag de Laravel
+  //     const csrfToken = (
+  //       document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement
+  //     )?.content;
+
+  //     const response = await fetch('/informes/exportar-word', {
+  //       method: 'POST',
+
+  //       body: JSON.stringify({
+  //         chart1,
+  //         chart2,
+  //         chart3,
+  //         chart4,
+  //         chart5,
+  //         chart6,
+  //         charts_por_mapa: chartsPorMapa,
+  //         charts_por_mapa_titulos: graficosPorMapa.map((g: any) => g.mapa),
+  //         seguimiento_ids: seguimientoIds,
+  //         datosInsectocutores,
+  //         datosRoedores,
+  //         empresa_id: empresaId,
+  //         almacen_id: almacenId,
+  //         fecha_inicio: fechaInicio,
+  //         fecha_fin: fechaFin,
+  //       }),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error(`Error del servidor: ${response.status}`);
+  //     }
+
+  //     window.open('/informes/exportar-word-download');
+  //   } catch (error) {
+  //     console.error(error);
+  //     alert('Error al generar Word');
+  //   } finally {
+  //     setExportando(false);
+  //   }
+  // };
 
   // COLORES
   const coloresRoedores = {

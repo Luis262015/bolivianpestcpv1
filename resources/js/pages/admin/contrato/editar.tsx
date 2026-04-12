@@ -349,9 +349,9 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
       data.almacenes.reduce(
         (sum, a) =>
           sum +
-          (a.almacen_trampa?.total ?? 0) +
-          (a.almacen_area?.total ?? 0) +
-          (a.almacen_insectocutor?.total ?? 0),
+          Number(a.almacen_trampa?.total ?? 0) +
+          Number(a.almacen_area?.total ?? 0) +
+          Number(a.almacen_insectocutor?.total ?? 0),
         0,
       ),
     [data.almacenes],
@@ -667,7 +667,7 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
                             </div>
                           </div>
 
-                          {almacen.almacen_trampa.visitas > 0 && (
+                          {/* {almacen.almacen_trampa.visitas > 0 && (
                             <div className="mt-6 space-y-3">
                               <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-primary" />
@@ -704,11 +704,69 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
                                 ))}
                               </div>
                             </div>
+                          )} */}
+
+                          {almacen.almacen_trampa.visitas > 0 && (
+                            <div className="mt-6 space-y-3">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-primary" />
+                                <Label className="text-sm font-semibold">
+                                  Fechas programadas de visitas
+                                </Label>
+                              </div>
+                              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                                {Array.from({
+                                  length: almacen.almacen_trampa.visitas,
+                                }).map((_, visitaIndex) => (
+                                  <div
+                                    key={visitaIndex}
+                                    className="flex items-end gap-1"
+                                  >
+                                    <div className="flex-1">
+                                      <Label className="text-xs">
+                                        Visita {visitaIndex + 1}
+                                      </Label>
+                                      <Input
+                                        type="date"
+                                        required
+                                        value={
+                                          almacen.almacen_trampa
+                                            .fechas_visitas?.[visitaIndex] || ''
+                                        }
+                                        onChange={(e) =>
+                                          updateTrampaFechaVisita(
+                                            index,
+                                            visitaIndex,
+                                            e.target.value,
+                                          )
+                                        }
+                                        className="text-sm"
+                                      />
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="mb-0.5 shrink-0 text-red-500 hover:text-red-700"
+                                      onClick={() =>
+                                        updateTrampaFechaVisita(
+                                          index,
+                                          visitaIndex,
+                                          '',
+                                        )
+                                      }
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           )}
 
                           <p className="mt-4 text-right text-lg font-bold">
                             Total anual: Bs.{' '}
-                            {almacen.almacen_trampa.total.toFixed(2)}
+                            {Number(almacen.almacen_trampa.total).toFixed(2)}
                           </p>
                         </div>
 
@@ -763,7 +821,7 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
                             </div>
                           </div>
 
-                          {almacen.almacen_area.visitas > 0 && (
+                          {/* {almacen.almacen_area.visitas > 0 && (
                             <div className="mt-6 space-y-3">
                               <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-primary" />
@@ -799,11 +857,69 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
                                 ))}
                               </div>
                             </div>
+                          )} */}
+
+                          {almacen.almacen_area.visitas > 0 && (
+                            <div className="mt-6 space-y-3">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-primary" />
+                                <Label className="text-sm font-semibold">
+                                  Fechas programadas de visitas
+                                </Label>
+                              </div>
+                              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                                {Array.from({
+                                  length: almacen.almacen_area.visitas,
+                                }).map((_, visitaIndex) => (
+                                  <div
+                                    key={visitaIndex}
+                                    className="flex items-end gap-1"
+                                  >
+                                    <div className="flex-1">
+                                      <Label className="text-xs">
+                                        Visita {visitaIndex + 1}
+                                      </Label>
+                                      <Input
+                                        type="date"
+                                        value={
+                                          almacen.almacen_area.fechas_visitas?.[
+                                            visitaIndex
+                                          ] || ''
+                                        }
+                                        onChange={(e) =>
+                                          updateAreaFechaVisita(
+                                            index,
+                                            visitaIndex,
+                                            e.target.value,
+                                          )
+                                        }
+                                        className="text-sm"
+                                      />
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="mb-0.5 shrink-0 text-red-500 hover:text-red-700"
+                                      onClick={() =>
+                                        updateAreaFechaVisita(
+                                          index,
+                                          visitaIndex,
+                                          '',
+                                        )
+                                      }
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           )}
 
                           <p className="mt-4 text-right text-lg font-bold">
                             Total anual: Bs.{' '}
-                            {almacen.almacen_area.total.toFixed(2)}
+                            {Number(almacen.almacen_area.total).toFixed(2)}
                           </p>
                         </div>
 
@@ -862,7 +978,7 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
                             </div>
                           </div>
 
-                          {almacen.almacen_insectocutor.visitas > 0 && (
+                          {/* {almacen.almacen_insectocutor.visitas > 0 && (
                             <div className="mt-6 space-y-3">
                               <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-primary" />
@@ -898,11 +1014,71 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
                                 ))}
                               </div>
                             </div>
+                          )} */}
+
+                          {almacen.almacen_insectocutor.visitas > 0 && (
+                            <div className="mt-6 space-y-3">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-primary" />
+                                <Label className="text-sm font-semibold">
+                                  Fechas programadas de visitas
+                                </Label>
+                              </div>
+                              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                                {Array.from({
+                                  length: almacen.almacen_insectocutor.visitas,
+                                }).map((_, visitaIndex) => (
+                                  <div
+                                    key={visitaIndex}
+                                    className="flex items-end gap-1"
+                                  >
+                                    <div className="flex-1">
+                                      <Label className="text-xs">
+                                        Visita {visitaIndex + 1}
+                                      </Label>
+                                      <Input
+                                        type="date"
+                                        required
+                                        value={
+                                          almacen.almacen_insectocutor
+                                            .fechas_visitas?.[visitaIndex] || ''
+                                        }
+                                        onChange={(e) =>
+                                          updateInsectocutorFechaVisita(
+                                            index,
+                                            visitaIndex,
+                                            e.target.value,
+                                          )
+                                        }
+                                        className="text-sm"
+                                      />
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="mb-0.5 shrink-0 text-red-500 hover:text-red-700"
+                                      onClick={() =>
+                                        updateInsectocutorFechaVisita(
+                                          index,
+                                          visitaIndex,
+                                          '',
+                                        )
+                                      }
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           )}
 
                           <p className="mt-4 text-right text-lg font-bold">
                             Total anual: Bs.{' '}
-                            {almacen.almacen_insectocutor.total.toFixed(2)}
+                            {Number(almacen.almacen_insectocutor.total).toFixed(
+                              2,
+                            )}
                           </p>
                         </div>
 
@@ -914,10 +1090,10 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
                             </p>
                             <p className="text-2xl font-bold text-primary">
                               Bs.{' '}
-                              {(
-                                almacen.almacen_trampa.total +
-                                almacen.almacen_area.total +
-                                almacen.almacen_insectocutor.total
+                              {Number(
+                                Number(almacen.almacen_trampa.total) +
+                                  Number(almacen.almacen_area.total) +
+                                  Number(almacen.almacen_insectocutor.total),
                               ).toFixed(2)}
                             </p>
                           </div>
@@ -932,7 +1108,7 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
                   <CardContent className="pt-8">
                     <div className="space-y-6 text-right">
                       <div className="text-2xl font-bold text-primary">
-                        TOTAL DEL CONTRATO: Bs. {granTotal.toFixed(2)}
+                        TOTAL DEL CONTRATO: Bs. {Number(granTotal).toFixed(2)}
                       </div>
                     </div>
                   </CardContent>

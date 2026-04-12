@@ -64,7 +64,7 @@ export default function Lista() {
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="contratos" />
+      <Head title="Contratos" />
 
       <div className="p-6">
         <div className="flex items-center">
@@ -79,9 +79,9 @@ export default function Lista() {
           <TableHeader>
             <TableRow>
               <TableHead>Empresa</TableHead>
-              <TableHead className="text-center">Total</TableHead>
-              <TableHead className="text-center">Expiracion</TableHead>
               <TableHead className="text-center">Fecha</TableHead>
+              <TableHead className="text-center">Expiracion</TableHead>
+              <TableHead className="text-center">Total</TableHead>
               {/* <TableHead>A Cuenta</TableHead>
               <TableHead>Saldo</TableHead> */}
               <TableHead className="text-center">Acciones</TableHead>
@@ -91,33 +91,33 @@ export default function Lista() {
             {contratos.data.map((cot) => (
               <TableRow key={cot.id}>
                 <TableCell>{cot.empresa.nombre}</TableCell>
-                <TableCell className="text-center font-mono text-[1rem]">
-                  <span className="font-bold">Bs.</span>{' '}
-                  {cot.total.toLocaleString('es-BO')}
-                </TableCell>
-                <TableCell className="text-center font-mono text-xs text-muted-foreground sm:text-sm">
-                  {/* {cot.expiracion} */}
-                  {(() => {
-                    const dateStr = cot.expiracion;
-                    if (!dateStr) return '-';
 
-                    const date = new Date(dateStr);
-                    if (isNaN(date.getTime())) return '-';
-
-                    return format(date, 'dd/MM/yyyy');
-                  })()}
-                </TableCell>
+                {/* FECHA */}
                 <TableCell className="text-center font-mono text-xs text-muted-foreground sm:text-sm">
-                  {/* {cot.created_at} */}
                   {(() => {
                     const dateStr = cot.created_at;
                     if (!dateStr) return '-';
-
                     const date = new Date(dateStr);
                     if (isNaN(date.getTime())) return '-';
-
                     return format(date, 'dd/MM/yyyy HH:mm:ss');
                   })()}
+                </TableCell>
+
+                {/* EXPIRACION */}
+                <TableCell className="text-center font-mono text-xs text-muted-foreground sm:text-sm">
+                  {(() => {
+                    const dateStr = cot.expiracion;
+                    if (!dateStr) return '-';
+                    const date = new Date(dateStr);
+                    if (isNaN(date.getTime())) return '-';
+                    return format(date, 'dd/MM/yyyy');
+                  })()}
+                </TableCell>
+
+                {/* TOTAL */}
+                <TableCell className="text-right font-mono text-[1rem]">
+                  <span className="font-bold">Bs.</span>{' '}
+                  {cot.total.toLocaleString('es-BO')}
                 </TableCell>
                 {/* <TableCell>{cot.acuenta}</TableCell>
                 <TableCell>{cot.saldo}</TableCell> */}

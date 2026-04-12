@@ -134,6 +134,10 @@ class InformesController extends Controller
     ]);
   }
 
+  /**
+   * DATOS PARA INFORME EN WORD
+   */
+
   public function obtenerEstado(Request $request)
   {
     $request->validate([
@@ -548,56 +552,6 @@ class InformesController extends Controller
     $section->addTextBreak(1);
   }
 
-  // private function procesarDatosInsectocutores($seguimientos)
-  // {
-  //   $agrupadoPorMapa = [];
-
-  //   foreach ($seguimientos as $seguimiento) {
-  //     foreach ($seguimiento->insectocutores as $insectocutor) {
-  //       $trampa = $insectocutor->trampa;
-
-  //       // Validar que exista la trampa y el mapa
-  //       if (!$trampa || !$trampa->mapa) {
-  //         continue;
-  //       }
-
-  //       $mapaTitulo = $trampa->mapa->titulo;
-  //       $mapaId = $trampa->mapa->id;
-
-  //       // Clave única por mapa
-  //       $key = $mapaId;
-
-  //       if (!isset($agrupadoPorMapa[$key])) {
-  //         $agrupadoPorMapa[$key] = [
-  //           'mapa_id'    => $mapaId,
-  //           'mapa_titulo' => $mapaTitulo,
-  //           'cantidad_total' => 0,
-  //         ];
-  //       }
-
-  //       // Sumar cantidad de insectocutores
-  //       $agrupadoPorMapa[$key]['cantidad_total'] += (int) $insectocutor->cantidad;
-  //     }
-  //   }
-
-  //   // Transformar a array indexado y ordenar por mapa
-  //   $filas = array_values($agrupadoPorMapa);
-
-  //   // Ordenar por título de mapa (opcional)
-  //   usort($filas, function ($a, $b) {
-  //     return strcmp($a['mapa_titulo'], $b['mapa_titulo']);
-  //   });
-
-  //   // Agregar número de fila (NRO)
-  //   return array_map(function ($fila, $index) {
-  //     return [
-  //       'nro'                => $index + 1,
-  //       'mapa_titulo'        => $fila['mapa_titulo'],
-  //       'cantidad_insectocutores' => $fila['cantidad_total'],
-  //     ];
-  //   }, $filas, array_keys($filas));
-  // }
-
   private function procesarDatosInsectocutores($seguimientos)
   {
     $agrupadoPorMapa = [];
@@ -647,163 +601,9 @@ class InformesController extends Controller
     }, $filas, array_keys($filas));
   }
 
-  public function storeWord(Request $request)
+
+  private function agregaIntroObjMetodo($section)
   {
-
-    // dd($request);
-    // return;
-
-    $acciones = Accion::with(['accionTrampas.trampa', 'imagenes'])
-      ->where('almacen_id', $request->almacen_id)
-      ->whereBetween('created_at', [
-        $request->fecha_inicio . ' 00:00:00',
-        $request->fecha_fin . ' 23:59:59',
-      ])
-      ->orderBy('created_at', 'asc')
-      ->get();
-
-    // dd($acciones);
-    // return;
-
-
-    $seguimientos = Seguimiento::with([
-      'almacen',
-      'insectocutores.especie',
-      'insectocutores.trampa.mapa',
-      'roedores.trampa.mapa',
-      'roedores.trampa.trampa_tipo',
-      'images',
-      'tipoSeguimiento'
-    ])->whereIn('id', $request->seguimiento_ids)->get();
-
-
-
-    // dd($seguimientos[8]);
-    // return;
-
-    // 1. Procesamiento de datos para la tabla
-    $datosTabla = $this->procesarDatosTrampas($seguimientos);
-    // Log::info($datosTabla);
-    // return;
-
-    $datosTablaX1 = $this->procesarDatosReporte($seguimientos);
-    // Log::info($datosTablaX1);
-    // return;
-
-    $datosPorMapa = $this->procesarDatosPorMapa($seguimientos);
-    // Log::info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-    // Log::info(count($datosPorMapa));
-    // foreach ($datosPorMapa as $dato) {
-    //   Log::info(($dato['filas']));
-    // }
-    // Log::info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-    // return;
-
-    $datosTablaX2 = $this->procesarDatosInsectocutores($seguimientos);
-
-
-    $especies = [];
-    $datosPorFecha = [];
-
-    foreach ($seguimientos as $seg) {
-      if ($seg->tipo_seguimiento_id != 3) {
-        continue;
-      }
-      $fecha = $seg->created_at->format('d/m/Y');
-      if (!isset($datosPorFecha[$fecha])) {
-        $datosPorFecha[$fecha] = [];
-      }
-      foreach ($seg->insectocutores as $ins) {
-        $nombre = $ins->especie->nombre;
-        $especies[$nombre] = true;
-        if (!isset($datosPorFecha[$fecha][$nombre])) {
-          $datosPorFecha[$fecha][$nombre] = 0;
-        }
-        $datosPorFecha[$fecha][$nombre] += $ins->cantidad;
-      }
-    }
-
-    $especies = array_keys($especies);
-
-    $datosRoedores = [];
-    foreach ($seguimientos as $seg) {
-      foreach ($seg->roedores as $r) {
-        $key = $r->trampa_id;
-        if (!isset($datosRoedores[$key])) {
-          $datosRoedores[$key] = [
-            'inicial' => 0,
-            'merma' => 0,
-            'actual' => 0,
-          ];
-        }
-        $datosRoedores[$key]['inicial'] += $r->inicial;
-        $datosRoedores[$key]['merma'] += $r->merma;
-        $datosRoedores[$key]['actual'] += $r->actual;
-      }
-    }
-
-    $chart1 = $this->saveBase64Image($request->chart1, 'chart1');
-    $chart2 = $this->saveBase64Image($request->chart2, 'chart2');
-    $chart3 = $this->saveBase64Image($request->chart3, 'chart3');
-    $chart4 = $this->saveBase64Image($request->chart4, 'chart4');
-    $chart5 = $this->saveBase64Image($request->chart5, 'chart5');
-    $chart6 = $this->saveBase64Image($request->chart6, 'chart6');
-
-    // Crear Word
-    $phpWord = new PhpWord();
-
-    // Idioma español
-    $phpWord->getSettings()->setThemeFontLang(
-      new Language(Language::ES_ES)
-    );
-
-    $phpWord->addParagraphStyle('global', [
-      'lineHeight' => 1.15,
-      'spaceAfter' => 0,
-      'spaceBefore' => 0,
-    ]);
-
-    $phpWord->addTableStyle(
-      'tablaInforme',
-      [
-        'borderSize' => 6,
-        'borderColor' => '000000',
-        'cellMargin' => 80,
-        'alignment' => JcTable::CENTER,
-        // 'layout' => \PhpOffice\PhpWord\Style\Table::LAYOUT_FIXED,
-      ],
-      [
-        'bgColor' => 'D9D9D9' // estilo para la fila encabezado
-      ]
-    );
-
-    // $section = $phpWord->addSection([
-    //   'orientation' => 'landscape'
-    // ]);
-
-
-
-    $section1 = $phpWord->addSection([
-      'orientation' => 'portrait',
-      'marginTop' => 2500,
-      'marginBottom' => 1417,
-      'marginLeft' => 2500,
-      'marginRight' => 1700,
-      'differentFirstPageHeaderFooter' => true
-    ]);
-
-    // Log::info('CONFIGURACIONES');
-
-    $this->caratula($section1, $request);
-
-    // Log::info('PRIMERA SECCION');
-
-    $section = $phpWord->addSection([
-      'orientation' => 'portrait',
-      'marginLeft' => 2500,
-    ]);
-
-
 
     // ---------------------SECCION: TITULO GENERAL DEL DOCUMENTO ----------------------------
     // INFORME TECNICO
@@ -886,6 +686,8 @@ class InformesController extends Controller
     );
     $section->addTextBreak();
 
+    Log::info('EEEEEEEEEEEEEEEEEEEEEEEEEE');
+
     $section->addText('METODOLOGIA:', [
       'bold' => true,
       'size' => 11,
@@ -898,108 +700,12 @@ class InformesController extends Controller
     $section->addListItem('El balance análisis.');
     $section->addListItem('Las recomendaciones para el próximo mes.');
     $section->addTextBreak();
+  }
 
-    // ---------------------SECCION: LO QUE SE REALIZO EN LA VISITA ----------------------------
-
-    $section->addText('LO QUE SE REALIZO EN LA VISITA', [
-      'bold' => true,
-      'size' => 11,
-      'underline' => 'single',
-    ]);
-    $section->addTextBreak();
-
-    // ---------------------SUBSECCION: DESRATIZACION ----------------------------
-
-    $section->addText('1) DESRATIZACIÓN', [
-      'bold' => true,
-      'size' => 11,
-      'underline' => 'single',
-    ]);
-
-    // ************************************************************************************
-    // FOTOS DE VISITAS POR SEGUIMIENTO ***********************************************
-    // ************************************************************************************
-
-    if ($seguimientos) {
-      foreach ($seguimientos as $value) {
-        if ($value->tipo_seguimiento_id == 1) {
-          $section->addText('Seguimiento ' . $value->created_at, [
-            'bold' => true,
-            'size' => 11,
-            'underline' => 'single',
-          ]);
-
-          // if ($value->images) {
-          //   foreach ($value->images as $v) {
-
-          //     $section->addImage(public_path($v->imagen), [
-          //       'width'  => 200,
-          //       'height' => 100,
-          //       'alignment' => Jc::CENTER,
-          //     ]);
-          //   }
-          // }
-          if ($value->images) {
-            foreach ($value->images as $v) {
-              $imagePath = public_path($v->imagen);
-
-              if (!empty($v->imagen) && file_exists($imagePath) && is_file($imagePath)) {
-                try {
-                  $section->addImage($imagePath, [
-                    'width' => 200,
-                    'height' => 100,
-                    'alignment' => Jc::CENTER,
-                  ]);
-                } catch (\Exception $e) {
-                  Log::warning('No se pudo agregar la imagen al documento', [
-                    'path' => $imagePath,
-                    'error' => $e->getMessage(),
-                  ]);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // ************************************************************************************
-    // TABLA CANTIDAD DE TRAMPAS x TIPO y CANTIDAD DE ROEDORES CAPTURADOS *****************
-    // ************************************************************************************
-    $phpWord->addTableStyle('tablaCantidadDeTrampasPorTipo', [
-      'borderSize' => 6,          // grosor borde
-      'borderColor' => '000000',  // color borde negro
-      'cellMargin' => 80,         // espacio interno
-      'alignment' => JcTable::CENTER,
-      // 'width' => 100 * 50,        // 100%
-      'unit' => TblWidth::PERCENT,
-    ], [
-      'bgColor' => 'D9D9D9',      // fondo encabezado
-    ]);
-
-    $table = $section->addTable('tablaCantidadDeTrampasPorTipo');
-    $table->addRow();
-    $table->addCell()->addText('TIPOS DE TRAMPAS', ['bold' => true]);
-    $table->addCell()->addText('CANTIDAD', ['bold' => true]);
-    $table->addCell()->addText('CAPTURA', ['bold' => true]);
-
-    $table->addCell()->addText('AREA', ['bold' => true]);
-    $table->addCell()->addText('OBSERV.', ['bold' => true]);
-
-    if ($datosTabla) {
-      foreach ($datosTabla as $dato) {
-        $table->addRow();
-        $table->addCell()->addText($dato['tipo_nombre']); // Tipo de trampa
-        $table->addCell()->addText($dato['cantidad_trampas']); // Cantidad
-        $table->addCell()->addText($dato['cantidad']); // Capturados
-        $table->addCell()->addText($dato['mapa_titulo']); // Mapa titulo        
-        $table->addCell()->addText(''); // Observaciones
-      }
-    }
-
+  private function agregaTablasRodenticidas($section, $phpWord)
+  {
 
     $section->addTextBreak();
-
     $section->addText(
       'Los rodenticidas utilizados para el trabajo son  en presentación de pellets  y bloques parafinados de acuerdo a la ubicación de las trampas sea exterior o interior se coloca el respectivo rodenticida esto esta en función tambien del nivel de riesgo de la presencia de plaga.',
       [],
@@ -1019,34 +725,30 @@ class InformesController extends Controller
     ], [
       'bgColor' => 'D9D9D9',      // fondo encabezado
     ]);
-
     $table = $section->addTable('tablaCebo');
-
     $table->addRow();
     $table->addCell(2000)->addText('NOMBRE COMERCIAL', ['bold' => true]);
     $table->addCell(2000)->addText('INGREDIENTE ACTIVO', ['bold' => true]);
     $table->addCell(2000)->addText('COMPOSICION', ['bold' => true]);
     $table->addCell(2000)->addText('CLASE', ['bold' => true]);
-
     $table->addRow();
     $table->addCell(2000)->addText('RODENTICIDA KLERAT');
     $table->addCell(2000)->addText('BRODIFACOUM (3-3-4 bromo 1-1 bifenil-4-il-1-2-3-4 tetrahidro1-naftalenil-4 hidrocumarina)');
     $table->addCell(2000)->addText('Rodenticida Monosodico de Actividad Prolongada Cebo en Granos.');
     $table->addCell(2000)->addText('CLARODENTICIDA RATICIDA MONOSODICOSE');
-
     $table->addRow();
     $table->addCell(2000)->addText('GRUPO QUIMICO', ['bold' => true]);
     $table->addCell(2000)->addText('TIPO FORMULACION', ['bold' => true]);
     $table->addCell(2000)->addText('NUMERO DE REGISTRO', ['bold' => true]);
     $table->addCell(2000)->addText('PRESENTACION', ['bold' => true]);
-
     $table->addRow();
     $table->addCell(2000)->addText('BRODIFACOUM   WARFARINICO');
     $table->addCell(2000)->addText('CEBO EN PELLETS');
     $table->addCell(2000)->addText('INSO NRO. BR1020ROAB01');
     $table->addCell(2000)->addText('IMG');
-
     $section->addTextBreak();
+
+    Log::info('GGGGGGGGGGGGGGGGGGGGGGGG');
 
     $phpWord->addTableStyle('tablaBloques', [
       'borderSize' => 6,          // grosor borde
@@ -1058,9 +760,7 @@ class InformesController extends Controller
     ], [
       'bgColor' => 'D9D9D9',      // fondo encabezado
     ]);
-
     $table = $section->addTable('tablaBloques');
-
     $table->addRow();
     $table->addCell(2000)->addText('NOMBRE COMERCIAL', ['bold' => true]);
     $table->addCell(2000)->addText('INGREDIENTE ACTIVO', ['bold' => true]);
@@ -1084,665 +784,11 @@ class InformesController extends Controller
     $table->addCell(2000)->addText('BLOQUES PARAFINICOS');
     $table->addCell(2000)->addText('INSO NRO. BRO913ROBB01');
     $table->addCell(2000)->addText('IMG');
-
-    $section->addTextBreak();
-    $section->addTextBreak();
-
-    // ---------------------SUBSECCION: SEGUIMIENTO DE LAS UNIDADES DE CONTROL ----------------------------
-    $section->addText('2) SEGUIMIENTO DE LAS UNIDADES DE CONTROL', [
-      'bold' => true,
-      'size' => 11,
-      'underline' => 'single',
-    ]);
-    $section->addTextBreak();
-    $section->addText(
-      'Se realizaron tres seguimientos al sistema de control de roedores ________ según cronograma de actividades.',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-    $section->addTextBreak();
-
-    // ************************************************************************************
-    // TABLA FECHAS DE SEGUIMIENTOS *****************
-    // ************************************************************************************
-
-    $phpWord->addTableStyle('tablaFechaSeguimientos', [
-      'borderSize' => 6,          // grosor borde
-      'borderColor' => '000000',  // color borde negro
-      'cellMargin' => 80,         // espacio interno
-      'alignment' => JcTable::CENTER,
-      // 'width' => 100 * 50,        // 100%
-      'unit' => TblWidth::PERCENT,
-    ], [
-      'bgColor' => 'D9D9D9',      // fondo encabezado
-    ]);
-
-    $section->addText('TABLA: Cronograma de actividades', [
-      'bold' => true,
-      'size' => 11,
-      'underline' => 'single',
-    ]);
-
-    $section->addTextBreak();
-
-    $table = $section->addTable('tablaFechaSeguimientos');
-    $table->addRow();
-    // $table->addCell()->addText("FECHA SEGUIMIENTO", ['bold' => true]);
-    // $table->addCell()->addText("TIPO SEGUIMIENTO", ['bold' => true]);
-    $table->addCell(5000, ['valign' => 'center'])->addText(
-      "FECHA SEGUIMIENTO",
-      ['bold' => true],
-      ['alignment' => 'center']
-    );
-
-    $table->addCell(5000, ['valign' => 'center'])->addText(
-      "TIPO SEGUIMIENTO",
-      ['bold' => true],
-      ['alignment' => 'center']
-    );
-
-    // foreach ($seguimientos as $seg) {
-    //   $table->addRow();
-    //   $table->addCell()->addText($seg->created_at); // fecha
-    //   $table->addCell()->addText($seg->tipoSeguimiento->nombre); // tipo      
-    // }
-    foreach ($seguimientos as $seg) {
-      $table->addRow();
-
-      $table->addCell(5000)->addText(
-        Carbon::parse($seg->created_at)->format('d/m/Y H:i')
-      );
-
-      $table->addCell(5000)->addText(
-        $seg->tipoSeguimiento->nombre ?? ''
-      );
-    }
-    $section->addTextBreak();
-    $section->addTextBreak();
-
-
-    $phpWord->addTableStyle('tablaResumenGlobal', [
-      'borderSize' => 6,          // grosor borde
-      'borderColor' => '000000',  // color borde negro
-      'cellMargin' => 80,         // espacio interno
-      'alignment' => JcTable::CENTER,
-      // 'width' => 100 * 50,        // 100%
-      'unit' => TblWidth::PERCENT,
-    ], [
-      'bgColor' => 'D9D9D9',      // fondo encabezado
-    ]);
-
-    $table = $section->addTable('tablaResumenGlobal');
-    $table->addRow();
-    $table->addCell()->addText("SEGUIMIENTO", ['bold' => true]);
-    $table->addCell()->addText("MAPA", ['bold' => true]);
-    $table->addCell()->addText("TRAMPAS", ['bold' => true]);
-    $table->addCell()->addText("CAPTURADOS", ['bold' => true]);
-    foreach ($datosTablaX1 as $dato) {
-      $table->addRow();
-      $table->addCell()->addText($dato['seguimiento_fecha']);
-      $table->addCell()->addText($dato['mapa_titulo']);
-      $table->addCell()->addText($dato['cantidad_trampas']);
-      $table->addCell()->addText($dato['cantidad']);
-    }
-
-    $section->addTextBreak();
-    $section->addTextBreak();
-
-
-
-
-    // ************************************************************************************
-    // TABLA CANTIDAD DE TRAMPAS x TIPO y CANTIDAD DE ROEDORES CAPTURADOS (EN CADA SEGUIMIENTO) ***
-    // ************************************************************************************    
-
-    // ---------------------SUBSECCION: BALANCE Y ANALISIS ----------------------------    
-    $section->addText('BALANCE Y ANALISIS.', [
-      'bold' => true,
-      'size' => 11,
-      'underline' => 'single',
-    ]);
-    $section->addText(
-      'Se cumplió con el seguimiento de las 68 unidades de control de roedores procediendo al pesaje de los cebos de las trampas a continuación se muestras los cuadros resúmenes de estas  actividades.',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-
-    $section->addText(
-      'Los cuadros muestran los pesos obtenidos por fechas de seguimiento se verifica el peso total la merma y peso actual de las 68 unidades de control de roedores.',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-
-    // ************************************************************************************
-    // TABLA RESUMEN X (CADA SEGUIMIENTO Y CADA ALMACEN) ***
-    // ************************************************************************************   
-
-    // Tablas por Mapa
-    foreach ($datosPorMapa as $mapaTitulo => $datos) {
-      $this->agregarTablaPorMapa($section, $mapaTitulo, $datos, $phpWord);
-    }
-
-    $section->addText(
-      'Analizando las tablas de pesos respecto al porcentaje de merma se establece que este no pasa del 5% con relación al Peso Total 100% lo que significa que no ha existido consumo por parte de roedores ni su presencia en las fechas evaluadas. Este porcentaje esta relacionado con perdidas por medio ambiente vale decir condiciones de humedad, temperatura, vientos lluvia, etc. que afectan a los cebos colocados.',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-
-    $section->addTextBreak();
-
-    $section->addText(
-      'La Grafica 1 muestra la DL50 (dosis letal media) de los ingredientes activos de los rodenticidas mostrando que brodifacoum es el ingrediente mas efectivo ya que su porcentaje tanto para rata y raton es el mas bajo por lo tanto mas toxico necesitando menor consumo para ser mas efectivo.',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-
-    $section->addTextBreak();
-
-    $section->addImage(public_path('images/informe/Tabla-DL50.png'), [
-      'width'  => 300,
-      // 'height' => 100,
-      'alignment' => Jc::CENTER,
-    ]);
-
-    $section->addTextBreak();
-
-    // ************************************************************************************
-    // GRAFICA: IMAGEN DESDE PUBLIC ***
-    // ************************************************************************************    
-
-    $section->addText(
-      'La Grafica 2 muestra la cantidad de cebo que debe ingerir un roedor según los ingredientes activos para que se cumpla la DL50 (dosis letal media) y pueda ser eliminado. Corroborando que el ingrediente activo BRODIFACOUM es el mas efectivo con un consumo minimo.',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-
-    $section->addImage(public_path('images/informe/Grafica-3.png'), [
-      'width'  => 200,
-      // 'height' => 100,
-      'alignment' => Jc::CENTER,
-    ]);
-
-    // ************************************************************************************
-    // GRAFICA: IMAGEN DESDE PUBLIC ***
-    // ************************************************************************************    
-
-    $section->addText(
-      'La Grafica 3 muestra el % de consumo quincenal  de los tres segumientos mensuales en la planta de produccion VF y los Almacenes dos y eventos, a la fecha de evaluación esta merma es debido a causas medioambientales ya que no se tuvo reporte de presencia y/o captura de roedor. ',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-
-    // Función helper para agregar imagen base64
-    // $agregarImagen = function ($section, $base64) {
-    //   if (!$base64) return;
-
-    //   // Quitar el prefijo data:image/png;base64,
-    //   $base64 = preg_replace('/^data:image\/\w+;base64,/', '', $base64);
-
-    //   // Guardar como archivo temporal
-    //   $tmpFile = tempnam(sys_get_temp_dir(), 'chart_') . '.png';
-    //   file_put_contents($tmpFile, base64_decode($base64));
-
-    //   // Agregar al documento
-    //   $section->addImage($tmpFile, [
-    //     'width'  => 600,
-    //     'height' => 300,
-    //     'alignment' => Jc::CENTER,
-    //   ]);
-
-    //   // Eliminar archivo temporal
-    //   unlink($tmpFile);
-    // };
-
-    $section->addTextBreak();
-
-    $chartsPorMapa   = $request->charts_por_mapa ?? [];
-    $titulosPorMapa  = $request->charts_por_mapa_titulos ?? [];
-
-    foreach ($chartsPorMapa as $index => $chartBase64) {
-      // Agregar título del mapa      
-
-      $titulo = $titulosPorMapa[$index] ?? "Mapa " . ($index + 1);
-      $section->addTitle($titulo, 2);
-      $section->addTextBreak(1);
-
-      // Agregar imagen
-      // $agregarImagen($section, $chartBase64);
-      $graf = $this->saveBase64Image($chartBase64, 'chartX_' . $index);
-      $section->addImage($graf, [
-        'width'  => 300,
-        // 'height' => 300,
-        'alignment' => Jc::CENTER,
-      ]);
-
-      $section->addTextBreak(1);
-    }
-
-
-    // ************************************************************************************
-    // GRAFICA: MONITOREO DE ROEDORES (X ALMACEN)
-    // ************************************************************************************    
-
-
-    // -------------------------------- xxxxxx (INICIO) SECCION NO AGREGADA EN INFORME xxxxxxxxxxxxx
-    // [TABLA DE TRAMPAS]
-    // Crear tabla
-    $section->addTextBreak();
-    // $section->addText('Peso de trampas', ['bold' => true]);
-
-    // $table = $section->addTable('tablaInforme');
-
-    // $table->addRow();
-    // $table->addCell(2000)->addText('Trampa', ['bold' => true]);
-    // $table->addCell(2000)->addText('Inicial', ['bold' => true]);
-    // $table->addCell(2000)->addText('Merma', ['bold' => true]);
-    // $table->addCell(2000)->addText('Actual', ['bold' => true]);
-    // $table->addCell(3500)->addText('Observaciones', ['bold' => true]);
-
-    // foreach ($datosRoedores as $trampa => $data) {
-
-    //   $table->addRow();
-    //   $table->addCell(2000)->addText($trampa);
-    //   $table->addCell(2000)->addText($data['inicial']);
-    //   $table->addCell(2000)->addText($data['merma']);
-    //   $table->addCell(2000)->addText($data['actual']);
-    //   $table->addCell(3500)->addText($data['actual']);
-    // }
-
-    // SEGUIMIENTO DE TRAMAPAS    
-
-    // if ($chart3) {
-    //   // $section->addPageBreak();
-    //   $section->addText('Comparación de pesos por trampa', ['bold' => true]);
-    //   $section->addImage($chart3, ['width' => 300]);
-    // }
-
-    // if ($chart4) {
-    //   // $section->addPageBreak();
-    //   $section->addText('Valores por trampa', ['bold' => true]);
-    //   $section->addImage($chart4, ['width' => 300]);
-    // }
-
-
-    // -------------------------------- xxxxxx (FIN) SECCION NO AGREGADA EN INFORME xxxxxxxxxxxxx    
-
-    // ---------------------SECCION: BARRERAS FISICAS DE EXCLUCION (INSECTOCUTORES) ----------------------------        
-    $section->addText('3) BARRERAS FISICAS DE EXCLUCION (INSECTOCUTORES)', [
-      'bold' => true,
-      'size' => 11,
-      'underline' => 'single',
-    ]);
-
-    $section->addTextBreak();
-
-    $section->addText(
-      'Para el control de insectos voladores se ha implementado tres insectocutores se realizó el seguimiento de cada uno de los insectocutores revisando el tipo de insecto encontrado y la cantidad, con esta información se ha podido calcular la incidencia y severidad se muestra a través de gráficos las tendencias y análisis respectivos',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-
-    $section->addTextBreak();
-
-    $section->addText('TABLA: CANTIDAD DE INSECTOCUTORES', [
-      'bold' => true,
-      'size' => 11,
-      'underline' => 'single',
-    ]);
-
-    $section->addTextBreak();
-
-    // Encabezado
-    // $section->addText(
-    //   'REPORTE DE INSECTOCUTORES POR MAPA',
-    //   ['size' => 20, 'bold' => true, 'color' => '1F4E78', 'name' => 'Arial', 'align' => 'center']
-    // );
-
-    // $section->addText(
-    //   'Fecha de Generación: ' . date('d/m/Y H:i:s'),
-    //   ['size' => 11, 'color' => '666666', 'name' => 'Arial', 'align' => 'center', 'spaceAfter' => 200]
-    // );
-
-    $phpWord->addTableStyle('tabla_reporte', [
-      'borderSize' => 6,          // grosor borde
-      'borderColor' => '000000',  // color borde negro
-      'cellMargin' => 80,         // espacio interno
-      'alignment' => JcTable::CENTER,
-      // 'width' => 100 * 50,        // 100%
-      'unit' => TblWidth::PERCENT,
-    ], [
-      'bgColor' => 'D9D9D9',      // fondo encabezado
-    ]);
-
-    // Tabla
-    $table = $section->addTable('tabla_reporte');
-
-    // Encabezados (4 columnas ahora)
-    $table->addRow(400);
-    $headers = [
-      'NRO' => 800,
-      'MAPA TÍTULO' => 3500,
-      'CANTIDAD TRAMPA ID' => 1500,
-      'CANTIDAD INSECTOCUTORES' => 2000
-    ];
-
-    foreach ($headers as $header => $width) {
-      $table->addCell($width, ['celda_encabezado'])
-        ->addText($header, ['fuente_encabezado'], ['align' => 'center']);
-    }
-
-    // Filas de datos
-    $totalTrampas = 0;
-    $totalInsectocutores = 0;
-
-    foreach ($datosTablaX2 as $fila) {
-      $table->addRow(400);
-
-      // NRO
-      $table->addCell(800, ['celda_normal'])
-        ->addText($fila['nro'], ['fuente_normal'], ['align' => 'center']);
-
-      // MAPA TÍTULO
-      $table->addCell(3500, ['celda_normal'])
-        ->addText($fila['mapa_titulo'], ['fuente_normal']);
-
-      // CANTIDAD TRAMPA ID
-      $table->addCell(1500, ['celda_normal'])
-        ->addText($fila['cantidad_trampa_id'], ['fuente_normal'], ['align' => 'center']);
-
-      // CANTIDAD INSECTOCUTORES
-      $table->addCell(2000, ['celda_normal'])
-        ->addText($fila['cantidad_insectocutores'], ['fuente_normal'], ['align' => 'center']);
-
-      $totalTrampas += $fila['cantidad_trampa_id'];
-      $totalInsectocutores += $fila['cantidad_insectocutores'];
-    }
-
-    // Fila de totales
-    $table->addRow(400);
-    $table->addCell(800, ['celda_totales'])
-      ->addText('-', ['fuente_totales'], ['align' => 'center']);
-    $table->addCell(3500, ['celda_totales'])
-      ->addText('TOTAL GENERAL', ['fuente_totales']);
-    $table->addCell(1500, ['celda_totales'])
-      ->addText($totalTrampas, ['fuente_totales'], ['align' => 'center']);
-    $table->addCell(2000, ['celda_totales'])
-      ->addText($totalInsectocutores, ['fuente_totales'], ['align' => 'center']);
-
-    // Encabezado
-    // $section->addText(
-    //   'REPORTE DE INSECTOCUTORES POR MAPA',
-    //   ['size' => 20, 'bold' => true, 'color' => '1F4E78', 'name' => 'Arial', 'align' => 'center']
-    // );
-
-    // $section->addText(
-    //   'Fecha de Generación: ' . date('d/m/Y H:i:s'),
-    //   ['size' => 11, 'color' => '666666', 'name' => 'Arial', 'align' => 'center', 'spaceAfter' => 200]
-    // );
-
-    // $section->addTextBreak(1);
-
-    // // Tabla
-    // $table = $section->addTable('tabla_reporte');
-
-    // // Encabezados
-    // $table->addRow(400);
-    // $headers = ['NRO', 'MAPA TÍTULO', 'CANTIDAD INSECTOCUTORES'];
-    // $widths = [800, 4000, 2000];
-
-    // foreach ($headers as $index => $header) {
-    //   $table->addCell($widths[$index], ['celda_encabezado'])
-    //     ->addText($header, ['fuente_encabezado'], ['align' => 'center']);
-    // }
-
-    // // Filas de datos
-    // $totalGeneral = 0;
-    // foreach ($datosTablaX2 as $fila) {
-    //   $table->addRow(400);
-
-    //   $table->addCell(800, ['celda_normal'])
-    //     ->addText($fila['nro'], ['fuente_normal'], ['align' => 'center']);
-
-    //   $table->addCell(4000, ['celda_normal'])
-    //     ->addText($fila['mapa_titulo'], ['fuente_normal']);
-
-    //   $table->addCell(2000, ['celda_normal'])
-    //     ->addText($fila['cantidad_insectocutores'], ['fuente_normal'], ['align' => 'center']);
-
-    //   $totalGeneral += $fila['cantidad_insectocutores'];
-    // }
-
-    // // Fila de totales
-    // $table->addRow(400);
-    // $table->addCell(800, ['celda_totales'])
-    //   ->addText('-', ['fuente_totales'], ['align' => 'center']);
-    // $table->addCell(4000, ['celda_totales'])
-    //   ->addText('TOTAL GENERAL', ['fuente_totales']);
-    // $table->addCell(2000, ['celda_totales'])
-    //   ->addText($totalGeneral, ['fuente_totales'], ['align' => 'center']);
-
-    // $table = $section->addTable();
-    // $table->addRow();
-    // $table->addCell()->addText("Nro", ['bold' => true]);
-    // $table->addCell()->addText("LUGAR", ['bold' => true]);
-    // $table->addCell()->addText("CANTIDAD", ['bold' => true]);
-
-    // $table->addRow();
-    // $table->addCell()->addText('');
-    // $table->addCell()->addText('');
-    // $table->addCell()->addText('');
-
-    // $table->addRow();
-    // $table->addCell()->addText('TOTAL');
-    // $table->addCell()->addText('');
-    // $table->addCell()->addText('');
-
-    $section->addTextBreak();
-    $section->addText(
-      'La incidencia es el número de individuos que están presentes en un determinado lugar la gráfica de incidencia muestra la presencia en estado adulto de los tres tipos de insectos que se ha logrado capturar que son mosca, mosquito y polillas en este estado no realizan daño directo sino tienen una actividad de colocar huevos para completar su metamorfosis.',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-    $section->addTextBreak();
-    $section->addText(
-      'Para realizar el calculo de la incidencia se toma en cuenta las cuatro visitas realizadas en los formularios de conformidad se saca el promedio de los 3 insectocutores por visita y se llena la tabla que se muestra a continuación.',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-
-    $section->addTextBreak();
-    $section->addText('Incidencia de insectos', ['bold' => true]);
-
-    $phpWord->addTableStyle('tabla_reporte_incidencia', [
-      'borderSize' => 6,          // grosor borde
-      'borderColor' => '000000',  // color borde negro
-      'cellMargin' => 80,         // espacio interno
-      'alignment' => JcTable::CENTER,
-      // 'width' => 100 * 50,        // 100%
-      'unit' => TblWidth::PERCENT,
-    ], [
-      'bgColor' => 'D9D9D9',      // fondo encabezado
-    ]);
-
-    $table = $section->addTable('tabla_reporte_incidencia');
-
-    $table->addRow();
-    $table->addCell()->addText('Fecha');
-
-    foreach ($especies as $esp) {
-      $table->addCell()->addText($esp);
-    }
-
-    foreach ($datosPorFecha as $fecha => $data) {
-
-      $table->addRow();
-      $table->addCell()->addText($fecha);
-
-      foreach ($especies as $esp) {
-        $valor = $data[$esp] ?? 0;
-        $table->addCell()->addText($valor);
-      }
-    }
-
-
-
-    $section->addText('');
-
-    // if ($chart1) {
-    //   $section->addTextBreak();
-    //   $section->addText('Total insectos por especie');
-    //   $section->addImage($chart1, ['width' => 300]);
-    // }
-
-    // [TABLA DE INCIDENCIA]
-
-    if ($chart2) {
-      // $section->addPageBreak();
-      $section->addText('INCIDENCIA DE INSECTOS VOLADORES');
-      $section->addImage($chart2, ['width' => 300]);
-    }
-    $section->addTextBreak();
-    $section->addText(
-      'Se tiene el promedio bajo para las tres observaciones realizada entre los meses de enero y febrero  el mes: mosquito 9%) para la polilla (4%) y finalmente para la mosca (3%) donde la presencia de los tres insectos evaluados es una incidencia baja. estos datos pueden ser debidos a los cambios bruscos de temperatura y humedad en todo caso no existe afectación a los ambientes ni productos evaluados. ',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-    $section->addTextBreak();
-
-    $section->addText(
-      'Finalmente podemos concluir que la incidencia para los meses de enero y febrero se mantiene baja y al capturar insectos en su etapa adulta cortamos totalmente su ciclo biológico evitando daño a los productos.',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-
-    // [TABLA DE SEVERIDAD]
-    $section->addTextBreak();
-    $section->addText(
-      'La severidad se entiende como la mayor cantidad de individuos concentrados en un almacén determinado este parámetro ayuda para identificar donde se concentra más y que especie de insectos tienen mayor presencia para tomar medidas de control si fuese necesario.',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-
-    $section->addTextBreak();
-
-    $section->addText(
-      'Para realizar el cálculo de la severidad se toma en cuenta las tres visitas realizadas en los formularios de conformidad se saca un promedio de las tres visitas  y se llena la tabla que se muestra a continuación.',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-
-    $section->addTextBreak();
-    $section->addText('Severidad de insectos', ['bold' => true]);
-
-    $section->addTextBreak();
-    $section->addTextBreak();
-
-    $phpWord->addTableStyle('tabla_reporte_severidad', [
-      'borderSize' => 6,          // grosor borde
-      'borderColor' => '000000',  // color borde negro
-      'cellMargin' => 80,         // espacio interno
-      'alignment' => JcTable::CENTER,
-      // 'width' => 100 * 50,        // 100%
-      'unit' => TblWidth::PERCENT,
-    ], [
-      'bgColor' => 'D9D9D9',      // fondo encabezado
-    ]);
-
-    $table = $section->addTable('tabla_reporte_severidad');
-
-    $table->addRow();
-    $table->addCell()->addText('Fecha');
-
-    foreach ($especies as $esp) {
-      $table->addCell()->addText($esp);
-    }
-
-    foreach ($datosPorFecha as $fecha => $data) {
-
-      $table->addRow();
-      $table->addCell()->addText($fecha);
-
-      foreach ($especies as $esp) {
-        $valor = $data[$esp] ?? 0;
-        // $table->addCell()->addText(round($valor / count($datosPorFecha), 0, PHP_ROUND_HALF_DOWN));
-        $table->addCell()->addText((int)($valor / count($datosPorFecha)));
-      }
-    }
-
-    $section->addTextBreak();
-
-    if ($chart5) {
-      // $section->addPageBreak();
-      $section->addText('GRAFICO: SEVERIDAD DE INSECTOS VOLADORES');
-      $section->addImage($chart5, ['width' => 300]);
-    }
-
-    $section->addTextBreak();
-
-
-    $section->addTextBreak();
-    $section->addText(
-      'Los resultados de la severidad para el mes de enero y febrero muestran en promedio una concentración muy baja de moscas (1%) mosquitos (2%) y polilla (1%) porcentajes que para fines de análisis no se tomara en cuenta ya que no afectan a la producción de las bebidas en la planta.',
-      [],
-      [
-        'alignment' => Jc::BOTH,
-        'lineHeight' => 1.15
-      ]
-    );
-
-
-
-    $section->addTextBreak();
-
-
-
-    $section->addTextBreak(1);
-
-
-
-    $section->addTextBreak();
+    $section->addTextBreak(2);
+  }
+
+  private function agregaActividadesExtras($section, $acciones)
+  {
 
     // ---------------------SECCION: ACTIVIDADES COMPLEMENTARIAS DE CONTROL ----------------------------        
     $section->addText('ACTIVIDADES COMPLEMENTARIAS DE CONTROL', [
@@ -1773,25 +819,322 @@ class InformesController extends Controller
         }
       }
     }
-
-
-
-
-    // ---------------------SECCION: RECOMENDACIONES PARA LA PROXIMA VISITA: ----------------------------        
-    $this->pie($section, $request);
-
-    $file = storage_path('app/informe.docx');
-    if (!$file) {
-      $file = storage_path('app\\informe.docx');
-    }
-
-    IOFactory::createWriter($phpWord, 'Word2007')->save($file);
-
-    // Log::info('SEGUNDA SECCION GGGGGG');
-    return;
-
-    return response()->json(['ok' => true]);
   }
+
+  private function agregaFotosSeguimientos($section, $seguimientos)
+  {
+    if ($seguimientos) {
+      foreach ($seguimientos as $value) {
+        if ($value->tipo_seguimiento_id == 1) {
+          $section->addText('Seguimiento ' . $value->created_at, [
+            'bold' => true,
+            'size' => 11,
+            'underline' => 'single',
+          ]);
+          if ($value->images) {
+            foreach ($value->images as $v) {
+              $imagePath = public_path($v->imagen);
+
+              if (!empty($v->imagen) && file_exists($imagePath) && is_file($imagePath)) {
+                try {
+                  $section->addImage($imagePath, [
+                    'width' => 200,
+                    'height' => 100,
+                    'alignment' => Jc::CENTER,
+                  ]);
+                } catch (\Exception $e) {
+                  Log::warning('No se pudo agregar la imagen al documento', [
+                    'path' => $imagePath,
+                    'error' => $e->getMessage(),
+                  ]);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+
+  private function agregaTabla1($section, $phpWord, $datosTabla)
+  {
+    $phpWord->addTableStyle('tablaCantidadDeTrampasPorTipo', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
+    $table = $section->addTable('tablaCantidadDeTrampasPorTipo');
+    $table->addRow();
+    $table->addCell()->addText('TIPOS DE TRAMPAS', ['bold' => true]);
+    $table->addCell()->addText('CANTIDAD', ['bold' => true]);
+    $table->addCell()->addText('CAPTURA', ['bold' => true]);
+    $table->addCell()->addText('AREA', ['bold' => true]);
+    // $table->addCell()->addText('OBSERV.', ['bold' => true]);
+    if ($datosTabla) {
+      foreach ($datosTabla as $dato) {
+        $table->addRow();
+        $table->addCell()->addText($dato['tipo_nombre']); // Tipo de trampa
+        $table->addCell()->addText($dato['cantidad_trampas']); // Cantidad
+        $table->addCell()->addText($dato['cantidad']); // Capturados
+        $table->addCell()->addText($dato['mapa_titulo']); // Mapa titulo        
+        // $table->addCell()->addText(''); // Observaciones
+      }
+    }
+  }
+
+  private function agregaTabla2($section, $phpWord, $seguimientos)
+  {
+
+    $phpWord->addTableStyle('tablaFechaSeguimientos', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
+    $section->addText('TABLA: Cronograma de actividades', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
+    $section->addTextBreak();
+    $table = $section->addTable('tablaFechaSeguimientos');
+    $table->addRow();
+    $table->addCell(5000, ['valign' => 'center'])->addText(
+      "FECHA SEGUIMIENTO",
+      ['bold' => true],
+      ['alignment' => 'center']
+    );
+    $table->addCell(5000, ['valign' => 'center'])->addText(
+      "TIPO SEGUIMIENTO",
+      ['bold' => true],
+      ['alignment' => 'center']
+    );
+    foreach ($seguimientos as $seg) {
+      $table->addRow();
+      $table->addCell(5000)->addText(
+        Carbon::parse($seg->created_at)->format('d/m/Y H:i')
+      );
+      $table->addCell(5000)->addText(
+        $seg->tipoSeguimiento->nombre ?? ''
+      );
+    }
+    $section->addTextBreak(2);
+  }
+
+  private function agregaTabla3($section, $phpWord, $datosTablaX1)
+  {
+    $phpWord->addTableStyle('tablaResumenGlobal', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
+    $table = $section->addTable('tablaResumenGlobal');
+    $table->addRow();
+    $table->addCell()->addText("SEGUIMIENTO", ['bold' => true]);
+    $table->addCell()->addText("MAPA", ['bold' => true]);
+    $table->addCell()->addText("TRAMPAS", ['bold' => true]);
+    $table->addCell()->addText("CAPTURADOS", ['bold' => true]);
+    foreach ($datosTablaX1 as $dato) {
+      $table->addRow();
+      $table->addCell()->addText($dato['seguimiento_fecha']);
+      $table->addCell()->addText($dato['mapa_titulo']);
+      $table->addCell()->addText($dato['cantidad_trampas']);
+      $table->addCell()->addText($dato['cantidad']);
+    }
+    $section->addTextBreak(2);
+  }
+
+  private function agregaTabla4($section, $phpWord, $datosPorMapa)
+  {
+    // Tablas por Mapa
+    foreach ($datosPorMapa as $mapaTitulo => $datos) {
+      $this->agregarTablaPorMapa($section, $mapaTitulo, $datos, $phpWord);
+    }
+    $section->addText(
+      'Analizando las tablas de pesos respecto al porcentaje de merma se establece que este no pasa del 5% con relación al Peso Total 100% lo que significa que no ha existido consumo por parte de roedores ni su presencia en las fechas evaluadas. Este porcentaje esta relacionado con perdidas por medio ambiente vale decir condiciones de humedad, temperatura, vientos lluvia, etc. que afectan a los cebos colocados.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addTextBreak();
+    $section->addText(
+      'La Grafica 1 muestra la DL50 (dosis letal media) de los ingredientes activos de los rodenticidas mostrando que brodifacoum es el ingrediente mas efectivo ya que su porcentaje tanto para rata y raton es el mas bajo por lo tanto mas toxico necesitando menor consumo para ser mas efectivo.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addTextBreak();
+    $section->addImage(public_path('images/informe/Tabla-DL50.png'), [
+      'width'  => 300,
+      // 'height' => 100,
+      'alignment' => Jc::CENTER,
+    ]);
+    $section->addTextBreak();
+  }
+
+  private function agregaTabla5($section, $phpWord, $datosTablaX2)
+  {
+
+    $section->addText('TABLA: CANTIDAD DE INSECTOCUTORES', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
+    $section->addTextBreak();
+    $phpWord->addTableStyle('tabla_reporte', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
+    // Tabla
+    $table = $section->addTable('tabla_reporte');
+    // Encabezados (4 columnas ahora)
+    $table->addRow(400);
+    $headers = [
+      'NRO' => 800,
+      'MAPA TÍTULO' => 3500,
+      'CANTIDAD TRAMPA ID' => 1500,
+      'CANTIDAD INSECTOCUTORES' => 2000
+    ];
+    foreach ($headers as $header => $width) {
+      $table->addCell($width, ['celda_encabezado'])
+        ->addText($header, ['fuente_encabezado'], ['align' => 'center']);
+    }
+    // Filas de datos
+    $totalTrampas = 0;
+    $totalInsectocutores = 0;
+    foreach ($datosTablaX2 as $fila) {
+      $table->addRow(400);
+      // NRO
+      $table->addCell(800, ['celda_normal'])
+        ->addText($fila['nro'], ['fuente_normal'], ['align' => 'center']);
+      // MAPA TÍTULO
+      $table->addCell(3500, ['celda_normal'])
+        ->addText($fila['mapa_titulo'], ['fuente_normal']);
+      // CANTIDAD TRAMPA ID
+      $table->addCell(1500, ['celda_normal'])
+        ->addText($fila['cantidad_trampa_id'], ['fuente_normal'], ['align' => 'center']);
+      // CANTIDAD INSECTOCUTORES
+      $table->addCell(2000, ['celda_normal'])
+        ->addText($fila['cantidad_insectocutores'], ['fuente_normal'], ['align' => 'center']);
+      $totalTrampas += $fila['cantidad_trampa_id'];
+      $totalInsectocutores += $fila['cantidad_insectocutores'];
+    }
+    // Fila de totales
+    $table->addRow(400);
+    $table->addCell(800, ['celda_totales'])
+      ->addText('-', ['fuente_totales'], ['align' => 'center']);
+    $table->addCell(3500, ['celda_totales'])
+      ->addText('TOTAL GENERAL', ['fuente_totales']);
+    $table->addCell(1500, ['celda_totales'])
+      ->addText($totalTrampas, ['fuente_totales'], ['align' => 'center']);
+    $table->addCell(2000, ['celda_totales'])
+      ->addText($totalInsectocutores, ['fuente_totales'], ['align' => 'center']);
+  }
+
+  private function agregaTablaIncidencia($section, $phpWord, $especies, $datosPorFecha, $chart2)
+  {
+
+    $section->addTextBreak();
+    $section->addText('Incidencia de insectos', ['bold' => true]);
+    $phpWord->addTableStyle('tabla_reporte_incidencia', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
+    $table = $section->addTable('tabla_reporte_incidencia');
+    $table->addRow();
+    $table->addCell()->addText('Fecha');
+    foreach ($especies as $esp) {
+      $table->addCell()->addText($esp);
+    }
+    foreach ($datosPorFecha as $fecha => $data) {
+      $table->addRow();
+      $table->addCell()->addText($fecha);
+      foreach ($especies as $esp) {
+        $valor = $data[$esp] ?? 0;
+        $table->addCell()->addText($valor);
+      }
+    }
+    $section->addText('');
+
+    if ($chart2) {
+      // $section->addPageBreak();
+      $section->addText('INCIDENCIA DE INSECTOS VOLADORES');
+      $section->addImage($chart2, ['width' => 300]);
+    }
+    $section->addTextBreak();
+  }
+
+  private function agregaTablaSeveridad($section, $phpWord, $especies, $datosPorFecha, $chart5)
+  {
+    $section->addTextBreak();
+    $section->addText('Severidad de insectos', ['bold' => true]);
+    $section->addTextBreak(2);
+    $phpWord->addTableStyle('tabla_reporte_severidad', [
+      'borderSize' => 6,          // grosor borde
+      'borderColor' => '000000',  // color borde negro
+      'cellMargin' => 80,         // espacio interno
+      'alignment' => JcTable::CENTER,
+      // 'width' => 100 * 50,        // 100%
+      'unit' => TblWidth::PERCENT,
+    ], [
+      'bgColor' => 'D9D9D9',      // fondo encabezado
+    ]);
+    $table = $section->addTable('tabla_reporte_severidad');
+    $table->addRow();
+    $table->addCell()->addText('Fecha');
+    foreach ($especies as $esp) {
+      $table->addCell()->addText($esp);
+    }
+    foreach ($datosPorFecha as $fecha => $data) {
+      $table->addRow();
+      $table->addCell()->addText($fecha);
+      foreach ($especies as $esp) {
+        $valor = $data[$esp] ?? 0;
+        // $table->addCell()->addText((int)($valor / count($datosPorFecha)));
+        $table->addCell()->addText((int)($valor / 3));
+      }
+    }
+    $section->addTextBreak();
+
+    if ($chart5) {
+      $section->addText('GRAFICO: SEVERIDAD DE INSECTOS VOLADORES');
+      $section->addImage($chart5, ['width' => 300]);
+    }
+    $section->addTextBreak(2);
+  }
+
 
   public function caratula($section, $request)
   {
@@ -1978,6 +1321,462 @@ class InformesController extends Controller
 
     );
   }
+
+  /**
+   * Summary of storeWord
+   * @param Request $request
+   * @return \Illuminate\Http\JsonResponse
+   */
+  public function storeWord(Request $request)
+  {
+
+    $acciones = Accion::with(['accionTrampas.trampa', 'imagenes'])
+      ->where('almacen_id', $request->almacen_id)
+      ->whereBetween('created_at', [
+        $request->fecha_inicio . ' 00:00:00',
+        $request->fecha_fin . ' 23:59:59',
+      ])
+      ->orderBy('created_at', 'asc')
+      ->get();
+
+    $seguimientos = Seguimiento::with([
+      'almacen',
+      'insectocutores.especie',
+      'insectocutores.trampa.mapa',
+      'roedores.trampa.mapa',
+      'roedores.trampa.trampa_tipo',
+      'images',
+      'tipoSeguimiento'
+    ])->whereIn('id', $request->seguimiento_ids)->get();
+
+    // foreach ($seguimientos as $seg) {
+    //   Log::info('Seg ID: ' . $seg->id);
+    // }
+
+    // 1. Procesamiento de datos para la tabla
+    $datosTabla = $this->procesarDatosTrampas($seguimientos);
+
+    Log::info($datosTabla);
+
+
+    $datosTablaX1 = $this->procesarDatosReporte($seguimientos);
+    Log::info($datosTablaX1);
+    // return;
+
+    $datosPorMapa = $this->procesarDatosPorMapa($seguimientos);
+    Log::info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+    Log::info(count($datosPorMapa));
+    foreach ($datosPorMapa as $dato) {
+      Log::info(($dato['filas']));
+    }
+    Log::info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+    // return;
+
+    $datosTablaX2 = $this->procesarDatosInsectocutores($seguimientos);
+    Log::info("YYYYYYYYYYYYYYYYYYYYYYYYYYY");
+    Log::info(json_encode($datosTablaX2));
+    Log::info("YYYYYYYYYYYYYYYYYYYYYYYYYYY");
+    // return;
+
+    $especies = [];
+    $datosPorFecha = [];
+    foreach ($seguimientos as $seg) {
+      if ($seg->tipo_seguimiento_id != 3) {
+        continue;
+      }
+      $fecha = $seg->created_at->format('d/m/Y');
+      if (!isset($datosPorFecha[$fecha])) {
+        $datosPorFecha[$fecha] = [];
+      }
+      foreach ($seg->insectocutores as $ins) {
+        $nombre = $ins->especie->nombre;
+        $especies[$nombre] = true;
+        if (!isset($datosPorFecha[$fecha][$nombre])) {
+          $datosPorFecha[$fecha][$nombre] = 0;
+        }
+        $datosPorFecha[$fecha][$nombre] += $ins->cantidad;
+      }
+    }
+
+    Log::info('AAAAAAAAAAAAAAAA');
+    Log::info(json_encode($datosPorFecha));
+    Log::info('AAAAAAAAAAAAAAAA');
+
+    Log::info('BBBBBBBBBBBBBBBBBBBBBBBBBBBBB');
+
+    $especies = array_keys($especies);
+
+    $datosRoedores = [];
+    foreach ($seguimientos as $seg) {
+      foreach ($seg->roedores as $r) {
+        $key = $r->trampa_id;
+        if (!isset($datosRoedores[$key])) {
+          $datosRoedores[$key] = [
+            'inicial' => 0,
+            'merma' => 0,
+            'actual' => 0,
+          ];
+        }
+        $datosRoedores[$key]['inicial'] += $r->inicial;
+        $datosRoedores[$key]['merma'] += $r->merma;
+        $datosRoedores[$key]['actual'] += $r->actual;
+      }
+    }
+
+    Log::info('BBBBBBBBBBBBBBBBBBBBBBBBBBBBB');
+    Log::info(json_encode($datosRoedores));
+    Log::info('BBBBBBBBBBBBBBBBBBBBBBBBBBBBB');
+    // return;
+
+    // $chart1 = $this->saveBase64Image($request->chart1, 'chart1');
+    $chart2 = $this->saveBase64Image($request->chart2, 'chart2');
+    // $chart3 = $this->saveBase64Image($request->chart3, 'chart3');
+    // $chart4 = $this->saveBase64Image($request->chart4, 'chart4');
+    $chart5 = $this->saveBase64Image($request->chart5, 'chart5');
+    // $chart6 = $this->saveBase64Image($request->chart6, 'chart6');
+
+    // Crear Word
+    $phpWord = new PhpWord();
+
+    // Idioma español
+    $phpWord->getSettings()->setThemeFontLang(
+      new Language(Language::ES_ES)
+    );
+
+    $phpWord->addParagraphStyle('global', [
+      'lineHeight' => 1.15,
+      'spaceAfter' => 0,
+      'spaceBefore' => 0,
+    ]);
+
+    Log::info('CCCCCCCCCCCCCCCCCCCCCCCCCCCCC');
+
+    // $phpWord->addTableStyle(
+    //   'tablaInforme',
+    //   [
+    //     'borderSize' => 6,
+    //     'borderColor' => '000000',
+    //     'cellMargin' => 80,
+    //     'alignment' => JcTable::CENTER,
+    //     // 'layout' => \PhpOffice\PhpWord\Style\Table::LAYOUT_FIXED,
+    //   ],
+    //   [
+    //     'bgColor' => 'D9D9D9' // estilo para la fila encabezado
+    //   ]
+    // );
+
+    // $section = $phpWord->addSection([
+    //   'orientation' => 'landscape'
+    // ]);
+
+    $section1 = $phpWord->addSection([
+      'orientation' => 'portrait',
+      'marginTop' => 2500,
+      'marginBottom' => 1417,
+      'marginLeft' => 2500,
+      'marginRight' => 1700,
+      'differentFirstPageHeaderFooter' => true
+    ]);
+
+    // Log::info('CONFIGURACIONES');
+
+    $this->caratula($section1, $request);
+
+    // Log::info('PRIMERA SECCION');
+
+    $section = $phpWord->addSection([
+      'orientation' => 'portrait',
+      'marginLeft' => 2500,
+    ]);
+
+    Log::info('DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD');
+
+    // --------------------------------------------------------------------------
+    // ------------------------- DATOS DE PAGINAS 
+    $this->agregaIntroObjMetodo($section);
+
+    // ---------------------SECCION: LO QUE SE REALIZO EN LA VISITA -------------
+
+    $section->addText('LO QUE SE REALIZO EN LA VISITA', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
+    $section->addTextBreak();
+
+    // ---------------------SUBSECCION: DESRATIZACION ----------------------------
+
+    $section->addText('1) DESRATIZACIÓN', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
+
+    // ************************************************************************************
+    // FOTOS DE VISITAS POR SEGUIMIENTO ***********************************************
+    // ************************************************************************************
+    $this->agregaFotosSeguimientos($section, $seguimientos);
+
+    Log::info('FFFFFFFFFFFFFFFFFFFFFFFFFF');
+
+    // ************************************************************************************
+    // TABLA CANTIDAD DE TRAMPAS x TIPO y CANTIDAD DE ROEDORES CAPTURADOS *****************
+    // TABLA 1
+    // ************************************************************************************
+    $this->agregaTabla1($section, $phpWord, $datosTabla);
+
+    $this->agregaTablasRodenticidas($section, $phpWord);
+
+    // ---------------------SUBSECCION: SEGUIMIENTO DE LAS UNIDADES DE CONTROL ----------------------------
+    $section->addText('2) SEGUIMIENTO DE LAS UNIDADES DE CONTROL', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
+    $section->addTextBreak();
+    $section->addText(
+      'Se realizaron tres seguimientos al sistema de control de roedores ________ según cronograma de actividades.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addTextBreak();
+
+    Log::info('HHHHHHHHHHHHHHHHHHHHHHHHHH');
+
+    // ************************************************************************************
+    // TABLA FECHAS DE SEGUIMIENTOS *****************
+    // ************************************************************************************
+
+    $this->agregaTabla2($section, $phpWord, $seguimientos);
+
+
+    $this->agregaTabla3($section, $phpWord, $datosTablaX1);
+
+    Log::info('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIII');
+
+
+    // ************************************************************************************
+    // TABLA CANTIDAD DE TRAMPAS x TIPO y CANTIDAD DE ROEDORES CAPTURADOS (EN CADA SEGUIMIENTO) ***
+    // ************************************************************************************    
+
+    // ---------------------SUBSECCION: BALANCE Y ANALISIS ----------------------------    
+    $section->addText('BALANCE Y ANALISIS.', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
+    $section->addText(
+      'Se cumplió con el seguimiento de las 68 unidades de control de roedores procediendo al pesaje de los cebos de las trampas a continuación se muestras los cuadros resúmenes de estas  actividades.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addText(
+      'Los cuadros muestran los pesos obtenidos por fechas de seguimiento se verifica el peso total la merma y peso actual de las 68 unidades de control de roedores.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+
+    // ************************************************************************************
+    // TABLA RESUMEN X (CADA SEGUIMIENTO Y CADA ALMACEN) ***
+    // ************************************************************************************   
+
+    $this->agregaTabla4($section, $phpWord, $datosPorMapa);
+
+    Log::info('JJJJJJJJJJJJJJJJJJJJJJJJ');
+
+    // ************************************************************************************
+    // GRAFICA: IMAGEN DESDE PUBLIC ***
+    // ************************************************************************************    
+
+    $section->addText(
+      'La Grafica 2 muestra la cantidad de cebo que debe ingerir un roedor según los ingredientes activos para que se cumpla la DL50 (dosis letal media) y pueda ser eliminado. Corroborando que el ingrediente activo BRODIFACOUM es el mas efectivo con un consumo minimo.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addImage(public_path('images/informe/Grafica-3.png'), [
+      'width'  => 200,
+      // 'height' => 100,
+      'alignment' => Jc::CENTER,
+    ]);
+
+    // ************************************************************************************
+    // GRAFICA: IMAGEN DESDE PUBLIC ***
+    // ************************************************************************************    
+
+    $section->addText(
+      'La Grafica 3 muestra el % de consumo quincenal  de los tres segumientos mensuales en la planta de produccion VF y los Almacenes dos y eventos, a la fecha de evaluación esta merma es debido a causas medioambientales ya que no se tuvo reporte de presencia y/o captura de roedor. ',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addTextBreak();
+    $chartsPorMapa   = $request->charts_por_mapa ?? [];
+    $titulosPorMapa  = $request->charts_por_mapa_titulos ?? [];
+    foreach ($chartsPorMapa as $index => $chartBase64) {
+      // Agregar título del mapa
+      $titulo = $titulosPorMapa[$index] ?? "Mapa " . ($index + 1);
+      $section->addTitle($titulo, 2);
+      $section->addTextBreak(1);
+      // Agregar imagen
+      // $agregarImagen($section, $chartBase64);
+      $graf = $this->saveBase64Image($chartBase64, 'chartX_' . $index);
+      $section->addImage($graf, [
+        'width'  => 300,
+        // 'height' => 300,
+        'alignment' => Jc::CENTER,
+      ]);
+      $section->addTextBreak(1);
+    }
+    $section->addTextBreak();
+
+    Log::info('KKKKKKKKKKKKKKKKKKKKKKKKK');
+
+    // ************************************************************************************
+    // GRAFICA: MONITOREO DE ROEDORES (X ALMACEN)
+    // ************************************************************************************    
+
+
+    // -------------------------------- xxxxxx (INICIO) SECCION NO AGREGADA EN INFORME xxxxxxxxxxxxx
+
+    // ---------------------SECCION: BARRERAS FISICAS DE EXCLUCION (INSECTOCUTORES) ----------------------------        
+    $section->addText('3) BARRERAS FISICAS DE EXCLUCION (INSECTOCUTORES)', [
+      'bold' => true,
+      'size' => 11,
+      'underline' => 'single',
+    ]);
+    $section->addTextBreak();
+    $section->addText(
+      'Para el control de insectos voladores se ha implementado tres insectocutores se realizó el seguimiento de cada uno de los insectocutores revisando el tipo de insecto encontrado y la cantidad, con esta información se ha podido calcular la incidencia y severidad se muestra a través de gráficos las tendencias y análisis respectivos',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addTextBreak();
+
+    $this->agregaTabla5($section, $phpWord, $datosTablaX2);
+
+
+    Log::info('LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL');
+
+    $section->addTextBreak();
+    $section->addText(
+      'La incidencia es el número de individuos que están presentes en un determinado lugar la gráfica de incidencia muestra la presencia en estado adulto de los tres tipos de insectos que se ha logrado capturar que son mosca, mosquito y polillas en este estado no realizan daño directo sino tienen una actividad de colocar huevos para completar su metamorfosis.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addTextBreak();
+    $section->addText(
+      'Para realizar el calculo de la incidencia se toma en cuenta las cuatro visitas realizadas en los formularios de conformidad se saca el promedio de los 3 insectocutores por visita y se llena la tabla que se muestra a continuación.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+
+    $this->agregaTablaIncidencia($section, $phpWord, $especies, $datosPorFecha, $chart2);
+
+    // [TABLA DE INCIDENCIA]
+
+
+    $section->addText(
+      'Se tiene el promedio bajo para las tres observaciones realizada entre los meses de enero y febrero  el mes: mosquito 9%) para la polilla (4%) y finalmente para la mosca (3%) donde la presencia de los tres insectos evaluados es una incidencia baja. estos datos pueden ser debidos a los cambios bruscos de temperatura y humedad en todo caso no existe afectación a los ambientes ni productos evaluados. ',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addTextBreak();
+    $section->addText(
+      'Finalmente podemos concluir que la incidencia para los meses de enero y febrero se mantiene baja y al capturar insectos en su etapa adulta cortamos totalmente su ciclo biológico evitando daño a los productos.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addTextBreak();
+    $section->addText(
+      'La severidad se entiende como la mayor cantidad de individuos concentrados en un almacén determinado este parámetro ayuda para identificar donde se concentra más y que especie de insectos tienen mayor presencia para tomar medidas de control si fuese necesario.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addTextBreak();
+    $section->addText(
+      'Para realizar el cálculo de la severidad se toma en cuenta las tres visitas realizadas en los formularios de conformidad se saca un promedio de las tres visitas  y se llena la tabla que se muestra a continuación.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+
+    Log::info('MMMMMMMMMMMMMMMMMMMMMMMMMMMMM');
+
+    // [TABLA DE SEVERIDAD]
+    $this->agregaTablaSeveridad($section, $phpWord, $especies, $datosPorFecha, $chart5);
+
+
+
+    $section->addText(
+      'Los resultados de la severidad para el mes de enero y febrero muestran en promedio una concentración muy baja de moscas (1%) mosquitos (2%) y polilla (1%) porcentajes que para fines de análisis no se tomara en cuenta ya que no afectan a la producción de las bebidas en la planta.',
+      [],
+      [
+        'alignment' => Jc::BOTH,
+        'lineHeight' => 1.15
+      ]
+    );
+    $section->addTextBreak(3);
+
+    Log::info('NNNNNNNNNNNNNNNNNNNNNNNNNNN');
+
+    $this->agregaActividadesExtras($section, $acciones);
+
+    Log::info('OOOOOOOOOOOOOOOOOOOOOOOOOO');
+
+
+    // ---------------------SECCION: RECOMENDACIONES PARA LA PROXIMA VISITA: ----------------------------        
+    $this->pie($section, $request);
+
+
+    // -------------------------------------------
+    $file = storage_path('app/informe.docx');
+    if (!$file) {
+      $file = storage_path('app\\informe.docx');
+    }
+
+    IOFactory::createWriter($phpWord, 'Word2007')->save($file);
+
+    // Log::info('SEGUNDA SECCION GGGGGG');
+    // return;
+    Log::info('OK OK OK');
+
+    return response()->json(['ok' => true]);
+  }
+
 
   public function downloadWord()
   {
