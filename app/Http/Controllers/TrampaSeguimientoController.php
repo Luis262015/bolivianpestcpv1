@@ -47,13 +47,17 @@ class TrampaSeguimientoController extends Controller
     //   $seguimiento->trampaRoedoresSeguimientos ?? [],
     // ]);
 
-    $seguimiento = Seguimiento::find($id)->with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->get();
-    // dd($seguimiento[0]->trampaRoedoresSeguimientos);
+    // $seguimiento = Seguimiento::find($id)->with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->get();
+    $seguimiento = Seguimiento::where('id', $id)->with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->first();
+
+    // dd($seguimiento->trampaRoedoresSeguimientos);
+    Log::info($seguimiento->trampaRoedoresSeguimientos);
+
     return response()->json([
       'trampa_especies_seguimientos' =>
-      $seguimiento[0]->trampaEspeciesSeguimientos ?? [],
+      $seguimiento->trampaEspeciesSeguimientos ?? [],
       'trampa_roedores_seguimientos' =>
-      $seguimiento[0]->trampaRoedoresSeguimientos ?? [],
+      $seguimiento->trampaRoedoresSeguimientos ?? [],
     ]);
   }
 
@@ -99,30 +103,34 @@ class TrampaSeguimientoController extends Controller
 
     // dd($id);
 
-    $seguimiento = Seguimiento::where('id', $id);
+    // $seguimiento = Seguimiento::where('id', $id)->with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->first();
 
-    dd($seguimiento);
+    // dd($seguimiento->trampaRoedoresSeguimientos);
 
-    return;
+    // return;
 
     try {
 
       DB::beginTransaction();
 
-      $seguimiento = Seguimiento::find($id)->with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->get();
+      // $seguimiento = Seguimiento::find($id)->with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->get();
+      $seguimiento = Seguimiento::where('id', $id)->with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->first();
 
 
       // Log::info($seguimiento);
-      dd($seguimiento);
-      return;
+      // dd($seguimiento);
+      // return;
 
       // Sincronizar seguimientos de especies
-      if ($request->has('trampa_especies_seguimientos')) {
+      if ($request->has('trampa_especies_seguimientos') && count($request['trampa_especies_seguimientos']) > 0) {
+        Log::info("AAAAAAAAAAAAAAAAAAAA");
         // Eliminar los anteriores
         // $seguimiento[0]->trampaEspeciesSeguimientos->delete();
-        foreach ($seguimiento[0]->trampaEspeciesSeguimientos as $especie) {
+        foreach ($seguimiento->trampaEspeciesSeguimientos as $especie) {
           $delItem = TrampaEspecieSeguimiento::find($especie->id)->delete();
         }
+
+        Log::info("aaaaaaaaaaaaaaaaaaaaa");
         // Crear los nuevos
         foreach ($request->trampa_especies_seguimientos as $especie) {
           $createItem = new TrampaEspecieSeguimiento([
@@ -138,21 +146,25 @@ class TrampaSeguimientoController extends Controller
           //   'cantidad' => $especie['cantidad'],
           // ]);
         }
+        Log::info("bbbbbbbbbbbbbbbbbbbbbbbbbb");
       }
       // Sincronizar seguimientos de roedores
-      if ($request->has('trampa_roedores_seguimientos')) {
+      if ($request->has('trampa_roedores_seguimientos') && count($request['trampa_roedores_seguimientos']) > 0) {
+        Log::info("BBBBBBBBBBBBBBBBBBBBBBBBBBBB");
         // Eliminar los anteriores
         // $seguimiento[0]->trampaRoedoresSeguimientos->delete();
-        foreach ($seguimiento[0]->trampaRoedoresSeguimientos as $roedor) {
+        foreach ($seguimiento->trampaRoedoresSeguimientos as $roedor) {
           Log::info("DEL ITEM ------ " . $roedor->id);
           $delItem = TrampaRoedorSeguimiento::find($roedor->id)->delete();
           Log::info($delItem);
         }
+        Log::info("1111111111111111111111111");
         // Crear los nuevos
         foreach ($request->trampa_roedores_seguimientos as $roedor) {
           $createItem = new TrampaRoedorSeguimiento([
             'seguimiento_id' => $id,
             'trampa_id' => $roedor['trampa_id'],
+            'observacion' => $roedor['observacion'],
             'cantidad' => $roedor['cantidad'],
             'inicial' => $roedor['inicial'],
             'merma' => $roedor['merma'],
@@ -167,6 +179,7 @@ class TrampaSeguimientoController extends Controller
           //   'actual' => $roedor['actual'],
           // ]);
         }
+        Log::info("222222222222222222222222222222");
       }
 
       DB::commit();
