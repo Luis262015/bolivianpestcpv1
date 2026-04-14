@@ -50,7 +50,7 @@ export interface TrampaRoedoresSeguimiento {
 
 interface SeguimientoTrampasProps {
   almacenId: number;
-  tipoSeguimiento: number;
+  tipoSeguimiento: string;
   value: {
     trampa_especies_seguimientos: TrampaEspecieSeguimientos[];
     trampa_roedores_seguimientos: TrampaRoedoresSeguimiento[];
@@ -217,15 +217,19 @@ export default function SeguimientoTrampasEdit({
   if (!trampas.length) {
     return (
       <p className="text-sm text-muted-foreground">
-        No existen trampas registradas para este almacén
+        No existen trampas registradas para este almacén {tipoSeguimiento}
       </p>
     );
   }
 
   return (
     <div className="space-y-6">
-      {tipoSeguimiento === 1 ? (
+      {/* <div>{tipoSeguimiento}</div>
+      <div>{typeof tipoSeguimiento}</div> */}
+      {tipoSeguimiento === '1' ? (
         <>
+          {/* <div>AAAAAAAAAAAAAAAAAAAA</div>
+          <div>{tipoSeguimiento}</div> */}
           {trampas.map((trampa) => (
             <>
               {/* <div key={trampa.id} className="space-y-4 rounded-lg border p-4"> */}
@@ -318,6 +322,8 @@ export default function SeguimientoTrampasEdit({
         </>
       ) : (
         <>
+          {/* <div>BBBBBBBBBBBBBBBB</div>
+          <div>{tipoSeguimiento}</div> */}
           {trampas.map((trampa) => (
             <>
               {/* <div key={trampa.id} className="space-y-4 rounded-lg border p-4"> */}

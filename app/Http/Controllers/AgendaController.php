@@ -38,7 +38,8 @@ class AgendaController extends Controller
 
   public function update(Request $request, Agenda $agenda)
   {
-    $this->authorizeTask($agenda);
+
+    // $this->authorizeTask($agenda);
     $validated = $request->validate($this->toValidated);
     $agenda->update($validated);
     return redirect()->route('agendas.index')->with('success', 'Tarea actualizada correctamente');
@@ -46,7 +47,7 @@ class AgendaController extends Controller
 
   public function destroy(Agenda $agenda)
   {
-    $this->authorizeTask($agenda);
+    // $this->authorizeTask($agenda);
     $agenda->delete();
     return redirect()->route('agendas.index')->with('success', 'Tarea eliminada correctamente');
   }

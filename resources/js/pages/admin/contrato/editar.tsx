@@ -376,6 +376,52 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
     }, 0);
   };
 
+  const removeTrampaFechaVisita = (
+    almacenIndex: number,
+    visitaIndex: number,
+  ) => {
+    const updated = [...data.almacenes];
+    const trampa = { ...updated[almacenIndex].almacen_trampa };
+    trampa.fechas_visitas = (trampa.fechas_visitas || []).filter(
+      (_, i) => i !== visitaIndex,
+    );
+    trampa.visitas = trampa.fechas_visitas.length;
+    trampa.total = calcularTotalTrampas(
+      trampa.cantidad,
+      trampa.visitas,
+      trampa.precio,
+    );
+    updated[almacenIndex].almacen_trampa = trampa;
+    setData('almacenes', updated);
+  };
+
+  const removeAreaFechaVisita = (almacenIndex: number, visitaIndex: number) => {
+    const updated = [...data.almacenes];
+    const area = { ...updated[almacenIndex].almacen_area };
+    area.fechas_visitas = (area.fechas_visitas || []).filter(
+      (_, i) => i !== visitaIndex,
+    );
+    area.visitas = area.fechas_visitas.length;
+    area.total = calcularTotalArea(area.area, area.visitas, area.precio);
+    updated[almacenIndex].almacen_area = area;
+    setData('almacenes', updated);
+  };
+
+  const removeInsectocutorFechaVisita = (
+    almacenIndex: number,
+    visitaIndex: number,
+  ) => {
+    const updated = [...data.almacenes];
+    const insect = { ...updated[almacenIndex].almacen_insectocutor };
+    insect.fechas_visitas = (insect.fechas_visitas || []).filter(
+      (_, i) => i !== visitaIndex,
+    );
+    insect.visitas = insect.fechas_visitas.length;
+    insect.total = calcularTotalInsectocutor(insect.visitas, insect.precio);
+    updated[almacenIndex].almacen_insectocutor = insect;
+    setData('almacenes', updated);
+  };
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`Editar Contrato #${contrato.id}`} />
@@ -749,10 +795,9 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
                                       size="icon"
                                       className="mb-0.5 shrink-0 text-red-500 hover:text-red-700"
                                       onClick={() =>
-                                        updateTrampaFechaVisita(
+                                        removeTrampaFechaVisita(
                                           index,
                                           visitaIndex,
-                                          '',
                                         )
                                       }
                                     >
@@ -902,10 +947,9 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
                                       size="icon"
                                       className="mb-0.5 shrink-0 text-red-500 hover:text-red-700"
                                       onClick={() =>
-                                        updateAreaFechaVisita(
+                                        removeAreaFechaVisita(
                                           index,
                                           visitaIndex,
-                                          '',
                                         )
                                       }
                                     >
@@ -1059,10 +1103,9 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
                                       size="icon"
                                       className="mb-0.5 shrink-0 text-red-500 hover:text-red-700"
                                       onClick={() =>
-                                        updateInsectocutorFechaVisita(
+                                        removeInsectocutorFechaVisita(
                                           index,
                                           visitaIndex,
-                                          '',
                                         )
                                       }
                                     >

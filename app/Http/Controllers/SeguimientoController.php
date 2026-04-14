@@ -99,6 +99,9 @@ class SeguimientoController extends Controller
   public function store(Request $request)
   {
 
+    // dd($request);
+    // return;
+
     try {
       DB::beginTransaction();
 

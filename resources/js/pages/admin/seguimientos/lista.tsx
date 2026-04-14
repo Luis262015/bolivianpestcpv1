@@ -210,16 +210,20 @@ export default function Lista({
                             >
                               <FileChartColumn className="h-4 w-4" />
                             </Button>
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedSeguimiento(seguimiento);
-                                setOpenTrampa(true);
-                              }}
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
+                            {/* <div>{seguimiento.tipo_seguimiento_id}</div>
+                            <div>{typeof seguimiento.tipo_seguimiento_id}</div> */}
+                            {Number(seguimiento.tipo_seguimiento_id) !== 2 && (
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedSeguimiento(seguimiento);
+                                  setOpenTrampa(true);
+                                }}
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                            )}
                             {/* <ModalSeguimientoTrampa
                               open={open}
                               onClose={() => setOpen(false)}
@@ -287,7 +291,7 @@ export default function Lista({
           }}
           seguimientoId={selectedSeguimiento.id}
           almacenId={selectedSeguimiento.almacen_id}
-          tipoSeguimiento={selectedSeguimiento.tipo_seguimiento_id}
+          tipoSeguimiento={String(selectedSeguimiento.tipo_seguimiento_id)}
           initialData={{
             trampa_especies_seguimientos:
               selectedSeguimiento.trampa_especies_seguimientos,
