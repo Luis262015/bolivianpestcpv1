@@ -5,7 +5,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { Autoplay, EffectFade, Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Textarea } from "@/components/ui/textarea"
@@ -49,12 +49,58 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 export default function Landing() {
+  const { component } = usePage();
+
   return (
     <>
       <SplashScreen screen="/images/LogoBlack.png" />
 
       {/* pestaña de navegador */}
-      <Head title="Inicio">
+      <Head
+        title="Control de Plagas en Bolivia | Bolivian Pest - Fumigación Profesional"
+        meta={[
+          {
+            name: 'description',
+            content:
+              'Bolivian Pest: Servicios profesionales de control de plagas en Bolivia. Fumigación, exterminación de termitas, roedores y más. Atención 24/7. Contacto: +591 76738282',
+          },
+          {
+            name: 'keywords',
+            content:
+              'control de plagas Bolivia, fumigación La Paz, exterminación de termitas, exterminador roedores, servicios de fumigación Bolivia, empresa control plagas',
+          },
+          {
+            name: 'author',
+            content: 'Bolivian Pest - Higiene Ambiental',
+          },
+          {
+            name: 'robots',
+            content: 'index, follow',
+          },
+          { property: 'og:title', content: 'Control de Plagas en Bolivia | Bolivian Pest' },
+          {
+            property: 'og:description',
+            content:
+              'Servicios profesionales de control de plagas en Bolivia. Fumigación, exterminación de termitas, roedores y más. Atención 24/7.',
+          },
+          { property: 'og:image', content: '/images/og-image.svg' },
+          { property: 'og:url', content: 'https://bolivianpest.com' },
+          { property: 'og:type', content: 'website' },
+          { property: 'og:locale', content: 'es_BO' },
+          { property: 'og:site_name', content: 'Bolivian Pest' },
+          { name: 'twitter:card', content: 'summary_large_image' },
+          { name: 'twitter:title', content: 'Control de Plagas en Bolivia | Bolivian Pest' },
+          {
+            name: 'twitter:description',
+            content:
+              'Servicios profesionales de control de plagas en Bolivia. Fumigación, exterminación de termitas, roedores y más. Atención 24/7.',
+          },
+          { name: 'twitter:image', content: '/images/og-image.svg' },
+          { name: 'twitter:site', content: '@bolivian_pest' },
+          { name: 'theme-color', content: '#013147' },
+        ]}
+      >
+        <link rel="canonical" href={`${typeof window !== 'undefined' ? window.location.origin : 'https://bolivianpest.com'}`} />
         <link rel="preconnect" href="https://fonts.bunny.net" />
         <link
           href="https://fonts.bunny.net/css?family=inter:200,300,300i,400,400i,500,500i,600,600i,700,800,900"
@@ -62,6 +108,118 @@ export default function Landing() {
         />
         <script async src="https://www.tiktok.com/embed.js"></script>
       </Head>
+
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              '@context': 'https://schema.org',
+              '@type': 'LocalBusiness',
+              name: 'Bolivian Pest - Control de Plagas',
+              description:
+                'Servicios profesionales de control de plagas en Bolivia. Fumigación, exterminación de termitas, roedores, cucarachas y más. Atención 24/7.',
+              url: `${typeof window !== 'undefined' ? window.location.origin : 'https://bolivianpest.com'}`,
+              telephone: '+591 76738282',
+              email: 'info@bolivianpest.com',
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: 'La Paz',
+                addressCountry: 'BO',
+              },
+              geo: {
+                '@type': 'GeoCoordinates',
+                latitude: -16.499473655781642,
+                longitude: -68.12636138046955,
+              },
+              openingHoursSpecification: {
+                '@type': 'OpeningHoursSpecification',
+                dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                opens: '00:00',
+                closes: '23:59',
+              },
+              priceRange: '$$',
+              serviceType: [
+                'Control de Plagas',
+                'Fumigación',
+                'Exterminación de Termitas',
+                'Exterminación de Roedores',
+                'Control de Cucarachas',
+                'Control de Hormigas',
+              ],
+              areaServed: {
+                '@type': 'Country',
+                name: 'Bolivia',
+              },
+              image: `${typeof window !== 'undefined' ? window.location.origin : 'https://bolivianpest.com'}/images/og-image.svg`,
+            },
+            {
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Bolivian Pest',
+              url: `${typeof window !== 'undefined' ? window.location.origin : 'https://bolivianpest.com'}`,
+              logo: `${typeof window !== 'undefined' ? window.location.origin : 'https://bolivianpest.com'}/images/LogoFC.svg`,
+              sameAs: [
+                'https://www.facebook.com/p/Bolivian-Pest-Higiene-Ambiental-61572172198692/',
+                'https://instagram.com/bolivian_pest',
+              ],
+              contactPoint: {
+                '@type': 'ContactPoint',
+                telephone: '+591 76738282',
+                contactType: 'customer service',
+                availableLanguage: 'Spanish',
+              },
+            },
+            {
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: [
+                {
+                  '@type': 'Question',
+                  name: '¿Qué tipos de plagas tratan en Bolivian Pest?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Controlamos una amplia variedad de plagas incluyendo roedores, hormigas, cucarachas, termitas, chinches, mosquitos, arañas y fauna silvestre. Aplicamos métodos específicos según la especie para garantizar resultados efectivos.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: '¿Son seguros sus métodos de control de plagas para mis mascotas?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Sí. Todos nuestros productos y procedimientos están certificados y son seguros para mascotas y personas. Utilizamos productos de baja toxicidad aprobados por SENASAG y aplicados bajo estándares profesionales.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: '¿Con qué frecuencia debo programar los servicios de control de plagas?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'La frecuencia depende del tipo de plaga y del entorno. Para hogares recomendamos cada 3 a 4 meses. Para comercios y restaurantes recomendamos servicios mensuales o quincenales según normas de salubridad.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: '¿Ofrecen servicios de control de plagas de emergencia?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Sí, contamos con servicios de emergencia para infestaciones severas como nidos de avispas, presencia elevada de roedores, brotes de cucarachas en cocinas o invasiones de chinches. Atendemos en el menor tiempo posible.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: '¿Cómo sé si tengo una plaga?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Algunas señales comunes incluyen: excrementos pequeños o manchas oscuras, ruidos dentro de paredes o techos, olores fuertes desagradables, y huecos o montículos en madera o suelo. Si notas estos signos, solicita una inspección profesional.',
+                  },
+                },
+              ],
+            },
+          ]),
+        }}
+      />
 
       <Navbar logo="/images/LogoHFCWhite.png" />
 
@@ -80,7 +238,7 @@ export default function Landing() {
             <img
               src="/images/slider/sli1.webp"
               className="h-full w-full object-cover"
-              alt="Slide 1"
+              alt="Servicio de control de plagas en hogar boliviano - Fumigación profesional"
               loading="lazy"
             />
           </SwiperSlide>
@@ -88,7 +246,7 @@ export default function Landing() {
             <img
               src="/images/slider/sli2.webp"
               className="h-full w-full object-cover"
-              alt="Slide 2"
+              alt="Equipo profesional de Bolivian Pest realizando fumigación comercial"
               loading="lazy"
             />
           </SwiperSlide>
@@ -96,7 +254,7 @@ export default function Landing() {
             <img
               src="/images/slider/sli3.webp"
               className="h-full w-full object-cover"
-              alt="Slide 3"
+              alt="Control de termitas y roedores en oficinas y negocios"
               loading="lazy"
             />
           </SwiperSlide>
@@ -104,7 +262,7 @@ export default function Landing() {
             <img
               src="/images/slider/sli4.webp"
               className="h-full w-full object-cover"
-              alt="Slide 4"
+              alt="Servicio de fumigación 24/7 para emergencias de plagas"
               loading="lazy"
             />
           </SwiperSlide>
@@ -118,7 +276,7 @@ export default function Landing() {
               <div className="hidden justify-self-end lg:block">
                 <img
                   src="/images/cta/personaje.webp"
-                  alt="Personaje"
+                  alt="Profesional de Bolivian Pest listo para ayudarlo"
                   className="h-auto max-w-full"
                 />
               </div>
@@ -126,15 +284,26 @@ export default function Landing() {
               {/* Texto - centrado en móvil, alineado a la izquierda en desktop */}
               <div className="text-center lg:text-left">
                 <h1 className="/* ≤ 425px */ /* 426px - 640px */ /* 768px+ */ /* 1024px+ */ mb-3 text-2xl leading-tight font-bold text-white drop-shadow-2xl sm:mb-4 sm:text-3xl md:text-4xl lg:text-5xl xl:text-[2.8rem]">
-                  Servicios confiables de control de plagas e insectos en los
-                  que puede confiar.
+                  Elimine cualquier plaga en 24 horas — Técnicos certificados disponibles 24/7 en toda Bolivia
                 </h1>
 
                 <p className="/* ≤ 425px → más pequeño */ /* 426px - 640px */ /* 768px+ */ /* 1024px+ */ text-sm leading-relaxed text-white drop-shadow-lg sm:text-base md:text-lg lg:text-xl">
-                  Proteja su hogar y negocio con nuestras soluciones efectivas
-                  para el control de plagas. Desde termitas hasta roedores,
-                  eliminamos las plagas de forma rápida y segura.
+                  Desde termitas hasta roedores, exterminación profesional garantizada.
+                  Sin compromiso — llámenos hoy y agenda su inspección.
                 </p>
+
+                {/* CTAs del Hero */}
+                <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
+                  <a
+                    href="https://wa.me/59176738282"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition hover:bg-green-700"
+                  >
+                    <Phone className="h-5 w-5" />
+                    Llamar ahora +591 76738282
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -149,14 +318,12 @@ export default function Landing() {
               <img
                 src="/images/icons/coberturab.svg"
                 className="w-[35px]"
-                alt="Icon 1"
+                alt="Servicio de control de plagas con cobertura nacional en Bolivia"
               />
             </div>
             <div className="ms-4">
               <h3 className="text-[20px] font-bold">Cobertura Integral</h3>
-              {/* <a href="#" className="read-more">
-                Leer más <span>→</span>
-              </a> */}
+
             </div>
           </div>
 
@@ -165,7 +332,7 @@ export default function Landing() {
               <img
                 src="/images/icons/tiempob.svg"
                 className="w-[35px]"
-                alt="Icon 2"
+                alt="Respuesta rápida de emergencia en control de plagas"
               />
             </div>
             <div className="ms-4">
@@ -173,9 +340,7 @@ export default function Landing() {
                 Tiempos de respuesta <br />
                 rapidos
               </h3>
-              {/* <a href="#" className="read-more">
-                Leer más <span>→</span>
-              </a> */}
+
             </div>
           </div>
 
@@ -184,7 +349,7 @@ export default function Landing() {
               <img
                 src="/images/icons/serviciob.svg"
                 className="w-[35px]"
-                alt="Icon 3"
+                alt="Servicios de fumigación para negocios y empresas"
               />
             </div>
             <div className="ms-4">
@@ -194,9 +359,7 @@ export default function Landing() {
               >
                 Servicios <br /> comerciales
               </h3>
-              {/* <a href="#" className="read-more">
-                Leer más <span>→</span>
-              </a> */}
+
             </div>
           </div>
 
@@ -205,16 +368,14 @@ export default function Landing() {
               <img
                 src="/images/icons/emergenciab.svg"
                 className="w-[35px]"
-                alt="Icon 4"
+                alt="Servicio de emergencia de control de plagas disponible 24 horas"
               />
             </div>
             <div className="ms-4">
               <h3 className="text-[20px] font-bold">
                 Servicio de <br /> Emergencia 24/7
               </h3>
-              {/* <a href="#" className="read-more">
-                Leer más <span>→</span>
-              </a> */}
+
             </div>
           </div>
         </div>
@@ -230,26 +391,26 @@ export default function Landing() {
               <div className=
               {`main-circle overflow-hidden rounded-full border-[12px] shadow-2xl ${styles.aboutImageU}`}>
                 <img
-                  src="/images/about/cuatro.webp"
+                  src="/images/about-equipo-trabajo.webp"
                   className="h-[100%] w-[100%] object-cover"
-                  alt="Técnico fumigando"
+                  alt="Equipo profesional de fumigación Bolivian Pest"
                 />
               </div>
               {/* <!-- Círculos flotantes de insectos --> */}
               <div className=
               {`floating-bug bug-1 overflow-hidden rounded-full border-[8px] shadow-2xl ${styles.aboutImageD}`}>
                 <img
-                  src="/images/about/dos.webp"
+                  src="/images/about-mosquito.webp"
                   className="h-[100%] w-[100%] object-cover"
-                  alt="Mosquito"
+                  alt="Plaga de mosquito en el hogar"
                 />
               </div>
               <div className=
               {`floating-bug bug-2 absolute overflow-hidden rounded-full border-[8px] shadow-2xl ${styles.aboutImageT}`}>
                 <img
-                  src="/images/about/uno.webp"
+                  src="/images/about-tecnico-fumigando.webp"
                   className="h-[100%] w-[100%] object-cover"
-                  alt="Escarabajo"
+                  alt="Escarabajo como plaga"
                 />
               </div>
               <div className=
@@ -257,7 +418,7 @@ export default function Landing() {
                 <img
                   src="/images/about/siete.webp"
                   className="h-[100%] w-[100%] object-cover"
-                  alt="Cucaracha"
+                  alt="Cucaracha como plaga doméstica"
                 />
               </div>
             </div>
@@ -268,7 +429,7 @@ export default function Landing() {
                 Acerca de Nosotros
               </span>
               <h2 className={`section-title ${styles.sectionTitle}`}>
-                Protegiendo hogares, 
+                Protegiendo hogares,
                 <span> negocios y comunidades</span>
               </h2>
 
@@ -406,7 +567,7 @@ export default function Landing() {
             <SwiperSlide>
               <div className={styles.serviceCard}>
                 <div className={styles.serviceImg}>
-                  <img src="/images/services/uno.webp" alt="Commercial" />
+                  <img src="/images/servicio-fumigacion-comercial.webp" alt="Fumigación comercial para negocios" />
                 </div>
                 <div className={styles.serviceIcon}>
                   {/* <i className="fas fa-building"></i> */}
@@ -414,83 +575,83 @@ export default function Landing() {
                 </div>
                 <h3>Soluciones comerciales para el control de plagas</h3>
                 <p>
-                  Soluciones personalizadas para proteger su hogar de las plagas
-                  comunes
+                  Protección completa para restaurantes, oficinas y negocios.
+                  Cumplimos normas de salubridad — garantía de resultados.
                 </p>
-                <a href="#" className={styles.serviceReadMore}>
-                  Read More →
+                <a href="https://wa.me/59176738282" className={styles.serviceReadMore}>
+                  Solicitar servicio →
                 </a>
               </div>
             </SwiperSlide>
             <SwiperSlide>
               <div className={styles.serviceCard}>
                 <div className={styles.serviceImg}>
-                  <img src="/images/services/dos.webp" alt="Termite" />
+                  <img src="/images/servicio-exterminacion-termitas.webp" alt="Exterminación profesional de termitas y roedores" />
                 </div>
                 <div className={styles.serviceIcon}>
                   <Rat size={30} />
                 </div>
                 <h3>Control de termitas y roedores</h3>
                 <p>
-                  Soluciones personalizadas para proteger su hogar de las plagas
-                  comunes
+                  Eliminación total y prevención de daños estructurales.
+                  Si vuelven, volvemos gratis — garantía escrita.
                 </p>
-                <a href="#" className={styles.serviceReadMore}>
-                  Read More →
+                <a href="https://wa.me/59176738282" className={styles.serviceReadMore}>
+                  Solicitar servicio →
                 </a>
               </div>
             </SwiperSlide>
             <SwiperSlide>
               <div className={styles.serviceCard}>
                 <div className={styles.serviceImg}>
-                  <img src="/images/services/tres.webp" alt="Outdoor" />
+                  <img src="/images/servicio-hogar-inteligente.webp" alt="Control de plagas en espacios exteriores" />
                 </div>
                 <div className={styles.serviceIcon}>
                   <Snail size={30} />
                 </div>
                 <h3>Control de plagas en exteriores</h3>
                 <p>
-                  Soluciones personalizadas para proteger su hogar de las plagas
-                  comunes
+                  Disfrute su patio sin mosquitos, hormigas ni plagas.
+                  Tratamientos ecológicos seguros para mascotas.
                 </p>
-                <a href="#" className={styles.serviceReadMore}>
-                  Read More →
+                <a href="https://wa.me/59176738282" className={styles.serviceReadMore}>
+                  Solicitar servicio →
                 </a>
               </div>
             </SwiperSlide>
             <SwiperSlide>
               <div className={styles.serviceCard}>
                 <div className={styles.serviceImg}>
-                  <img src="/images/services/cuatro.webp" alt="Smart Home" />
+                  <img src="/images/servicio-control-exteriores.webp" alt="Protección completa del hogar contra plagas" />
                 </div>
                 <div className={styles.serviceIcon}>
                   <HouseWifi size={30} />
                 </div>
-                <h3>Integración de hogares inteligentes</h3>
+                <h3>Protección residencial completa</h3>
                 <p>
-                  Soluciones personalizadas para proteger su hogar de las plagas
-                  comunes
+                  Hogar seguro para su familia — sin cucarachas, hormigas ni chinches.
+                  Inspección gratuita incluída.
                 </p>
-                <a href="#" className={styles.serviceReadMore}>
-                  Read More →
+                <a href="https://wa.me/59176738282" className={styles.serviceReadMore}>
+                  Solicitar servicio →
                 </a>
               </div>
             </SwiperSlide>
             <SwiperSlide>
               <div className={styles.serviceCard}>
                 <div className={styles.serviceImg}>
-                  <img src="/images/services/cinco.webp" alt="Smart Home" />
+                  <img src="/images/servicio-fumigacion-residencial.webp" alt="Protección completa del hogar contra plagas" />
                 </div>
                 <div className={styles.serviceIcon}>
                   <Building2 size={30} />
                 </div>
                 <h3>Control de plagas residenciales</h3>
                 <p>
-                  Soluciones personalizadas para proteger su hogar de las plagas
-                  comunes
+                  Protección completa para su hogar — cucarachas, hormigas y más.
+                  Visitas programadas o servicio único. Sin compromiso.
                 </p>
-                <a href="#" className={styles.serviceReadMore}>
-                  Read More →
+                <a href="https://wa.me/59176738282" className={styles.serviceReadMore}>
+                  Solicitar servicio →
                 </a>
               </div>
             </SwiperSlide>
@@ -514,7 +675,7 @@ export default function Landing() {
       {/* <!-- our features --> */}
       <section
         className={`our-features mr-8 ml-8 mt-2 flex justify-center md:mt-6 lg:mt-10 ${styles.ourFeatures}`}
-        id="#"
+        id="servicios"
       >
         <div className="container w-full">
           <div className="features-wrapper /* Móvil: 1 columna por defecto (sm) */ /* Tabletas y Escritorios medianos: 2 columnas */ grid grid-cols-1 items-center gap-[100px] md:grid-cols-2">
@@ -539,7 +700,7 @@ export default function Landing() {
               <div
                 className={`features-grid mt-12 md:mt-16 lg:mt-24 ${styles.featuresGrid}`}
               >
-                {/* Feature 1 - Servicios de emergencia */} 
+                {/* Feature 1 - Servicios de emergencia */}
                 <div
                   className={`features-item ${styles.featuresItem} group transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-xl`}
                 >
@@ -624,7 +785,7 @@ export default function Landing() {
             <div className={`features-image ${styles.featuresImage}`}>
               <img
                 src="/images/features/seis.webp"
-                alt="Técnico profesional fumigando"
+                alt="Técnico profesional realizando servicio de fumigación"
               />
 
               {/* <!-- Botón circular flotante --> */}
@@ -718,76 +879,6 @@ export default function Landing() {
                 </div>
               </div>
             </div>
-
-          {/* <!-- Galería con hover + overlay --> */}
-            {/* <div
-              className={`portfolio-item commercial ${styles.portfolioItem}`}
-            >
-              <img src="/images/portfolio/nueve.webp" alt="Plaga Comercial" />
-              <div className={`portfolio-overlay ${styles.portfolioOverlay}`}>
-                <div className="overlay-content">
-                  <h4>Plagas en Negocios</h4>
-                  <p>
-                    Protección profesional para oficinas, restaurantes y locales
-                    comerciales.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className={`portfolio-item termite ${styles.portfolioItem}`}>
-              <img src="/images/portfolio/diez.webp" alt="Termitas" />
-              <div className={`portfolio-overlay ${styles.portfolioOverlay}`}>
-                <div className="overlay-content">
-                  <h4>Control de Termitas</h4>
-                  <p>
-                    Eliminación total y prevención de daños estructurales por
-                    termitas.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className={`portfolio-item commercial ${styles.portfolioItem}`}
-            >
-              <img src="/images/portfolio/uno.webp" alt="Oficina" />
-              <div className={`portfolio-overlay ${styles.portfolioOverlay}`}>
-                <div className="overlay-content">
-                  <h4>Oficinas Libres de Plagas</h4>
-                  <p>
-                    Servicios discretos y efectivos para entornos corporativos.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className={`portfolio-item eco ${styles.portfolioItem}`}>
-              <img src="/images/portfolio/dos.webp" alt="Eco-Friendly" />
-              <div className={`portfolio-overlay ${styles.portfolioOverlay}`}>
-                <div className="overlay-content">
-                  <h4>Tratamiento Eco-Friendly</h4>
-                  <p>
-                    Métodos ecológicos seguros para niños, mascotas y el medio
-                    ambiente.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className={`portfolio-item outdoor ${styles.portfolioItem}`}>
-              <img src="/images/portfolio/tres.webp" alt="Exteriores" />
-              <div className={`portfolio-overlay ${styles.portfolioOverlay}`}>
-                <div className="overlay-content">
-                  <h4>Control en Jardines y Exteriores</h4>
-                  <p>
-                    Disfruta tu patio sin mosquitos, hormigas ni plagas
-                    molestas.
-                  </p>
-                </div>
-              </div>
-            </div> */}
-
           </div>
       </section>
 
@@ -807,73 +898,12 @@ export default function Landing() {
               <span className="text-green"> para usted?</span>
             </h2>
             <p className={`section-desc ${styles.sectionDescription}`}>
-              En BolivianPest nos distinguimos por combinar calidad comprobada, atención personalizada y un compromiso total con la formalidad y transparencia que todo cliente merece.
+              29 años de experiencia en Bolivia. Técnicos certificados SENASAG.
+              Productos ecológicos seguros para niños y mascotas. Atención 24/7.
             </p>
           </div>
 
-          <div className={`why-grid ${styles.whyGrid}`}>
-            
-            {/* Tarjeta 3 - Profesionales certificados 
-            <div className={`why-card ${styles.whyCard}`}>
-              <div className={`why-icon ${styles.whyIcon}`}>
-                <ShieldCheck
-                  className="text-white-600 h-10 w-10"
-                  strokeWidth={2}
-                />
-                {/* Alternativas bonitas: <Award />, <UserCheck />, <Certificate />
-              </div>
-              <h3 className="text-center">Profesionales certificados</h3>
-              <p className="text-center">
-                Técnicos capacitados y con licencia oficial.
-              </p>
-            </div>*/}
 
-            {/* Tarjeta destacada con imagen 
-            <div className={`why-highlight-card ${styles.whyHighCard}`}>
-              <img
-                src="/images/choice/seis.webp"
-                alt="Recupera tu hogar de plagas"
-              />
-              <div className={`highlight-content ${styles.whyHighContent}`}>
-                <h3 className="mb-4 text-2xl font-bold md:text-3xl">
-                  ¡Recupere su hogar de las plagas hoy mismo!
-                </h3>
-                <a
-                  href="https://wa.me/59176738282"
-                  target="_blank"
-                  className="highlight-btn inline-flex items-center gap-3 text-lg font-semibold"
-                >
-                  <Phone className="h-6 w-6" />
-                  Llame ahora +591 76738282
-                </a>
-              </div>
-            </div>*/}
-            <WhyHighlightCard
-              imageSrc="/images/choice/nit.png"
-              imageAlt="Control de plagas en cocina"
-              //title="¡Recupere su hogar de las plagas hoy mismo!"
-              //phoneNumber="59176738282"
-              //phoneDisplay="+591 76738282"
-            />
-
-            <WhyHighlightCard
-              imageSrc="/images/choice/gestora.png"
-              imageAlt="Fumigación profesional en hogar"
-            />
-
-            <WhyHighlightCard
-              imageSrc="/images/choice/certiS.png"
-              imageAlt="Servicio rápido y efectivo"
-            />
-
-            <WhyHighlightCard
-              imageSrc="/images/choice/seprec.png"
-              imageAlt="Servicio rápido y efectivo"
-              
-            />
-
-
-          </div>
 
           {/* <!-- CTA final --> */}
           <div className={`why-cta ${styles.whyCta}`}>
@@ -882,7 +912,7 @@ export default function Landing() {
               target="_blank"
               className="btn-free"
             >
-              ¡Creemos un ambiente libre de plagas! – ¡Contáctenos hoy!
+              ¡Haga su cita hoy! Disponible de inmediato — Inspección gratuita sin compromiso
             </a>
           </div>
         </div>
@@ -899,17 +929,17 @@ export default function Landing() {
             <div className={`faqImages ${styles.faqImages}`}>
               <img
                 src="/images/questions/doce.webp"
-                alt="Técnico fumigando"
+                alt="Técnico fumigando en propiedad"
                 className={`img-1 ${styles.faqImg1}`}
               />
               <img
-                src="/images/questions/uno.webp"
-                alt="Equipo profesional"
+                src="/images/questions-equipo-profesional.webp"
+                alt="Equipo certificado Bolivian Pest"
                 className={`img-2 ${styles.faqImg2}`}
               />
               <img
                 src="/images/questions/seis.webp"
-                alt="Fumigación exterior"
+                alt="Fumigación en espacios exteriores"
                 className={`img-3 ${styles.faqImg3}`}
               />
             </div>
@@ -1128,46 +1158,19 @@ export default function Landing() {
 >
   <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-      
+
       {/* Columna izquierda - Información / Imagen / Mensaje motivador */}
       <div className="space-y-6 lg:space-y-8 order-2 lg:order-1">
         {/* Imagen decorativa o ilustración (puedes cambiarla) */}
         <div className="relative rounded-2xl overflow-hidden shadow-xl">
-          {/* <img
-            src="https://images.unsplash.com/photo-1557426272-fc91fdb8f385?auto=format&fit=crop&q=80&w=800"
-            alt="Equipo trabajando o imagen de contacto"
-            className="w-full h-64 md:h-80 lg:h-[500px] object-cover"
-          /> */}
-          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d239.0954346072869!2d-68.12636138046955!3d-16.499473655781642!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x915f210059ecf6c7%3A0xca158fcbb8866f59!2sBolivianPest!5e0!3m2!1ses!2sbo!4v1772571664453!5m2!1ses!2sbo" 
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d239.0954346072869!2d-68.12636138046955!3d-16.499473655781642!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x915f210059ecf6c7%3A0xca158fcbb8866f59!2sBolivianPest!5e0!3m2!1ses!2sbo!4v1772571664453!5m2!1ses!2sbo"
           width="600" height="450"  loading="lazy"></iframe>
           {/* Overlay opcional con gradiente */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         </div>
 
-        {/* <div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Acerca de Bolivian Pest
-          </h2>
-          <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-            Nos dedicamos a crear entornos seguros y libres de plagas para hogares y negocios. Contamos con años de experiencia en el sector del control de plagas. Nos enorgullecemos de ofrecer soluciones eficaces y ecológicas adaptadas a sus necesidades.
-          </p>
-        </div> */}
-
         {/* Información adicional (opcional pero profesional) */}
         <div className="space-y-4 text-gray-600 dark:text-gray-300">
-          {/* <div className="flex items-center gap-3">
-            <span className="text-xl">📧</span>
-            <span>hola@tuempresa.com</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xl">📱</span>
-            <span>+591 777-88899</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xl">📍</span>
-            <span>La Paz, Bolivia</span>
-          </div> 
-          <h3 className="mb-6 text-xl font-bold">Contáctanos</h3>*/}
 
               <div className="space-y-4">
                 {/* Teléfono */}
@@ -1206,7 +1209,7 @@ export default function Landing() {
                   </div>
                 </div>
               </div>
-        </div> 
+        </div>
       </div>
 
       {/* Columna derecha - Formulario */}
@@ -1354,48 +1357,6 @@ export default function Landing() {
                 </li>
               </ul>
             </div>
-
-            {/* <div className={`footer-column contact ${styles.footerColumn}`}>
-              <h3 className="mb-6 text-xl font-bold">Contáctanos</h3>
-
-              <div className="space-y-4">
-                {/* Teléfono 
-                <div
-                  className={`contact-item flex items-center gap-4 ${styles.footerContactItem}`}
-                >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cyan-600 text-white">
-                    <Phone className="h-5 w-5" strokeWidth={2.5} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Teléfono / WhatsApp</p>
-                    <a
-                      href="https://wa.me/59176738282"
-                      className="hover:text-white-400 text-white transition"
-                    >
-                      +591 76738282
-                    </a>
-                  </div>
-                </div>
-
-                {/* Email 
-                <div
-                  className={`contact-item flex items-center gap-4 ${styles.footerContactItem}`}
-                >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cyan-600 text-white">
-                    <Mail className="h-5 w-5" strokeWidth={2.5} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Correo electrónico</p>
-                    <a
-                      href="mailto:info@bolivianpest.com"
-                      className="hover:text-white-400 text-white transition"
-                    >
-                      info@bolivianpest.com
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div> */}
           </div>
 
           <hr className={`footer-divider${styles.footerDivider}`} />
@@ -1426,24 +1387,12 @@ export default function Landing() {
                 />
               </svg>
               <span className={`logo-text ${styles.footerLogoText}`}>
-                Bolivian Pest
+                BolivianPest
               </span>
             </div>
-
-            {/* <div className={`social-links ${styles.footerSocialLinks}`}>
-              <a href="#" aria-label="Instagram">
-                <i className="fab fa-instagram"></i>
-              </a>
-              <a href="#" aria-label="Facebook">
-                <i className="fab fa-facebook-f"></i>
-              </a>
-              <a href="#" aria-label="Twitter">
-                <i className="fab fa-tiktok"></i>
-              </a>
-            </div> */}
             <div className={`social-links ${styles.footerSocialLinks}`}>
               <a
-                href="https://instagram.com/tuempresa"
+                href="https://www.instagram.com/bolivian_pest?igsh=MTF4dHFjZGoxMzlocQ=="
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
@@ -1461,18 +1410,6 @@ export default function Landing() {
               >
                 <Facebook className="h-6 w-6 transition-all group-hover:scale-110 group-hover:text-blue-600" />
               </a>
-
-              {/* <a
-    href="https://tiktok.com/@tuempresa"
-    target="_blank"
-    rel="noopener noreferrer"
-    aria-label="TikTok"
-    className="group"
-  >
-    <TikTok className="h-6 w-6 transition-all group-hover:scale-110 group-hover:text-white" />
-  </a>
-
-  {/* Bonus muy usado en Bolivia: WhatsApp directo */}
               <a
                 href="https://wa.me/59176738282"
                 target="_blank"
@@ -1485,7 +1422,7 @@ export default function Landing() {
             </div>
 
             <div className={`copyright ${styles.footerCopyright}`}>
-              Copyright Bitdesarrollo © 2025 All Rights Reserved.
+              Copyright <a href="https://bitdesarrollo.net">Bitdesarrollo</a> © 2026 All Rights Reserved.
             </div>
           </div>
         </div>

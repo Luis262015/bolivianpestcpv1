@@ -1,2 +1,11 @@
 User-agent: *
-Disallow:
+Allow: /
+
+Sitemap: https://bolivianpest.com/sitemap.xml
+
+# Bloquear recursos innecesarios para crawlers
+Disallow: /vendor/
+Disallow: /node_modules/
+Disallow: /storage/clockwork/
+Disallow: /*.json$
+Disallow: /_debug/

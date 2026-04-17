@@ -51,7 +51,7 @@ export default function Navbar({ logo = '/images/logo.png' }: NavbarProps) {
           {/* Iconos redes sociales (pantallas grandes) */}
           <div className="hidden items-center gap-3 md:flex">
             <a
-              href="#"
+              href="https://www.instagram.com/bolivian_pest?igsh=MTF4dHFjZGoxMzlocQ=="
               target="_blank"
               className="text-white transition hover:text-cyan-300"
             >
