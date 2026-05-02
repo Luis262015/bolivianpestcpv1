@@ -107,6 +107,7 @@ class MapaController extends Controller
             'titulo' => $mapa->titulo,
             'background' => $mapa->background,
             'texts' => $mapa->texts ?? [],
+            'trapSize' => $mapa->data ?? 20, // valor por defecto si no existe
             'trampas' => $mapa->trampas->map(function ($t) {
               return [
                 'id' => $t->id,
@@ -149,6 +150,7 @@ class MapaController extends Controller
       'almacen_id'   => 'required|exists:almacenes,id',
       'titulo'       => 'nullable|string',
       'background'   => 'nullable|string', // puede ser dataURL o ruta
+      'trap_size'   => 'nullable|integer', // puede ser dataURL o ruta
       'texts'        => 'nullable|array',
       'texts.*.id'   => 'required|string',
       'texts.*.text' => 'required|string',
@@ -167,7 +169,7 @@ class MapaController extends Controller
 
     ]);
 
-    // dd($validated);
+    // dd($request, $validated);
 
     try {
       DB::beginTransaction();
@@ -179,6 +181,7 @@ class MapaController extends Controller
         'titulo'     => $validated['titulo'] ?? null,
         'user_id'    => Auth::id(),
         'texts'      => $validated['texts'] ?? [], // json o array según tu estructura
+        'data'      => $validated['trap_size'] ?? 30, // guardamos el trapSize en el campo data
       ]);
 
       if ($request->filled('background')) {
@@ -247,6 +250,7 @@ class MapaController extends Controller
       'almacen_id'   => 'required|exists:almacenes,id',
       'titulo'       => 'nullable|string',
       'background'   => 'nullable|string', // puede ser dataURL o ruta
+      'trap_size'   => 'nullable|integer', // puede ser dataURL o ruta
       'texts'        => 'nullable|array',
       'texts.*.id'   => 'required|string',
       'texts.*.text' => 'required|string',
@@ -266,6 +270,7 @@ class MapaController extends Controller
     ]);
 
 
+    // dd($request, $validated);
     // dd($validated);
 
 
@@ -279,6 +284,7 @@ class MapaController extends Controller
         'almacen_id' => $validated['almacen_id'],
         'titulo'     => $validated['titulo'] ?? null,
         'texts'      => $validated['texts'] ?? $mapa->texts ?? [],
+        'data'      => $validated['trap_size'] ?? 30, // guardamos el trapSize en el campo data
       ]);
 
       // Manejo de imagen de fondo (base64 → archivo en storage)

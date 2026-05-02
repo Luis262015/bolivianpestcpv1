@@ -55,6 +55,7 @@ interface Props {
     titulo: string | null;
     texts: any[];
     trampas: any[];
+    trapSize?: number;
   }[];
 }
 
@@ -177,6 +178,7 @@ export default function MapaEditor(props: Props) {
         texts: [],
         traps: [],
         background: null,
+        trapSize: 30,
       },
     ]);
   };
@@ -191,6 +193,7 @@ export default function MapaEditor(props: Props) {
         almacen_id: selectedAlmacen,
         titulo: mapa.titulo, // 👈 nuevo
         background: mapa.background,
+        trap_size: mapa.trapSize,
         // texts: mapa.texts,
         trampas: mapa.traps.map((t, index) => ({
           // id: t.id,
@@ -248,6 +251,11 @@ export default function MapaEditor(props: Props) {
         onSuccess: (page) => {
           const mapas = page.props.mapas as Props['mapas'];
 
+          // console.log('----------------------------------------------------');
+          // console.log('Respuesta del servidor:', page.props); // 🔥 DEBUG
+          // console.log('Mapas cargados:', mapas); // 🔥 DEBUG
+          // console.log('----------------------------------------------------');
+
           if (!mapas || mapas.length === 0) {
             setMapEditors([]);
             return;
@@ -264,6 +272,8 @@ export default function MapaEditor(props: Props) {
                 tempId: uuidv4(),
               })),
               background: m.background ?? null,
+              // trapSize: 30,
+              trapSize: m.trapSize ?? 30, // 🔥 Asegura que trapSize se cargue desde el servidor
             })),
           );
         },

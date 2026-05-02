@@ -41,6 +41,7 @@ export type MapEditorState = {
   titulo: string; // 👈 nuevo
   traps: Trap[];
   background: string | null;
+  trapSize: number;
 };
 
 type Dragging =
@@ -68,7 +69,6 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [mode, setMode] = useState<number | null>(null);
-  const [trapSize, setTrapSize] = useState(30);
   const [zoom, setZoom] = useState(100);
   const [panMode, setPanMode] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
@@ -159,7 +159,7 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
 
   useEffect(() => {
     redraw();
-  }, [mapa.traps, zoom, panOffset, trapSize]);
+  }, [mapa.traps, zoom, panOffset, mapa.trapSize]);
 
   const resetZoom = () => {
     setZoom(100);
@@ -185,7 +185,7 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
       ctx.drawImage(bgImageRef.current, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     }
 
-    const half = trapSize / 2;
+    const half = mapa.trapSize / 2;
 
     // mapa.traps.forEach((trap, index) => {
 
@@ -199,17 +199,17 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
           img,
           trap.posx - half,
           trap.posy - half,
-          trapSize,
-          trapSize,
+          mapa.trapSize,
+          mapa.trapSize,
         );
       } else {
         ctx.fillStyle = '#9ca3af';
-        ctx.fillRect(trap.posx - half, trap.posy - half, trapSize, trapSize);
+        ctx.fillRect(trap.posx - half, trap.posy - half, mapa.trapSize, mapa.trapSize);
       }
 
       // Número
       ctx.beginPath();
-      ctx.arc(trap.posx, trap.posy - trapSize, trapSize / 2, 0, Math.PI * 2);
+      ctx.arc(trap.posx, trap.posy - mapa.trapSize, mapa.trapSize / 2, 0, Math.PI * 2);
       // ctx.fillStyle = '#15803d';
 
       const color = TRAP_TYPE_COLORS[trap.trampa_tipo_id] ?? '#6b7280';
@@ -230,7 +230,7 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
 
       // ctx.fillText(String(number), trap.posx, trap.posy - trapSize);
 
-      ctx.fillText(trap.identificador, trap.posx, trap.posy - trapSize);
+      ctx.fillText(trap.identificador, trap.posx, trap.posy - mapa.trapSize);
     });
 
     ctx.restore();
@@ -325,7 +325,7 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
   };
 
   const findTrapAt = (x: number, y: number) =>
-    mapa.traps.find((t) => Math.hypot(t.posx - x, t.posy - y) < trapSize / 2);
+    mapa.traps.find((t) => Math.hypot(t.posx - x, t.posy - y) < mapa.trapSize / 2);
 
   /* =======================
      Eventos mouse
@@ -635,11 +635,11 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
         <div className="flex items-center gap-2">
           <Label>Tamaño</Label>
           <Slider
-            value={[trapSize]}
+            value={[mapa.trapSize]}
             min={10}
             max={80}
             step={2}
-            onValueChange={(v) => setTrapSize(v[0])}
+            onValueChange={(v) => onChange({ ...mapa, trapSize: v[0] })}
             className="w-36"
           />
         </div>

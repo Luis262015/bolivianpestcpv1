@@ -45,6 +45,7 @@ interface Certificado {
   acciones: string;
   ingredientes: string;
   logo: File | null;
+  created_at: string;
 }
 
 interface CertificadoListado {
@@ -94,6 +95,7 @@ export default function Lista() {
     acciones: '',
     ingredientes: '',
     logo: null,
+    created_at: new Date().toISOString().split('T')[0],
   });
 
   const openCrearCertificado = (empresa: Empresa) => {
@@ -212,6 +214,18 @@ export default function Lista() {
                 }
               />
             </div>
+
+            <div>
+              <Label htmlFor="created_at">Fecha del certificado</Label>
+              <Input
+                id="created_at"
+                type="date"
+                value={data.created_at}
+                onChange={(e) => setData('created_at', e.target.value)}
+              />
+            </div>
+            <div />
+
             <div className="md:col-span-2">
               <Label htmlFor="titulo">CERTIFICADO DE:</Label>
               <Input

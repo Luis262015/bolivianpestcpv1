@@ -69,23 +69,23 @@
     } */
 
     .titulo {
-      font-size: 2rem;
+      font-size: 1.8rem;
       text-align: center;
       color: #0D3347;
-      margin-top: 7.2rem;
+      margin-top: 7rem;
       font-weight: bold;
       margin-left: 3.5rem;
     }
 
     .establecimiento {
-      margin-top: 1.5rem;
+      margin-top: 1.3rem;
       margin-left: 9rem;
       font-style: italic;
     }
 
     .establecimiento span {
       font-weight: bold;
-      font-size: 1.3rem;
+      font-size: 1.1rem;
       margin-left: 1rem;
       font-style: normal;
     }
@@ -96,11 +96,11 @@
     }
 
     .contenido div {
-      margin-top: 1.1rem;
+      margin-top: 1rem;
     }
 
     .resaltado {
-      font-size: .9rem;
+      font-size: .8rem;
       font-weight: bold;
       margin-left: 1.1rem;
       margin-right: 1.1rem;
@@ -108,7 +108,7 @@
 
     .firma {
       margin-top: 6rem;
-      font-size: .7rem;
+      font-size: .6rem;
       margin-left: 16rem;
     }
 
@@ -156,7 +156,7 @@
     <div class="contenido">
       <div>
         ACTIVIDAD DEL SOLICITANTE: <span class="resaltado">{{ $certificado->actividad }}</span> FECHA:
-        <span class="resaltado">{{ $certificado->created_at }}</span>
+        <span class="resaltado">{{ $certificado->created_at->format('d/m/Y') }}</span>
       </div>
       <div>
         VALIDEZ DE LA CERTIFICACION: <span class="resaltado">{{ $certificado->validez }}</span>

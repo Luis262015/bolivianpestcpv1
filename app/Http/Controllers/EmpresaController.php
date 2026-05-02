@@ -31,6 +31,7 @@ class EmpresaController extends Controller
     'acciones' => 'nullable|string',
     'ingredientes' => 'nullable|string',
     'logo' => 'nullable|image|max:2048',
+    'created_at' => 'nullable|date',
   ];
 
   public function index(Request $request)
@@ -95,6 +96,13 @@ class EmpresaController extends Controller
       $certificado->logo = $path;
 
       $certificado->save();
+
+      if (!empty($validated['created_at'])) {
+        DB::table('certificados')
+          ->where('id', $certificado->id)
+          ->update(['created_at' => $validated['created_at']]);
+      }
+
       DB::commit();
 
       return redirect()->back()->with('success', 'Certificado creado exitosamente');
