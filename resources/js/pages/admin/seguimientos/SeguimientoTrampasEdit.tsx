@@ -283,6 +283,9 @@ export default function SeguimientoTrampasEdit({
                       onChange={(e) =>
                         updateRoedor(t.id, 'inicial', Number(e.target.value))
                       }
+                      disabled={
+                        t.trampa_tipo.id === 4 || t.trampa_tipo.id === 5
+                      }
                     />
 
                     <Input
@@ -291,6 +294,9 @@ export default function SeguimientoTrampasEdit({
                       value={roedores[t.id]?.actual}
                       onChange={(e) =>
                         updateRoedor(t.id, 'actual', Number(e.target.value))
+                      }
+                      disabled={
+                        t.trampa_tipo.id === 4 || t.trampa_tipo.id === 5
                       }
                     />
 

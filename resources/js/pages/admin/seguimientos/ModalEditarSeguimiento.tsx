@@ -178,29 +178,31 @@ export default function ModalEditarSeguimiento({
   >([]);
   const [imagenesEliminar, setImagenesEliminar] = useState<number[]>([]);
 
-  const { data, setData, transform, post, processing, errors, reset } = useForm({
-    empresa_id: '',
-    almacen_id: '',
-    tipo_seguimiento_id: '',
-    aplicacion_data: emptyAplicacion,
-    biologicos_ids: [] as number[],
-    metodos_ids: [] as number[],
-    epps_ids: [] as number[],
-    protecciones_ids: [] as number[],
-    signos_ids: [] as number[],
-    productos_usados: [] as ProductoUsado[],
-    observaciones_especificas: '',
-    encargado_nombre: '',
-    encargado_cargo: '',
-    firma_encargado: '',
-    firma_supervisor: '',
-    observaciones_generales: '',
-    trampa_especies_seguimientos: [] as TrampaEspecieSeguimientos[],
-    trampa_roedores_seguimientos: [] as TrampaRoedoresSeguimiento[],
-    created_at: '',
-    imagenes: [] as File[],
-    imagenes_eliminar: [] as number[],
-  });
+  const { data, setData, transform, post, processing, errors, reset } = useForm(
+    {
+      empresa_id: '',
+      almacen_id: '',
+      tipo_seguimiento_id: '',
+      aplicacion_data: emptyAplicacion,
+      biologicos_ids: [] as number[],
+      metodos_ids: [] as number[],
+      epps_ids: [] as number[],
+      protecciones_ids: [] as number[],
+      signos_ids: [] as number[],
+      productos_usados: [] as ProductoUsado[],
+      observaciones_especificas: '',
+      encargado_nombre: '',
+      encargado_cargo: '',
+      firma_encargado: '',
+      firma_supervisor: '',
+      observaciones_generales: '',
+      trampa_especies_seguimientos: [] as TrampaEspecieSeguimientos[],
+      trampa_roedores_seguimientos: [] as TrampaRoedoresSeguimiento[],
+      created_at: '',
+      imagenes: [] as File[],
+      imagenes_eliminar: [] as number[],
+    },
+  );
 
   // Carga datos al abrir el modal
   useEffect(() => {

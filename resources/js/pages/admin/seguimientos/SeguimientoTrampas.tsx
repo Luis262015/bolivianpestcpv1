@@ -285,7 +285,10 @@ export default function SeguimientoTrampas({
                             Number(e.target.value),
                           )
                         }
-                        disabled={trampa.trampa_tipo.id === 4}
+                        disabled={
+                          trampa.trampa_tipo.id === 4 ||
+                          trampa.trampa_tipo.id === 5
+                        }
                       />
                     </div>
 
@@ -302,7 +305,10 @@ export default function SeguimientoTrampas({
                             Number(e.target.value),
                           )
                         }
-                        disabled={trampa.trampa_tipo.id === 4}
+                        disabled={
+                          trampa.trampa_tipo.id === 4 ||
+                          trampa.trampa_tipo.id === 5
+                        }
                       />
                     </div>
                     <div>
