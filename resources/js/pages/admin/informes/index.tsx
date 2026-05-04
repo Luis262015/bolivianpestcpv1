@@ -68,6 +68,7 @@ interface Insectocutor {
 
 interface Trampa {
   trampa_tipo_id: number;
+  identificador: string;
 }
 
 interface Roedor {
@@ -722,6 +723,7 @@ export default function Lista({
     const datosPorTrampa: {
       [key: number]: {
         trampa_id: number;
+        indent: string;
         inicial: number;
         merma: number;
         actual: number;
@@ -734,18 +736,24 @@ export default function Lista({
       .forEach((seg) => {
         seg.roedores.forEach((roedor) => {
           const trampaId = Number(roedor.trampa_id);
-          console.log('**** TRAMPA_TIPO_ID: ' + roedor.trampa.trampa_tipo_id);
+          // console.log('**** TRAMPA_TIPO_ID: ' + roedor.trampa.trampa_tipo_id);
+          console.log('********************************************');
+          console.log(roedor);
+          console.log('********************************************');
 
           if (Number(roedor.trampa.trampa_tipo_id) !== 4) {
             if (!datosPorTrampa[trampaId]) {
               datosPorTrampa[trampaId] = {
                 trampa_id: trampaId,
+                indent: '',
                 inicial: 0,
                 merma: 0,
                 actual: 0,
                 observaciones: [],
               };
             }
+
+            datosPorTrampa[trampaId].indent = roedor.trampa.identificador;
 
             datosPorTrampa[trampaId].inicial += Number(roedor.inicial);
             datosPorTrampa[trampaId].merma += Number(roedor.merma);
@@ -2397,7 +2405,8 @@ export default function Lista({
                       {datosRoedores.map((dato, index) => (
                         <TableRow key={index}>
                           <TableCell className={tableStyles.cell}>
-                            {dato.trampa_id}
+                            {/* {dato.trampa_id} */}
+                            {dato.indent}
                           </TableCell>
                           <TableCell className={tableStyles.cell}>
                             {dato.inicial}

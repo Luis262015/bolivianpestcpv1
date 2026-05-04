@@ -432,9 +432,228 @@ class SeguimientoController extends Controller
 
 
 
+  public function show(Request $request, string $id)
+  {
+    $seguimiento = Seguimiento::with([
+      'empresa',
+      'almacen',
+      'tipoSeguimiento',
+      'aplicacion',
+      'biologicos',
+      'metodos',
+      'epps',
+      'proteccions',
+      'signos',
+      'images',
+      'trampaEspeciesSeguimientos',
+      'trampaRoedoresSeguimientos',
+    ])->findOrFail($id);
+
+    $productosUsos = DB::table('producto_usos')
+      ->join('productos', 'producto_usos.producto_id', '=', 'productos.id')
+      ->where('producto_usos.seguimiento_id', $id)
+      ->select('producto_usos.producto_id', 'producto_usos.cantidad', 'productos.nombre as nombre_producto')
+      ->get();
+
+    if ($request->wantsJson()) {
+      return response()->json([
+        ...$seguimiento->toArray(),
+        'productos_usos' => $productosUsos,
+      ]);
+    }
+
+    return redirect()->route('seguimientos.index');
+  }
+
+  public function update(Request $request, string $id)
+  {
+    $toValidated = [
+      'empresa_id'                   => 'required|integer',
+      'almacen_id'                   => 'required|integer',
+      'tipo_seguimiento_id'          => 'required|integer',
+      'biologicos_ids'               => 'nullable|array',
+      'metodos_ids'                  => 'nullable|array',
+      'epps_ids'                     => 'nullable|array',
+      'protecciones_ids'             => 'nullable|array',
+      'signos_ids'                   => 'nullable|array',
+      'productos_usados'             => 'nullable|array',
+      'observaciones_especificas'    => 'nullable|string',
+      'encargado_nombre'             => 'required|string',
+      'encargado_cargo'              => 'required|string',
+      'observaciones_generales'      => 'nullable|string',
+      'aplicacion_data'              => 'nullable|array',
+      'trampa_especies_seguimientos' => 'nullable|array',
+      'trampa_roedores_seguimientos' => 'nullable|array',
+      'created_at'                   => 'nullable|date',
+      'imagenes_eliminar'            => 'nullable|array',
+      'imagenes_eliminar.*'          => 'nullable|integer',
+    ];
+
+    // dd($request);
+
+    try {
+      DB::beginTransaction();
+
+      Log::info('SeguimientoController@update payload', [
+        'id' => $id,
+        'content_type' => $request->header('content-type'),
+        'inputs' => $request->except(['imagenes']),
+        'files_count' => $request->hasFile('imagenes') ? count($request->file('imagenes')) : 0,
+      ]);
+
+      $validated = $request->validate($toValidated);
+
+      $seguimiento = Seguimiento::findOrFail($id);
+      $seguimiento->encargado_nombre = $validated['encargado_nombre'];
+      $seguimiento->encargado_cargo  = $validated['encargado_cargo'];
+      $seguimiento->observaciones    = $validated['observaciones_generales'] ?? null;
+      $seguimiento->observacionesp   = $validated['observaciones_especificas'] ?? null;
+
+      if ($request->firma_encargado && str_starts_with($request->firma_encargado, 'data:image')) {
+        $image     = str_replace(['data:image/png;base64,', ' '], ['', '+'], $request->firma_encargado);
+        $imageName = 'firma_encargado_' . time() . '.png';
+        $directory = public_path('images/firmas');
+        if (!file_exists($directory)) mkdir($directory, 0755, true);
+        file_put_contents($directory . '/' . $imageName, base64_decode($image));
+        $seguimiento->firma_encargado = 'images/firmas/' . $imageName;
+      }
+
+      if ($request->firma_supervisor && str_starts_with($request->firma_supervisor, 'data:image')) {
+        $image     = str_replace(['data:image/png;base64,', ' '], ['', '+'], $request->firma_supervisor);
+        $imageName = 'firma_supervisor_' . time() . '.png';
+        $directory = public_path('images/firmas');
+        if (!file_exists($directory)) mkdir($directory, 0755, true);
+        file_put_contents($directory . '/' . $imageName, base64_decode($image));
+        $seguimiento->firma_supervisor = 'images/firmas/' . $imageName;
+      }
+
+      $seguimiento->save();
+
+      if (!empty($validated['created_at'])) {
+        DB::table('seguimientos')
+          ->where('id', $seguimiento->id)
+          ->update(['created_at' => $validated['created_at']]);
+      }
+
+      // Actualizar aplicacion
+      $aplicacion = Aplicacion::firstOrNew(['seguimiento_id' => $seguimiento->id]);
+      if (!empty($validated['aplicacion_data'])) {
+        $ap = $validated['aplicacion_data'];
+        $aplicacion->paredes_internas = $ap['paredes_internas'] ?? 0;
+        $aplicacion->pisos            = $ap['pisos']            ?? 0;
+        $aplicacion->ambientes        = $ap['ambientes']        ?? 0;
+        $aplicacion->trampas          = $ap['trampas']          ?? 0;
+        $aplicacion->trampas_cambiar  = $ap['trampas_cambiar']  ?? 0;
+        $aplicacion->internas         = $ap['internas']         ?? 0;
+        $aplicacion->externas         = $ap['externas']         ?? 0;
+        $aplicacion->roedores         = $ap['roedores']         ?? 0;
+        $aplicacion->save();
+      }
+
+      // Sincronizar relaciones
+      SeguimientoBiologico::where('seguimiento_id', $seguimiento->id)->delete();
+      foreach ($validated['biologicos_ids'] ?? [] as $ind) {
+        SeguimientoBiologico::create(['seguimiento_id' => $seguimiento->id, 'biologico_id' => $ind]);
+      }
+
+      SeguimientoMetodo::where('seguimiento_id', $seguimiento->id)->delete();
+      foreach ($validated['metodos_ids'] ?? [] as $ind) {
+        SeguimientoMetodo::create(['seguimiento_id' => $seguimiento->id, 'metodo_id' => $ind]);
+      }
+
+      SeguimientoEpp::where('seguimiento_id', $seguimiento->id)->delete();
+      foreach ($validated['epps_ids'] ?? [] as $ind) {
+        SeguimientoEpp::create(['seguimiento_id' => $seguimiento->id, 'epp_id' => $ind]);
+      }
+
+      SeguimientoProteccion::where('seguimiento_id', $seguimiento->id)->delete();
+      foreach ($validated['protecciones_ids'] ?? [] as $ind) {
+        SeguimientoProteccion::create(['seguimiento_id' => $seguimiento->id, 'proteccion_id' => $ind]);
+      }
+
+      SeguimientoSigno::where('seguimiento_id', $seguimiento->id)->delete();
+      foreach ($validated['signos_ids'] ?? [] as $ind) {
+        SeguimientoSigno::create(['seguimiento_id' => $seguimiento->id, 'signo_id' => $ind]);
+      }
+
+      // Sincronizar productos (sin ajuste de stock)
+      ProductoUso::where('seguimiento_id', $seguimiento->id)->delete();
+      foreach ($validated['productos_usados'] ?? [] as $prod) {
+        $producto = Producto::find($prod['producto_id']);
+        if ($producto) {
+          ProductoUso::create([
+            'producto_id'    => $prod['producto_id'],
+            'seguimiento_id' => $seguimiento->id,
+            'unidad_id'      => $producto->unidad_id,
+            'cantidad'       => $prod['cantidad'],
+          ]);
+        }
+      }
+
+      // Sincronizar trampas especies
+      TrampaEspecieSeguimiento::where('seguimiento_id', $seguimiento->id)->delete();
+      foreach ($validated['trampa_especies_seguimientos'] ?? [] as $tramp) {
+        TrampaEspecieSeguimiento::create([
+          'seguimiento_id' => $seguimiento->id,
+          'trampa_id'      => $tramp['trampa_id'],
+          'especie_id'     => $tramp['especie_id'],
+          'cantidad'       => $tramp['cantidad'],
+        ]);
+      }
+
+      // Sincronizar trampas roedores (solo DESRATIZACION)
+      TrampaRoedorSeguimiento::where('seguimiento_id', $seguimiento->id)->delete();
+      if ($seguimiento->tipo_seguimiento_id == 1) {
+        foreach ($validated['trampa_roedores_seguimientos'] ?? [] as $tramp) {
+          TrampaRoedorSeguimiento::create([
+            'seguimiento_id' => $seguimiento->id,
+            'trampa_id'      => $tramp['trampa_id'],
+            'observacion'    => $tramp['observacion'],
+            'cantidad'       => $tramp['cantidad'],
+            'inicial'        => $tramp['inicial'],
+            'actual'         => $tramp['actual'],
+            'merma'          => $tramp['merma'],
+          ]);
+        }
+      }
+
+      // Eliminar imágenes marcadas
+      foreach ($validated['imagenes_eliminar'] ?? [] as $imageId) {
+        $imagen = SeguimientoImage::find($imageId);
+        if ($imagen && $imagen->seguimiento_id == $seguimiento->id) {
+          if (!empty($imagen->imagen) && file_exists(public_path($imagen->imagen))) {
+            unlink(public_path($imagen->imagen));
+          }
+          $imagen->delete();
+        }
+      }
+
+      // Guardar nuevas imágenes
+      if ($request->hasFile('imagenes')) {
+        foreach ($request->file('imagenes') as $img) {
+          $directory = public_path('images/seguimientos');
+          if (!file_exists($directory)) mkdir($directory, 0755, true);
+          $filename = uniqid() . '_' . $img->getClientOriginalName();
+          $img->move($directory, $filename);
+          SeguimientoImage::create([
+            'seguimiento_id' => $seguimiento->id,
+            'imagen'         => 'images/seguimientos/' . $filename,
+          ]);
+        }
+      }
+
+      DB::commit();
+      return redirect()->route('seguimientos.index');
+    } catch (Exception | \Error | QueryException $e) {
+      DB::rollBack();
+      Log::error('Error al editar seguimiento:', ['error' => $e->getMessage()]);
+      return redirect()->back()
+        ->withInput()
+        ->with('error', 'Error: ' . $e->getMessage());
+    }
+  }
+
   /** FUNCIONES NO USADAS */
   // public function create() {}
-  // public function show(string $id) {}
   // public function edit(string $id) {}
-  // public function update(Request $request, string $id) {}
 }

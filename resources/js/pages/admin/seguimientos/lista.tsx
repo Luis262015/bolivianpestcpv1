@@ -12,8 +12,9 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { Edit2, FileChartColumn, Plus, Trash2 } from 'lucide-react';
+import { Edit2, FileChartColumn, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import ModalEditarSeguimiento from './ModalEditarSeguimiento';
 import ModalSeguimiento from './ModalSeguimiento';
 import ModalSeguimientoTrampa from './ModalSeguimientoTrampa';
 
@@ -111,6 +112,9 @@ export default function Lista({
   const [openTrampa, setOpenTrampa] = useState(false);
   const [selectedSeguimiento, setSelectedSeguimiento] = useState<any>(null);
 
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [seguimientoToEditId, setSeguimientoToEditId] = useState<number | null>(null);
+
   console.log(seguimientos);
 
   return (
@@ -187,21 +191,26 @@ export default function Lista({
                             )}
                           </TableCell>
                           <TableCell className="flex gap-2">
-                            {/* <Button
-                              size="icon"
-                              variant="outline"
-                              // onClick={() => openEditModal(seguimiento)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button> */}
                             {(hasRole('superadmin') || hasRole('admin')) && (
-                              <Button
-                                size="icon"
-                                variant="outline"
-                                onClick={() => handleDelete(seguimiento.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <>
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSeguimientoToEditId(seguimiento.id);
+                                    setEditModalOpen(true);
+                                  }}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  onClick={() => handleDelete(seguimiento.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
                             )}
                             <Button
                               size="icon"
@@ -273,6 +282,22 @@ export default function Lista({
         }}
         empresas={empresas}
         almacenes={almacenes}
+        metodos={metodos}
+        epps={epps}
+        protecciones={protecciones}
+        biologicos={biologicos}
+        signos={signos}
+        especies={especies}
+        tipoSeguimiento={tipoSeguimiento}
+      />
+
+      <ModalEditarSeguimiento
+        open={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setSeguimientoToEditId(null);
+        }}
+        seguimientoId={seguimientoToEditId}
         metodos={metodos}
         epps={epps}
         protecciones={protecciones}
