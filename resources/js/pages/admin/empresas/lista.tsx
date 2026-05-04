@@ -21,8 +21,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/hooks/usePermissions';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/react';
-import { Eye, File, FileText } from 'lucide-react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Eye, File, FileText, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -132,6 +132,22 @@ export default function Lista() {
   const handleDownloadPDF = (id: number) => {
     console.log('Print PDF id=' + id);
     window.open(`/empresas/${id}/certificadopdf`, '_blank');
+  };
+
+  const handleDeleteCertificado = (certId: number) => {
+    if (!window.confirm('¿Eliminar este certificado? Esta acción no se puede deshacer.')) return;
+    router.delete(`/empresas/certificados/${certId}`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setEmpresaSeleccionada((prev) =>
+          prev
+            ? { ...prev, certificados: prev.certificados?.filter((c) => c.id !== certId) }
+            : prev,
+        );
+        toast.success('Certificado eliminado');
+      },
+      onError: () => toast.error('No se pudo eliminar el certificado'),
+    });
   };
 
   return (
@@ -408,7 +424,7 @@ export default function Lista() {
                     <TableCell>{c.id}</TableCell>
                     <TableCell>{c.titulo}</TableCell>
                     {/* <TableCell>{c.validez}</TableCell> */}
-                    <TableCell>
+                    <TableCell className="space-x-2">
                       <Button
                         size="sm"
                         variant="outline"
@@ -417,6 +433,16 @@ export default function Lista() {
                         <FileText className="mr-1 h-4 w-4" />
                         Generar PDF
                       </Button>
+                      {(hasRole('superadmin') || hasRole('admin')) && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteCertificado(c.id)}
+                        >
+                          <Trash2 className="mr-1 h-4 w-4" />
+                          Eliminar
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

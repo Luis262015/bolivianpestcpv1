@@ -131,6 +131,24 @@ class EmpresaController extends Controller
     return $pdf->stream('certificado-' . now()->format('Y-m-d') . '.pdf');
   }
 
+  public function destroyCertificado(string $id)
+  {
+    try {
+      $certificado = Certificado::findOrFail($id);
+
+      if (!empty($certificado->logo) && file_exists(public_path($certificado->logo))) {
+        unlink(public_path($certificado->logo));
+      }
+
+      $certificado->delete();
+
+      return redirect()->back()->with('success', 'Certificado eliminado correctamente');
+    } catch (Exception | \Error | QueryException $e) {
+      Log::error('Error al eliminar certificado:', ['error' => $e->getMessage()]);
+      return redirect()->back()->with('error', 'Error al eliminar el certificado');
+    }
+  }
+
   public function getByEmpresa($empresaId)
   {
     $almacenes = Almacen::where('empresa_id', $empresaId)->get(['id', 'nombre']);

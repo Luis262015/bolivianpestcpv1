@@ -84,6 +84,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/empresas/{id}/certificadopdf', [EmpresaController::class, 'certificadopdf'])->name('empresas.certificadopdf');
     Route::get('/empresas/certificadoultimo', [EmpresaController::class, 'certificadoultimo'])->name('empresas.certificadoultimo');
     Route::get('/empresas/{empresa}/almacenes', [EmpresaController::class, 'getByEmpresa']);
+    Route::delete('/empresas/certificados/{id}', [EmpresaController::class, 'destroyCertificado'])->name('empresas.certificados.destroy');
     Route::resource('empresas', EmpresaController::class);
     Route::get('/contratos/{id}/pdf', [ContratoController::class, 'pdf'])->name('contratos.pdf');
     Route::resource('contratos', ContratoController::class);
