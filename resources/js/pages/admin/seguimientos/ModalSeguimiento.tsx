@@ -250,6 +250,7 @@ export default function ModalSeguimiento({
     observaciones_generales: '',
     imagenes: [] as File[],
     numero_tarea: 0,
+    fecha: new Date().toISOString().split('T')[0],
     /* PASO 9 */
     trampa_especies_seguimientos: [] as TrampaEspecieSeguimientos[],
     trampa_roedores_seguimientos: [] as TrampaRoedoresSeguimiento[],
@@ -364,6 +365,7 @@ export default function ModalSeguimiento({
       firma_encargado: firmaEncargado, // base64
       firma_supervisor: firmaSupervisor, // base64
       aplicacion_data: aplicacion,
+      fecha: data.fecha,
     };
 
     // Primero actualizar el estado
@@ -690,6 +692,14 @@ export default function ModalSeguimiento({
                     {errors.tipo_seguimiento_id}
                   </p>
                 )}
+              </div>
+              <div className="space-y-2">
+                <Label>Fecha del Seguimiento *</Label>
+                <Input
+                  type="date"
+                  value={data.fecha}
+                  onChange={(e) => setData('fecha', e.target.value)}
+                />
               </div>
             </div>
           )}

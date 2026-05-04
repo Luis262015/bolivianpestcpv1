@@ -80,7 +80,7 @@ class InformesController extends Controller
           $request->fecha_fin . ' 23:59:59',
         ])
         ->orderBy('created_at', 'asc')
-        ->get(['id', 'tipo_seguimiento_id', 'user_id', 'created_at', 'encargado_nombre', 'encargado_cargo', 'almacen_id']);
+        ->get(['id', 'tipo_seguimiento_id', 'user_id', 'created_at', 'encargado_nombre', 'encargado_cargo', 'almacen_id', 'cronograma_id']);
 
       $acciones = Accion::with(['accionTrampas.trampa', 'imagenes'])
         ->where('almacen_id', $request->almacen_id)

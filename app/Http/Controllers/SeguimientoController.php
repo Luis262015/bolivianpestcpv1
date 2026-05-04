@@ -59,7 +59,8 @@ class SeguimientoController extends Controller
     'aplicacion_data' => 'array|min:1',
     'especies_ids' => 'nullable|array',
     'trampa_especies_seguimientos' => 'nullable|array',
-    'trampa_roedores_seguimientos' => 'nullable|array'
+    'trampa_roedores_seguimientos' => 'nullable|array',
+    'fecha' => 'nullable|date',
   ];
 
   public function index(Request $request)
@@ -82,6 +83,14 @@ class SeguimientoController extends Controller
 
       $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen', 'trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos', 'tipoSeguimiento'])->paginate(20);
     }
+
+    // Log::info('Listado de seguimientos', [
+    //   'user_id' => $user->id,
+    //   'user_name' => $user->name,
+    //   'seguimientos_count' => $seguimientos->total(),
+    // ]);
+
+
     return inertia('admin/seguimientos/lista', [
       'empresas' => $empresas,
       'almacenes' => $almacenes,
@@ -147,6 +156,15 @@ class SeguimientoController extends Controller
       }
 
       $seguimiento->save();
+
+      if (!empty($validated['fecha'])) {
+        DB::table('seguimientos')
+          ->where('id', $seguimiento->id)
+          ->update([
+            'created_at' => $validated['fecha'],
+            'updated_at' => $validated['fecha'],
+          ]);
+      }
 
       // Actualizacion de la tarea en cronograma
       $tarea = Cronograma::find($validated['numero_tarea']);

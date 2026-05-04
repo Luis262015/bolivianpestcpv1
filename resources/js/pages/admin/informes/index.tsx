@@ -112,6 +112,7 @@ interface Seguimiento {
   encargado_nombre: string;
   encargado_cargo: string;
   totales: TotalData[];
+  cronograma_id: number;
 }
 
 interface Imagen {
@@ -560,6 +561,10 @@ export default function Lista({
   const tablaSeguimientoResumen = (seguimientos: any[]) => {
     const data: any = {};
 
+    console.log('++++++++++++++++++++++++');
+    console.log(seguimientos);
+    console.log('++++++++++++++++++++++++');
+
     const seguimientosFiltrados = seguimientos.filter(
       (seg) => Number(seg.tipo_seguimiento_id) === 1, // ← solo DESRATIZACION
     );
@@ -737,11 +742,14 @@ export default function Lista({
         seg.roedores.forEach((roedor) => {
           const trampaId = Number(roedor.trampa_id);
           // console.log('**** TRAMPA_TIPO_ID: ' + roedor.trampa.trampa_tipo_id);
-          console.log('********************************************');
-          console.log(roedor);
-          console.log('********************************************');
+          // console.log('********************************************');
+          // console.log(roedor);
+          // console.log('********************************************');
 
-          if (Number(roedor.trampa.trampa_tipo_id) !== 4) {
+          if (
+            Number(roedor.trampa.trampa_tipo_id) !== 4 ||
+            Number(roedor.trampa.trampa_tipo_id) !== 5
+          ) {
             if (!datosPorTrampa[trampaId]) {
               datosPorTrampa[trampaId] = {
                 trampa_id: trampaId,
@@ -1406,6 +1414,18 @@ export default function Lista({
     polilla: '#4aacc5',
   };
 
+  // Filtra los datos antes del renderizado del gráfico
+  const datosFiltrados = datosRoedores.filter((item) => {
+    // Muestra la trampa solo si al menos uno de los valores tiene dato
+    return (
+      (item.inicial !== null &&
+        item.inicial !== undefined &&
+        item.inicial !== 0) || // quita el !== 0 si el 0 es un valor válido para ti
+      (item.merma !== null && item.merma !== undefined && item.merma !== 0) ||
+      (item.actual !== null && item.actual !== undefined && item.actual !== 0)
+    );
+  });
+
   return (
     <AppLayout breadcrumbs={[{ title: 'Informes', href: '/informes' }]}>
       <Head title="Informes" />
@@ -1548,6 +1568,9 @@ export default function Lista({
                       ID
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
+                      ID CRONOGRAMA
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
                       TECNICO
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
@@ -1570,6 +1593,9 @@ export default function Lista({
                       >
                         <TableCell className={tableStyles.cell}>
                           {s.id}
+                        </TableCell>
+                        <TableCell className={tableStyles.cell}>
+                          {s.cronograma_id}
                         </TableCell>
                         <TableCell className={tableStyles.cell}>
                           {s.user.name}
@@ -2614,7 +2640,7 @@ export default function Lista({
             <br />
 
             {/* GRÁFICO 3: Comparación Inicial/Merma/Actual (Líneas) */}
-            {datosRoedores.length > 0 && (
+            {datosFiltrados.length > 0 && (
               <div>
                 <div className="font-mono">
                   GRÁFICO: COMPARACIÓN DE PESOS POR TRAMPA
@@ -2625,7 +2651,7 @@ export default function Lista({
                   className="h-[300px]"
                   ref={chartRoedoresLineRef}
                 >
-                  <LineChart data={datosRoedores}>
+                  <LineChart data={datosFiltrados}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="trampa_id"
@@ -2697,7 +2723,7 @@ export default function Lista({
             <br />
 
             {/* GRÁFICO 4: Barras agrupadas por trampa */}
-            {datosRoedores.length > 0 && (
+            {datosFiltrados.length > 0 && (
               <div>
                 <div className="font-mono">GRÁFICO: VALORES POR TRAMPA</div>
                 <br />
@@ -2706,7 +2732,7 @@ export default function Lista({
                   className="h-[300px]"
                   ref={chartRoedoresBarRef}
                 >
-                  <BarChart data={datosRoedores}>
+                  <BarChart data={datosFiltrados}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="trampa_id"
