@@ -68,6 +68,54 @@ class ContratoController extends Controller
     'almacenes.*.almacen_insectocutor.fechas_visitas' => 'sometimes|array|min:0',
   ];
 
+  // Validación específica para UPDATE: fechas viven al nivel del almacén
+  private $toValidatedUpdate = [
+    'nombre' => 'required|string|max:255',
+    'direccion' => 'required|string|max:255',
+    'telefono' => 'required|string|max:20',
+    'email' => 'required|email',
+    'ciudad' => 'required|string|max:100',
+    'total' => 'required|numeric|min:0',
+    'expiracion' => 'required|date',
+
+    'almacenes' => 'required|array|min:1',
+    'almacenes.*.id' => 'integer',
+    'almacenes.*.nombre' => 'required|string|max:255',
+    'almacenes.*.direccion' => 'required|string|max:255',
+    'almacenes.*.telefono' => 'required|string|max:255',
+    'almacenes.*.email' => 'required|email',
+    'almacenes.*.ciudad' => 'required|string|max:255',
+    'almacenes.*.encargado' => 'required|string|max:255',
+
+    'almacenes.*.fechas_trampa'         => 'nullable|array',
+    'almacenes.*.fechas_trampa.*'        => 'nullable|date_format:Y-m-d',
+    'almacenes.*.fechas_area'            => 'nullable|array',
+    'almacenes.*.fechas_area.*'          => 'nullable|date_format:Y-m-d',
+    'almacenes.*.fechas_insectocutor'    => 'nullable|array',
+    'almacenes.*.fechas_insectocutor.*'  => 'nullable|date_format:Y-m-d',
+
+    'almacenes.*.almacen_trampa' => 'required|array',
+    'almacenes.*.almacen_trampa.id' => 'integer',
+    'almacenes.*.almacen_trampa.cantidad' => 'required|numeric|min:0',
+    'almacenes.*.almacen_trampa.visitas' => 'required|numeric|min:0',
+    'almacenes.*.almacen_trampa.precio' => 'required|numeric|min:0',
+    'almacenes.*.almacen_trampa.total' => 'required|numeric|min:0',
+
+    'almacenes.*.almacen_area' => 'required|array',
+    'almacenes.*.almacen_area.id' => 'integer',
+    'almacenes.*.almacen_area.area' => 'required|numeric|min:0',
+    'almacenes.*.almacen_area.visitas' => 'required|numeric|min:0',
+    'almacenes.*.almacen_area.precio' => 'required|numeric|min:0',
+    'almacenes.*.almacen_area.total' => 'required|numeric|min:0',
+
+    'almacenes.*.almacen_insectocutor' => 'required|array',
+    'almacenes.*.almacen_insectocutor.id' => 'integer',
+    'almacenes.*.almacen_insectocutor.cantidad' => 'required|numeric|min:0',
+    'almacenes.*.almacen_insectocutor.visitas' => 'required|numeric|min:0',
+    'almacenes.*.almacen_insectocutor.precio' => 'required|numeric|min:0',
+    'almacenes.*.almacen_insectocutor.total' => 'required|numeric|min:0',
+  ];
+
   public function index()
   {
     $contratos = Contrato::with('detalles')
@@ -270,35 +318,29 @@ class ContratoController extends Controller
         // Cargar fechas pendientes del cronograma por tipo
         $fechasTrampas = Cronograma::where('almacen_id', $almacen->id)
           ->where('tipo_seguimiento_id', 1)
-          // ->where('status', 'pendiente')
-          ->orderBy('date')
+          ->where('status', 'pendiente')
+          ->orderBy('id')
           ->pluck('date')
           ->toArray();
 
         $fechasArea = Cronograma::where('almacen_id', $almacen->id)
           ->where('tipo_seguimiento_id', 2)
-          // ->where('status', 'pendiente')
-          ->orderBy('date')
+          ->where('status', 'pendiente')
+          ->orderBy('id')
           ->pluck('date')
           ->toArray();
 
         $fechasInsectocutor = Cronograma::where('almacen_id', $almacen->id)
           ->where('tipo_seguimiento_id', 3)
-          // ->where('status', 'pendiente')
-          ->orderBy('date')
+          ->where('status', 'pendiente')
+          ->orderBy('id')
           ->pluck('date')
           ->toArray();
 
-        // Inyectar fechas dentro de cada sub-relación
-        if ($almacen->almacenTrampa) {
-          $almacen->almacenTrampa->fechas_visitas = $fechasTrampas;
-        }
-        if ($almacen->almacenArea) {
-          $almacen->almacenArea->fechas_visitas = $fechasArea;
-        }
-        if ($almacen->almacenInsectocutor) {
-          $almacen->almacenInsectocutor->fechas_visitas = $fechasInsectocutor;
-        }
+        // Inyectar fechas directamente en el almacén (no en los sub-modelos)
+        $almacen->fechas_trampa       = $fechasTrampas;
+        $almacen->fechas_area         = $fechasArea;
+        $almacen->fechas_insectocutor = $fechasInsectocutor;
 
         return $almacen;
       });
@@ -315,7 +357,7 @@ class ContratoController extends Controller
     // dd($request);
     // return;
 
-    $validated = $request->validate($this->toValidated);
+    $validated = $request->validate($this->toValidatedUpdate);
 
     try {
       DB::beginTransaction();
@@ -435,7 +477,7 @@ class ContratoController extends Controller
             ->where('tipo_seguimiento_id', 1)
             ->where('status', 'pendiente')
             ->delete();
-          foreach ($almacen['almacen_trampa']['fechas_visitas'] as $fecha) {
+          foreach (array_filter($almacen['fechas_trampa'] ?? [], fn($f) => !empty(trim((string) $f))) as $fecha) {
             Cronograma::create([
               'empresa_id'          => $empresa->id,
               'almacen_id'          => $almacen['id'],
@@ -453,7 +495,7 @@ class ContratoController extends Controller
             ->where('tipo_seguimiento_id', 2)
             ->where('status', 'pendiente')
             ->delete();
-          foreach ($almacen['almacen_area']['fechas_visitas'] as $fecha) {
+          foreach (array_filter($almacen['fechas_area'] ?? [], fn($f) => !empty(trim((string) $f))) as $fecha) {
             Cronograma::create([
               'empresa_id'          => $empresa->id,
               'almacen_id'          => $almacen['id'],
@@ -471,7 +513,7 @@ class ContratoController extends Controller
             ->where('tipo_seguimiento_id', 3)
             ->where('status', 'pendiente')
             ->delete();
-          foreach ($almacen['almacen_insectocutor']['fechas_visitas'] as $fecha) {
+          foreach (array_filter($almacen['fechas_insectocutor'] ?? [], fn($f) => !empty(trim((string) $f))) as $fecha) {
             Cronograma::create([
               'empresa_id'          => $empresa->id,
               'almacen_id'          => $almacen['id'],
@@ -539,7 +581,7 @@ class ContratoController extends Controller
           $detalles->total       = 0;
           $detalles->save();
 
-          foreach ($almacen['almacen_trampa']['fechas_visitas'] as $fecha) {
+          foreach (array_filter($almacen['fechas_trampa'] ?? [], fn($f) => !empty(trim((string) $f))) as $fecha) {
             Cronograma::create([
               'empresa_id'          => $empresa->id,
               'almacen_id'          => $almacendb->id,
@@ -553,7 +595,7 @@ class ContratoController extends Controller
             ]);
           }
 
-          foreach ($almacen['almacen_area']['fechas_visitas'] as $fecha) {
+          foreach (array_filter($almacen['fechas_area'] ?? [], fn($f) => !empty(trim((string) $f))) as $fecha) {
             Cronograma::create([
               'empresa_id'          => $empresa->id,
               'almacen_id'          => $almacendb->id,
@@ -567,7 +609,7 @@ class ContratoController extends Controller
             ]);
           }
 
-          foreach ($almacen['almacen_insectocutor']['fechas_visitas'] as $fecha) {
+          foreach (array_filter($almacen['fechas_insectocutor'] ?? [], fn($f) => !empty(trim((string) $f))) as $fecha) {
             Cronograma::create([
               'empresa_id'          => $empresa->id,
               'almacen_id'          => $almacendb->id,

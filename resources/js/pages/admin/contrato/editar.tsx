@@ -22,7 +22,6 @@ interface AlmacenTrampa {
   visitas: number;
   precio: number;
   total: number;
-  fechas_visitas?: string[];
 }
 
 interface AlmacenArea {
@@ -31,7 +30,6 @@ interface AlmacenArea {
   visitas: number;
   precio: number;
   total: number;
-  fechas_visitas?: string[];
 }
 
 interface AlmacenInsectocutor {
@@ -40,7 +38,6 @@ interface AlmacenInsectocutor {
   visitas: number;
   precio: number;
   total: number;
-  fechas_visitas?: string[];
 }
 
 interface Almacen {
@@ -51,6 +48,9 @@ interface Almacen {
   email: string;
   ciudad: string;
   encargado: string;
+  fechas_trampa: string[];
+  fechas_area: string[];
+  fechas_insectocutor: string[];
   almacen_trampa: AlmacenTrampa;
   almacen_area: AlmacenArea;
   almacen_insectocutor: AlmacenInsectocutor;
@@ -109,32 +109,28 @@ const emptyAlmacen = (): Almacen => ({
   email: '',
   ciudad: '',
   encargado: '',
-  almacen_trampa: {
-    cantidad: 0,
-    visitas: 1,
-    precio: 0,
-    total: 0,
-    fechas_visitas: [''],
-  },
-  almacen_area: {
-    area: 0,
-    visitas: 1,
-    precio: 0,
-    total: 0,
-    fechas_visitas: [''],
-  },
-  almacen_insectocutor: {
-    cantidad: 0,
-    visitas: 1,
-    precio: 0,
-    total: 0,
-    fechas_visitas: [''],
-  },
+  fechas_trampa: [''],
+  fechas_area: [''],
+  fechas_insectocutor: [''],
+  almacen_trampa: { cantidad: 0, visitas: 1, precio: 0, total: 0 },
+  almacen_area: { area: 0, visitas: 1, precio: 0, total: 0 },
+  almacen_insectocutor: { cantidad: 0, visitas: 1, precio: 0, total: 0 },
 });
 
+// Asegura que el array de fechas tenga exactamente `count` entradas.
+// Si sobran → recorta; si faltan → rellena con ''.
+// NOTA: no se puede usar ?? porque [] es truthy y no activa el fallback.
+const normalizeFechas = (
+  fechas: string[] | null | undefined,
+  count: number,
+): string[] => {
+  const arr = fechas ?? [];
+  if (arr.length >= count) return arr.slice(0, count);
+  return [...arr, ...Array(count - arr.length).fill('')];
+};
+
 // ─── Mapear almacenes que vienen del backend ────────────────────────────────────
-// El backend retorna almacen_trampa, almacen_area, almacen_insectocutor como objetos
-// con los campos de la BD. Normalizamos aquí.
+// Las fechas vienen en a.fechas_trampa / a.fechas_area / a.fechas_insectocutor
 const mapAlmacenFromBackend = (a: any): Almacen => {
   const trampaVisitas = a.almacen_trampa?.visitas ?? 1;
   const areaVisitas = a.almacen_area?.visitas ?? 1;
@@ -148,15 +144,15 @@ const mapAlmacenFromBackend = (a: any): Almacen => {
     email: a.email ?? '',
     ciudad: a.ciudad ?? '',
     encargado: a.encargado ?? '',
+    fechas_trampa:       normalizeFechas(a.fechas_trampa, trampaVisitas),
+    fechas_area:         normalizeFechas(a.fechas_area, areaVisitas),
+    fechas_insectocutor: normalizeFechas(a.fechas_insectocutor, insectVisitas),
     almacen_trampa: {
       id: a.almacen_trampa?.id,
       cantidad: a.almacen_trampa?.cantidad ?? 0,
       visitas: trampaVisitas,
       precio: a.almacen_trampa?.precio ?? 0,
       total: a.almacen_trampa?.total ?? 0,
-      // Si no vienen fechas guardadas, generamos slots vacíos
-      fechas_visitas:
-        a.almacen_trampa?.fechas_visitas ?? Array(trampaVisitas).fill(''),
     },
     almacen_area: {
       id: a.almacen_area?.id,
@@ -164,8 +160,6 @@ const mapAlmacenFromBackend = (a: any): Almacen => {
       visitas: areaVisitas,
       precio: a.almacen_area?.precio ?? 0,
       total: a.almacen_area?.total ?? 0,
-      fechas_visitas:
-        a.almacen_area?.fechas_visitas ?? Array(areaVisitas).fill(''),
     },
     almacen_insectocutor: {
       id: a.almacen_insectocutor?.id,
@@ -173,8 +167,6 @@ const mapAlmacenFromBackend = (a: any): Almacen => {
       visitas: insectVisitas,
       precio: a.almacen_insectocutor?.precio ?? 0,
       total: a.almacen_insectocutor?.total ?? 0,
-      fechas_visitas:
-        a.almacen_insectocutor?.fechas_visitas ?? Array(insectVisitas).fill(''),
     },
   };
 };
@@ -218,12 +210,15 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
     if (field === 'visitas') {
       const newVisitas = Number(value);
       trampa.visitas = newVisitas;
-      const curr = trampa.fechas_visitas || [];
-      trampa.fechas_visitas =
-        newVisitas > curr.length
-          ? [...curr, ...Array(newVisitas - curr.length).fill('')]
-          : curr.slice(0, newVisitas);
-    } else if (field !== 'fechas_visitas') {
+      const curr = updated[index].fechas_trampa ?? [];
+      updated[index] = {
+        ...updated[index],
+        fechas_trampa:
+          newVisitas > curr.length
+            ? [...curr, ...Array(newVisitas - curr.length).fill('')]
+            : curr.slice(0, newVisitas),
+      };
+    } else {
       (trampa[field] as number) = Number(value);
     }
 
@@ -232,7 +227,7 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
       trampa.visitas,
       trampa.precio,
     );
-    updated[index].almacen_trampa = trampa;
+    updated[index] = { ...updated[index], almacen_trampa: trampa };
     setData('almacenes', updated);
   };
 
@@ -242,11 +237,9 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
     fecha: string,
   ) => {
     const updated = [...data.almacenes];
-    const fechas = [
-      ...(updated[almacenIndex].almacen_trampa.fechas_visitas || []),
-    ];
+    const fechas = [...(updated[almacenIndex].fechas_trampa ?? [])];
     fechas[visitaIndex] = fecha;
-    updated[almacenIndex].almacen_trampa.fechas_visitas = fechas;
+    updated[almacenIndex] = { ...updated[almacenIndex], fechas_trampa: fechas };
     setData('almacenes', updated);
   };
 
@@ -262,17 +255,20 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
     if (field === 'visitas') {
       const newVisitas = Number(value);
       area.visitas = newVisitas;
-      const curr = area.fechas_visitas || [];
-      area.fechas_visitas =
-        newVisitas > curr.length
-          ? [...curr, ...Array(newVisitas - curr.length).fill('')]
-          : curr.slice(0, newVisitas);
-    } else if (field !== 'fechas_visitas') {
+      const curr = updated[index].fechas_area ?? [];
+      updated[index] = {
+        ...updated[index],
+        fechas_area:
+          newVisitas > curr.length
+            ? [...curr, ...Array(newVisitas - curr.length).fill('')]
+            : curr.slice(0, newVisitas),
+      };
+    } else {
       (area[field] as number) = Number(value);
     }
 
     area.total = calcularTotalArea(area.area, area.visitas, area.precio);
-    updated[index].almacen_area = area;
+    updated[index] = { ...updated[index], almacen_area: area };
     setData('almacenes', updated);
   };
 
@@ -282,11 +278,9 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
     fecha: string,
   ) => {
     const updated = [...data.almacenes];
-    const fechas = [
-      ...(updated[almacenIndex].almacen_area.fechas_visitas || []),
-    ];
+    const fechas = [...(updated[almacenIndex].fechas_area ?? [])];
     fechas[visitaIndex] = fecha;
-    updated[almacenIndex].almacen_area.fechas_visitas = fechas;
+    updated[almacenIndex] = { ...updated[almacenIndex], fechas_area: fechas };
     setData('almacenes', updated);
   };
 
@@ -302,17 +296,20 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
     if (field === 'visitas') {
       const newVisitas = Number(value);
       insect.visitas = newVisitas;
-      const curr = insect.fechas_visitas || [];
-      insect.fechas_visitas =
-        newVisitas > curr.length
-          ? [...curr, ...Array(newVisitas - curr.length).fill('')]
-          : curr.slice(0, newVisitas);
-    } else if (field !== 'fechas_visitas') {
+      const curr = updated[index].fechas_insectocutor ?? [];
+      updated[index] = {
+        ...updated[index],
+        fechas_insectocutor:
+          newVisitas > curr.length
+            ? [...curr, ...Array(newVisitas - curr.length).fill('')]
+            : curr.slice(0, newVisitas),
+      };
+    } else {
       (insect[field] as number) = Number(value);
     }
 
     insect.total = calcularTotalInsectocutor(insect.visitas, insect.precio);
-    updated[index].almacen_insectocutor = insect;
+    updated[index] = { ...updated[index], almacen_insectocutor: insect };
     setData('almacenes', updated);
   };
 
@@ -322,11 +319,9 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
     fecha: string,
   ) => {
     const updated = [...data.almacenes];
-    const fechas = [
-      ...(updated[almacenIndex].almacen_insectocutor.fechas_visitas || []),
-    ];
+    const fechas = [...(updated[almacenIndex].fechas_insectocutor ?? [])];
     fechas[visitaIndex] = fecha;
-    updated[almacenIndex].almacen_insectocutor.fechas_visitas = fechas;
+    updated[almacenIndex] = { ...updated[almacenIndex], fechas_insectocutor: fechas };
     setData('almacenes', updated);
   };
 
@@ -381,29 +376,33 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
     visitaIndex: number,
   ) => {
     const updated = [...data.almacenes];
-    const trampa = { ...updated[almacenIndex].almacen_trampa };
-    trampa.fechas_visitas = (trampa.fechas_visitas || []).filter(
+    const newFechas = (updated[almacenIndex].fechas_trampa ?? []).filter(
       (_, i) => i !== visitaIndex,
     );
-    trampa.visitas = trampa.fechas_visitas.length;
-    trampa.total = calcularTotalTrampas(
-      trampa.cantidad,
-      trampa.visitas,
-      trampa.precio,
-    );
-    updated[almacenIndex].almacen_trampa = trampa;
+    const trampa = { ...updated[almacenIndex].almacen_trampa };
+    trampa.visitas = newFechas.length;
+    trampa.total = calcularTotalTrampas(trampa.cantidad, trampa.visitas, trampa.precio);
+    updated[almacenIndex] = {
+      ...updated[almacenIndex],
+      fechas_trampa: newFechas,
+      almacen_trampa: trampa,
+    };
     setData('almacenes', updated);
   };
 
   const removeAreaFechaVisita = (almacenIndex: number, visitaIndex: number) => {
     const updated = [...data.almacenes];
-    const area = { ...updated[almacenIndex].almacen_area };
-    area.fechas_visitas = (area.fechas_visitas || []).filter(
+    const newFechas = (updated[almacenIndex].fechas_area ?? []).filter(
       (_, i) => i !== visitaIndex,
     );
-    area.visitas = area.fechas_visitas.length;
+    const area = { ...updated[almacenIndex].almacen_area };
+    area.visitas = newFechas.length;
     area.total = calcularTotalArea(area.area, area.visitas, area.precio);
-    updated[almacenIndex].almacen_area = area;
+    updated[almacenIndex] = {
+      ...updated[almacenIndex],
+      fechas_area: newFechas,
+      almacen_area: area,
+    };
     setData('almacenes', updated);
   };
 
@@ -412,13 +411,17 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
     visitaIndex: number,
   ) => {
     const updated = [...data.almacenes];
-    const insect = { ...updated[almacenIndex].almacen_insectocutor };
-    insect.fechas_visitas = (insect.fechas_visitas || []).filter(
+    const newFechas = (updated[almacenIndex].fechas_insectocutor ?? []).filter(
       (_, i) => i !== visitaIndex,
     );
-    insect.visitas = insect.fechas_visitas.length;
+    const insect = { ...updated[almacenIndex].almacen_insectocutor };
+    insect.visitas = newFechas.length;
     insect.total = calcularTotalInsectocutor(insect.visitas, insect.precio);
-    updated[almacenIndex].almacen_insectocutor = insect;
+    updated[almacenIndex] = {
+      ...updated[almacenIndex],
+      fechas_insectocutor: newFechas,
+      almacen_insectocutor: insect,
+    };
     setData('almacenes', updated);
   };
 
@@ -775,10 +778,7 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
                                       <Input
                                         type="date"
                                         required
-                                        value={
-                                          almacen.almacen_trampa
-                                            .fechas_visitas?.[visitaIndex] || ''
-                                        }
+                                        value={almacen.fechas_trampa[visitaIndex] ?? ''}
                                         onChange={(e) =>
                                           updateTrampaFechaVisita(
                                             index,
@@ -926,11 +926,7 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
                                       </Label>
                                       <Input
                                         type="date"
-                                        value={
-                                          almacen.almacen_area.fechas_visitas?.[
-                                            visitaIndex
-                                          ] || ''
-                                        }
+                                        value={almacen.fechas_area[visitaIndex] ?? ''}
                                         onChange={(e) =>
                                           updateAreaFechaVisita(
                                             index,
@@ -1083,10 +1079,7 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
                                       <Input
                                         type="date"
                                         required
-                                        value={
-                                          almacen.almacen_insectocutor
-                                            .fechas_visitas?.[visitaIndex] || ''
-                                        }
+                                        value={almacen.fechas_insectocutor[visitaIndex] ?? ''}
                                         onChange={(e) =>
                                           updateInsectocutorFechaVisita(
                                             index,
