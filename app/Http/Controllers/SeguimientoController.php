@@ -372,27 +372,86 @@ class SeguimientoController extends Controller
         ->with('error', 'Error: No puede eliminar el registro');
     }
 
-
     try {
       DB::beginTransaction();
-      $seguimiento = Seguimiento::find($id);
-      // Eliminar imagenes
-      SeguimientoImage::where('seguimiento_id', $seguimiento->id)->delete();
-      // Eliminar especies
+      $seguimiento = Seguimiento::findOrFail($id);
+
+      // Eliminar archivos físicos de imágenes y sus registros
+      $imagenes = SeguimientoImage::where('seguimiento_id', $seguimiento->id)->get();
+      foreach ($imagenes as $imagen) {
+        if (!empty($imagen->imagen) && file_exists(public_path($imagen->imagen))) {
+          unlink(public_path($imagen->imagen));
+        }
+        $imagen->delete();
+      }
+
+      // Eliminar archivos físicos de firmas
+      if (!empty($seguimiento->firma_encargado) && file_exists(public_path($seguimiento->firma_encargado))) {
+        unlink(public_path($seguimiento->firma_encargado));
+      }
+      if (!empty($seguimiento->firma_supervisor) && file_exists(public_path($seguimiento->firma_supervisor))) {
+        unlink(public_path($seguimiento->firma_supervisor));
+      }
+
+      // Revertir stock por productos usados
+      $productosUsos = ProductoUso::where('seguimiento_id', $seguimiento->id)->get();
+      foreach ($productosUsos as $productoUso) {
+        $producto = Producto::find($productoUso->producto_id);
+        if ($producto) {
+          $res = $productoUso->cantidad / $producto->unidad_valor;
+          $parte_entera = (int) $res;
+          $parte_decimal = ($res - $parte_entera) * $producto->unidad_valor;
+
+          if ($parte_entera > 0) {
+            Kardex::create([
+              'venta_id'       => null,
+              'compra_id'      => null,
+              'producto_id'    => $producto->id,
+              'tipo'           => 'Entrada',
+              'cantidad'       => $parte_entera,
+              'cantidad_saldo' => $producto->stock + $parte_entera,
+              'costo_unitario' => $producto->precio_compra ?? 0,
+            ]);
+            $producto->stock += $parte_entera;
+            $producto->save();
+          }
+
+          // Revertir buffer si aplica
+          if ($parte_decimal > 0) {
+            $prodBuf = BufferProducto::where('producto_id', $producto->id)->first();
+            if ($prodBuf) {
+              $prodBuf->cantidad -= $parte_decimal;
+              if ($prodBuf->cantidad <= 0) {
+                $prodBuf->delete();
+              } else {
+                $prodBuf->save();
+              }
+            }
+          }
+        }
+      }
+      ProductoUso::where('seguimiento_id', $seguimiento->id)->delete();
+
+      // Eliminar trampas
+      TrampaEspecieSeguimiento::where('seguimiento_id', $seguimiento->id)->delete();
+      TrampaRoedorSeguimiento::where('seguimiento_id', $seguimiento->id)->delete();
+
+      // Eliminar relaciones
       SeguimientoEspecie::where('seguimiento_id', $seguimiento->id)->delete();
-      // Eliminar signos
       SeguimientoSigno::where('seguimiento_id', $seguimiento->id)->delete();
-      // Eliminar protecciones
       SeguimientoProteccion::where('seguimiento_id', $seguimiento->id)->delete();
-      // Eliminar epps
       SeguimientoEpp::where('seguimiento_id', $seguimiento->id)->delete();
-      // Eliminar metodos
       SeguimientoMetodo::where('seguimiento_id', $seguimiento->id)->delete();
-      // Eliminar biologicos
       SeguimientoBiologico::where('seguimiento_id', $seguimiento->id)->delete();
-      // Eliminar aplicaciones
       Aplicacion::where('seguimiento_id', $seguimiento->id)->delete();
-      // Eliminar seguimiento
+
+      // Revertir estado del cronograma
+      $tarea = Cronograma::find($seguimiento->cronograma_id);
+      if ($tarea) {
+        $tarea->status = 'pendiente';
+        $tarea->save();
+      }
+
       $seguimiento->delete();
 
       DB::commit();

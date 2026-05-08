@@ -2654,8 +2654,9 @@ export default function Lista({
                   <LineChart data={datosFiltrados}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
-                      dataKey="trampa_id"
-                      tickFormatter={(value) => `T${value}`}
+                      // dataKey="trampa_id"
+                      dataKey="indent"
+                      tickFormatter={(value) => `${value}`}
                       className="font-bold"
                       label={{
                         value: '--- TRAMPA ---',
@@ -2735,8 +2736,8 @@ export default function Lista({
                   <BarChart data={datosFiltrados}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
-                      dataKey="trampa_id"
-                      tickFormatter={(value) => `T${value}`}
+                      dataKey="indent"
+                      tickFormatter={(value) => `${value}`}
                       className="font-bold"
                       label={{
                         value: '--- TRAMPA ---',
