@@ -326,10 +326,19 @@ class MapaController extends Controller
 
 
       $trampasRecibidas = collect($validated['trampas'] ?? []);
-      $idsMantener = $trampasRecibidas->filter(fn($t) => !empty($t['id']))->pluck('id');
-      // Eliminar las que ya no vienen
-      $mapa->trampas()->whereNotIn('id', $idsMantener)->delete(); // 🔴🔴🔴 REVISAR 
-      // Procesar cada trampa (crear o actualizar)
+      $idsEnviados = $trampasRecibidas->filter(fn($t) => !empty($t['id']))->pluck('id');
+
+      // Eliminar solo las trampas que el usuario quitó del mapa Y que no tienen dependencias
+      $mapa->trampas()
+        ->whereNotIn('id', $idsEnviados)
+        ->get()
+        ->each(function (Trampa $trampa) {
+          if (!$trampa->tieneDependencias()) {
+            $trampa->delete();
+          }
+        });
+
+      // Actualizar trampas existentes y crear nuevas
       foreach ($trampasRecibidas as $index => $trampaData) {
         $data = [
           'almacen_id'     => $validated['almacen_id'],
@@ -338,7 +347,7 @@ class MapaController extends Controller
           'posy'           => round($trampaData['posy']),
           'estado'         => $trampaData['estado'] ?? 'activo',
           'numero'         => $trampaData['numero'] ?? ($index + 1),
-          'identificador'         => $trampaData['identificador'],
+          'identificador'  => $trampaData['identificador'],
         ];
 
         if (!empty($trampaData['id'])) {

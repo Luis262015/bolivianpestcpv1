@@ -22,4 +22,26 @@ class Trampa extends Model
     {
         return $this->belongsTo(Mapa::class);
     }
+
+    public function especieSeguimientos()
+    {
+        return $this->hasMany(TrampaEspecieSeguimiento::class);
+    }
+
+    public function roedorSeguimientos()
+    {
+        return $this->hasMany(TrampaRoedorSeguimiento::class);
+    }
+
+    public function accionTrampas()
+    {
+        return $this->hasMany(AccionTrampa::class);
+    }
+
+    public function tieneDependencias(): bool
+    {
+        return $this->especieSeguimientos()->exists()
+            || $this->roedorSeguimientos()->exists()
+            || $this->accionTrampas()->exists();
+    }
 }
