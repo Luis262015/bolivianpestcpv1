@@ -15,7 +15,7 @@ class UsersController extends Controller
 {
   public function index()
   {
-    $usuarios = User::select('id', 'name', 'email')->with('roles')->paginate(20);
+    $usuarios = User::select('id', 'name', 'email')->with(['roles', 'empresas'])->paginate(20);
     $roles = Role::select('id', 'name')->where('name', '!=', 'superadmin')->get();
     $empresas = Empresa::select('id', 'nombre')->get();
     return inertia('admin/usuarios/index', ['users' => $usuarios, 'roles' => $roles, 'empresas' => $empresas]);
@@ -29,27 +29,19 @@ class UsersController extends Controller
       'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
       'password' => ['required', 'confirmed', Rules\Password::defaults()],
       'role' => ['required', Rule::exists('roles', 'id')->whereNot('name', 'superadmin')],
-      'enable' => 'sometimes|boolean', // Acepta true/false, 1/0, "1"/"0"
-      'empresa' => 'sometimes|integer',
+      'enable' => 'sometimes|boolean',
+      'empresas' => 'sometimes|array',
+      'empresas.*' => 'integer|exists:empresas,id',
     ]);
 
-    $user = User::create(
-      [
-        'name' => $validated['name'],
-        'email' => $validated['email'],
-        'password' => Hash::make($validated['password']),
-        'enable' => $validated['enable'] ?? false, // Por defecto false
-      ]
-    );
+    $user = User::create([
+      'name' => $validated['name'],
+      'email' => $validated['email'],
+      'password' => Hash::make($validated['password']),
+      'enable' => $validated['enable'] ?? false,
+    ]);
 
-    if ($validated['empresa']) {
-      UsuarioEmpresa::create(
-        [
-          'user_id' => $user->id,
-          'empresa_id' => $validated['empresa']
-        ]
-      );
-    }
+    $user->empresas()->sync($validated['empresas'] ?? []);
 
     $role = Role::findById($validated['role']);
     $user->assignRole($role);
@@ -63,8 +55,11 @@ class UsersController extends Controller
       'email' => 'required|email|unique:users,email,' . $usuario->id,
       'password' => 'nullable|min:8|confirmed',
       'role' => 'nullable|exists:roles,id',
-      'enable' => 'sometimes|boolean', // Acepta true/false, 1/0, "1"/"0"
+      'enable' => 'sometimes|boolean',
+      'empresas' => 'sometimes|array',
+      'empresas.*' => 'integer|exists:empresas,id',
     ]);
+
     $data = [
       'name' => $request->name,
       'email' => $request->email,
@@ -74,7 +69,9 @@ class UsersController extends Controller
       $data['password'] = Hash::make($request->password);
     }
     $usuario->update($data);
-    // Asignar rol con Spatie
+
+    $usuario->empresas()->sync($request->empresas ?? []);
+
     if ($request->role) {
       $role = Role::find($request->role);
       $usuario->syncRoles([$role->name]);

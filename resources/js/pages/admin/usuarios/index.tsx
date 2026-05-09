@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -82,15 +83,32 @@ export default function Index() {
   const [itemPassword, setItemPassword] = useState('');
   const [itemConfPassword, setItemConfPassword] = useState('');
   const [itemRole, setItemRole] = useState(0);
-  const [itemEmpresa, setItemEmpresa] = useState(0);
+  const [itemEmpresas, setItemEmpresas] = useState<number[]>([]);
 
   const [isOpen, setIsOpen] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
 
+  const toggleEmpresa = (id: number) => {
+    setItemEmpresas((prev) =>
+      prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id],
+    );
+  };
+
+  const toggleAllEmpresas = () => {
+    if (itemEmpresas.length === empresas.length) {
+      setItemEmpresas([]);
+    } else {
+      setItemEmpresas(empresas.map((e) => e.id));
+    }
+  };
+
+  const allChecked =
+    empresas.length > 0 && itemEmpresas.length === empresas.length;
+  const someChecked = itemEmpresas.length > 0 && !allChecked;
+
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    // console.log('handleCreate');
     if (!itemName) return;
 
     router.post(
@@ -101,7 +119,7 @@ export default function Index() {
         password: itemPassword,
         password_confirmation: itemConfPassword,
         role: itemRole,
-        empresa: itemEmpresa,
+        empresas: itemEmpresas,
       },
       {
         onSuccess: () => {
@@ -113,7 +131,6 @@ export default function Index() {
 
   const handleEdit = (e: React.FormEvent) => {
     e.preventDefault();
-    // console.log('handleEdit');
     if (!editItem || !itemName) return;
 
     router.put(
@@ -124,7 +141,7 @@ export default function Index() {
         password: itemPassword,
         password_confirmation: itemConfPassword,
         role: itemRole,
-        empresa: itemEmpresa,
+        empresas: itemEmpresas,
       },
       {
         onSuccess: () => {
@@ -140,6 +157,7 @@ export default function Index() {
     setItemEmail('');
     setItemPassword('');
     setItemConfPassword('');
+    setItemEmpresas([]);
     setIsOpen(false);
   };
 
@@ -154,6 +172,7 @@ export default function Index() {
     setItemName(item.name);
     setItemEmail(item.email);
     setItemRole(item.roles[0].id);
+    setItemEmpresas(item.empresas.map((e) => e.id));
     setIsOpen(true);
   };
 
@@ -163,6 +182,7 @@ export default function Index() {
     setItemEmail('');
     setItemPassword('');
     setItemConfPassword('');
+    setItemEmpresas([]);
     setIsOpen(true);
   };
 
@@ -208,8 +228,6 @@ export default function Index() {
                 onSubmit={editItem ? handleEdit : handleCreate}
                 className="space-y-4"
               >
-                {/* {({ processing, errors }) => (
-                  <> */}
                 <div>
                   <Label htmlFor="name">Nombre:</Label>
                   <Input
@@ -293,7 +311,6 @@ export default function Index() {
                   <Select
                     onValueChange={(value) => setItemRole(Number(value))}
                     value={String(itemRole)}
-                    // disabled={processing}
                   >
                     <SelectTrigger>
                       <SelectValue></SelectValue>
@@ -314,29 +331,45 @@ export default function Index() {
 
                 <div>
                   <Label>Selección de EMPRESA</Label>
-                  <Select
-                    onValueChange={(value) => setItemEmpresa(Number(value))}
-                    value={String(itemEmpresa)}
-                    // disabled={processing}
-                  >
-                    <SelectTrigger>
-                      <SelectValue></SelectValue>
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Empresas</SelectLabel>
-                        {empresas.map((empresa) => (
-                          <SelectItem
-                            key={empresa.id}
-                            value={String(empresa.id)}
+                  <div className="mt-1 max-h-40 overflow-y-auto rounded-md border p-2">
+                    <div className="mb-1 flex items-center gap-2 border-b pb-2">
+                      <Checkbox
+                        id="all-empresas"
+                        checked={allChecked ? true : someChecked ? 'indeterminate' : false}
+                        onCheckedChange={toggleAllEmpresas}
+                      />
+                      <Label
+                        htmlFor="all-empresas"
+                        className="cursor-pointer font-medium"
+                      >
+                        Todas las empresas
+                      </Label>
+                    </div>
+                    <div className="space-y-2 pt-1">
+                      {empresas.map((empresa) => (
+                        <div key={empresa.id} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`empresa-${empresa.id}`}
+                            checked={itemEmpresas.includes(empresa.id)}
+                            onCheckedChange={() => toggleEmpresa(empresa.id)}
+                          />
+                          <Label
+                            htmlFor={`empresa-${empresa.id}`}
+                            className="cursor-pointer"
                           >
                             {empresa.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {itemEmpresas.length > 0 && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {allChecked
+                        ? 'Todas las empresas seleccionadas'
+                        : `${itemEmpresas.length} empresa${itemEmpresas.length !== 1 ? 's' : ''} seleccionada${itemEmpresas.length !== 1 ? 's' : ''}`}
+                    </p>
+                  )}
                 </div>
 
                 <DialogFooter>
@@ -344,8 +377,6 @@ export default function Index() {
                     {editItem ? 'Actualizar' : 'Crear'}
                   </Button>
                 </DialogFooter>
-                {/* </>
-                )} */}
               </form>
             </DialogContent>
           </Dialog>
