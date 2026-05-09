@@ -65,6 +65,14 @@ class SeguimientoController extends Controller
 
   public function index(Request $request)
   {
+    $user = $request->user();
+
+    Log::info('SeguimientoController@index', [
+      'user_id'   => $user->id,
+      'user_name' => $user->name,
+      'role'      => $user->HasRole('cliente') ? 'cliente' : 'admin',
+    ]);
+
     $empresas = Empresa::select('id', 'nombre')->get();
     $almacenes = Almacen::select('id', 'nombre')->get();
     $biologicos = Biologico::orderBy('nombre')->get();
@@ -74,22 +82,18 @@ class SeguimientoController extends Controller
     $signos = Signo::orderBy('nombre')->get();
     $tiposSeguimiento = TipoSeguimiento::orderBy('nombre')->get();
     $especies = Especie::orderBy('nombre')->get();
-    $user = $request->user();
+
     if ($user->HasRole('cliente')) {
       $empresasUser = User::with('empresas')->find($user->id);
       $empresaUser = $empresasUser->empresas[0];
       $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen', 'tipoSeguimiento'])->where('empresa_id', $empresaUser->id)->paginate(20);
     } else {
-
       $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen', 'trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos', 'tipoSeguimiento'])->paginate(20);
     }
 
-    // Log::info('Listado de seguimientos', [
-    //   'user_id' => $user->id,
-    //   'user_name' => $user->name,
-    //   'seguimientos_count' => $seguimientos->total(),
-    // ]);
-
+    Log::info('SeguimientoController@index resultado', [
+      'total' => $seguimientos->total(),
+    ]);
 
     return inertia('admin/seguimientos/lista', [
       'empresas' => $empresas,
@@ -107,14 +111,28 @@ class SeguimientoController extends Controller
 
   public function store(Request $request)
   {
-
-    // dd($request);
-    // return;
+    Log::info('SeguimientoController@store payload recibido', [
+      'user_id'               => Auth::id(),
+      'inputs'                => $request->except(['firma_encargado', 'firma_supervisor', 'imagenes']),
+      'tiene_firma_encargado' => (bool) $request->firma_encargado,
+      'tiene_firma_supervisor'=> (bool) $request->firma_supervisor,
+      'imagenes_count'        => $request->hasFile('imagenes') ? count($request->file('imagenes')) : 0,
+    ]);
 
     try {
       DB::beginTransaction();
 
       $validated = $request->validate($this->toValidated);
+
+      Log::info('SeguimientoController@store validacion exitosa', [
+        'empresa_id'              => $validated['empresa_id'],
+        'almacen_id'              => $validated['almacen_id'],
+        'tipo_seguimiento_id'     => $validated['tipo_seguimiento_id'],
+        'numero_tarea'            => $validated['numero_tarea'],
+        'productos_count'         => count($validated['productos_usados'] ?? []),
+        'trampa_especies_count'   => count($validated['trampa_especies_seguimientos'] ?? []),
+        'trampa_roedores_count'   => count($validated['trampa_roedores_seguimientos'] ?? []),
+      ]);
 
       $seguimiento = new Seguimiento();
       $seguimiento->empresa_id = $validated['empresa_id'];
@@ -156,6 +174,10 @@ class SeguimientoController extends Controller
       }
 
       $seguimiento->save();
+
+      Log::info('SeguimientoController@store seguimiento guardado', [
+        'seguimiento_id' => $seguimiento->id,
+      ]);
 
       if (!empty($validated['fecha'])) {
         DB::table('seguimientos')
@@ -352,11 +374,20 @@ class SeguimientoController extends Controller
         }
       }
 
+      Log::info('SeguimientoController@store exitoso', [
+        'seguimiento_id' => $seguimiento->id,
+        'user_id'        => Auth::id(),
+      ]);
+
       DB::commit();
       return redirect()->route('seguimientos.index');
     } catch (Exception | \Error | QueryException $e) {
       DB::rollBack();
-      Log::error('Error:', ['error' => $e->getMessage()]);
+      Log::error('SeguimientoController@store ERROR', [
+        'user_id' => Auth::id(),
+        'error'   => $e->getMessage(),
+        'trace'   => $e->getTraceAsString(),
+      ]);
       return redirect()->back()
         ->withInput()
         ->with('error', 'Error ' . $e->getMessage());
@@ -366,7 +397,18 @@ class SeguimientoController extends Controller
   public function destroy(Request $request, string $id)
   {
     $user = $request->user();
+
+    Log::info('SeguimientoController@destroy solicitado', [
+      'seguimiento_id' => $id,
+      'user_id'        => $user->id,
+      'user_name'      => $user->name,
+    ]);
+
     if ($user->HasRole('cliente')) {
+      Log::warning('SeguimientoController@destroy denegado a cliente', [
+        'seguimiento_id' => $id,
+        'user_id'        => $user->id,
+      ]);
       return redirect()->back()
         ->withInput()
         ->with('error', 'Error: No puede eliminar el registro');
@@ -454,12 +496,22 @@ class SeguimientoController extends Controller
 
       $seguimiento->delete();
 
+      Log::info('SeguimientoController@destroy exitoso', [
+        'seguimiento_id' => $id,
+        'user_id'        => $user->id,
+      ]);
+
       DB::commit();
 
       return redirect()->route('seguimientos.index');
     } catch (Exception | \Error | QueryException $e) {
       DB::rollBack();
-      Log::error('Error:', ['error' => $e->getMessage()]);
+      Log::error('SeguimientoController@destroy ERROR', [
+        'seguimiento_id' => $id,
+        'user_id'        => $user->id ?? null,
+        'error'          => $e->getMessage(),
+        'trace'          => $e->getTraceAsString(),
+      ]);
       return redirect()->back()
         ->withInput()
         ->with('error', 'Error ' . $e->getMessage());
@@ -468,6 +520,11 @@ class SeguimientoController extends Controller
 
   public function pdf(Request $request, string $id)
   {
+    Log::info('SeguimientoController@pdf solicitado', [
+      'seguimiento_id' => $id,
+      'user_id'        => $request->user()?->id,
+    ]);
+
     $seguimiento = Seguimiento::with(['empresa', 'almacen', 'user', 'tipoSeguimiento', 'aplicacion', 'metodos', 'epps', 'proteccions', 'biologicos', 'signos', 'images', 'especies', 'productoUsos.unidad', 'productoUsos.producto', 'roedores.trampa.mapa', 'insectocutores.especie', 'insectocutores.trampa.mapa'])->find($id);
 
     // dd($seguimiento);
@@ -496,12 +553,21 @@ class SeguimientoController extends Controller
 
   public function trampas(Request $request, string $id)
   {
+    Log::info('SeguimientoController@trampas', [
+      'almacen_id' => $id,
+      'user_id'    => $request->user()?->id,
+    ]);
+
     $trampas = Trampa::with(['trampa_tipo', 'almacen'])->where('almacen_id', $id)->get();
     return response()->json($trampas);
   }
 
   public function especies(Request $request)
   {
+    Log::info('SeguimientoController@especies', [
+      'user_id' => $request->user()?->id,
+    ]);
+
     $especies = Especie::all(['id', 'nombre']);
     return response()->json($especies);
   }
@@ -511,6 +577,11 @@ class SeguimientoController extends Controller
 
   public function show(Request $request, string $id)
   {
+    Log::info('SeguimientoController@show', [
+      'seguimiento_id' => $id,
+      'user_id'        => $request->user()?->id,
+    ]);
+
     $seguimiento = Seguimiento::with([
       'empresa',
       'almacen',
@@ -568,15 +639,18 @@ class SeguimientoController extends Controller
 
     // dd($request);
 
+    Log::info('SeguimientoController@update payload recibido', [
+      'seguimiento_id'        => $id,
+      'user_id'               => $request->user()?->id,
+      'content_type'          => $request->header('content-type'),
+      'inputs'                => $request->except(['firma_encargado', 'firma_supervisor', 'imagenes']),
+      'tiene_firma_encargado' => (bool) $request->firma_encargado,
+      'tiene_firma_supervisor'=> (bool) $request->firma_supervisor,
+      'imagenes_count'        => $request->hasFile('imagenes') ? count($request->file('imagenes')) : 0,
+    ]);
+
     try {
       DB::beginTransaction();
-
-      Log::info('SeguimientoController@update payload', [
-        'id' => $id,
-        'content_type' => $request->header('content-type'),
-        'inputs' => $request->except(['imagenes']),
-        'files_count' => $request->hasFile('imagenes') ? count($request->file('imagenes')) : 0,
-      ]);
 
       $validated = $request->validate($toValidated);
 
@@ -719,11 +793,21 @@ class SeguimientoController extends Controller
         }
       }
 
+      Log::info('SeguimientoController@update exitoso', [
+        'seguimiento_id' => $id,
+        'user_id'        => $request->user()?->id,
+      ]);
+
       DB::commit();
       return redirect()->route('seguimientos.index');
     } catch (Exception | \Error | QueryException $e) {
       DB::rollBack();
-      Log::error('Error al editar seguimiento:', ['error' => $e->getMessage()]);
+      Log::error('SeguimientoController@update ERROR', [
+        'seguimiento_id' => $id,
+        'user_id'        => $request->user()?->id,
+        'error'          => $e->getMessage(),
+        'trace'          => $e->getTraceAsString(),
+      ]);
       return redirect()->back()
         ->withInput()
         ->with('error', 'Error: ' . $e->getMessage());

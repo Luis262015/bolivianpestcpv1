@@ -422,6 +422,7 @@ export default function ModalSeguimiento({
 
     setFirmaEncargado('');
     setFirmaSupervisor('');
+    setSignatureResetKey((k) => k + 1);
 
     setCronogramaInfo(null);
     setCronogramaError(null);
@@ -473,6 +474,8 @@ export default function ModalSeguimiento({
 
   const [firmaEncargado, setFirmaEncargado] = useState<string>('');
   const [firmaSupervisor, setFirmaSupervisor] = useState<string>('');
+  // Incrementar este key en reset fuerza el remount de SignaturePad (limpia el canvas)
+  const [signatureResetKey, setSignatureResetKey] = useState(0);
 
   // En el paso 11, actualiza el useEffect o maneja las firmas así:
   useEffect(() => {
@@ -535,6 +538,147 @@ export default function ModalSeguimiento({
       setCronogramaError('Error al verificar');
     } finally {
       setVerificando(false);
+    }
+  };
+
+  const downloadBackup = () => {
+    const empresa = empresas.find((e) => e.id === Number(data.empresa_id));
+    const almacen = almacenes.find((a) => a.id === Number(data.almacen_id));
+    const tipo = tipoSeguimiento.find(
+      (t) => t.id === Number(data.tipo_seguimiento_id),
+    );
+
+    const metodoNombres = metodosSel.map(
+      (id) => metodos.find((m) => m.id === id)?.nombre ?? String(id),
+    );
+    const eppNombres = eppsSel.map(
+      (id) => epps.find((e) => e.id === id)?.nombre ?? String(id),
+    );
+    const proteccionNombres = proteccionesSel.map(
+      (id) => protecciones.find((p) => p.id === id)?.nombre ?? String(id),
+    );
+    const biologicoNombres = biologicosSel.map(
+      (id) => biologicos.find((b) => b.id === id)?.nombre ?? String(id),
+    );
+    const signoNombres = signosSel.map(
+      (id) => signos.find((s) => s.id === id)?.nombre ?? String(id),
+    );
+
+    const lines = [
+      '=== BACKUP SEGUIMIENTO ===',
+      `Generado: ${new Date().toLocaleString()}`,
+      '',
+      '--- DATOS GENERALES ---',
+      `Numero de Tarea: ${data.numero_tarea}`,
+      `Fecha: ${data.fecha}`,
+      `Empresa: ${empresa?.nombre ?? data.empresa_id}`,
+      `Almacen: ${almacen?.nombre ?? data.almacen_id}`,
+      `Tipo de Seguimiento: ${tipo?.nombre ?? data.tipo_seguimiento_id}`,
+      '',
+      '--- APLICACION ---',
+      `Paredes Internas: ${aplicacion.paredes_internas}`,
+      `Pisos: ${aplicacion.pisos}`,
+      `Ambientes: ${aplicacion.ambientes}`,
+      `Trampas: ${aplicacion.trampas}`,
+      `Trampas Cambiar: ${aplicacion.trampas_cambiar}`,
+      `Internas: ${aplicacion.internas}`,
+      `Externas: ${aplicacion.externas}`,
+      `Roedores: ${aplicacion.roedores}`,
+      '',
+      '--- METODOS ---',
+      ...(metodoNombres.length ? metodoNombres.map((n) => `  - ${n}`) : ['  (ninguno)']),
+      '',
+      '--- PRODUCTOS USADOS ---',
+      ...(productos.length
+        ? productos.map((p) => `  - ${p.nombre_producto}: ${p.cantidad}`)
+        : ['  (ninguno)']),
+      '',
+      '--- EPP ---',
+      ...(eppNombres.length ? eppNombres.map((n) => `  - ${n}`) : ['  (ninguno)']),
+      '',
+      '--- PROTECCIONES ---',
+      ...(proteccionNombres.length
+        ? proteccionNombres.map((n) => `  - ${n}`)
+        : ['  (ninguno)']),
+      '',
+      '--- BIOLOGICOS ---',
+      ...(biologicoNombres.length
+        ? biologicoNombres.map((n) => `  - ${n}`)
+        : ['  (ninguno)']),
+      '',
+      '--- SIGNOS DE ROEDORES ---',
+      ...(signoNombres.length
+        ? signoNombres.map((n) => `  - ${n}`)
+        : ['  (ninguno)']),
+      '',
+      '--- TRAMPA ESPECIES ---',
+      ...(data.trampa_especies_seguimientos.length
+        ? data.trampa_especies_seguimientos.map(
+            (t) =>
+              `  Trampa ${t.trampa_id} - Especie ${t.especie_id}: ${t.cantidad}`,
+          )
+        : ['  (ninguna)']),
+      '',
+      '--- TRAMPA ROEDORES ---',
+      ...(data.trampa_roedores_seguimientos.length
+        ? data.trampa_roedores_seguimientos.map(
+            (t) =>
+              `  Trampa ${t.trampa_id} | Obs: ${t.observacion ?? ''} | Atrapados: ${t.cantidad} | Inicial: ${t.inicial} | Actual: ${t.actual} | Merma: ${t.merma}`,
+          )
+        : ['  (ninguna)']),
+      '',
+      '--- OBSERVACIONES ESPECIFICAS ---',
+      data.observaciones_especificas || '(ninguna)',
+      '',
+      '--- RESPONSABLE ---',
+      `Nombre: ${data.encargado_nombre}`,
+      `Cargo: ${data.encargado_cargo}`,
+      `Firma Encargado: ${firmaEncargado ? 'Firmado' : 'Sin firma'}`,
+      `Firma Supervisor: ${firmaSupervisor ? 'Firmado' : 'Sin firma'}`,
+      '',
+      '--- IMAGENES ---',
+      ...(data.imagenes.length
+        ? data.imagenes.map((f) => `  - ${f.name}`)
+        : ['  (ninguna)']),
+      '',
+      '--- OBSERVACIONES GENERALES ---',
+      data.observaciones_generales || '(ninguna)',
+      '',
+      '=========================',
+    ];
+
+    const content = lines.join('\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `seguimiento_backup_tarea${data.numero_tarea}_${data.fecha}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    // Descargar firmas como imágenes PNG independientes
+    const downloadImage = (dataUrl: string, filename: string) => {
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    if (firmaEncargado) {
+      downloadImage(
+        firmaEncargado,
+        `firma_encargado_tarea${data.numero_tarea}.png`,
+      );
+    }
+    if (firmaSupervisor) {
+      downloadImage(
+        firmaSupervisor,
+        `firma_supervisor_tarea${data.numero_tarea}.png`,
+      );
     }
   };
 
@@ -1193,38 +1337,36 @@ export default function ModalSeguimiento({
             </div>
           )}
 
-          {/* PASO 9: Especies */}
-          {step === 9 && (
-            <div className="space-y-5">
-              <div className="my-3 text-lg font-semibold">
-                Seguimiento {tipoSeguimientoSel}
-              </div>
-              <div className="my-2">Seguimiento de trampas</div>
-
-              {tipoSeguimientoSel !== 'FUMIGACION' && (
-                <SeguimientoTrampas
-                  almacenId={Number(data.almacen_id)!}
-                  tipoSeguimiento={data.tipo_seguimiento_id}
-                  value={{
-                    trampa_especies_seguimientos:
-                      data.trampa_especies_seguimientos,
-                    trampa_roedores_seguimientos:
-                      data.trampa_roedores_seguimientos,
-                  }}
-                  onChange={(val) => {
-                    setData(
-                      'trampa_especies_seguimientos',
-                      val.trampa_especies_seguimientos,
-                    );
-                    setData(
-                      'trampa_roedores_seguimientos',
-                      val.trampa_roedores_seguimientos,
-                    );
-                  }}
-                />
-              )}
+          {/* PASO 9: Trampas — siempre montado para preservar estado al navegar */}
+          <div className={step !== 9 ? 'hidden' : 'space-y-5'}>
+            <div className="my-3 text-lg font-semibold">
+              Seguimiento {tipoSeguimientoSel}
             </div>
-          )}
+            <div className="my-2">Seguimiento de trampas</div>
+
+            {tipoSeguimientoSel !== 'FUMIGACION' && (
+              <SeguimientoTrampas
+                almacenId={Number(data.almacen_id)!}
+                tipoSeguimiento={data.tipo_seguimiento_id}
+                value={{
+                  trampa_especies_seguimientos:
+                    data.trampa_especies_seguimientos,
+                  trampa_roedores_seguimientos:
+                    data.trampa_roedores_seguimientos,
+                }}
+                onChange={(val) => {
+                  setData(
+                    'trampa_especies_seguimientos',
+                    val.trampa_especies_seguimientos,
+                  );
+                  setData(
+                    'trampa_roedores_seguimientos',
+                    val.trampa_roedores_seguimientos,
+                  );
+                }}
+              />
+            )}
+          </div>
 
           {/* PASO 10: Observaciones Específicas */}
           {step === 10 && (
@@ -1245,63 +1387,66 @@ export default function ModalSeguimiento({
             </div>
           )}
 
-          {/* PASO 11: Datos del Encargado y Firmas */}
-          {step === 11 && (
-            <div className="space-y-6">
-              <div className="my-3 text-lg font-semibold">
-                Seguimiento {tipoSeguimientoSel}
-              </div>
-              <div className="my-2">Responsable y Firmas</div>
+          {/* PASO 11: Firmas — siempre montado para que el canvas no se pierda al navegar */}
+          <div className={step !== 11 ? 'hidden' : 'space-y-6'}>
+            <div className="my-3 text-lg font-semibold">
+              Seguimiento {tipoSeguimientoSel}
+            </div>
+            <div className="my-2">Responsable y Firmas</div>
 
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Nombre del Encargado *</Label>
-                  <Input
-                    value={data.encargado_nombre}
-                    onChange={(e) =>
-                      setData('encargado_nombre', e.target.value)
-                    }
-                    required
-                  />
-                  <InputError message={errors.encargado_nombre} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Cargo *</Label>
-                  <Input
-                    value={data.encargado_cargo}
-                    onChange={(e) => setData('encargado_cargo', e.target.value)}
-                    required
-                  />
-                  <InputError message={errors.encargado_cargo} />
-                </div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Nombre del Encargado *</Label>
+                <Input
+                  value={data.encargado_nombre}
+                  onChange={(e) =>
+                    setData('encargado_nombre', e.target.value)
+                  }
+                  required
+                />
+                <InputError message={errors.encargado_nombre} />
               </div>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Firma Encargado (texto o dibujar después)</Label>
-                  <SignaturePad onChange={(data) => setFirmaEncargado(data)} />
-                  {firmaEncargado && (
-                    <img
-                      src={firmaEncargado}
-                      alt="Firma Encargado"
-                      className="w-40 border"
-                    />
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label>Firma Supervisor</Label>
-                  <SignaturePad onChange={(data) => setFirmaSupervisor(data)} />
-
-                  {firmaSupervisor && (
-                    <img
-                      src={firmaSupervisor}
-                      alt="Firma Supervisor"
-                      className="w-40 border"
-                    />
-                  )}
-                </div>
+              <div className="space-y-2">
+                <Label>Cargo *</Label>
+                <Input
+                  value={data.encargado_cargo}
+                  onChange={(e) => setData('encargado_cargo', e.target.value)}
+                  required
+                />
+                <InputError message={errors.encargado_cargo} />
               </div>
             </div>
-          )}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Firma Encargado (texto o dibujar después)</Label>
+                <SignaturePad
+                  key={`encargado-${signatureResetKey}`}
+                  onChange={(data) => setFirmaEncargado(data)}
+                />
+                {firmaEncargado && (
+                  <img
+                    src={firmaEncargado}
+                    alt="Firma Encargado"
+                    className="w-40 border"
+                  />
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>Firma Supervisor</Label>
+                <SignaturePad
+                  key={`supervisor-${signatureResetKey}`}
+                  onChange={(data) => setFirmaSupervisor(data)}
+                />
+                {firmaSupervisor && (
+                  <img
+                    src={firmaSupervisor}
+                    alt="Firma Supervisor"
+                    className="w-40 border"
+                  />
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* PASO 12: Imagenes */}
           {step === 12 && (
@@ -1399,9 +1544,18 @@ export default function ModalSeguimiento({
                 </button>
               </Button>
             ) : (
-              <Button type="submit" disabled={processing}>
-                {processing ? 'Guardando...' : 'Guardar Seguimiento'}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={downloadBackup}
+                >
+                  Backup
+                </Button>
+                <Button type="submit" disabled={processing}>
+                  {processing ? 'Guardando...' : 'Guardar Seguimiento'}
+                </Button>
+              </div>
             )}
           </DialogFooter>
         </form>
