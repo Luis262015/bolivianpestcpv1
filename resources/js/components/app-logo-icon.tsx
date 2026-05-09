@@ -8,8 +8,8 @@ interface AppLogoIconProps {
 }
 
 export const AppLogoIcon: React.FC<AppLogoIconProps> = ({
-  width = 120,
-  height = 40,
+  width,
+  height,
   className = '',
 }) => {
   return (
@@ -18,7 +18,7 @@ export const AppLogoIcon: React.FC<AppLogoIconProps> = ({
       alt="Logo de la App"
       width={width}
       height={height}
-      className={`object-contain ${className}`}
+      className={`object-contain w-full h-auto ${className}`}
     />
   );
 };

@@ -1,18 +1,22 @@
 import { AppLogoIcon } from './app-logo-icon';
+import { useSidebar } from '@/components/ui/sidebar';
 
 export default function AppLogo() {
+  const { state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
+
   return (
     <>
-      {/* <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground"> */}
-      <div className="flex aspect-square size-12">
-        {/* <AppLogoIcon className="size-5 fill-current text-white dark:text-black" /> */}
-        <AppLogoIcon width={100} height={32} />
+      <div className="flex h-10 w-10 items-center justify-center">
+        <AppLogoIcon className="h-6 w-6" />
       </div>
-      <div className="ml-1 grid flex-1 text-left text-sm">
-        <span className="mb-0.5 truncate leading-tight font-semibold">
-          Bolivian Pest
-        </span>
-      </div>
+      {!isCollapsed && (
+        <div className="ml-2 flex-1 text-left text-sm">
+          <span className="mb-0.5 truncate leading-tight font-semibold">
+            Bolivian Pest
+          </span>
+        </div>
+      )}
     </>
   );
 }
