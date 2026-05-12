@@ -1,6 +1,13 @@
 import CustomPagination from '@/components/CustomPagination';
 import { Button } from '@/components/ui/button';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Table,
   TableBody,
   TableCell,
@@ -67,6 +74,20 @@ interface TipoSeguimiento {
   nombre: string;
 }
 
+interface Usuario {
+  id: number;
+  name: string;
+}
+
+interface ActiveFilters {
+  empresa_id?: string;
+  almacen_id?: string;
+  usuario_id?: string;
+  tipo_seguimiento_id?: string;
+  fecha_desde?: string;
+  fecha_hasta?: string;
+}
+
 interface Props {
   empresas: Empresa[];
   almacenes: Almacen[];
@@ -77,7 +98,9 @@ interface Props {
   signos: Signo[];
   especies: Especie[];
   tipoSeguimiento: TipoSeguimiento[];
-  seguimientos: any; // Aquí puedes definir el tipo completo
+  seguimientos: any;
+  usuarios: Usuario[];
+  filters: ActiveFilters;
 }
 
 const handleDelete = (id: number) => {
@@ -87,7 +110,6 @@ const handleDelete = (id: number) => {
 };
 
 const handlePDF = (id: number) => {
-  console.log('Imprimir PDF');
   window.open(`/seguimientos/${id}/pdf`, '_blank');
 };
 
@@ -102,23 +124,47 @@ export default function Lista({
   signos,
   especies,
   tipoSeguimiento,
+  usuarios,
+  filters: activeFilters,
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalTrapsOpen, setModalTrapsOpen] = useState(false);
 
-  const [open, setOpen] = useState(false);
-
-  const { hasRole, hasAnyRole, hasPermission } = usePermissions();
+  const { hasRole, hasPermission } = usePermissions();
 
   const [openTrampa, setOpenTrampa] = useState(false);
   const [selectedSeguimiento, setSelectedSeguimiento] = useState<any>(null);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [seguimientoToEditId, setSeguimientoToEditId] = useState<number | null>(
-    null,
-  );
+  const [seguimientoToEditId, setSeguimientoToEditId] = useState<number | null>(null);
 
-  console.log(seguimientos);
+  const [filters, setFilters] = useState({
+    empresa_id: activeFilters?.empresa_id ?? '',
+    almacen_id: activeFilters?.almacen_id ?? '',
+    usuario_id: activeFilters?.usuario_id ?? '',
+    tipo_seguimiento_id: activeFilters?.tipo_seguimiento_id ?? '',
+    fecha_desde: activeFilters?.fecha_desde ?? '',
+    fecha_hasta: activeFilters?.fecha_hasta ?? '',
+  });
+
+  const applyFilters = () => {
+    const params: Record<string, string> = {};
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) params[key] = value;
+    });
+    router.get('/seguimientos', params, { preserveScroll: true });
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      empresa_id: '',
+      almacen_id: '',
+      usuario_id: '',
+      tipo_seguimiento_id: '',
+      fecha_desde: '',
+      fecha_hasta: '',
+    });
+    router.get('/seguimientos', {}, { preserveScroll: true });
+  };
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -145,16 +191,147 @@ export default function Lista({
                         Acciones complementarias
                       </Button>
                     </Link>
-                    {/* <Button
-                      onClick={() => setModalTrapsOpen(true)}
-                      className="me-3"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Reporte Trampas
-                    </Button> */}
                   </>
                 )}
               </div>
+
+              {/* Filtros */}
+              <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Empresa
+                  </label>
+                  <Select
+                    value={filters.empresa_id || '_all'}
+                    onValueChange={(v) =>
+                      setFilters((f) => ({ ...f, empresa_id: v === '_all' ? '' : v }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Todas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="_all">Todas</SelectItem>
+                      {empresas.map((e) => (
+                        <SelectItem key={e.id} value={String(e.id)}>
+                          {e.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Almacén
+                  </label>
+                  <Select
+                    value={filters.almacen_id || '_all'}
+                    onValueChange={(v) =>
+                      setFilters((f) => ({ ...f, almacen_id: v === '_all' ? '' : v }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="_all">Todos</SelectItem>
+                      {almacenes.map((a) => (
+                        <SelectItem key={a.id} value={String(a.id)}>
+                          {a.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Usuario
+                  </label>
+                  <Select
+                    value={filters.usuario_id || '_all'}
+                    onValueChange={(v) =>
+                      setFilters((f) => ({ ...f, usuario_id: v === '_all' ? '' : v }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="_all">Todos</SelectItem>
+                      {usuarios.map((u) => (
+                        <SelectItem key={u.id} value={String(u.id)}>
+                          {u.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Tipo
+                  </label>
+                  <Select
+                    value={filters.tipo_seguimiento_id || '_all'}
+                    onValueChange={(v) =>
+                      setFilters((f) => ({
+                        ...f,
+                        tipo_seguimiento_id: v === '_all' ? '' : v,
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="_all">Todos</SelectItem>
+                      {tipoSeguimiento.map((t) => (
+                        <SelectItem key={t.id} value={String(t.id)}>
+                          {t.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Desde
+                  </label>
+                  <input
+                    type="date"
+                    value={filters.fecha_desde}
+                    onChange={(e) =>
+                      setFilters((f) => ({ ...f, fecha_desde: e.target.value }))
+                    }
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Hasta
+                  </label>
+                  <input
+                    type="date"
+                    value={filters.fecha_hasta}
+                    onChange={(e) =>
+                      setFilters((f) => ({ ...f, fecha_hasta: e.target.value }))
+                    }
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-4 flex gap-2">
+                <Button onClick={applyFilters}>Filtrar</Button>
+                <Button variant="outline" onClick={resetFilters}>
+                  Limpiar
+                </Button>
+              </div>
+
               <div className="space-y-4">
                 {seguimientos?.data && seguimientos.data.length > 0 ? (
                   <Table>
@@ -188,40 +365,34 @@ export default function Lista({
                             {seguimiento.tipo_seguimiento?.nombre}
                           </TableCell>
                           <TableCell className="text-center font-mono text-xs text-muted-foreground sm:text-sm">
-                            {format(
-                              seguimiento.created_at,
-                              'dd/MM/yyyy HH:mm:ss',
-                            )}
+                            {format(seguimiento.created_at, 'dd/MM/yyyy HH:mm:ss')}
                           </TableCell>
                           <TableCell className="flex gap-2">
                             {(hasRole('superadmin') ||
                               hasRole('admin') ||
                               hasRole('tecnico')) && (
-                              <>
-                                <Button
-                                  size="icon"
-                                  variant="outline"
-                                  onClick={() => {
-                                    setSeguimientoToEditId(seguimiento.id);
-                                    setEditModalOpen(true);
-                                  }}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                              </>
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                onClick={() => {
+                                  setSeguimientoToEditId(seguimiento.id);
+                                  setEditModalOpen(true);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
                             )}
 
                             {(hasRole('superadmin') || hasRole('admin')) && (
-                              <>
-                                <Button
-                                  size="icon"
-                                  variant="outline"
-                                  onClick={() => handleDelete(seguimiento.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </>
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                onClick={() => handleDelete(seguimiento.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             )}
+
                             <Button
                               size="icon"
                               variant="outline"
@@ -229,8 +400,7 @@ export default function Lista({
                             >
                               <FileChartColumn className="h-4 w-4" />
                             </Button>
-                            {/* <div>{seguimiento.tipo_seguimiento_id}</div>
-                            <div>{typeof seguimiento.tipo_seguimiento_id}</div> */}
+
                             {Number(seguimiento.tipo_seguimiento_id) !== 2 && (
                               <Button
                                 size="icon"
@@ -243,29 +413,19 @@ export default function Lista({
                                 <Edit2 className="h-4 w-4" />
                               </Button>
                             )}
-                            {/* <ModalSeguimientoTrampa
-                              open={open}
-                              onClose={() => setOpen(false)}
-                              seguimientoId={seguimiento.id}
-                              almacenId={seguimiento.almacen_id}
-                              initialData={{
-                                trampa_especies_seguimientos:
-                                  seguimiento.trampa_especies_seguimientos,
-                                trampa_roedores_seguimientos:
-                                  seguimiento.trampa_roedores_seguimientos,
-                              }}
-                            /> */}
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 ) : null}
+
                 {seguimientos?.links && seguimientos.links.length > 3 && (
                   <div className="mt-4">
                     <CustomPagination links={seguimientos.links} />
                   </div>
                 )}
+
                 {(!seguimientos?.data || seguimientos.data.length === 0) && (
                   <p className="py-8 text-center text-gray-500">
                     No hay seguimientos registrados
@@ -279,9 +439,7 @@ export default function Lista({
 
       <ModalSeguimiento
         open={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-        }}
+        onClose={() => setModalOpen(false)}
         empresas={empresas}
         almacenes={almacenes}
         metodos={metodos}
@@ -327,177 +485,6 @@ export default function Lista({
           }}
         />
       )}
-
-      {/* <ModalTrampas
-        open={modalTrapsOpen}
-        onClose={() => setModalTrapsOpen(false)}
-        empresas={empresas}
-        almacenes={almacenes}
-      /> */}
     </AppLayout>
   );
 }
-
-// import {
-//   Card,
-//   CardContent,
-//   CardDescription,
-//   CardHeader,
-//   CardTitle,
-// } from '@/components/ui/card';
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from '@/components/ui/select';
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from '@/components/ui/table';
-// import AppLayout from '@/layouts/app-layout';
-// import { type BreadcrumbItem } from '@/types';
-// import { Head, router } from '@inertiajs/react';
-
-// const breadcrumbs: BreadcrumbItem[] = [
-//   {
-//     title: 'Seguimientos',
-//     href: '/seguimientos',
-//   },
-// ];
-
-// interface Empresa {
-//   id: number;
-//   nombre: string;
-// }
-
-// interface User {
-//   id: number;
-//   name: string;
-// }
-
-// interface Seguimiento {
-//   id: number;
-//   cliente_id: number;
-//   user_id: number;
-//   cantidad: number;
-//   internas: number;
-//   externas: number;
-//   observaciones: string | null;
-//   created_at: string;
-//   cliente: Empresa;
-//   user: User;
-// }
-
-// interface Props {
-//   seguimientos: Seguimiento[];
-//   empresas: Empresa[];
-//   empresaSeleccionado?: string;
-// }
-
-// export default function Lista({
-//   seguimientos,
-//   empresas,
-//   empresaSeleccionado,
-// }: Props) {
-//   const handleClienteChange = (empresaId: string) => {
-//     if (empresaId === 'todos') {
-//       router.get('seguimientos.index');
-//     } else {
-//       // router.get(route('seguimientos.index', { cliente_id: empresaId }));
-//       router.get(`/seguimientos?empresa_id=${empresaId}`);
-//     }
-//   };
-//   return (
-//     <AppLayout breadcrumbs={breadcrumbs}>
-//       <Head title="Seguimientos" />
-//       <div className="container mx-auto py-8">
-//         <Card>
-//           <CardHeader>
-//             <CardTitle>Seguimientos</CardTitle>
-//             <CardDescription>
-//               Listado de seguimientos por cliente
-//             </CardDescription>
-//           </CardHeader>
-//           <CardContent>
-//             <div className="mb-6">
-//               <label className="mb-2 block text-sm font-medium">
-//                 Filtrar por Cliente
-//               </label>
-//               <Select
-//                 value={empresaSeleccionado || 'todos'}
-//                 onValueChange={handleClienteChange}
-//               >
-//                 <SelectTrigger className="w-full md:w-[300px]">
-//                   <SelectValue placeholder="Selecciona un cliente" />
-//                 </SelectTrigger>
-//                 <SelectContent>
-//                   <SelectItem value="todos">Todos los clientes</SelectItem>
-//                   {empresas.map((cliente) => (
-//                     <SelectItem key={cliente.id} value={cliente.id.toString()}>
-//                       {cliente.nombre}
-//                     </SelectItem>
-//                   ))}
-//                 </SelectContent>
-//               </Select>
-//             </div>
-
-//             {seguimientos.length === 0 ? (
-//               <div className="py-8 text-center text-muted-foreground">
-//                 No hay seguimientos para mostrar
-//               </div>
-//             ) : (
-//               <div className="rounded-md border">
-//                 <Table>
-//                   <TableHeader>
-//                     <TableRow>
-//                       <TableHead>Cliente</TableHead>
-//                       <TableHead>Usuario</TableHead>
-//                       <TableHead className="text-right">Cantidad</TableHead>
-//                       <TableHead className="text-right">Internas</TableHead>
-//                       <TableHead className="text-right">Externas</TableHead>
-//                       <TableHead>Observaciones</TableHead>
-//                       <TableHead>Fecha</TableHead>
-//                     </TableRow>
-//                   </TableHeader>
-//                   <TableBody>
-//                     {seguimientos.map((seguimiento) => (
-//                       <TableRow key={seguimiento.id}>
-//                         <TableCell className="font-medium">
-//                           {seguimiento.cliente.nombre}
-//                         </TableCell>
-//                         <TableCell>{seguimiento.user.name}</TableCell>
-//                         <TableCell className="text-right">
-//                           {seguimiento.cantidad}
-//                         </TableCell>
-//                         <TableCell className="text-right">
-//                           {seguimiento.internas}
-//                         </TableCell>
-//                         <TableCell className="text-right">
-//                           {seguimiento.externas}
-//                         </TableCell>
-//                         <TableCell className="max-w-xs truncate">
-//                           {seguimiento.observaciones || '-'}
-//                         </TableCell>
-//                         <TableCell>
-//                           {new Date(seguimiento.created_at).toLocaleDateString(
-//                             'es-ES',
-//                           )}
-//                         </TableCell>
-//                       </TableRow>
-//                     ))}
-//                   </TableBody>
-//                 </Table>
-//               </div>
-//             )}
-//           </CardContent>
-//         </Card>
-//       </div>
-//     </AppLayout>
-//   );
-// }

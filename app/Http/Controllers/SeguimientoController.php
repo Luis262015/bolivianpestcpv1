@@ -73,39 +73,67 @@ class SeguimientoController extends Controller
       'role'      => $user->HasRole('cliente') ? 'cliente' : 'admin',
     ]);
 
-    $empresas = Empresa::select('id', 'nombre')->get();
-    $almacenes = Almacen::select('id', 'nombre')->get();
-    $biologicos = Biologico::orderBy('nombre')->get();
-    $epps = Epp::orderBy('nombre')->get();
-    $metodos = Metodo::orderBy('nombre')->get();
-    $protecciones = Proteccion::orderBy('nombre')->get();
-    $signos = Signo::orderBy('nombre')->get();
+    $filters = $request->only(['empresa_id', 'almacen_id', 'usuario_id', 'tipo_seguimiento_id', 'fecha_desde', 'fecha_hasta']);
+
+    $empresas        = Empresa::select('id', 'nombre')->get();
+    $almacenes       = Almacen::select('id', 'nombre')->get();
+    $biologicos      = Biologico::orderBy('nombre')->get();
+    $epps            = Epp::orderBy('nombre')->get();
+    $metodos         = Metodo::orderBy('nombre')->get();
+    $protecciones    = Proteccion::orderBy('nombre')->get();
+    $signos          = Signo::orderBy('nombre')->get();
     $tiposSeguimiento = TipoSeguimiento::orderBy('nombre')->get();
-    $especies = Especie::orderBy('nombre')->get();
+    $especies        = Especie::orderBy('nombre')->get();
+    $usuarios        = User::select('id', 'name')->orderBy('name')->get();
+
+    $query = Seguimiento::with(['user', 'empresa', 'almacen', 'trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos', 'tipoSeguimiento'])
+      ->latest();
 
     if ($user->HasRole('cliente')) {
-      $empresasUser = User::with('empresas')->find($user->id);
-      $empresaUser = $empresasUser->empresas[0];
-      $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen', 'tipoSeguimiento'])->where('empresa_id', $empresaUser->id)->paginate(20);
+      $empresaUser = User::with('empresas')->find($user->id)->empresas[0];
+      $query->where('empresa_id', $empresaUser->id);
     } else {
-      $seguimientos = Seguimiento::with(['user', 'empresa', 'almacen', 'trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos', 'tipoSeguimiento'])->paginate(20);
+      if (!empty($filters['empresa_id'])) {
+        $query->where('empresa_id', $filters['empresa_id']);
+      }
+      if (!empty($filters['almacen_id'])) {
+        $query->where('almacen_id', $filters['almacen_id']);
+      }
+      if (!empty($filters['usuario_id'])) {
+        $query->where('user_id', $filters['usuario_id']);
+      }
     }
 
+    if (!empty($filters['tipo_seguimiento_id'])) {
+      $query->where('tipo_seguimiento_id', $filters['tipo_seguimiento_id']);
+    }
+    if (!empty($filters['fecha_desde'])) {
+      $query->whereDate('created_at', '>=', $filters['fecha_desde']);
+    }
+    if (!empty($filters['fecha_hasta'])) {
+      $query->whereDate('created_at', '<=', $filters['fecha_hasta']);
+    }
+
+    $seguimientos = $query->paginate(20)->withQueryString();
+
     Log::info('SeguimientoController@index resultado', [
-      'total' => $seguimientos->total(),
+      'total'   => $seguimientos->total(),
+      'filters' => $filters,
     ]);
 
     return inertia('admin/seguimientos/lista', [
-      'empresas' => $empresas,
-      'almacenes' => $almacenes,
-      'biologicos' => $biologicos,
-      'epps' => $epps,
-      'metodos' => $metodos,
-      'protecciones' => $protecciones,
-      'signos' => $signos,
+      'empresas'       => $empresas,
+      'almacenes'      => $almacenes,
+      'biologicos'     => $biologicos,
+      'epps'           => $epps,
+      'metodos'        => $metodos,
+      'protecciones'   => $protecciones,
+      'signos'         => $signos,
       'tipoSeguimiento' => $tiposSeguimiento,
-      'especies' => $especies,
-      'seguimientos' => $seguimientos,
+      'especies'       => $especies,
+      'seguimientos'   => $seguimientos,
+      'usuarios'       => $usuarios,
+      'filters'        => $filters,
     ]);
   }
 
