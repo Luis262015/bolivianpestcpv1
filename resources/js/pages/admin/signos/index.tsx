@@ -1,3 +1,4 @@
+import CustomPagination from '@/components/CustomPagination';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -188,7 +189,13 @@ export default function Index() {
               ))}
             </TableBody>
           </Table>
-        ) : (
+        ) : null}
+        {items.links && items.links.length > 3 && (
+          <div className="mt-4">
+            <CustomPagination links={items.links} />
+          </div>
+        )}
+        {items.data.length === 0 && (
           <p className="text-center text-muted-foreground">No hay registros.</p>
         )}
       </div>

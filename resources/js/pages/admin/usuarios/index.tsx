@@ -1,3 +1,4 @@
+import CustomPagination from '@/components/CustomPagination';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -426,7 +427,13 @@ export default function Index() {
               ))}
             </TableBody>
           </Table>
-        ) : (
+        ) : null}
+        {users.links && users.links.length > 3 && (
+          <div className="mt-4">
+            <CustomPagination links={users.links} />
+          </div>
+        )}
+        {users.data.length === 0 && (
           <p className="text-center text-muted-foreground">No hay registros.</p>
         )}
       </div>

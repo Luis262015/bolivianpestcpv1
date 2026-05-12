@@ -1,3 +1,4 @@
+import CustomPagination from '@/components/CustomPagination';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -113,7 +114,9 @@ export default function Lista({
   const [selectedSeguimiento, setSelectedSeguimiento] = useState<any>(null);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [seguimientoToEditId, setSeguimientoToEditId] = useState<number | null>(null);
+  const [seguimientoToEditId, setSeguimientoToEditId] = useState<number | null>(
+    null,
+  );
 
   console.log(seguimientos);
 
@@ -191,7 +194,9 @@ export default function Lista({
                             )}
                           </TableCell>
                           <TableCell className="flex gap-2">
-                            {(hasRole('superadmin') || hasRole('admin')) && (
+                            {(hasRole('superadmin') ||
+                              hasRole('admin') ||
+                              hasRole('tecnico')) && (
                               <>
                                 <Button
                                   size="icon"
@@ -203,6 +208,11 @@ export default function Lista({
                                 >
                                   <Pencil className="h-4 w-4" />
                                 </Button>
+                              </>
+                            )}
+
+                            {(hasRole('superadmin') || hasRole('admin')) && (
+                              <>
                                 <Button
                                   size="icon"
                                   variant="outline"
@@ -250,21 +260,13 @@ export default function Lista({
                       ))}
                     </TableBody>
                   </Table>
-                ) : (
-                  // seguimientos.data.map((seguimiento: any) => (
-
-                  //   <div key={seguimiento.id} className="rounded-lg p-4">
-                  //     <h3 className="font-medium">
-                  //       {seguimiento.empresa?.nombre}
-                  //     </h3>
-                  //     <p className="text-sm text-gray-600">
-                  //       {seguimiento.almacen?.nombre}
-                  //     </p>
-                  //     <p className="mt-2 text-sm">
-                  //       {seguimiento.observaciones}
-                  //     </p>
-                  //   </div>
-                  // ))
+                ) : null}
+                {seguimientos?.links && seguimientos.links.length > 3 && (
+                  <div className="mt-4">
+                    <CustomPagination links={seguimientos.links} />
+                  </div>
+                )}
+                {(!seguimientos?.data || seguimientos.data.length === 0) && (
                   <p className="py-8 text-center text-gray-500">
                     No hay seguimientos registrados
                   </p>

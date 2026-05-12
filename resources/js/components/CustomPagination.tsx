@@ -1,89 +1,56 @@
-// resources/js/Components/CustomPagination.tsx
-
 import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
-  PaginationLink, // Adaptador de Inertia/Shadcn
+  PaginationLink,
   PaginationNext,
-  PaginationPrevious, // Adaptador de Inertia/Shadcn
+  PaginationPrevious,
 } from '@/components/ui/pagination';
 import { PaginationLink as LinkType } from '@/types';
 
-// Tipamos las props del componente
 interface CustomPaginationProps {
   links: LinkType[];
 }
 
-export default function CustomPagination({
-  links = [],
-}: CustomPaginationProps) {
-  // Filtra los enlaces para obtener solo los que tienen URL (activos o no)
-  const availableLinks = links.filter((link) => link.url !== null);
+export default function CustomPagination({ links = [] }: CustomPaginationProps) {
+  if (links.length < 3) return null;
 
-  // Encuentra los enlaces Anterior y Siguiente
-  const prevLink = availableLinks.find(
-    (link) =>
-      link.label.includes('Previous') || link.label.includes('Anterior'),
-  );
-  const nextLink = availableLinks.find(
-    (link) => link.label.includes('Next') || link.label.includes('Siguiente'),
-  );
-
-  // Filtra los enlaces de página para el cuerpo de la paginación
-  const pageLinks = availableLinks.filter(
-    (link) =>
-      !link.label.includes('Previous') &&
-      !link.label.includes('Next') &&
-      !link.label.includes('...'),
-  );
-
-  // NOTA: Esta implementación simplificada no maneja las elipsis (Puntos suspensivos)
-  // De forma inteligente como lo hace Laravel. Los links ya vienen de Laravel.
+  // Laravel siempre pone prev en [0] y next en [length-1], independientemente del idioma
+  const prevLink = links[0];
+  const nextLink = links[links.length - 1];
+  const pageLinks = links.slice(1, -1);
 
   return (
     <Pagination>
       <PaginationContent>
-        {/* ============================================================== */}
-        {/* Enlace Anterior (Previous) */}
-        {/* ============================================================== */}
-        {prevLink && (
-          <PaginationItem>
-            <PaginationPrevious
-              href={prevLink.url || '#'}
-              isActive={!prevLink.url}
-            />
-          </PaginationItem>
-        )}
+        <PaginationItem>
+          <PaginationPrevious
+            href={prevLink.url ?? '#'}
+            aria-disabled={!prevLink.url}
+            className={!prevLink.url ? 'pointer-events-none opacity-50' : ''}
+          />
+        </PaginationItem>
 
-        {/* ============================================================== */}
-        {/* Links de las páginas (1, 2, 3...) */}
-        {/* ============================================================== */}
         {pageLinks.map((link, index) => (
           <PaginationItem key={index}>
-            {/* Si la etiqueta es elipsis, usamos el componente Ellipsis de Shadcn */}
-            {link.label === '...' ? (
+            {!link.url ? (
               <PaginationEllipsis />
             ) : (
-              <PaginationLink href={link.url || '#'} isActive={link.active}>
+              <PaginationLink href={link.url} isActive={link.active}>
                 {link.label}
               </PaginationLink>
             )}
           </PaginationItem>
         ))}
 
-        {/* ============================================================== */}
-        {/* Enlace Siguiente (Next) */}
-        {/* ============================================================== */}
-        {nextLink && (
-          <PaginationItem>
-            <PaginationNext
-              href={nextLink.url || '#'}
-              isActive={!nextLink.url}
-            />
-          </PaginationItem>
-        )}
+        <PaginationItem>
+          <PaginationNext
+            href={nextLink.url ?? '#'}
+            aria-disabled={!nextLink.url}
+            className={!nextLink.url ? 'pointer-events-none opacity-50' : ''}
+          />
+        </PaginationItem>
       </PaginationContent>
     </Pagination>
   );
