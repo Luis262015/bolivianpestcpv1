@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -411,26 +412,32 @@ export default function ModalEditarSeguimiento({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const finalData = {
-      ...data,
+    transform((d) => ({
+      ...d,
       _method: 'PUT',
-      biologicos_ids: biologicosSel,
-      metodos_ids: metodosSel,
-      epps_ids: eppsSel,
-      protecciones_ids: proteccionesSel,
-      signos_ids: signosSel,
-      productos_usados: productos,
+      biologicos_ids: JSON.stringify(biologicosSel),
+      metodos_ids: JSON.stringify(metodosSel),
+      epps_ids: JSON.stringify(eppsSel),
+      protecciones_ids: JSON.stringify(proteccionesSel),
+      signos_ids: JSON.stringify(signosSel),
+      productos_usados: JSON.stringify(productos),
       firma_encargado: firmaEncargado || firmaEncargadoExistente,
       firma_supervisor: firmaSupervisor || firmaSupervisorExistente,
-      aplicacion_data: aplicacion,
-      imagenes_eliminar: imagenesEliminar,
-    };
-
-    transform(() => finalData);
+      aplicacion_data: JSON.stringify(aplicacion),
+      imagenes_eliminar: JSON.stringify(imagenesEliminar),
+      trampa_especies_seguimientos: JSON.stringify(d.trampa_especies_seguimientos),
+      trampa_roedores_seguimientos: JSON.stringify(d.trampa_roedores_seguimientos),
+    }));
 
     post(`/seguimientos/${seguimientoId}`, {
       forceFormData: true,
-      onSuccess: handleClose,
+      onSuccess: () => {
+        toast.success('Seguimiento actualizado correctamente');
+        handleClose();
+      },
+      onError: () => {
+        toast.error('Error al guardar el seguimiento');
+      },
     });
   };
 

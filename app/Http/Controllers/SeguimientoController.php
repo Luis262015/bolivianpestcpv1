@@ -644,28 +644,15 @@ class SeguimientoController extends Controller
   public function update(Request $request, string $id)
   {
     $toValidated = [
-      'empresa_id'                   => 'required|integer',
-      'almacen_id'                   => 'required|integer',
-      'tipo_seguimiento_id'          => 'required|integer',
-      'biologicos_ids'               => 'nullable|array',
-      'metodos_ids'                  => 'nullable|array',
-      'epps_ids'                     => 'nullable|array',
-      'protecciones_ids'             => 'nullable|array',
-      'signos_ids'                   => 'nullable|array',
-      'productos_usados'             => 'nullable|array',
-      'observaciones_especificas'    => 'nullable|string',
-      'encargado_nombre'             => 'required|string',
-      'encargado_cargo'              => 'required|string',
-      'observaciones_generales'      => 'nullable|string',
-      'aplicacion_data'              => 'nullable|array',
-      'trampa_especies_seguimientos' => 'nullable|array',
-      'trampa_roedores_seguimientos' => 'nullable|array',
-      'created_at'                   => 'nullable|date',
-      'imagenes_eliminar'            => 'nullable|array',
-      'imagenes_eliminar.*'          => 'nullable|integer',
+      'empresa_id'                => 'required|integer',
+      'almacen_id'                => 'required|integer',
+      'tipo_seguimiento_id'       => 'required|integer',
+      'observaciones_especificas' => 'nullable|string',
+      'encargado_nombre'          => 'required|string',
+      'encargado_cargo'           => 'required|string',
+      'observaciones_generales'   => 'nullable|string',
+      'created_at'                => 'nullable|date',
     ];
-
-    // dd($request);
 
     Log::info('SeguimientoController@update payload recibido', [
       'seguimiento_id'        => $id,
@@ -681,6 +668,17 @@ class SeguimientoController extends Controller
       DB::beginTransaction();
 
       $validated = $request->validate($toValidated);
+
+      $biologicosIds               = json_decode($request->input('biologicos_ids', '[]'), true) ?? [];
+      $metodosIds                  = json_decode($request->input('metodos_ids', '[]'), true) ?? [];
+      $eppsIds                     = json_decode($request->input('epps_ids', '[]'), true) ?? [];
+      $proteccionesIds             = json_decode($request->input('protecciones_ids', '[]'), true) ?? [];
+      $signosIds                   = json_decode($request->input('signos_ids', '[]'), true) ?? [];
+      $productosUsados             = json_decode($request->input('productos_usados', '[]'), true) ?? [];
+      $aplicacionData              = json_decode($request->input('aplicacion_data', '{}'), true) ?? [];
+      $imagenesEliminar            = json_decode($request->input('imagenes_eliminar', '[]'), true) ?? [];
+      $trampaEspeciesSeguimientos  = json_decode($request->input('trampa_especies_seguimientos', '[]'), true) ?? [];
+      $trampaRoedoresSeguimientos  = json_decode($request->input('trampa_roedores_seguimientos', '[]'), true) ?? [];
 
       $seguimiento = Seguimiento::findOrFail($id);
       $seguimiento->encargado_nombre = $validated['encargado_nombre'];
@@ -716,48 +714,47 @@ class SeguimientoController extends Controller
 
       // Actualizar aplicacion
       $aplicacion = Aplicacion::firstOrNew(['seguimiento_id' => $seguimiento->id]);
-      if (!empty($validated['aplicacion_data'])) {
-        $ap = $validated['aplicacion_data'];
-        $aplicacion->paredes_internas = $ap['paredes_internas'] ?? 0;
-        $aplicacion->pisos            = $ap['pisos']            ?? 0;
-        $aplicacion->ambientes        = $ap['ambientes']        ?? 0;
-        $aplicacion->trampas          = $ap['trampas']          ?? 0;
-        $aplicacion->trampas_cambiar  = $ap['trampas_cambiar']  ?? 0;
-        $aplicacion->internas         = $ap['internas']         ?? 0;
-        $aplicacion->externas         = $ap['externas']         ?? 0;
-        $aplicacion->roedores         = $ap['roedores']         ?? 0;
+      if (!empty($aplicacionData)) {
+        $aplicacion->paredes_internas = $aplicacionData['paredes_internas'] ?? 0;
+        $aplicacion->pisos            = $aplicacionData['pisos']            ?? 0;
+        $aplicacion->ambientes        = $aplicacionData['ambientes']        ?? 0;
+        $aplicacion->trampas          = $aplicacionData['trampas']          ?? 0;
+        $aplicacion->trampas_cambiar  = $aplicacionData['trampas_cambiar']  ?? 0;
+        $aplicacion->internas         = $aplicacionData['internas']         ?? 0;
+        $aplicacion->externas         = $aplicacionData['externas']         ?? 0;
+        $aplicacion->roedores         = $aplicacionData['roedores']         ?? 0;
         $aplicacion->save();
       }
 
       // Sincronizar relaciones
       SeguimientoBiologico::where('seguimiento_id', $seguimiento->id)->delete();
-      foreach ($validated['biologicos_ids'] ?? [] as $ind) {
+      foreach ($biologicosIds as $ind) {
         SeguimientoBiologico::create(['seguimiento_id' => $seguimiento->id, 'biologico_id' => $ind]);
       }
 
       SeguimientoMetodo::where('seguimiento_id', $seguimiento->id)->delete();
-      foreach ($validated['metodos_ids'] ?? [] as $ind) {
+      foreach ($metodosIds as $ind) {
         SeguimientoMetodo::create(['seguimiento_id' => $seguimiento->id, 'metodo_id' => $ind]);
       }
 
       SeguimientoEpp::where('seguimiento_id', $seguimiento->id)->delete();
-      foreach ($validated['epps_ids'] ?? [] as $ind) {
+      foreach ($eppsIds as $ind) {
         SeguimientoEpp::create(['seguimiento_id' => $seguimiento->id, 'epp_id' => $ind]);
       }
 
       SeguimientoProteccion::where('seguimiento_id', $seguimiento->id)->delete();
-      foreach ($validated['protecciones_ids'] ?? [] as $ind) {
+      foreach ($proteccionesIds as $ind) {
         SeguimientoProteccion::create(['seguimiento_id' => $seguimiento->id, 'proteccion_id' => $ind]);
       }
 
       SeguimientoSigno::where('seguimiento_id', $seguimiento->id)->delete();
-      foreach ($validated['signos_ids'] ?? [] as $ind) {
+      foreach ($signosIds as $ind) {
         SeguimientoSigno::create(['seguimiento_id' => $seguimiento->id, 'signo_id' => $ind]);
       }
 
       // Sincronizar productos (sin ajuste de stock)
       ProductoUso::where('seguimiento_id', $seguimiento->id)->delete();
-      foreach ($validated['productos_usados'] ?? [] as $prod) {
+      foreach ($productosUsados as $prod) {
         $producto = Producto::find($prod['producto_id']);
         if ($producto) {
           ProductoUso::create([
@@ -771,7 +768,7 @@ class SeguimientoController extends Controller
 
       // Sincronizar trampas especies
       TrampaEspecieSeguimiento::where('seguimiento_id', $seguimiento->id)->delete();
-      foreach ($validated['trampa_especies_seguimientos'] ?? [] as $tramp) {
+      foreach ($trampaEspeciesSeguimientos as $tramp) {
         TrampaEspecieSeguimiento::create([
           'seguimiento_id' => $seguimiento->id,
           'trampa_id'      => $tramp['trampa_id'],
@@ -783,7 +780,7 @@ class SeguimientoController extends Controller
       // Sincronizar trampas roedores (solo DESRATIZACION)
       TrampaRoedorSeguimiento::where('seguimiento_id', $seguimiento->id)->delete();
       if ($seguimiento->tipo_seguimiento_id == 1) {
-        foreach ($validated['trampa_roedores_seguimientos'] ?? [] as $tramp) {
+        foreach ($trampaRoedoresSeguimientos as $tramp) {
           TrampaRoedorSeguimiento::create([
             'seguimiento_id' => $seguimiento->id,
             'trampa_id'      => $tramp['trampa_id'],
@@ -797,7 +794,7 @@ class SeguimientoController extends Controller
       }
 
       // Eliminar imágenes marcadas
-      foreach ($validated['imagenes_eliminar'] ?? [] as $imageId) {
+      foreach ($imagenesEliminar as $imageId) {
         $imagen = SeguimientoImage::find($imageId);
         if ($imagen && $imagen->seguimiento_id == $seguimiento->id) {
           if (!empty($imagen->imagen) && file_exists(public_path($imagen->imagen))) {
