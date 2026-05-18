@@ -94,7 +94,7 @@ class MapaController extends Controller
 
     if ($almacenId) {
       $mapas = Mapa::with(['trampas' => function ($q) {
-        $q->orderBy('numero');
+        $q->where('estado', '!=', 'inactivo')->orderBy('numero');
       }])
         ->where('almacen_id', $almacenId)
         ->orderBy('id')
@@ -117,6 +117,7 @@ class MapaController extends Controller
                 'estado' => $t->estado,
                 'numero' => $t->numero,
                 'identificador' => $t->identificador,
+                'puede_eliminar' => !$t->tieneDependencias(),
               ];
             }),
           ];
@@ -327,13 +328,15 @@ class MapaController extends Controller
       $trampasRecibidas = collect($validated['trampas'] ?? []);
       $idsEnviados = $trampasRecibidas->filter(fn($t) => !empty($t['id']))->pluck('id');
 
-      // Eliminar solo las trampas que el usuario quitó del mapa Y que no tienen dependencias
+      // Eliminar trampas quitadas del mapa; si tienen dependencias, se ocultan con estado 'inactivo'
       $mapa->trampas()
         ->whereNotIn('id', $idsEnviados)
         ->get()
         ->each(function (Trampa $trampa) {
           if (!$trampa->tieneDependencias()) {
             $trampa->delete();
+          } else {
+            $trampa->update(['estado' => 'inactivo']);
           }
         });
 

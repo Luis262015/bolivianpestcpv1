@@ -35,6 +35,7 @@ export type Trap = {
   posy: number;
   estado?: string;
   identificador: string;
+  puede_eliminar?: boolean;
 };
 
 export type MapEditorState = {
@@ -348,10 +349,15 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
       return;
     }
 
-    // Click derecho = eliminar
+    // Click derecho = eliminar (u ocultar si tiene dependencias)
     if (e.button === 2) {
       const trap = findTrapAt(pos.x, pos.y);
       if (trap) {
+        if (trap.id && trap.puede_eliminar === false) {
+          alert(
+            `La trampa "${trap.identificador}" tiene registros asociados y no puede eliminarse.\nSe ocultará del mapa al guardar.`,
+          );
+        }
         onChange({
           ...mapa,
           traps: mapa.traps.filter((t) => t.tempId !== trap.tempId),
