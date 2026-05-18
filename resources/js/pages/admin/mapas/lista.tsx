@@ -196,11 +196,11 @@ export default function MapaEditor(props: Props) {
         trap_size: mapa.trapSize,
         // texts: mapa.texts,
         trampas: mapa.traps.map((t, index) => ({
-          // id: t.id,
+          id: t.id,
           trampa_tipo_id: t.trampa_tipo_id,
           posx: Math.round(t.posx),
           posy: Math.round(t.posy),
-          // estado: t.estado ?? 'activo',
+          estado: t.estado ?? 'activo',
           identificador: t.identificador,
           numero: index + 1,
         })),

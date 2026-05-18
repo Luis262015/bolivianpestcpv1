@@ -212,17 +212,16 @@ class MapaController extends Controller
 
       // Guardar las trampas asociadas
       if (!empty($validated['trampas'])) {
-        foreach ($validated['trampas'] as $trampaData) {
+        foreach ($validated['trampas'] as $index => $trampaData) {
           Trampa::create([
-            'almacen_id'       => $validated['almacen_id'],
-            'trampa_tipo_id'   => $trampaData['trampa_tipo_id'],
-            'mapa_id'          => $mapa->id,
-            'tipo'             => "null", // si aún lo usas, sino eliminar
-            'posx'             => $trampaData['posx'],
-            'posy'             => $trampaData['posy'],
-            'estado'           => $trampaData['estado'] ?? 'activo',
-            'numero'           => $trampaData['numero'] ?? null,
-            'identificador'    => $trampaData['identificador'],
+            'almacen_id'     => $validated['almacen_id'],
+            'trampa_tipo_id' => $trampaData['trampa_tipo_id'],
+            'mapa_id'        => $mapa->id,
+            'posx'           => round($trampaData['posx']),
+            'posy'           => round($trampaData['posy']),
+            'estado'         => $trampaData['estado'] ?? 'activo',
+            'numero'         => $trampaData['numero'] ?? ($index + 1),
+            'identificador'  => $trampaData['identificador'],
           ]);
         }
       }

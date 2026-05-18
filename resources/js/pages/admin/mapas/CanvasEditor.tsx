@@ -29,10 +29,12 @@ import {
 
 export type Trap = {
   tempId: string;
+  id?: number;
   trampa_tipo_id: number;
   posx: number;
   posy: number;
-  identificador: string; // 👈 nuevo
+  estado?: string;
+  identificador: string;
 };
 
 export type MapEditorState = {
