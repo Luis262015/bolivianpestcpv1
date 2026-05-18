@@ -207,7 +207,10 @@ class TrampaSeguimientoController extends Controller
 
   public function trampas(Request $request, string $id)
   {
-    $trampas = Trampa::with(['trampa_tipo', 'almacen', 'mapa'])->where('almacen_id', $id)->get();
+    $trampas = Trampa::with(['trampa_tipo', 'almacen', 'mapa'])
+      ->where('almacen_id', $id)
+      ->where('estado', '!=', 'inactivo')
+      ->get();
     return response()->json($trampas);
   }
 
