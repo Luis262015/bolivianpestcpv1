@@ -129,7 +129,13 @@ class InformesController extends Controller
         'empresa_id',
         'almacen_id',
         'fecha_inicio',
-        'fecha_fin'
+        'fecha_fin',
+        'tipo_filtro',
+        'mes_inicio',
+        'anio_inicio',
+        'mes_fin',
+        'anio_fin',
+        'anio'
       ),
     ]);
   }

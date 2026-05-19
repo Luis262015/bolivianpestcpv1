@@ -140,6 +140,12 @@ interface Props {
     almacen_id?: number;
     fecha_inicio?: string;
     fecha_fin?: string;
+    tipo_filtro?: string;
+    mes_inicio?: string;
+    anio_inicio?: string;
+    mes_fin?: string;
+    anio_fin?: string;
+    anio?: string;
   };
 }
 
@@ -157,6 +163,18 @@ export default function Lista({
   const [almacenId, setAlmacenId] = useState(filters.almacen_id?.toString());
   const [fechaInicio, setFechaInicio] = useState(filters.fecha_inicio ?? '');
   const [fechaFin, setFechaFin] = useState(filters.fecha_fin ?? '');
+
+  type ModoFiltro = 'fechas' | 'meses' | 'anio';
+  const anioActual = new Date().getFullYear();
+  const aniosDisponibles = Array.from({ length: anioActual - 2019 }, (_, i) => (anioActual - i).toString());
+  const mesesNombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  const [modoFiltro, setModoFiltro] = useState<ModoFiltro>((filters.tipo_filtro as ModoFiltro) ?? 'fechas');
+  const [mesInicio, setMesInicio] = useState(filters.mes_inicio ?? '1');
+  const [anioInicio, setAnioInicio] = useState(filters.anio_inicio ?? anioActual.toString());
+  const [mesFin, setMesFin] = useState(filters.mes_fin ?? '12');
+  const [anioFin, setAnioFin] = useState(filters.anio_fin ?? anioActual.toString());
+  const [anioSeleccionado, setAnioSeleccionado] = useState(filters.anio ?? anioActual.toString());
 
   const [exportando, setExportando] = useState(false);
 
@@ -1002,14 +1020,39 @@ export default function Lista({
    * ----------------------------------------------------------------------------
    */
   const buscar = () => {
+    let fi = fechaInicio;
+    let ff = fechaFin;
+    const extraParams: Record<string, string | number | undefined> = {
+      tipo_filtro: modoFiltro,
+    };
+
+    if (modoFiltro === 'meses') {
+      const y1 = parseInt(anioInicio);
+      const m1 = parseInt(mesInicio);
+      const y2 = parseInt(anioFin);
+      const m2 = parseInt(mesFin);
+      fi = `${y1}-${String(m1).padStart(2, '0')}-01`;
+      const ultimoDia = new Date(y2, m2, 0).getDate();
+      ff = `${y2}-${String(m2).padStart(2, '0')}-${ultimoDia}`;
+      extraParams.mes_inicio = mesInicio;
+      extraParams.anio_inicio = anioInicio;
+      extraParams.mes_fin = mesFin;
+      extraParams.anio_fin = anioFin;
+    } else if (modoFiltro === 'anio') {
+      fi = `${anioSeleccionado}-01-01`;
+      ff = `${anioSeleccionado}-12-31`;
+      extraParams.anio = anioSeleccionado;
+    }
+
     router.get(
       '/informes',
       {
         empresa_id: empresaId,
         almacen_id: almacenId,
-        fecha_inicio: fechaInicio,
-        fecha_fin: fechaFin,
+        fecha_inicio: fi,
+        fecha_fin: ff,
         buscar: 1,
+        ...extraParams,
       },
       {
         preserveState: true,
@@ -1017,6 +1060,32 @@ export default function Lista({
       },
     );
   };
+
+  const puedesBuscar = (() => {
+    if (!empresaId || !almacenId) return false;
+    if (modoFiltro === 'fechas') return !!(fechaInicio && fechaFin);
+    if (modoFiltro === 'meses') return !!(mesInicio && anioInicio && mesFin && anioFin);
+    if (modoFiltro === 'anio') return !!anioSeleccionado;
+    return false;
+  })();
+
+  const formatearFecha = (fechaStr: string) => {
+    if (!fechaStr) return '';
+    const [y, m, d] = fechaStr.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('es-ES');
+  };
+
+  const periodoLabel = (() => {
+    if (modoFiltro === 'meses' && filters.mes_inicio && filters.anio_inicio && filters.mes_fin && filters.anio_fin) {
+      const mi = parseInt(filters.mes_inicio) - 1;
+      const mf = parseInt(filters.mes_fin) - 1;
+      return `${mesesNombres[mi]} ${filters.anio_inicio} - ${mesesNombres[mf]} ${filters.anio_fin}`;
+    }
+    if (modoFiltro === 'anio' && filters.anio) {
+      return `Año ${filters.anio}`;
+    }
+    return `${formatearFecha(filters.fecha_inicio ?? fechaInicio)} - ${formatearFecha(filters.fecha_fin ?? fechaFin)}`;
+  })();
 
   // 3. En onEmpresaChange, no resetees las fechas si ya tenías filtros activos
   const onEmpresaChange = (value: string) => {
@@ -1040,11 +1109,23 @@ export default function Lista({
     setAlmacenId(filters.almacen_id?.toString() ?? '');
     setFechaInicio(filters.fecha_inicio ?? '');
     setFechaFin(filters.fecha_fin ?? '');
+    setModoFiltro((filters.tipo_filtro as ModoFiltro) ?? 'fechas');
+    setMesInicio(filters.mes_inicio ?? '1');
+    setAnioInicio(filters.anio_inicio ?? anioActual.toString());
+    setMesFin(filters.mes_fin ?? '12');
+    setAnioFin(filters.anio_fin ?? anioActual.toString());
+    setAnioSeleccionado(filters.anio ?? anioActual.toString());
   }, [
     filters.empresa_id,
     filters.almacen_id,
     filters.fecha_inicio,
     filters.fecha_fin,
+    filters.tipo_filtro,
+    filters.mes_inicio,
+    filters.anio_inicio,
+    filters.mes_fin,
+    filters.anio_fin,
+    filters.anio,
   ]);
 
   const onAlmacenChange = (value: string) => {
@@ -1466,34 +1547,129 @@ export default function Lista({
               ))}
             </SelectContent>
           </Select>
-          {/* Fechas */}
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Fecha inicial</Label>
-              <Input
-                type="date"
-                value={fechaInicio}
-                // onChange={(e) => setFechaInicio(e.target.value)}
-                onChange={(e) => onFechaChange(e.target.value, fechaFin)}
-              />
-            </div>
-            <div>
-              <Label>Fecha final</Label>
-              <Input
-                type="date"
-                value={fechaFin}
-                // onChange={(e) => setFechaFin(e.target.value)}
-                onChange={(e) => onFechaChange(fechaInicio, e.target.value)}
-              />
+          {/* Tipo de filtro */}
+          <div>
+            <Label>Tipo de período</Label>
+            <div className="mt-2 flex gap-6">
+              {(['fechas', 'meses', 'anio'] as const).map((modo) => (
+                <label key={modo} className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    value={modo}
+                    checked={modoFiltro === modo}
+                    onChange={() => setModoFiltro(modo)}
+                    className="accent-primary"
+                  />
+                  {modo === 'fechas' ? 'Rango de fechas' : modo === 'meses' ? 'Rango de meses' : 'Por año'}
+                </label>
+              ))}
             </div>
           </div>
+
+          {/* Filtro: Rango de fechas */}
+          {modoFiltro === 'fechas' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Fecha inicial</Label>
+                <Input
+                  type="date"
+                  value={fechaInicio}
+                  onChange={(e) => onFechaChange(e.target.value, fechaFin)}
+                />
+              </div>
+              <div>
+                <Label>Fecha final</Label>
+                <Input
+                  type="date"
+                  value={fechaFin}
+                  onChange={(e) => onFechaChange(fechaInicio, e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Filtro: Rango de meses */}
+          {modoFiltro === 'meses' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Mes inicio</Label>
+                <div className="flex gap-2">
+                  <Select value={mesInicio} onValueChange={setMesInicio}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Mes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mesesNombres.map((nombre, idx) => (
+                        <SelectItem key={idx + 1} value={String(idx + 1)}>
+                          {nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={anioInicio} onValueChange={setAnioInicio}>
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue placeholder="Año" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {aniosDisponibles.map((a) => (
+                        <SelectItem key={a} value={a}>{a}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label>Mes fin</Label>
+                <div className="flex gap-2">
+                  <Select value={mesFin} onValueChange={setMesFin}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Mes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mesesNombres.map((nombre, idx) => (
+                        <SelectItem key={idx + 1} value={String(idx + 1)}>
+                          {nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={anioFin} onValueChange={setAnioFin}>
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue placeholder="Año" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {aniosDisponibles.map((a) => (
+                        <SelectItem key={a} value={a}>{a}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Filtro: Por año */}
+          {modoFiltro === 'anio' && (
+            <div className="w-[200px]">
+              <Label>Año</Label>
+              <Select value={anioSeleccionado} onValueChange={setAnioSeleccionado}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione año" />
+                </SelectTrigger>
+                <SelectContent>
+                  {aniosDisponibles.map((a) => (
+                    <SelectItem key={a} value={a}>{a}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* Botones */}
           <div className="flex gap-4">
             <Button
               onClick={buscar}
-              disabled={!empresaId || !almacenId || !fechaInicio || !fechaFin}
-              // disabled={!empresaId || !fechaInicio || !fechaFin}
+              disabled={!puedesBuscar}
               className="w-[250px]"
             >
               Buscar
@@ -1543,9 +1719,7 @@ export default function Lista({
                 {almacenes.find((a) => a.id === Number(almacenId))?.nombre}
               </p>
               <p>
-                <strong>Período:</strong>{' '}
-                {new Date(fechaInicio).toLocaleDateString('es-ES')} -{' '}
-                {new Date(fechaFin).toLocaleDateString('es-ES')}
+                <strong>Período:</strong> {periodoLabel}
               </p>
               <p>
                 <strong>Fecha de generación:</strong>{' '}
