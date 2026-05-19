@@ -41,6 +41,9 @@ import { useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { Check, ChevronsUpDown, InfoIcon, Plus, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import ModalCrearProducto, {
+  type ProductoCreado,
+} from './ModalCrearProducto';
 import SeguimientoTrampas, {
   TrampaEspecieSeguimientos,
   TrampaRoedoresSeguimiento,
@@ -224,6 +227,7 @@ export default function ModalSeguimiento({
   const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
   const [loading, setLoading] = useState(false);
   const [quantity, setQuantity] = useState('1');
+  const [openCrearProducto, setOpenCrearProducto] = useState(false);
 
   const { data, setData, post, processing, errors, reset } = useForm({
     empresa_id: '',
@@ -431,7 +435,7 @@ export default function ModalSeguimiento({
 
   // Helpers productos
   const addProducto = () => {
-    if (!selectedProduct || !quantity || parseFloat(quantity) < 1) return;
+    if (!selectedProduct || !quantity || parseFloat(quantity) <= 0) return;
 
     const existe = productos.some((p) => p.producto_id === selectedProduct.id);
     if (existe) {
@@ -459,6 +463,13 @@ export default function ModalSeguimiento({
     const updated = productos.filter((_, idx) => idx !== i);
     setProductos(updated);
     setData('productos_usados', updated);
+  };
+
+  const handleProductoCreado = (producto: ProductoCreado) => {
+    setSelectedProduct(producto as Producto);
+    setQuery(producto.nombre);
+    setOpenP(false);
+    setOpenCrearProducto(false);
   };
 
   const updateProducto = (
@@ -683,6 +694,7 @@ export default function ModalSeguimiento({
   };
 
   return (
+    <>
     <Dialog
       open={open}
       // onOpenChange={(isOpen) => {
@@ -1096,7 +1108,24 @@ export default function ModalSeguimiento({
                             searchResults.length === 0 &&
                             query.length >= 2 && (
                               <CommandEmpty>
-                                No se encontraron productos
+                                <div className="flex flex-col items-center gap-2 py-2">
+                                  <span className="text-sm text-muted-foreground">
+                                    No se encontraron productos
+                                  </span>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setOpenCrearProducto(true);
+                                    }}
+                                  >
+                                    <Plus className="mr-1 h-3 w-3" />
+                                    Crear "{query}"
+                                  </Button>
+                                </div>
                               </CommandEmpty>
                             )}
                           <CommandGroup>
@@ -1104,9 +1133,6 @@ export default function ModalSeguimiento({
                               <CommandItem
                                 key={product.id}
                                 onSelect={() => {
-                                  if (product.stock <= 0) {
-                                    return;
-                                  }
                                   setSelectedProduct(product);
                                   setQuery(product.nombre);
                                   setOpenP(false);
@@ -1124,9 +1150,16 @@ export default function ModalSeguimiento({
                                   <div>{product.nombre}</div>
                                   <div className="text-xs text-gray-500">
                                     Unidad: {product.unidad.nombre} <br />
-                                    Stock: {product.stock}
-                                    {/* Compra: ${product.precio_compra} | Venta: $
-                                    {product.precio_venta} */}
+                                    Stock:{' '}
+                                    <span
+                                      className={
+                                        product.stock <= 0
+                                          ? 'font-semibold text-red-500'
+                                          : ''
+                                      }
+                                    >
+                                      {product.stock}
+                                    </span>
                                   </div>
                                 </div>
                               </CommandItem>
@@ -1561,5 +1594,12 @@ export default function ModalSeguimiento({
         </form>
       </DialogContent>
     </Dialog>
+    <ModalCrearProducto
+      open={openCrearProducto}
+      onClose={() => setOpenCrearProducto(false)}
+      onProductoCreado={handleProductoCreado}
+      nombreInicial={query}
+    />
+    </>
   );
 }

@@ -118,6 +118,49 @@ class ProductosController extends Controller
     return redirect()->route('productos.index');
   }
 
+  public function formData()
+  {
+    return response()->json([
+      'categorias' => Categoria::all('id', 'nombre'),
+      'marcas'     => Marca::all('id', 'nombre'),
+      'etiquetas'  => Etiqueta::all('id', 'nombre'),
+      'unidades'   => Unidad::all('id', 'nombre'),
+    ]);
+  }
+
+  public function storeModal(Request $request)
+  {
+    $validated = $request->validate([
+      'nombre'         => 'required|string|max:255',
+      'descripcion'    => 'nullable|string',
+      'stock_min'      => 'required|numeric',
+      'unidad_valor'   => 'required|numeric',
+      'unidad_id'      => 'required|exists:unidades,id',
+      'marca_id'       => 'nullable|exists:marcas,id',
+      'categoria_id'   => 'nullable|exists:categorias,id',
+      'etiqueta_ids'   => 'nullable|array',
+      'etiqueta_ids.*' => 'exists:etiquetas,id',
+    ]);
+
+    $producto = new Producto();
+    $producto->categoria_id = $validated['categoria_id'] ?? null;
+    $producto->marca_id     = $validated['marca_id'] ?? null;
+    $producto->unidad_id    = $validated['unidad_id'];
+    $producto->nombre       = $validated['nombre'];
+    $producto->descripcion  = $validated['descripcion'] ?? null;
+    $producto->unidad_valor = $validated['unidad_valor'];
+    $producto->stock_min    = $validated['stock_min'];
+    $producto->save();
+
+    if (!empty($validated['etiqueta_ids'])) {
+      $producto->etiquetas()->sync($validated['etiqueta_ids']);
+    }
+
+    $producto->load('unidad:id,nombre');
+
+    return response()->json($producto);
+  }
+
   public function search(Request $request)
   {
     $query = $request->input('q');

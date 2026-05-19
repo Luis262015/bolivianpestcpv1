@@ -149,6 +149,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('etiquetas', EtiquetasController::class);
 
     Route::get('/productos/test', [ProductosController::class, 'test'])->name('productos.test');
+    Route::get('/productos/formdata', [ProductosController::class, 'formData'])->name('productos.formdata');
+    Route::post('/productos/storemodal', [ProductosController::class, 'storeModal'])->name('productos.storemodal');
     Route::get('/productos/subcategorias/{categoria}', [ProductosController::class, 'getSubcategorias'])->name('productos.subcategorias');
     Route::get('/productos/search', [ProductosController::class, 'search'])->name('productos.search');
     Route::get('/productos/{hojaTecnica}/download', [ProductosController::class, 'download'])->name('productos.download');
