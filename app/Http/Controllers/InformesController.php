@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Accion;
 use App\Models\Almacen;
 use App\Models\Empresa;
+use App\Models\InformeArchivo;
 use App\Models\Seguimiento;
 use App\Models\SeguimientoImage;
 use App\Models\Trampa;
@@ -37,10 +38,12 @@ class InformesController extends Controller
     $user = $request->user();
 
     // CONSEGUIMOS DATOS DE EMPRESAS
+    $empresasDelUsuario = [];
     if ($user->HasRole('cliente')) {
       $empresasUser = User::with('empresas')->find($user->id);
       $empresaUser = $empresasUser->empresas[0];
       $empresas = Empresa::select(['id', 'nombre'])->where('id', $empresaUser->id)->get();
+      $empresasDelUsuario = [$empresaUser->id];
     } else {
       $empresas = Empresa::select('id', 'nombre')->get();
     }
@@ -117,6 +120,15 @@ class InformesController extends Controller
       $trampas_insect = $trampas->where('trampa_tipo_id', 2)->count();
       $trampas_rat = $trampas->where('trampa_tipo_id', '!=', 2)->count();
     }
+    $archivosQuery = InformeArchivo::with(['empresa', 'user'])
+      ->orderBy('created_at', 'desc');
+
+    if ($user->hasRole('cliente') && count($empresasDelUsuario) > 0) {
+      $archivosQuery->whereIn('empresa_id', $empresasDelUsuario);
+    }
+
+    $archivos = $archivosQuery->get();
+
     return inertia('admin/informes/index', [
       'empresas'     => $empresas,
       'almacenes'    => $almacenes,
@@ -125,6 +137,7 @@ class InformesController extends Controller
       'trampasinsect' => $trampas_insect,
       'trampasrat' => $trampas_rat,
       'totales' => $totales,
+      'archivos'     => $archivos,
       'filters' => $request->only(
         'empresa_id',
         'almacen_id',
@@ -1786,7 +1799,8 @@ class InformesController extends Controller
 
   public function downloadWord()
   {
-    return response()->download(storage_path('app/informe.docx'));
+    $nombreArchivo = 'informe_' . now()->format('dmY_His') . '.docx';
+    return response()->download(storage_path('app/informe.docx'), $nombreArchivo);
   }
 
 

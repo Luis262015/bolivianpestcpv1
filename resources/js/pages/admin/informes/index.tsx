@@ -24,12 +24,12 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { tableStyles } from '@/lib/table-styles';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 // import html2canvas from 'html2canvas';
 import * as htmlToImage from 'html-to-image';
 import jsPDF from 'jspdf';
-import { Download } from 'lucide-react';
+import { Download, Trash2, Upload } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Bar,
@@ -127,6 +127,15 @@ interface Accion {
   created_at: string;
 }
 
+interface InformeArchivo {
+  id: number;
+  empresa_id: number;
+  nombre_original: string;
+  created_at: string;
+  empresa: { id: number; nombre: string };
+  user: { id: number; name: string };
+}
+
 interface Props {
   empresas: Empresa[];
   almacenes: Almacen[];
@@ -135,6 +144,7 @@ interface Props {
   trampasinsect?: number;
   trampasrat?: number;
   totales: TotalData[];
+  archivos: InformeArchivo[];
   filters: {
     empresa_id?: number;
     almacen_id?: number;
@@ -157,8 +167,38 @@ export default function Lista({
   trampasinsect,
   trampasrat,
   totales,
+  archivos,
   filters,
 }: Props) {
+  const { auth } = usePage().props;
+  const esAdminOSuperadmin = auth.roles.includes('admin') || auth.roles.includes('superadmin');
+  const puedeExportarWord = esAdminOSuperadmin;
+
+  const [subiendoArchivo, setSubiendoArchivo] = useState(false);
+  const [archivoSeleccionado, setArchivoSeleccionado] = useState<File | null>(null);
+  const [empresaArchivoId, setEmpresaArchivoId] = useState('');
+
+  const subirArchivo = async () => {
+    if (!archivoSeleccionado || !empresaArchivoId) return;
+    setSubiendoArchivo(true);
+    const formData = new FormData();
+    formData.append('archivo', archivoSeleccionado);
+    formData.append('empresa_id', empresaArchivoId);
+    router.post('/informe-archivos', formData as any, {
+      forceFormData: true,
+      onFinish: () => {
+        setSubiendoArchivo(false);
+        setArchivoSeleccionado(null);
+        setEmpresaArchivoId('');
+      },
+    });
+  };
+
+  const eliminarArchivo = (id: number) => {
+    if (!confirm('¿Eliminar este archivo?')) return;
+    router.delete(`/informe-archivos/${id}`);
+  };
+
   const [empresaId, setEmpresaId] = useState(filters.empresa_id?.toString());
   const [almacenId, setAlmacenId] = useState(filters.almacen_id?.toString());
   const [fechaInicio, setFechaInicio] = useState(filters.fecha_inicio ?? '');
@@ -1691,16 +1731,109 @@ export default function Lista({
                     </>
                   )}
                 </Button>
-                <Button
-                  onClick={exportarWord}
-                  className="bg-blue-800 text-white"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Exportar Word
-                </Button>
+                {puedeExportarWord && (
+                  <Button
+                    onClick={exportarWord}
+                    className="bg-blue-800 text-white"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Exportar Word
+                  </Button>
+                )}
               </>
             )}
           </div>
+        </div>
+
+        {/* *********** SECCION ARCHIVOS WORD ************************** */}
+        <div className="space-y-4 rounded-lg border border-slate-200 p-4">
+          <h2 className="text-lg font-semibold">Informes Word</h2>
+
+          {/* Formulario de subida — solo admin/superadmin */}
+          {esAdminOSuperadmin && (
+            <div className="flex flex-wrap items-end gap-3 rounded-md bg-slate-50 p-3">
+              <div className="flex-1 min-w-[180px]">
+                <Label>Empresa</Label>
+                <Select value={empresaArchivoId} onValueChange={setEmpresaArchivoId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione empresa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {empresas.map((e) => (
+                      <SelectItem key={e.id} value={String(e.id)}>
+                        {e.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1 min-w-[220px]">
+                <Label>Archivo Word (.docx)</Label>
+                <Input
+                  type="file"
+                  accept=".docx,.doc"
+                  onChange={(e) => setArchivoSeleccionado(e.target.files?.[0] ?? null)}
+                />
+              </div>
+              <Button
+                onClick={subirArchivo}
+                disabled={subiendoArchivo || !archivoSeleccionado || !empresaArchivoId}
+                className="bg-blue-700 text-white"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {subiendoArchivo ? 'Subiendo...' : 'Subir'}
+              </Button>
+            </div>
+          )}
+
+          {/* Tabla de archivos */}
+          {archivos.length > 0 ? (
+            <div className="overflow-x-auto rounded-lg border border-slate-200">
+              <Table className={tableStyles.table}>
+                <TableHeader>
+                  <TableRow className={tableStyles.header.row}>
+                    <TableHead className={tableStyles.header.cell}>Empresa</TableHead>
+                    <TableHead className={tableStyles.header.cell}>Archivo</TableHead>
+                    <TableHead className={tableStyles.header.cell}>Subido por</TableHead>
+                    <TableHead className={tableStyles.header.cell}>Fecha</TableHead>
+                    <TableHead className={tableStyles.header.cell}>Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {archivos.map((a, idx) => (
+                    <TableRow key={a.id} className={tableStyles.row(idx % 2 === 0)}>
+                      <TableCell className={tableStyles.cell}>{a.empresa.nombre}</TableCell>
+                      <TableCell className={tableStyles.cell}>{a.nombre_original}</TableCell>
+                      <TableCell className={tableStyles.cell}>{a.user.name}</TableCell>
+                      <TableCell className={tableStyles.datestr}>
+                        {new Date(a.created_at).toLocaleString('es-ES')}
+                      </TableCell>
+                      <TableCell className={tableStyles.cell}>
+                        <div className="flex gap-2">
+                          <a href={`/informe-archivos/${a.id}/download`}>
+                            <Button size="sm" variant="outline">
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </a>
+                          {esAdminOSuperadmin && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => eliminarArchivo(a.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">No hay archivos subidos aún.</p>
+          )}
         </div>
 
         {/* Contenido a exportar */}

@@ -23,6 +23,7 @@ use App\Http\Controllers\GastosExController;
 use App\Http\Controllers\GastosFinController;
 use App\Http\Controllers\GastosOpController;
 use App\Http\Controllers\HojaTecnicaController;
+use App\Http\Controllers\InformeArchivoController;
 use App\Http\Controllers\InformesController;
 use App\Http\Controllers\IngresosController;
 use App\Http\Controllers\InventarioController;
@@ -111,6 +112,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('unidades', UnidadesController::class);
 
     Route::resource('acciones', AccionController::class);
+
+    Route::post('/informe-archivos', [InformeArchivoController::class, 'store'])->name('informe-archivos.store');
+    Route::get('/informe-archivos/{informeArchivo}/download', [InformeArchivoController::class, 'download'])->name('informe-archivos.download');
+    Route::delete('/informe-archivos/{informeArchivo}', [InformeArchivoController::class, 'destroy'])->name('informe-archivos.destroy');
 
     Route::post('/informes/exportar-word', [InformesController::class, 'storeWord']);
     Route::get('/informes/exportar-word-download', [InformesController::class, 'downloadWord']);
