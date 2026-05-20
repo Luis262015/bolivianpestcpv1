@@ -963,15 +963,26 @@ export default function Lista({
       );
     });
 
-    // Promedios por especie
     const totalSeguimientos = seguimientosFiltrados.length || 1;
 
+    // Promedios de valores brutos (incidencia)
     const promedios: { [especie: string]: number } = {};
     especies.forEach((esp) => {
       promedios[esp] = totales[esp] / totalSeguimientos;
     });
 
-    return { especies, datosPorFecha, totales, promedios };
+    // Totales y promedios de severidad (valores ya divididos entre 3 por fila)
+    const totalesSev: { [especie: string]: number } = {};
+    const promediosSev: { [especie: string]: number } = {};
+    especies.forEach((esp) => {
+      totalesSev[esp] = datosPorFecha.reduce(
+        (sum, dato) => sum + Math.floor(Number(dato.cantidades[esp]) / 3),
+        0,
+      );
+      promediosSev[esp] = totalesSev[esp] / totalSeguimientos;
+    });
+
+    return { especies, datosPorFecha, totales, promedios, totalesSev, promediosSev };
   }, [seguimientos]);
 
   const totalFechas = datosInsectocutores.datosPorFecha.length || 1;
@@ -1331,67 +1342,35 @@ export default function Lista({
     try {
       const seguimientoIds = seguimientos.map((s) => s.id);
 
-      const chart1 = chartInsectosRef.current
-        ? await htmlToImage.toPng(chartInsectosRef.current, {
-            pixelRatio: 2,
-            backgroundColor: '#ffffff',
-            skipFonts: true,
-          })
-        : null;
-
-      const chart2 = chartEvolucionRef.current
-        ? await htmlToImage.toPng(chartEvolucionRef.current, {
-            pixelRatio: 2,
-            backgroundColor: '#ffffff',
-            skipFonts: true,
-          })
-        : null;
-
-      const chart3 = chartRoedoresLineRef.current
-        ? await htmlToImage.toPng(chartRoedoresLineRef.current, {
-            pixelRatio: 2,
-            backgroundColor: '#ffffff',
-            skipFonts: true,
-          })
-        : null;
-
-      const chart4 = chartRoedoresBarRef.current
-        ? await htmlToImage.toPng(chartRoedoresBarRef.current, {
-            pixelRatio: 2,
-            backgroundColor: '#ffffff',
-            skipFonts: true,
-          })
-        : null;
-
-      const chart5 = chartSeveridadRef.current
-        ? await htmlToImage.toPng(chartSeveridadRef.current, {
-            pixelRatio: 2,
-            backgroundColor: '#ffffff',
-            skipFonts: true,
-          })
-        : null;
-
-      const chart6 = chartResumenTrampasRef.current
-        ? await htmlToImage.toPng(chartResumenTrampasRef.current, {
-            pixelRatio: 2,
-            backgroundColor: '#ffffff',
-            skipFonts: true,
-          })
-        : null;
-
       const capturarGrafico = async (ref: HTMLDivElement | null) => {
         if (!ref) return null;
-        return await htmlToImage.toPng(ref, {
+        ref.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve)),
+        );
+        return htmlToImage.toPng(ref, {
           pixelRatio: 2,
           backgroundColor: '#ffffff',
           skipFonts: true,
+          width: ref.offsetWidth,
+          height: ref.offsetHeight,
         });
       };
 
-      // Gráficos dinámicos por mapa
-      const chartsPorMapa = await Promise.all(
-        graficosPorMapaRefs.current.map((ref) => capturarGrafico(ref)),
-      );
+      const chart1 = await capturarGrafico(chartInsectosRef.current);
+      const chart2 = await capturarGrafico(chartEvolucionRef.current);
+      const chart3 = await capturarGrafico(chartRoedoresLineRef.current);
+      const chart4 = await capturarGrafico(chartRoedoresBarRef.current);
+      const chart5 = await capturarGrafico(chartSeveridadRef.current);
+      const chart6 = await capturarGrafico(chartResumenTrampasRef.current);
+
+      // Gráficos por mapa — secuencial para que scrollIntoView funcione correctamente
+      const chartsPorMapa: (string | null)[] = [];
+      for (let i = 0; i < graficosPorMapa.length; i++) {
+        chartsPorMapa.push(
+          await capturarGrafico(graficosPorMapaRefs.current[i] ?? null),
+        );
+      }
 
       // router.post('/informes/exportar-word', {
       //   chart1,
@@ -3497,10 +3476,7 @@ export default function Lista({
                               className={tableStyles.totalCell}
                               key={especie}
                             >
-                              {/* {datosInsectocutores.totales[especie]} */}
-                              {(
-                                datosInsectocutores.totales[especie] / 3
-                              ).toFixed(0)}
+                              {datosInsectocutores.totalesSev[especie]}
                             </TableCell>
                           ))}
                         </TableRow>
@@ -3513,13 +3489,7 @@ export default function Lista({
                               className={tableStyles.totalCell}
                               key={especie}
                             >
-                              {/* {(
-                                datosInsectocutores.promedios[especie] /
-                                datosInsectocutores.datosPorFecha.length
-                              ).toFixed(2)} */}
-                              {(
-                                datosInsectocutores.promedios[especie] / 3
-                              ).toFixed(0)}
+                              {datosInsectocutores.promediosSev[especie].toFixed(1)}
                             </TableCell>
                           ))}
                         </TableRow>

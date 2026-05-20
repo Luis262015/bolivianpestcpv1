@@ -201,6 +201,40 @@ class InformesController extends Controller
         $chart2 = $this->saveBase64Image($request->chart2, 'chart2');
         $chart5 = $this->saveBase64Image($request->chart5, 'chart5');
 
+        $almacen       = Almacen::with('empresa')->find($request->almacen_id);
+        $empresaNombre = $almacen->empresa->nombre ?? '';
+        $almacenNombre = $almacen->nombre ?? '';
+
+        $fechaInicioC = Carbon::parse($request->fecha_inicio);
+        $fechaFinC    = Carbon::parse($request->fecha_fin);
+        $periodoTexto = $fechaInicioC->month === $fechaFinC->month
+            ? ucfirst($fechaInicioC->locale('es')->translatedFormat('F \d\e Y'))
+            : ucfirst($fechaInicioC->locale('es')->translatedFormat('F')) . ' y ' . ucfirst($fechaFinC->locale('es')->translatedFormat('F \d\e Y'));
+
+        $encargadoNombre      = $seguimientos->first()?->encargado_nombre ?? '';
+        $encargadoCargo       = $seguimientos->first()?->encargado_cargo ?? '';
+        $countDesrat          = $seguimientos->where('tipo_seguimiento_id', 1)->count();
+        $countInsect          = $seguimientos->where('tipo_seguimiento_id', 3)->count();
+        $totalTrampasRoedores = array_sum(array_column($datosTabla, 'cantidad_trampas'));
+        $totalInsectocutores  = array_sum(array_column($datosTablaX2, 'cantidad_trampa_id'));
+
+        $sumasEsp = array_fill_keys($especies, 0);
+        foreach ($datosPorFecha as $data) {
+            foreach ($especies as $esp) {
+                $sumasEsp[$esp] += ($data[$esp] ?? 0);
+            }
+        }
+        $totalEsp  = array_sum($sumasEsp);
+        $pctInsect = [];
+        if ($totalEsp > 0) {
+            foreach ($sumasEsp as $esp => $suma) {
+                $pctInsect[$esp] = round(($suma / $totalEsp) * 100);
+            }
+        }
+        $textoEspecies = empty($pctInsect)
+            ? 'los insectos evaluados'
+            : implode(', ', array_map(fn($esp) => strtolower($esp) . ' (' . ($pctInsect[$esp] ?? 0) . '%)', $especies));
+
         $phpWord = new PhpWord();
         $phpWord->getSettings()->setThemeFontLang(new Language(Language::ES_ES));
         $phpWord->addParagraphStyle('global', ['lineHeight' => 1.15, 'spaceAfter' => 0, 'spaceBefore' => 0]);
@@ -214,14 +248,14 @@ class InformesController extends Controller
             'marginRight'                    => 1700,
             'differentFirstPageHeaderFooter' => true,
         ]);
-        $this->caratula($section1, $request);
+        $this->caratula($section1, $request, $almacenNombre, $periodoTexto, $encargadoNombre, $encargadoCargo);
 
         $section = $phpWord->addSection([
             'orientation' => 'portrait',
             'marginLeft'  => 2500,
         ]);
 
-        $this->agregaIntroObjMetodo($section);
+        $this->agregaIntroObjMetodo($section, $empresaNombre, $almacenNombre, $periodoTexto);
 
         $justified = ['alignment' => Jc::BOTH, 'lineHeight' => 1.15, 'spaceBefore' => 80, 'spaceAfter' => 80];
 
@@ -234,21 +268,21 @@ class InformesController extends Controller
         $this->agregaTablasRodenticidas($section);
 
         $this->addSectionTitle($section, '2) Seguimiento de las unidades de control');
-        $section->addText('Se realizaron tres seguimientos al sistema de control de roedores ________ según cronograma de actividades.', 'fuente_normal', $justified);
+        $section->addText('Se realizaron ' . $countDesrat . ' seguimiento' . ($countDesrat !== 1 ? 's' : '') . ' al sistema de control de roedores según cronograma de actividades.', 'fuente_normal', $justified);
 
         $this->agregaTabla2($section, $seguimientos);
         $this->agregaTabla3($section, $datosTablaX1);
 
         $this->addSectionTitle($section, 'Balance y Análisis');
-        $section->addText('Se cumplió con el seguimiento de las 68 unidades de control de roedores procediendo al pesaje de los cebos de las trampas a continuación se muestras los cuadros resúmenes de estas  actividades.', 'fuente_normal', $justified);
-        $section->addText('Los cuadros muestran los pesos obtenidos por fechas de seguimiento se verifica el peso total la merma y peso actual de las 68 unidades de control de roedores.', 'fuente_normal', $justified);
+        $section->addText('Se cumplió con el seguimiento de las ' . $totalTrampasRoedores . ' unidades de control de roedores procediendo al pesaje de los cebos de las trampas, a continuación se muestran los cuadros resúmenes de estas actividades.', 'fuente_normal', $justified);
+        $section->addText('Los cuadros muestran los pesos obtenidos por fechas de seguimiento, se verifica el peso total la merma y peso actual de las ' . $totalTrampasRoedores . ' unidades de control de roedores.', 'fuente_normal', $justified);
 
         $this->agregaTabla4($section, $datosPorMapa);
 
         $section->addText('La Grafica 2 muestra la cantidad de cebo que debe ingerir un roedor según los ingredientes activos para que se cumpla la DL50 (dosis letal media) y pueda ser eliminado. Corroborando que el ingrediente activo BRODIFACOUM es el mas efectivo con un consumo minimo.', 'fuente_normal', $justified);
         $this->addImageSafe($section, public_path('images/informe/Grafica-3.png'), ['width' => 240, 'alignment' => Jc::CENTER]);
 
-        $section->addText('La Grafica 3 muestra el % de consumo quincenal  de los tres segumientos mensuales en la planta de produccion VF y los Almacenes dos y eventos, a la fecha de evaluación esta merma es debido a causas medioambientales ya que no se tuvo reporte de presencia y/o captura de roedor. ', 'fuente_normal', $justified);
+        $section->addText('La Grafica 3 muestra el % de consumo quincenal de los ' . $countDesrat . ' seguimientos mensuales en el almacén ' . $almacenNombre . ', a la fecha de evaluación esta merma es debido a causas medioambientales ya que no se tuvo reporte de presencia y/o captura de roedor.', 'fuente_normal', $justified);
         $section->addTextBreak();
 
         foreach ($request->charts_por_mapa ?? [] as $index => $chartBase64) {
@@ -263,23 +297,23 @@ class InformesController extends Controller
         // INICIA: INSECTOCUTORES
         if ($seguimientos->contains('tipo_seguimiento_id', 3)) {
             $this->addSectionTitle($section, '3) Barreras físicas de exclusión (Insectocutores)');
-            $section->addText('Para el control de insectos voladores se ha implementado tres insectocutores se realizó el seguimiento de cada uno de los insectocutores revisando el tipo de insecto encontrado y la cantidad, con esta información se ha podido calcular la incidencia y severidad se muestra a través de gráficos las tendencias y análisis respectivos', 'fuente_normal', $justified);
+            $section->addText('Para el control de insectos voladores se han implementado ' . $totalInsectocutores . ' insectocutor' . ($totalInsectocutores !== 1 ? 'es' : '') . '. Se realizó el seguimiento revisando el tipo de insecto encontrado y la cantidad, con esta información se ha podido calcular la incidencia y severidad se muestra a través de gráficos las tendencias y análisis respectivos.', 'fuente_normal', $justified);
 
             $this->agregaTabla5($section, $datosTablaX2);
 
             $section->addText('La incidencia es el número de individuos que están presentes en un determinado lugar la gráfica de incidencia muestra la presencia en estado adulto de los tres tipos de insectos que se ha logrado capturar que son mosca, mosquito y polillas en este estado no realizan daño directo sino tienen una actividad de colocar huevos para completar su metamorfosis.', 'fuente_normal', $justified);
-            $section->addText('Para realizar el calculo de la incidencia se toma en cuenta las cuatro visitas realizadas en los formularios de conformidad se saca el promedio de los 3 insectocutores por visita y se llena la tabla que se muestra a continuación.', 'fuente_normal', $justified);
+            $section->addText('Para realizar el cálculo de la incidencia se toma en cuenta las ' . $countInsect . ' visitas realizadas en los formularios de conformidad se saca el promedio de los ' . $totalInsectocutores . ' insectocutores por visita y se llena la tabla que se muestra a continuación.', 'fuente_normal', $justified);
 
             $this->agregaTablaIncidencia($section, $especies, $datosPorFecha, $chart2);
 
-            $section->addText('Se tiene el promedio bajo para las tres observaciones realizada entre los meses de enero y febrero  el mes: mosquito 9%) para la polilla (4%) y finalmente para la mosca (3%) donde la presencia de los tres insectos evaluados es una incidencia baja. estos datos pueden ser debidos a los cambios bruscos de temperatura y humedad en todo caso no existe afectación a los ambientes ni productos evaluados. ', 'fuente_normal', $justified);
-            $section->addText('Finalmente podemos concluir que la incidencia para los meses de enero y febrero se mantiene baja y al capturar insectos en su etapa adulta cortamos totalmente su ciclo biológico evitando daño a los productos.', 'fuente_normal', $justified);
+            $section->addText('Se tiene el promedio para las ' . $countInsect . ' observaciones realizadas en el período ' . $periodoTexto . ': ' . $textoEspecies . '. La presencia de los insectos evaluados es una incidencia baja. Estos datos pueden ser debidos a los cambios bruscos de temperatura y humedad, en todo caso no existe afectación a los ambientes ni productos evaluados.', 'fuente_normal', $justified);
+            $section->addText('Finalmente podemos concluir que la incidencia para el período ' . $periodoTexto . ' se mantiene baja y al capturar insectos en su etapa adulta cortamos totalmente su ciclo biológico evitando daño a los productos.', 'fuente_normal', $justified);
             $section->addText('La severidad se entiende como la mayor cantidad de individuos concentrados en un almacén determinado este parámetro ayuda para identificar donde se concentra más y que especie de insectos tienen mayor presencia para tomar medidas de control si fuese necesario.', 'fuente_normal', $justified);
-            $section->addText('Para realizar el cálculo de la severidad se toma en cuenta las tres visitas realizadas en los formularios de conformidad se saca un promedio de las tres visitas  y se llena la tabla que se muestra a continuación.', 'fuente_normal', $justified);
+            $section->addText('Para realizar el cálculo de la severidad se toma en cuenta las ' . $countInsect . ' visitas realizadas en los formularios de conformidad se saca un promedio de las ' . $countInsect . ' visitas y se llena la tabla que se muestra a continuación.', 'fuente_normal', $justified);
 
             $this->agregaTablaSeveridad($section, $especies, $datosPorFecha, $chart5);
 
-            $section->addText('Los resultados de la severidad para el mes de enero y febrero muestran en promedio una concentración muy baja de moscas (1%) mosquitos (2%) y polilla (1%) porcentajes que para fines de análisis no se tomara en cuenta ya que no afectan a la producción de las bebidas en la planta.', 'fuente_normal', $justified);
+            $section->addText('Los resultados de la severidad para el período ' . $periodoTexto . ' muestran en promedio una concentración muy baja de ' . $textoEspecies . ', porcentajes que para fines de análisis no se tomarán en cuenta ya que no afectan a la producción en el almacén ' . $almacenNombre . '.', 'fuente_normal', $justified);
             $section->addTextBreak(2);
         }
         // FINALIZA: INSECTOCUTORES
@@ -616,7 +650,7 @@ class InformesController extends Controller
         );
     }
 
-    private function caratula($section, Request $request): void
+    private function caratula($section, Request $request, string $almacenNombre, string $periodoTexto, string $encargadoNombre, string $encargadoCargo): void
     {
         $header = $section->addHeader('first');
         $this->addImageSafe($header, public_path('images/informe/membretado.png'), [
@@ -635,31 +669,27 @@ class InformesController extends Controller
         $centered  = ['alignment' => Jc::CENTER, 'lineHeight' => 1, 'spaceAfter' => 0];
         $justified = ['alignment' => Jc::BOTH, 'lineHeight' => 1.15];
 
-        $section->addText('La Paz ' . Carbon::now()->translatedFormat('d \d\e F \d\e Y'), ['name' => 'Calibri', 'size' => 11, 'lang' => 'es-ES']);
+        $section->addText('La Paz ' . Carbon::now()->locale('es')->translatedFormat('d \d\e F \d\e Y'), ['name' => 'Calibri', 'size' => 11, 'lang' => 'es-ES']);
         $section->addText('CITE: ', ['bold' => true, 'size' => 12, 'underline' => 'single']);
-        $section->addTextBreak(3);
+        $section->addTextBreak(2);
 
-        $section->addText('Señor:');
-        $section->addText('___________________');
+        $section->addText($encargadoCargo ? 'Señor ' . $encargadoCargo . ':' : 'Señor:');
+        $section->addText($encargadoNombre ?: '___________________');
         $section->addText('Presente .-');
-        $section->addTextBreak(4);
+        $section->addTextBreak(2);
 
         $section->addText('De mi mayor consideración:', ['name' => 'Calibri', 'size' => 11, 'lang' => 'es-ES']);
-        $section->addText('Adjunto al presente remito a usted el Informe técnico sobre el Control Integral de Plagas realizado en los almacenes _______________, valido por el mes de __________ desratización y fumigación.', [], $justified);
+        $section->addText('Adjunto al presente remito a usted el Informe técnico sobre el Control Integral de Plagas realizado en el almacén ' . $almacenNombre . ', válido para el período de ' . $periodoTexto . ' en lo que se refiere a desratización y fumigación.', [], $justified);
         $section->addText('Sin otro particular saludo a usted con las consideraciones más distinguidas de mi respeto personal.', [], $justified);
         $section->addText('Atentamente');
-        $section->addTextBreak(4);
+        $section->addTextBreak(2);
 
-        foreach (
-            [
-                ['Ing. Agr. Freddy Montero Castillo', ['size' => 10]],
-                ['GERENTE PROPIETARIO',               ['size' => 10, 'bold' => true]],
-                ['BOLIVIAN PEST HIGIENE AMBIENTAL',   ['size' => 10]],
-                ['Telf: 2240974, Cel: 76738282',      ['size' => 10]],
-            ] as [$text, $font]
-        ) {
-            $section->addText($text, $font, $centered);
-        }
+        $this->addImageSafe($section, public_path('images/certificado/firma.png'), ['width' => 100, 'alignment' => Jc::CENTER]);
+        $section->addText('Ing. Agr. Freddy Montero Castillo', ['size' => 10, 'name' => 'Calibri'], $centered);
+        $section->addText('GERENTE PROPIETARIO',               ['size' => 10, 'bold' => true, 'name' => 'Calibri'], $centered);
+        $section->addText('BOLIVIAN PEST HIGIENE AMBIENTAL',   ['size' => 10, 'name' => 'Calibri'], $centered);
+        $section->addText('Telf: 2240974, Cel: 76738282',      ['size' => 10, 'name' => 'Calibri'], $centered);
+        $this->addImageSafe($section, public_path('images/certificado/sello.png'), ['width' => 80, 'alignment' => Jc::CENTER]);
 
         $section->addPageBreak();
     }
@@ -670,19 +700,21 @@ class InformesController extends Controller
 
         $listStyle = ['alignment' => Jc::BOTH, 'lineHeight' => 1.15, 'spaceBefore' => 60, 'spaceAfter' => 60];
 
-        foreach ([
-            'Recalcar la importancia del orden y limpieza a los encargados de los almacenes, estibadores y ayudantes, como parte del mantenimiento del control integral de plagas.',
-            'Tener cuidado con las unidades de control evitando golpes y el recojo de sustancias pegajosas para mantener el efecto del trabajo realizado.',
-            'Verificar siempre la existencia de plagas en el ingreso de nueva mercadería a los almacenes para no alterar el control integral en curso.',
-            'Mantener protegidos los puntos de ingreso de personal y producto para evitar el ingreso de contaminantes al almacén.',
-            'Cerrar las puertas inmediatamente después del ingreso de personal o mercadería para evitar que aves u otras plagas ingresen y contaminen los productos resguardados.',
-        ] as $item) {
+        foreach (
+            [
+                'Recalcar la importancia del orden y limpieza a los encargados de los almacenes, estibadores y ayudantes, como parte del mantenimiento del control integral de plagas.',
+                'Tener cuidado con las unidades de control evitando golpes y el recojo de sustancias pegajosas para mantener el efecto del trabajo realizado.',
+                'Verificar siempre la existencia de plagas en el ingreso de nueva mercadería a los almacenes para no alterar el control integral en curso.',
+                'Mantener protegidos los puntos de ingreso de personal y producto para evitar el ingreso de contaminantes al almacén.',
+                'Cerrar las puertas inmediatamente después del ingreso de personal o mercadería para evitar que aves u otras plagas ingresen y contaminen los productos resguardados.',
+            ] as $item
+        ) {
             $section->addListItem($item, 0, 'fuente_normal', null, $listStyle);
         }
         $section->addTextBreak(2);
     }
 
-    private function agregaIntroObjMetodo($section): void
+    private function agregaIntroObjMetodo($section, string $empresaNombre, string $almacenNombre, string $periodoTexto): void
     {
         $centered  = ['alignment' => Jc::CENTER, 'spaceAfter' => 60];
         $justified = ['alignment' => Jc::BOTH, 'lineHeight' => 1.15, 'spaceBefore' => 80, 'spaceAfter' => 80];
@@ -690,16 +722,16 @@ class InformesController extends Controller
 
         $section->addText('INFORME TÉCNICO', $titleFont, $centered);
         $section->addText('CONTROL INTEGRAL DE PLAGAS', $titleFont, $centered);
-        $section->addText('"_________"', ['size' => 12, 'color' => self::C_BLUE, 'name' => 'Calibri', 'italic' => true], $centered);
+        $section->addText('"' . $empresaNombre . '"', ['size' => 12, 'color' => self::C_BLUE, 'name' => 'Calibri', 'italic' => true], $centered);
         $section->addTextBreak(1);
 
         $this->addSectionTitle($section, 'Introducción');
         $section->addText('Las Buenas Prácticas de Almacenamiento BPAS son una herramienta básica para la obtención de productos seguros para el consumo y se focaliza en la higiene y en cómo se deben manipular estos siendo su aplicación obligatoria.', 'fuente_normal', $justified);
         $section->addText('La importancia de controlar las plagas radica en las pérdidas que estas ocasionan a través de mercaderías arruinadas, alimentos contaminados, potenciales demandas, productos mal utilizados para el control, daños a estructuras físicas de la empresa, pérdida de imagen, etc.', 'fuente_normal', $justified);
-        $section->addText('Dando cumplimiento al CONTROL DE PLAGAS para esta gestión que se realiza a la empresa "____________________" pasamos a desglosar las actividades alcanzadas para el mes de ___________ en lo que se refiere al almacén de productos.', 'fuente_normal', $justified);
+        $section->addText('Dando cumplimiento al CONTROL DE PLAGAS para esta gestión que se realiza a la empresa "' . $empresaNombre . '" pasamos a desglosar las actividades alcanzadas para el período de ' . $periodoTexto . ' en lo que se refiere al almacén ' . $almacenNombre . '.', 'fuente_normal', $justified);
 
         $this->addSectionTitle($section, 'Objetivo');
-        $section->addText('Contribuir a la mejora del almacenamiento de los productos dentro la empresa ________ por medios de controles integrados de plagas aportando a la conservación de los productos libres de contaminantes.', 'fuente_normal', $justified);
+        $section->addText('Contribuir a la mejora del almacenamiento de los productos dentro la empresa ' . $empresaNombre . ' por medios de controles integrados de plagas aportando a la conservación de los productos libres de contaminantes.', 'fuente_normal', $justified);
 
         $this->addSectionTitle($section, 'Metodología');
         $section->addText('Respecto al trabajo realizado se tomará en cuenta tres etapas:', 'fuente_normal', $justified);
@@ -808,7 +840,7 @@ class InformesController extends Controller
             $celda = $i % 2 === 0 ? self::CELDA_NORMAL : self::CELDA_ALT;
             $table->addRow(380);
             $table->addCell(3000, $celda)->addText($dato['tipo_nombre'],     'fuente_normal');
-            $table->addCell(1500, $celda)->addText($dato['cantidad_trampas'],'fuente_normal', ['alignment' => Jc::CENTER]);
+            $table->addCell(1500, $celda)->addText($dato['cantidad_trampas'], 'fuente_normal', ['alignment' => Jc::CENTER]);
             $table->addCell(1500, $celda)->addText($dato['cantidad'],        'fuente_normal', ['alignment' => Jc::CENTER]);
             $table->addCell(3000, $celda)->addText($dato['mapa_titulo'],     'fuente_normal');
         }
@@ -962,6 +994,8 @@ class InformesController extends Controller
 
     private function agregaTablaIncidencia($section, array $especies, array $datosPorFecha, ?string $chart2): void
     {
+        $section->addText('TABLA: INCIDENCIA DE INSECTOS VOLADORES', ['bold' => true, 'size' => 11, 'underline' => 'single', 'name' => 'Calibri'], ['spaceBefore' => 80, 'spaceAfter' => 60]);
+
         $table = $section->addTable('tabla_reporte_incidencia');
         $table->addRow(420);
         $table->addCell(2000, self::CELDA_ENCABEZADO)->addText('FECHA', 'fuente_encabezado', ['alignment' => Jc::CENTER]);
@@ -969,14 +1003,31 @@ class InformesController extends Controller
             $table->addCell(1800, self::CELDA_ENCABEZADO)->addText(strtoupper($esp), 'fuente_encabezado', ['alignment' => Jc::CENTER]);
         }
 
+        $totalesInc = array_fill_keys($especies, 0);
+        $numFechasInc = count($datosPorFecha);
         $i = 0;
         foreach ($datosPorFecha as $fecha => $data) {
             $celda = $i++ % 2 === 0 ? self::CELDA_NORMAL : self::CELDA_ALT;
             $table->addRow(380);
             $table->addCell(2000, $celda)->addText($fecha, 'fuente_normal', ['alignment' => Jc::CENTER]);
             foreach ($especies as $esp) {
-                $table->addCell(1800, $celda)->addText($data[$esp] ?? 0, 'fuente_normal', ['alignment' => Jc::CENTER]);
+                $val = $data[$esp] ?? 0;
+                $totalesInc[$esp] += $val;
+                $table->addCell(1800, $celda)->addText($val, 'fuente_normal', ['alignment' => Jc::CENTER]);
             }
+        }
+
+        $table->addRow(420);
+        $table->addCell(2000, self::CELDA_TOTALES)->addText('TOTAL', 'fuente_totales', ['alignment' => Jc::CENTER]);
+        foreach ($especies as $esp) {
+            $table->addCell(1800, self::CELDA_TOTALES)->addText($totalesInc[$esp], 'fuente_totales', ['alignment' => Jc::CENTER]);
+        }
+
+        $table->addRow(420);
+        $table->addCell(2000, self::CELDA_TOTALES)->addText('PROMEDIO', 'fuente_totales', ['alignment' => Jc::CENTER]);
+        foreach ($especies as $esp) {
+            $promedio = $numFechasInc > 0 ? round($totalesInc[$esp] / $numFechasInc, 1) : 0;
+            $table->addCell(1800, self::CELDA_TOTALES)->addText($promedio, 'fuente_totales', ['alignment' => Jc::CENTER]);
         }
 
         $section->addTextBreak(1);
@@ -989,6 +1040,8 @@ class InformesController extends Controller
 
     private function agregaTablaSeveridad($section, array $especies, array $datosPorFecha, ?string $chart5): void
     {
+        $section->addText('TABLA: SEVERIDAD DE INSECTOS VOLADORES', ['bold' => true, 'size' => 11, 'underline' => 'single', 'name' => 'Calibri'], ['spaceBefore' => 80, 'spaceAfter' => 60]);
+
         $table = $section->addTable('tabla_reporte_severidad');
         $table->addRow(420);
         $table->addCell(2000, self::CELDA_ENCABEZADO)->addText('FECHA', 'fuente_encabezado', ['alignment' => Jc::CENTER]);
@@ -996,14 +1049,31 @@ class InformesController extends Controller
             $table->addCell(1800, self::CELDA_ENCABEZADO)->addText(strtoupper($esp), 'fuente_encabezado', ['alignment' => Jc::CENTER]);
         }
 
+        $totalesSev = array_fill_keys($especies, 0);
+        $numFechas  = count($datosPorFecha);
         $i = 0;
         foreach ($datosPorFecha as $fecha => $data) {
             $celda = $i++ % 2 === 0 ? self::CELDA_NORMAL : self::CELDA_ALT;
             $table->addRow(380);
             $table->addCell(2000, $celda)->addText($fecha, 'fuente_normal', ['alignment' => Jc::CENTER]);
             foreach ($especies as $esp) {
-                $table->addCell(1800, $celda)->addText((int)(($data[$esp] ?? 0) / 3), 'fuente_normal', ['alignment' => Jc::CENTER]);
+                $val = (int)(($data[$esp] ?? 0) / 3);
+                $totalesSev[$esp] += $val;
+                $table->addCell(1800, $celda)->addText($val, 'fuente_normal', ['alignment' => Jc::CENTER]);
             }
+        }
+
+        $table->addRow(420);
+        $table->addCell(2000, self::CELDA_TOTALES)->addText('TOTAL', 'fuente_totales', ['alignment' => Jc::CENTER]);
+        foreach ($especies as $esp) {
+            $table->addCell(1800, self::CELDA_TOTALES)->addText($totalesSev[$esp], 'fuente_totales', ['alignment' => Jc::CENTER]);
+        }
+
+        $table->addRow(420);
+        $table->addCell(2000, self::CELDA_TOTALES)->addText('PROMEDIO', 'fuente_totales', ['alignment' => Jc::CENTER]);
+        foreach ($especies as $esp) {
+            $promedio = $numFechas > 0 ? round($totalesSev[$esp] / $numFechas, 1) : 0;
+            $table->addCell(1800, self::CELDA_TOTALES)->addText($promedio, 'fuente_totales', ['alignment' => Jc::CENTER]);
         }
 
         $section->addTextBreak(1);
@@ -1021,7 +1091,7 @@ class InformesController extends Controller
 
         $this->agregarTablaProducto($section, 'Insecticida FENDONA 6% SC — Pulverización', [
             ['Nombre Comercial',  'FENDONA 6% SC',                               'Clase',             'INSECTICIDA DE CONTROL SANITARIO'],
-            ['Ingrediente Activo','ALFACIPERMETRINA 6%',                          'Composición',       'Suspensión concentrada con base de piretroide'],
+            ['Ingrediente Activo', 'ALFACIPERMETRINA 6%',                          'Composición',       'Suspensión concentrada con base de piretroide'],
             ['Grupo Químico',     'INSECTICIDA PIRETROIDE SISTÉMICO',             'Tipo Formulación',  'SUSPENSIÓN CONCENTRADA'],
             ['Nro. Registro',     'INSO: BR1212ILSC02',                           'Presentación',      'Concentrado emulsionable'],
         ]);
@@ -1055,7 +1125,7 @@ class InformesController extends Controller
         $this->addSectionTitle($section, 'Fumigacion');
         $this->agregarTablaProducto($section, 'Insecticida TITANE DELTA — Termonebulización', [
             ['Nombre Comercial',  'TITANE DELTA',                                 'Clase',             'INSECTICIDA CLASE II — Etiqueta Amarilla'],
-            ['Ingrediente Activo','LAMBDACYHALOTRINA AL 5%',                       'Composición',       'Lambdacyhalotrina 5% EC · Otros ingredientes 95%'],
+            ['Ingrediente Activo', 'LAMBDACYHALOTRINA AL 5%',                       'Composición',       'Lambdacyhalotrina 5% EC · Otros ingredientes 95%'],
             ['Grupo Químico',     'INSECTICIDA PIRETROIDE',                        'Tipo Formulación',  'CONCENTRACIÓN EMULSIONABLE'],
             ['Nro. Registro',     'INSO NRO. INO219ILEC01',                        'Presentación',      'Botella de 1 Lt.'],
         ]);
