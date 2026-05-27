@@ -173,6 +173,10 @@ export default function ModalEditarSeguimiento({
   const [firmaSupervisor, setFirmaSupervisor] = useState('');
   const [firmaEncargadoExistente, setFirmaEncargadoExistente] = useState('');
   const [firmaSupervisorExistente, setFirmaSupervisorExistente] = useState('');
+  const [reSignEncargado, setReSignEncargado] = useState(false);
+  const [reSignSupervisor, setReSignSupervisor] = useState(false);
+  const [padKeyEncargado, setPadKeyEncargado] = useState(0);
+  const [padKeySupervisor, setPadKeySupervisor] = useState(0);
 
   const [tipoSeguimientoSel, setTipoSeguimientoSel] = useState('TIPO');
   const [empresaNombre, setEmpresaNombre] = useState('');
@@ -341,6 +345,10 @@ export default function ModalEditarSeguimiento({
     setFirmaSupervisor('');
     setFirmaEncargadoExistente('');
     setFirmaSupervisorExistente('');
+    setReSignEncargado(false);
+    setReSignSupervisor(false);
+    setPadKeyEncargado(0);
+    setPadKeySupervisor(0);
     setTipoSeguimientoSel('TIPO');
     setEmpresaNombre('');
     setAlmacenNombre('');
@@ -1010,50 +1018,121 @@ export default function ModalEditarSeguimiento({
                 </div>
 
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                  {/* Firma Encargado */}
                   <div className="space-y-2">
                     <Label>Firma Encargado</Label>
-                    {firmaEncargadoExistente && !firmaEncargado && (
+                    {firmaEncargadoExistente && (
                       <div className="mb-2">
                         <p className="mb-1 text-xs text-muted-foreground">
-                          Firma actual:
+                          {firmaEncargado ? 'Firma anterior (reemplazada):' : 'Firma actual:'}
                         </p>
                         <img
                           src={`/${firmaEncargadoExistente}`}
                           alt="Firma actual encargado"
-                          className="w-40 border"
+                          className={`w-40 border ${firmaEncargado ? 'opacity-30' : ''}`}
                         />
                       </div>
                     )}
-                    <SignaturePad onChange={(d) => setFirmaEncargado(d)} />
-                    {firmaEncargado && (
-                      <img
-                        src={firmaEncargado}
-                        alt="Nueva firma encargado"
-                        className="w-40 border"
-                      />
+                    {firmaEncargadoExistente && !reSignEncargado ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setReSignEncargado(true)}
+                      >
+                        Volver a firmar
+                      </Button>
+                    ) : (
+                      <div className="space-y-1">
+                        <SignaturePad
+                          key={padKeyEncargado}
+                          onChange={(d) => setFirmaEncargado(d)}
+                        />
+                        {reSignEncargado && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-muted-foreground"
+                            onClick={() => {
+                              setReSignEncargado(false);
+                              setFirmaEncargado('');
+                              setPadKeyEncargado((k) => k + 1);
+                            }}
+                          >
+                            Cancelar (mantener firma anterior)
+                          </Button>
+                        )}
+                        {firmaEncargado && (
+                          <div>
+                            <p className="mb-1 text-xs text-muted-foreground">Nueva firma:</p>
+                            <img
+                              src={firmaEncargado}
+                              alt="Nueva firma encargado"
+                              className="w-40 border"
+                            />
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
+
+                  {/* Firma Supervisor */}
                   <div className="space-y-2">
                     <Label>Firma Supervisor</Label>
-                    {firmaSupervisorExistente && !firmaSupervisor && (
+                    {firmaSupervisorExistente && (
                       <div className="mb-2">
                         <p className="mb-1 text-xs text-muted-foreground">
-                          Firma actual:
+                          {firmaSupervisor ? 'Firma anterior (reemplazada):' : 'Firma actual:'}
                         </p>
                         <img
                           src={`/${firmaSupervisorExistente}`}
                           alt="Firma actual supervisor"
-                          className="w-40 border"
+                          className={`w-40 border ${firmaSupervisor ? 'opacity-30' : ''}`}
                         />
                       </div>
                     )}
-                    <SignaturePad onChange={(d) => setFirmaSupervisor(d)} />
-                    {firmaSupervisor && (
-                      <img
-                        src={firmaSupervisor}
-                        alt="Nueva firma supervisor"
-                        className="w-40 border"
-                      />
+                    {firmaSupervisorExistente && !reSignSupervisor ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setReSignSupervisor(true)}
+                      >
+                        Volver a firmar
+                      </Button>
+                    ) : (
+                      <div className="space-y-1">
+                        <SignaturePad
+                          key={padKeySupervisor}
+                          onChange={(d) => setFirmaSupervisor(d)}
+                        />
+                        {reSignSupervisor && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-muted-foreground"
+                            onClick={() => {
+                              setReSignSupervisor(false);
+                              setFirmaSupervisor('');
+                              setPadKeySupervisor((k) => k + 1);
+                            }}
+                          >
+                            Cancelar (mantener firma anterior)
+                          </Button>
+                        )}
+                        {firmaSupervisor && (
+                          <div>
+                            <p className="mb-1 text-xs text-muted-foreground">Nueva firma:</p>
+                            <img
+                              src={firmaSupervisor}
+                              alt="Nueva firma supervisor"
+                              className="w-40 border"
+                            />
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

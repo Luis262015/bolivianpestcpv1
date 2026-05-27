@@ -21,8 +21,9 @@ export default function SignaturePad({
   };
 
   const endDraw = () => {
+    const wasDrawing = drawing.current;
     drawing.current = false;
-    if (canvasRef.current && onChange) {
+    if (wasDrawing && canvasRef.current && onChange) {
       const data = canvasRef.current.toDataURL('image/png');
       onChange(data);
     }
