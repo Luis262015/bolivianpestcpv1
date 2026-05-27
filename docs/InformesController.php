@@ -231,9 +231,9 @@ class InformesController extends Controller
                 $pctInsect[$esp] = round(($suma / $totalEsp) * 100);
             }
         }
-        $textoEspecies = $totalEsp === 0
+        $textoEspecies = empty($pctInsect)
             ? 'los insectos evaluados'
-            : implode(', ', array_map(fn($esp) => strtolower($esp) . ' (' . ($sumasEsp[$esp] ?? 0) . ')', $especies));
+            : implode(', ', array_map(fn($esp) => strtolower($esp) . ' (' . ($pctInsect[$esp] ?? 0) . '%)', $especies));
 
         $phpWord = new PhpWord();
         $phpWord->getSettings()->setThemeFontLang(new Language(Language::ES_ES));
@@ -273,7 +273,7 @@ class InformesController extends Controller
         $this->agregaTabla2($section, $seguimientos);
         $this->agregaTabla3($section, $datosTablaX1);
 
-        $this->addSectionTitle($section, 'Balance y Analisis');
+        $this->addSectionTitle($section, 'Balance y Análisis');
         $section->addText('Se cumplió con el seguimiento de las ' . $totalTrampasRoedores . ' unidades de control de roedores procediendo al pesaje de los cebos de las trampas, a continuación se muestran los cuadros resúmenes de estas actividades.', 'fuente_normal', $justified);
         $section->addText('Los cuadros muestran los pesos obtenidos por fechas de seguimiento, se verifica el peso total la merma y peso actual de las ' . $totalTrampasRoedores . ' unidades de control de roedores.', 'fuente_normal', $justified);
 
@@ -362,61 +362,6 @@ class InformesController extends Controller
         } catch (\Exception $e) {
             // La imagen no pudo embeberse; se omite y se continúa
         }
-    }
-
-    private function getProportionalImageOptions(string $path, int $maxWidth, int $maxHeight): array
-    {
-        $size = @getimagesize($path);
-
-        if (!$size || empty($size[0]) || empty($size[1])) {
-            return ['width' => $maxWidth, 'alignment' => Jc::CENTER];
-        }
-
-        [$origW, $origH] = $size;
-
-        $ratio = min($maxWidth / $origW, $maxHeight / $origH, 1.0);
-
-        return [
-            'width'     => (int) round($origW * $ratio),
-            'height'    => (int) round($origH * $ratio),
-            'alignment' => Jc::CENTER,
-        ];
-    }
-
-    private function addImagesGrid($section, array $imagePaths, int $maxWidth = 220, int $maxHeight = 260): void
-    {
-        $valid = array_values(array_filter($imagePaths, fn($p) => !empty($p) && file_exists($p) && is_file($p)));
-
-        if (empty($valid)) {
-            return;
-        }
-
-        $noBorder = ['borderSize' => 0, 'borderColor' => 'FFFFFF'];
-
-        foreach (array_chunk($valid, 2) as $pair) {
-            $table = $section->addTable([
-                'borderSize'  => 0,
-                'borderColor' => 'FFFFFF',
-                'cellMargin'  => 80,
-                'alignment'   => JcTable::CENTER,
-            ]);
-            $table->addRow();
-
-            foreach ($pair as $path) {
-                $opts = $this->getProportionalImageOptions($path, $maxWidth, $maxHeight);
-                $cell = $table->addCell(4600, array_merge($noBorder, ['valign' => 'center']));
-                try {
-                    $cell->addImage($path, $opts);
-                } catch (\Exception $e) {
-                }
-            }
-
-            if (count($pair) === 1) {
-                $table->addCell(4600, $noBorder);
-            }
-        }
-
-        $section->addTextBreak(1);
     }
 
     private function saveBase64Image(?string $base64, string $name): ?string
@@ -767,14 +712,6 @@ class InformesController extends Controller
             $section->addListItem($item, 0, 'fuente_normal', null, $listStyle);
         }
         $section->addTextBreak(2);
-
-        $centered = ['alignment' => Jc::CENTER, 'lineHeight' => 1, 'spaceAfter' => 0];
-        $this->addImageSafe($section, public_path('images/certificado/firma.png'), ['width' => 100, 'alignment' => Jc::CENTER]);
-        $section->addText('Ing. Agr. Freddy Montero Castillo', ['size' => 10, 'name' => 'Calibri'], $centered);
-        $section->addText('GERENTE PROPIETARIO',               ['size' => 10, 'bold' => true, 'name' => 'Calibri'], $centered);
-        $section->addText('BOLIVIAN PEST HIGIENE AMBIENTAL',   ['size' => 10, 'name' => 'Calibri'], $centered);
-        $section->addText('Telf: 2240974, Cel: 76738282',      ['size' => 10, 'name' => 'Calibri'], $centered);
-        $this->addImageSafe($section, public_path('images/certificado/sello.png'), ['width' => 80, 'alignment' => Jc::CENTER]);
     }
 
     private function agregaIntroObjMetodo($section, string $empresaNombre, string $almacenNombre, string $periodoTexto): void
@@ -860,13 +797,9 @@ class InformesController extends Controller
             );
             $section->addText($accion->descripcion, 'fuente_normal', $justified);
 
-            $paths = $accion->imagenes
-                ->filter(fn($img) => !empty($img->imagen) && file_exists(public_path($img->imagen)) && is_file(public_path($img->imagen)))
-                ->map(fn($img) => public_path($img->imagen))
-                ->values()
-                ->toArray();
-
-            $this->addImagesGrid($section, $paths);
+            foreach ($accion->imagenes as $img) {
+                $this->addImageSafe($section, public_path($img->imagen), ['width' => 220, 'alignment' => Jc::CENTER]);
+            }
         }
     }
 
@@ -877,18 +810,21 @@ class InformesController extends Controller
                 continue;
             }
 
-            $section->addText(
-                'Seguimiento ' . Carbon::parse($value->created_at)->format('d/m/Y H:i'),
-                ['bold' => true, 'size' => 11, 'underline' => 'single']
-            );
+            $section->addText('Seguimiento ' . $value->created_at, ['bold' => true, 'size' => 11, 'underline' => 'single']);
 
-            $paths = $value->images
-                ->filter(fn($v) => !empty($v->imagen) && file_exists(public_path($v->imagen)) && is_file(public_path($v->imagen)))
-                ->map(fn($v) => public_path($v->imagen))
-                ->values()
-                ->toArray();
+            foreach ($value->images as $v) {
+                $imagePath = public_path($v->imagen);
 
-            $this->addImagesGrid($section, $paths);
+                if (empty($v->imagen) || !file_exists($imagePath) || !is_file($imagePath)) {
+                    continue;
+                }
+
+                try {
+                    $section->addImage($imagePath, ['width' => 200, 'height' => 100, 'alignment' => Jc::CENTER]);
+                } catch (\Exception $e) {
+                    // La imagen no pudo embeberse; se omite y se continúa
+                }
+            }
         }
     }
 
@@ -975,10 +911,8 @@ class InformesController extends Controller
         $headers = [
             'NRO'                     => 800,
             'MAPA TÍTULO'             => 3500,
-            // 'CANTIDAD TRAMPA ID'      => 1500,
-            'CANTIDAD INSECTOCUTORES'      => 1500,
-            // 'CANTIDAD INSECTOCUTORES' => 2000,
-            'INSECTOS CAPTURADOS' => 2000,
+            'CANTIDAD TRAMPA ID'      => 1500,
+            'CANTIDAD INSECTOCUTORES' => 2000,
         ];
         foreach ($headers as $header => $width) {
             $table->addCell($width, self::CELDA_ENCABEZADO)->addText($header, 'fuente_encabezado', ['align' => 'center']);
@@ -1172,13 +1106,17 @@ class InformesController extends Controller
         );
 
         foreach ($conAspercion as $seg) {
-            $paths = $seg->images
-                ->filter(fn($img) => !empty($img->imagen) && file_exists(public_path($img->imagen)) && is_file(public_path($img->imagen)))
-                ->map(fn($img) => public_path($img->imagen))
-                ->values()
-                ->toArray();
-
-            $this->addImagesGrid($section, $paths);
+            foreach ($seg->images as $img) {
+                $imagePath = public_path($img->imagen);
+                if (empty($img->imagen) || !file_exists($imagePath) || !is_file($imagePath)) {
+                    continue;
+                }
+                try {
+                    $section->addImage($imagePath, ['width' => 200, 'height' => 100, 'alignment' => Jc::CENTER]);
+                } catch (\Exception $e) {
+                    // La imagen no pudo embeberse; se omite y se continúa
+                }
+            }
         }
     }
 
@@ -1201,13 +1139,17 @@ class InformesController extends Controller
         );
 
         foreach ($conFumigacion as $seg) {
-            $paths = $seg->images
-                ->filter(fn($img) => !empty($img->imagen) && file_exists(public_path($img->imagen)) && is_file(public_path($img->imagen)))
-                ->map(fn($img) => public_path($img->imagen))
-                ->values()
-                ->toArray();
-
-            $this->addImagesGrid($section, $paths);
+            foreach ($seg->images as $img) {
+                $imagePath = public_path($img->imagen);
+                if (empty($img->imagen) || !file_exists($imagePath) || !is_file($imagePath)) {
+                    continue;
+                }
+                try {
+                    $section->addImage($imagePath, ['width' => 200, 'height' => 100, 'alignment' => Jc::CENTER]);
+                } catch (\Exception $e) {
+                    // La imagen no pudo embeberse; se omite y se continúa
+                }
+            }
         }
     }
 }
