@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -255,52 +256,67 @@ export default function SeguimientoTrampasEdit({
                   <div>
                     <h4 className="font-semibold">{t.identificador}</h4>
                     <p className="text-sm text-muted-foreground">
-                      {t.trampa_tipo.nombre}
+                      Tipo: {t.trampa_tipo.nombre}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-                    <Input
-                      placeholder="Obs"
-                      value={roedores[t.id]?.observacion || ''}
-                      onChange={(e) =>
-                        updateRoedor(t.id, 'observacion', e.target.value)
-                      }
-                    />
+                    <div>
+                      <Label className="text-xs">Observacion</Label>
+                      <Input
+                        placeholder="Obs"
+                        value={roedores[t.id]?.observacion || ''}
+                        onChange={(e) =>
+                          updateRoedor(t.id, 'observacion', e.target.value)
+                        }
+                      />
+                    </div>
 
-                    <Input
-                      type="number"
-                      placeholder="Cantidad"
-                      value={roedores[t.id]?.cantidad}
-                      onChange={(e) =>
-                        updateRoedor(t.id, 'cantidad', Number(e.target.value))
-                      }
-                    />
+                    <div>
+                      <Label className="text-xs">Atrapados</Label>
+                      <Input
+                        type="number"
+                        placeholder="Cantidad"
+                        value={roedores[t.id]?.cantidad}
+                        onChange={(e) =>
+                          updateRoedor(t.id, 'cantidad', Number(e.target.value))
+                        }
+                      />
+                    </div>
 
-                    <Input
-                      type="number"
-                      placeholder="Inicial"
-                      value={roedores[t.id]?.inicial}
-                      onChange={(e) =>
-                        updateRoedor(t.id, 'inicial', Number(e.target.value))
-                      }
-                      disabled={
-                        t.trampa_tipo.id === 4 || t.trampa_tipo.id === 5
-                      }
-                    />
+                    <div>
+                      <Label className="text-xs">Inicial</Label>
+                      <Input
+                        type="number"
+                        placeholder="Inicial"
+                        value={roedores[t.id]?.inicial}
+                        onChange={(e) =>
+                          updateRoedor(t.id, 'inicial', Number(e.target.value))
+                        }
+                        disabled={
+                          t.trampa_tipo.id === 4 || t.trampa_tipo.id === 5
+                        }
+                      />
+                    </div>
 
-                    <Input
-                      type="number"
-                      placeholder="Actual"
-                      value={roedores[t.id]?.actual}
-                      onChange={(e) =>
-                        updateRoedor(t.id, 'actual', Number(e.target.value))
-                      }
-                      disabled={
-                        t.trampa_tipo.id === 4 || t.trampa_tipo.id === 5
-                      }
-                    />
+                    <div>
+                      <Label className="text-xs">Actual</Label>
+                      <Input
+                        type="number"
+                        placeholder="Actual"
+                        value={roedores[t.id]?.actual}
+                        onChange={(e) =>
+                          updateRoedor(t.id, 'actual', Number(e.target.value))
+                        }
+                        disabled={
+                          t.trampa_tipo.id === 4 || t.trampa_tipo.id === 5
+                        }
+                      />
+                    </div>
 
-                    <Input disabled value={roedores[t.id]?.merma} />
+                    <div>
+                      <Label className="text-xs">Merma</Label>
+                      <Input disabled value={roedores[t.id]?.merma} />
+                    </div>
                   </div>
                 </div>
               )}
@@ -326,37 +342,46 @@ export default function SeguimientoTrampasEdit({
                     </Button>
 
                     {insectos[t.id]?.map((i, idx) => (
-                      <div key={idx} className="grid grid-cols-3 gap-3">
-                        <Select
-                          value={i.especie_id.toString()}
-                          onValueChange={(v) =>
-                            updateInsecto(t.id, idx, 'especie_id', Number(v))
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {especies.map((e) => (
-                              <SelectItem key={e.id} value={e.id.toString()}>
-                                {e.nombre}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      <div
+                        key={idx}
+                        className="grid grid-cols-3 items-end gap-3"
+                      >
+                        <div>
+                          <Label className="text-xs">Especie</Label>
+                          <Select
+                            value={i.especie_id.toString()}
+                            onValueChange={(v) =>
+                              updateInsecto(t.id, idx, 'especie_id', Number(v))
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {especies.map((e) => (
+                                <SelectItem key={e.id} value={e.id.toString()}>
+                                  {e.nombre}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                        <Input
-                          type="number"
-                          value={i.cantidad}
-                          onChange={(e) =>
-                            updateInsecto(
-                              t.id,
-                              idx,
-                              'cantidad',
-                              Number(e.target.value),
-                            )
-                          }
-                        />
+                        <div>
+                          <Label className="text-xs">Cantidad</Label>
+                          <Input
+                            type="number"
+                            value={i.cantidad}
+                            onChange={(e) =>
+                              updateInsecto(
+                                t.id,
+                                idx,
+                                'cantidad',
+                                Number(e.target.value),
+                              )
+                            }
+                          />
+                        </div>
 
                         <Button
                           variant="destructive"
