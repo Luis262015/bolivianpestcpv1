@@ -421,8 +421,6 @@ export default function ModalEditarSeguimiento({
     if (step === 6) setData('protecciones_ids', proteccionesSel);
     if (step === 7) setData('biologicos_ids', biologicosSel);
     if (step === 8) setData('signos_ids', signosSel);
-    if (step === 11 && (!data.encargado_nombre || !data.encargado_cargo))
-      return;
     setStep((s) => Math.min(s + 1, 13));
   };
 
@@ -984,8 +982,8 @@ export default function ModalEditarSeguimiento({
               </div>
             )}
 
-            {/* PASO 11: Encargado y Firmas */}
-            {step === 11 && (
+            {/* PASO 13: Encargado y Firmas */}
+            {step === 13 && (
               <div className="space-y-6">
                 <div className="my-3 text-lg font-semibold">
                   Seguimiento {tipoSeguimientoSel}
@@ -1139,8 +1137,8 @@ export default function ModalEditarSeguimiento({
               </div>
             )}
 
-            {/* PASO 12: Imágenes */}
-            {step === 12 && (
+            {/* PASO 11: Imágenes */}
+            {step === 11 && (
               <div className="space-y-6">
                 <div className="my-3 text-lg font-semibold">
                   Seguimiento {tipoSeguimientoSel}
@@ -1240,8 +1238,8 @@ export default function ModalEditarSeguimiento({
               </div>
             )}
 
-            {/* PASO 13: Observaciones Generales + Envío */}
-            {step === 13 && (
+            {/* PASO 12: Observaciones Generales */}
+            {step === 12 && (
               <div className="space-y-6 py-6 text-center">
                 <div className="mx-auto mb-4 size-20 rounded-full bg-green-100 p-5">
                   <svg
@@ -1258,9 +1256,9 @@ export default function ModalEditarSeguimiento({
                     />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold">¡Todo listo!</h3>
+                <h3 className="text-2xl font-bold">Casi listo — firma para finalizar</h3>
                 <p className="text-muted-foreground">
-                  Revisa y guarda los cambios.
+                  Completa las observaciones y continúa para firmar.
                 </p>
                 <Textarea
                   rows={5}

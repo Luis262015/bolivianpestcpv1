@@ -76,9 +76,7 @@ Route::get('/calendar', function () {
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     /// ********** EMPRESAS *****************
     Route::post('/empresas/{id}/certificados', [EmpresaController::class, 'certificados'])->name('empresas.certificados');

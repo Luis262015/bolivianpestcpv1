@@ -334,11 +334,6 @@ export default function ModalSeguimiento({
     }
     if (step === 10)
       setData('observaciones_especificas', data.observaciones_especificas);
-    if (
-      step === 11 &&
-      (data.encargado_nombre == '' || data.encargado_cargo == '')
-    )
-      return;
 
     setStep((s) => Math.min(s + 1, 13));
   };
@@ -488,7 +483,7 @@ export default function ModalSeguimiento({
   // Incrementar este key en reset fuerza el remount de SignaturePad (limpia el canvas)
   const [signatureResetKey, setSignatureResetKey] = useState(0);
 
-  // En el paso 11, actualiza el useEffect o maneja las firmas así:
+  // En el paso 13, actualiza el useEffect o maneja las firmas así:
   useEffect(() => {
     if (firmaEncargado) {
       setData('firma_encargado', firmaEncargado);
@@ -1420,8 +1415,8 @@ export default function ModalSeguimiento({
             </div>
           )}
 
-          {/* PASO 11: Firmas — siempre montado para que el canvas no se pierda al navegar */}
-          <div className={step !== 11 ? 'hidden' : 'space-y-6'}>
+          {/* PASO 13: Encargado y Firmas — siempre montado para que el canvas no se pierda al navegar */}
+          <div className={step !== 13 ? 'hidden' : 'space-y-6'}>
             <div className="my-3 text-lg font-semibold">
               Seguimiento {tipoSeguimientoSel}
             </div>
@@ -1481,8 +1476,8 @@ export default function ModalSeguimiento({
             </div>
           </div>
 
-          {/* PASO 12: Imagenes */}
-          {step === 12 && (
+          {/* PASO 11: Imagenes */}
+          {step === 11 && (
             <div className="space-y-4">
               <div className="my-3 text-lg font-semibold">
                 Seguimiento {tipoSeguimientoSel}
@@ -1526,8 +1521,8 @@ export default function ModalSeguimiento({
             </div>
           )}
 
-          {/* PASO 13: Observaciones Generales + Final */}
-          {step === 13 && (
+          {/* PASO 12: Observaciones Generales */}
+          {step === 12 && (
             <div className="space-y-6 py-6 text-center">
               <div className="mx-auto mb-4 size-20 rounded-full bg-green-100 p-5">
                 <svg
@@ -1544,9 +1539,9 @@ export default function ModalSeguimiento({
                   />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold">¡Todo listo!</h3>
+              <h3 className="text-2xl font-bold">Casi listo — firma para finalizar</h3>
               <p className="text-muted-foreground">
-                Revisa y guarda el seguimiento.
+                Completa las observaciones y continúa para firmar.
               </p>
               <Textarea
                 rows={5}

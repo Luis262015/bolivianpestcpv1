@@ -23,6 +23,7 @@ import {
   HandCoins,
   Handshake,
   Keyboard,
+  LayoutGrid,
   Locate,
   NotebookPen,
   NotebookTabs,
@@ -50,6 +51,11 @@ const mainNavItems: NavItem[] = [
 // Clientes
 
 const mainNavItems2: MainNavItem[] = [
+  {
+    title: 'Dashboard',
+    icon: LayoutGrid,
+    href: dashboard(),
+  },
   {
     title: 'Empresas',
     icon: Factory,
@@ -297,6 +303,11 @@ const mainNavItems4: MainNavItem[] = [
 ];
 
 const mainNavItemsCliente: MainNavItem[] = [
+  {
+    title: 'Dashboard',
+    icon: LayoutGrid,
+    href: dashboard(),
+  },
   {
     title: 'Empresa',
     icon: Factory,
