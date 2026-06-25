@@ -32,15 +32,14 @@ class ProductosController extends Controller
 
   public function index()
   {
-    // $productos = Producto::select('id', 'nombre', 'categoria_id', 'marca_id', 'stock')
-    //   ->with(['categoria' => function ($query) {
-    //     $query->select('id', 'nombre');
-    //   }])
-    //   ->with(['marca' => function ($query) {
-    //     $query->select('id', 'nombre');
-    //   }])
-    //   ->paginate(20);
-    $productos = Producto::select('id', 'nombre', 'categoria_id', 'marca_id', 'stock', 'unidad_valor', 'unidad_id')
+    // Los clientes no deben ver el stock: no lo seleccionamos para que el dato
+    // ni siquiera viaje al navegador.
+    $columnas = ['id', 'nombre', 'categoria_id', 'marca_id', 'unidad_valor', 'unidad_id'];
+    if (!auth()->user()->hasRole('cliente')) {
+      $columnas[] = 'stock';
+    }
+
+    $productos = Producto::select($columnas)
       ->with(['unidad' => function ($query) {
         $query->select('id', 'nombre');
       }])
@@ -163,11 +162,18 @@ class ProductosController extends Controller
 
   public function search(Request $request)
   {
+    // Los clientes no deben ver el stock: no lo seleccionamos para que el dato
+    // ni siquiera viaje al navegador.
+    $columnas = ['id', 'nombre', 'precio_venta', 'precio_compra', 'unidad_id'];
+    if (!auth()->user()->hasRole('cliente')) {
+      $columnas[] = 'stock';
+    }
+
     $query = $request->input('q');
     $productos = Producto::query()
       ->where('nombre', 'like', "%{$query}%")
       ->with(['unidad:id,nombre'])
-      ->select('id', 'nombre', 'precio_venta', 'precio_compra', 'unidad_id', 'stock')
+      ->select($columnas)
       ->take(20)
       ->get();
     return response()->json($productos);

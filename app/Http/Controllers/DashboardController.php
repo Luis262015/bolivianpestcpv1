@@ -14,6 +14,11 @@ class DashboardController extends Controller
    */
   public function index()
   {
+    $user = auth()->user();
+    if ($user->hasRole('cliente')) {
+      return $this->clienteDashboard($user);
+    }
+
     $hoy = Carbon::today();
     $ayer = Carbon::yesterday();
     $inicioMes = Carbon::now()->startOfMonth();
@@ -116,6 +121,118 @@ class DashboardController extends Controller
       ],
       'serviciosPorMes' => $serviciosPorMes,
       'cumplimientoCronograma' => $cumplimientoCronograma,
+      'topEspecies' => $topEspecies,
+      'proximasVisitas' => $proximasVisitas,
+    ]);
+  }
+
+  /**
+   * Dashboard recortado para clientes: solo datos de las empresas asignadas
+   * al usuario logueado. No expone métricas globales del sistema.
+   */
+  private function clienteDashboard($user)
+  {
+    $empresaIds = $user->empresas->pluck('id');
+
+    $inicioMes = Carbon::now()->startOfMonth();
+    $finMes = Carbon::now()->endOfMonth();
+    $inicioMesAnterior = Carbon::now()->subMonth()->startOfMonth();
+    $finMesAnterior = Carbon::now()->subMonth()->endOfMonth();
+    $hace90 = Carbon::now()->subDays(90);
+    $hace180 = Carbon::now()->subDays(180);
+
+    /* ---------- KPIs (acotados a sus empresas) ---------- */
+    $serviciosMes = Seguimiento::whereIn('empresa_id', $empresaIds)
+      ->whereBetween('created_at', [$inicioMes, $finMes])->count();
+    $serviciosMesAnterior = Seguimiento::whereIn('empresa_id', $empresaIds)
+      ->whereBetween('created_at', [$inicioMesAnterior, $finMesAnterior])->count();
+
+    $cronogramaPendiente = Cronograma::whereIn('empresa_id', $empresaIds)
+      ->where('status', 'pendiente')->count();
+    $cronogramaPostergado = Cronograma::whereIn('empresa_id', $empresaIds)
+      ->where('status', 'postergado')->count();
+
+    $roedoresCapturados = (int) DB::table('trampa_roedor_seguimientos')
+      ->join('seguimientos', 'seguimientos.id', '=', 'trampa_roedor_seguimientos.seguimiento_id')
+      ->whereIn('seguimientos.empresa_id', $empresaIds)
+      ->where('trampa_roedor_seguimientos.created_at', '>=', $hace90)
+      ->sum('trampa_roedor_seguimientos.cantidad');
+    $roedoresCapturadosPrev = (int) DB::table('trampa_roedor_seguimientos')
+      ->join('seguimientos', 'seguimientos.id', '=', 'trampa_roedor_seguimientos.seguimiento_id')
+      ->whereIn('seguimientos.empresa_id', $empresaIds)
+      ->whereBetween('trampa_roedor_seguimientos.created_at', [$hace180, $hace90])
+      ->sum('trampa_roedor_seguimientos.cantidad');
+
+    $especiesDetectadas = (int) DB::table('trampa_especie_seguimientos')
+      ->join('seguimientos', 'seguimientos.id', '=', 'trampa_especie_seguimientos.seguimiento_id')
+      ->whereIn('seguimientos.empresa_id', $empresaIds)
+      ->where('trampa_especie_seguimientos.created_at', '>=', $hace90)
+      ->sum('trampa_especie_seguimientos.cantidad');
+
+    /* ---------- Servicios por mes (últimos 12 meses) ---------- */
+    $desde = Carbon::now()->subMonths(11)->startOfMonth();
+    $crudos = Seguimiento::whereIn('empresa_id', $empresaIds)
+      ->where('created_at', '>=', $desde)
+      ->select(
+        DB::raw("DATE_FORMAT(created_at, '%Y-%m') as periodo"),
+        DB::raw('COUNT(*) as total')
+      )
+      ->groupBy('periodo')
+      ->pluck('total', 'periodo');
+
+    $meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    $serviciosPorMes = [];
+    for ($i = 11; $i >= 0; $i--) {
+      $fecha = Carbon::now()->subMonths($i);
+      $clave = $fecha->format('Y-m');
+      $serviciosPorMes[] = [
+        'mes' => $meses[$fecha->month - 1] . ' ' . $fecha->format('y'),
+        'total' => (int) ($crudos[$clave] ?? 0),
+      ];
+    }
+
+    /* ---------- Top plagas / especies (últimos 90 días) ---------- */
+    $topEspecies = DB::table('trampa_especie_seguimientos')
+      ->join('especies', 'especies.id', '=', 'trampa_especie_seguimientos.especie_id')
+      ->join('seguimientos', 'seguimientos.id', '=', 'trampa_especie_seguimientos.seguimiento_id')
+      ->whereIn('seguimientos.empresa_id', $empresaIds)
+      ->where('trampa_especie_seguimientos.created_at', '>=', $hace90)
+      ->select('especies.nombre', DB::raw('SUM(trampa_especie_seguimientos.cantidad) as total'))
+      ->groupBy('especies.id', 'especies.nombre')
+      ->orderByDesc('total')
+      ->limit(6)
+      ->get()
+      ->map(fn($r) => ['nombre' => $r->nombre, 'total' => (int) $r->total])
+      ->values();
+
+    /* ---------- Próximas visitas (cronograma pendiente, sus empresas) ---------- */
+    $proximasVisitas = Cronograma::with(['empresa:id,nombre', 'almacen:id,nombre', 'tipo_seguimiento:id,nombre'])
+      ->whereIn('empresa_id', $empresaIds)
+      ->where('status', 'pendiente')
+      ->whereDate('date', '>=', Carbon::today())
+      ->orderBy('date')
+      ->limit(8)
+      ->get()
+      ->map(fn($c) => [
+        'id' => $c->id,
+        'title' => $c->title,
+        'date' => $c->date,
+        'empresa' => $c->empresa?->nombre,
+        'almacen' => $c->almacen?->nombre,
+        'tipo' => $c->tipo_seguimiento?->nombre,
+      ]);
+
+    return inertia('dashboard-cliente', [
+      'stats' => [
+        'serviciosMes' => $serviciosMes,
+        'serviciosMesAnterior' => $serviciosMesAnterior,
+        'cronogramaPendiente' => $cronogramaPendiente,
+        'cronogramaPostergado' => $cronogramaPostergado,
+        'roedoresCapturados' => $roedoresCapturados,
+        'roedoresCapturadosPrev' => $roedoresCapturadosPrev,
+        'especiesDetectadas' => $especiesDetectadas,
+      ],
+      'serviciosPorMes' => $serviciosPorMes,
       'topEspecies' => $topEspecies,
       'proximasVisitas' => $proximasVisitas,
     ]);

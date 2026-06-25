@@ -75,8 +75,16 @@ class SeguimientoController extends Controller
 
     $filters = $request->only(['empresa_id', 'almacen_id', 'usuario_id', 'tipo_seguimiento_id', 'fecha_desde', 'fecha_hasta']);
 
-    $empresas        = Empresa::select('id', 'nombre')->get();
-    $almacenes       = Almacen::select('id', 'nombre')->get();
+    // El cliente solo puede ver las empresas que tiene asignadas (y sus almacenes).
+    $esCliente  = $user->HasRole('cliente');
+    $empresaIds = $esCliente ? $user->empresas->pluck('id') : null;
+
+    $empresas        = $esCliente
+      ? Empresa::select('id', 'nombre')->whereIn('id', $empresaIds)->get()
+      : Empresa::select('id', 'nombre')->get();
+    $almacenes       = $esCliente
+      ? Almacen::select('id', 'nombre', 'empresa_id')->whereIn('empresa_id', $empresaIds)->get()
+      : Almacen::select('id', 'nombre')->get();
     $biologicos      = Biologico::orderBy('nombre')->get();
     $epps            = Epp::orderBy('nombre')->get();
     $metodos         = Metodo::orderBy('nombre')->get();
@@ -84,14 +92,16 @@ class SeguimientoController extends Controller
     $signos          = Signo::orderBy('nombre')->get();
     $tiposSeguimiento = TipoSeguimiento::orderBy('nombre')->get();
     $especies        = Especie::orderBy('nombre')->get();
-    $usuarios        = User::select('id', 'name')->orderBy('name')->get();
+    // El cliente no filtra por usuario; no le exponemos la lista completa.
+    $usuarios        = $esCliente
+      ? collect()
+      : User::select('id', 'name')->orderBy('name')->get();
 
     $query = Seguimiento::with(['user', 'empresa', 'almacen', 'trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos', 'tipoSeguimiento'])
       ->latest();
 
-    if ($user->HasRole('cliente')) {
-      $empresaUser = User::with('empresas')->find($user->id)->empresas[0];
-      $query->where('empresa_id', $empresaUser->id);
+    if ($esCliente) {
+      $query->whereIn('empresa_id', $empresaIds);
     } else {
       if (!empty($filters['empresa_id'])) {
         $query->where('empresa_id', $filters['empresa_id']);

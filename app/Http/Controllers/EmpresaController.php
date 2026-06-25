@@ -38,9 +38,8 @@ class EmpresaController extends Controller
   {
     $user = $request->user();
     if ($user->HasRole('cliente')) {
-      $empresas = User::with('empresas')->find($user->id);
-      $empresa = $empresas->empresas[0];
-      $empresas = Empresa::with(['certificados'])->where('id', $empresa->id)->paginate(10);
+      $empresaIds = $user->empresas->pluck('id');
+      $empresas = Empresa::with(['certificados'])->whereIn('id', $empresaIds)->paginate(10);
     } else {
       $empresas = Empresa::with(['certificados'])->paginate(10);
     }

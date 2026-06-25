@@ -71,15 +71,14 @@ class MapaController extends Controller
     ========================= */
 
     if ($user->hasRole('cliente')) {
-      $empresasUser = User::with('empresas')->find($user->id);
-      $empresaUser = $empresasUser->empresas->first();
+      $empresaIds = $user->empresas->pluck('id');
 
       $empresas = Empresa::select('id', 'nombre')
-        ->where('id', $empresaUser->id)
+        ->whereIn('id', $empresaIds)
         ->get();
 
       $almacenes = Almacen::select('id', 'nombre', 'empresa_id')
-        ->where('empresa_id', $empresaUser->id)
+        ->whereIn('empresa_id', $empresaIds)
         ->get();
     } else {
       $empresas = Empresa::select('id', 'nombre')->get();
@@ -89,6 +88,11 @@ class MapaController extends Controller
     /* =========================
        Mapas del almacén
     ========================= */
+
+    // Evitar IDOR: el cliente solo puede consultar almacenes de sus empresas.
+    if ($user->hasRole('cliente') && $almacenId && !$almacenes->pluck('id')->contains((int) $almacenId)) {
+      abort(403);
+    }
 
     $mapas = collect();
 

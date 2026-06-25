@@ -276,28 +276,63 @@
 .aboutStats h3 {
   font-size: 3.2rem;
   color: #013147;
-  font-weight: 700;
+  font-weight: 800;
   margin-bottom: 5px;
+  line-height: 1;
 }
 .aboutStats p {
-  color: #e7e7e7;
+  color: #5a6b73;
   font-size: 0.95rem;
+  font-weight: 500;
 }
 
 /* SERVICES */
-.serviceCard {
-  border-radius: 24px;
+/* El wrapper externo recorta (oculta slides vecinos) y aporta padding por los
+   4 lados para que la sombra del hover NO se corte. El Swiper queda en
+   overflow:visible para que la sombra del card pueda salir de su slide. */
+.servicesSliderWrap {
   overflow: hidden;
-  /* box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); */
+  padding: 28px 20px 54px;
+  margin-left: -20px;
+  margin-right: -20px;
+}
+
+.servicesSwiper {
+  overflow: visible;
+}
+
+.servicesSwiper :global(.swiper-wrapper) {
+  align-items: stretch;
+}
+
+.servicesSwiper :global(.swiper-slide) {
+  height: auto;
+  display: flex;
+}
+
+.serviceCard {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 10px 30px -8px rgba(1, 49, 71, 0.18);
   display: flex;
   flex-direction: column;
+  width: 100%;
+  height: 100%;
+  transition:
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.45s ease;
 }
 
 .serviceCard:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 32px 56px -16px rgba(1, 49, 71, 0.32);
 }
 
 .serviceImg {
-  height: 220px;
+  position: relative;
+  height: 200px;
   overflow: hidden;
 }
 
@@ -305,40 +340,131 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.serviceCard:hover .serviceImg img {
+  transform: scale(1.08);
+}
+
+/* Degradado para legibilidad del badge y separación del cuerpo */
+.serviceImg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(1, 49, 71, 0.25) 0%,
+    transparent 35%,
+    transparent 60%,
+    rgba(1, 49, 71, 0.35) 100%
+  );
+}
+
+/* Eyebrow / categoría sobre la imagen */
+.serviceCategory {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  color: #013147;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px rgba(1, 49, 71, 0.15);
+}
+
+/* Ícono cuadrado-redondeado, en la esquina superior derecha de la imagen */
 .serviceIcon {
-  width: 80px;
-  height: 80px;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  width: 48px;
+  height: 48px;
   background: #013147;
   color: white;
-  border-radius: 50%;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  margin: -40px auto 20px;
-  position: relative;
-  z-index: 2;
-  box-shadow: 0 10px 20px rgba(0, 101, 184, 0.3);
+  box-shadow: 0 8px 18px rgba(1, 49, 71, 0.35);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.serviceCard:hover .serviceIcon {
+  transform: scale(1.08) rotate(-6deg);
+}
+
+/* Cuerpo de la tarjeta */
+.serviceBody {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 24px;
 }
 
 .serviceCard h3 {
-  font-size: 1.4rem;
-  margin: 15px 0 10px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #013147;
+  margin: 0 0 10px;
+  /* mantiene altura uniforme entre tarjetas (hasta 2 líneas) */
+  min-height: 3.1rem;
 }
 
 .serviceCard p {
-  padding: 0 25px;
-  margin-bottom: 20px;
+  font-size: 0.94rem;
+  line-height: 1.65;
+  color: #5a6b73;
+  margin: 0 0 20px;
   flex-grow: 1;
 }
 
 .serviceReadMore {
   display: inline-flex;
   align-items: center;
-  font-weight: 600;
-  margin-bottom: 30px;
+  gap: 8px;
+  align-self: flex-start;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #013147;
+  padding-top: 14px;
+  border-top: 1px solid rgba(1, 49, 71, 0.1);
+  width: 100%;
+  transition: color 0.25s ease;
+}
+
+.serviceCard:hover .serviceReadMore {
+  color: #02547a;
+}
+
+.serviceArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(1, 49, 71, 0.08);
+  margin-left: auto;
+  transition:
+    transform 0.3s ease,
+    background 0.3s ease;
+}
+
+.serviceCard:hover .serviceArrow {
+  background: #013147;
+  color: #fff;
+  transform: translateX(4px);
 }
 
 .serviceCta {

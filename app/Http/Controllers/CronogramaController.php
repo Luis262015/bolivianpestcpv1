@@ -39,15 +39,14 @@ class CronogramaController extends Controller
     // Empresas y almacenes visibles
     // =============================
     if ($user->hasRole('cliente')) {
-      $empresasUser = User::with('empresas')->find($user->id);
-      $empresaUser = $empresasUser->empresas[0];
+      $empresaIds = $user->empresas->pluck('id');
 
       $empresas = Empresa::select(['id', 'nombre'])
-        ->where('id', $empresaUser->id)
+        ->whereIn('id', $empresaIds)
         ->get();
 
       $almacenes = Almacen::select(['id', 'nombre', 'empresa_id'])
-        ->where('empresa_id', $empresaUser->id)
+        ->whereIn('empresa_id', $empresaIds)
         ->get();
     } else {
       $empresas = Empresa::all(['id', 'nombre']);

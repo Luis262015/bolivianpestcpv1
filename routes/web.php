@@ -38,6 +38,7 @@ use App\Http\Controllers\RetirosController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\SeguimientoController;
 use App\Http\Controllers\SignosController;
+use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\SubcategoriasController;
 use App\Http\Controllers\TiposController;
 use App\Http\Controllers\TrampaSeguimientoController;
@@ -56,7 +57,9 @@ use Laravel\Fortify\Features;
 // })->name('home');
 
 Route::get('/', function () {
-    return Inertia::render('landing');
+    return Inertia::render('landing', [
+        'settings' => \App\Models\SiteSetting::map(),
+    ]);
 })->name('home');
 
 // ------ PRUEBAS DE LANDING --------------------
@@ -85,10 +88,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/empresas/{empresa}/almacenes', [EmpresaController::class, 'getByEmpresa']);
     Route::delete('/empresas/certificados/{id}', [EmpresaController::class, 'destroyCertificado'])->name('empresas.certificados.destroy');
     Route::resource('empresas', EmpresaController::class);
-    Route::get('/contratos/{id}/pdf', [ContratoController::class, 'pdf'])->name('contratos.pdf');
-    Route::resource('contratos', ContratoController::class);
-    Route::get('/cotizaciones/{id}/pdf', [CotizacionController::class, 'pdf'])->name('cotizaciones.pdf');
-    Route::resource('cotizaciones', CotizacionController::class);
+    Route::middleware('role:admin|superadmin')->group(function () {
+        Route::get('/contratos/{id}/pdf', [ContratoController::class, 'pdf'])->name('contratos.pdf');
+        Route::resource('contratos', ContratoController::class);
+        Route::get('/cotizaciones/{id}/pdf', [CotizacionController::class, 'pdf'])->name('cotizaciones.pdf');
+        Route::resource('cotizaciones', CotizacionController::class);
+    });
     Route::get('/cronogramas/verificar/{numero}', [CronogramaController::class, 'verificar']);
     Route::resource('cronogramas', CronogramaController::class);
     Route::resource('mapas', MapaController::class);
@@ -193,6 +198,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('documentos', DocumentosController::class);
     Route::resource('configs', ConfigsController::class);
     Route::resource('roles', RolePermissionController::class);
+
+    /// ********** CONFIGURACIÓN DEL SITIO (LANDING) — solo admin/superadmin **********
+    Route::middleware('role:admin|superadmin')->group(function () {
+        Route::get('/sitio', [SiteSettingController::class, 'index'])->name('sitio.index');
+        Route::post('/sitio', [SiteSettingController::class, 'update'])->name('sitio.update');
+        Route::post('/sitio/upload', [SiteSettingController::class, 'upload'])->name('sitio.upload');
+    });
 });
 
 require __DIR__ . '/settings.php';

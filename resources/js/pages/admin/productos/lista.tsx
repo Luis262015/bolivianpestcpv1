@@ -291,7 +291,7 @@ export default function Index() {
                 {/* <TableHead>Categoría</TableHead>
                 <TableHead>Subcategoría</TableHead>
                 <TableHead>Marca</TableHead> */}
-                <TableHead>Stock</TableHead>
+                {!hasRole('cliente') && <TableHead>Stock</TableHead>}
                 <TableHead>Empaque</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
@@ -304,7 +304,9 @@ export default function Index() {
                   {/* <TableCell>{producto.categoria?.nombre ?? '—'}</TableCell>
                   <TableCell>{producto.subcategoria?.nombre ?? '—'}</TableCell>
                   <TableCell>{producto.marca?.nombre ?? '—'}</TableCell> */}
-                  <TableCell>{producto.stock ?? '—'}</TableCell>
+                  {!hasRole('cliente') && (
+                    <TableCell>{producto.stock ?? '—'}</TableCell>
+                  )}
                   <TableCell>
                     {producto.unidad_valor ?? '—'}{' '}
                     {producto.unidad.nombre ?? '—'}

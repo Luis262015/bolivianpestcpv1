@@ -44,10 +44,9 @@ class InformesController extends Controller
 
         $empresasDelUsuario = [];
         if ($user->hasRole('cliente')) {
-            $empresasUser       = User::with('empresas')->find($user->id);
-            $empresaUser        = $empresasUser->empresas[0];
-            $empresas           = Empresa::select(['id', 'nombre'])->where('id', $empresaUser->id)->get();
-            $empresasDelUsuario = [$empresaUser->id];
+            $empresaIds         = $user->empresas->pluck('id');
+            $empresas           = Empresa::select(['id', 'nombre'])->whereIn('id', $empresaIds)->get();
+            $empresasDelUsuario = $empresaIds->all();
         } else {
             $empresas = Empresa::select('id', 'nombre')->get();
         }
@@ -69,6 +68,16 @@ class InformesController extends Controller
             $request->validate([
                 'empresa_id' => 'required|integer|exists:empresas,id',
             ]);
+
+            // Evitar IDOR: el cliente solo puede consultar almacenes de sus empresas.
+            if ($user->hasRole('cliente')) {
+                $almacenValido = Almacen::where('id', $request->almacen_id)
+                    ->whereIn('empresa_id', $empresasDelUsuario)
+                    ->exists();
+                if (! $almacenValido) {
+                    abort(403);
+                }
+            }
 
             $fechaInicio = $request->fecha_inicio . ' 00:00:00';
             $fechaFin    = $request->fecha_fin . ' 23:59:59';
@@ -255,6 +264,9 @@ class InformesController extends Controller
             'marginLeft'  => 2500,
         ]);
 
+        // Pie de página de marca en todo el informe (excepto la carátula)
+        $this->agregarPieDePagina($section->addFooter());
+
         $this->agregaIntroObjMetodo($section, $empresaNombre, $almacenNombre, $periodoTexto);
 
         $justified = ['alignment' => Jc::BOTH, 'lineHeight' => 1.15, 'spaceBefore' => 80, 'spaceAfter' => 80];
@@ -282,7 +294,8 @@ class InformesController extends Controller
         $section->addText('La Grafica 2 muestra la cantidad de cebo que debe ingerir un roedor según los ingredientes activos para que se cumpla la DL50 (dosis letal media) y pueda ser eliminado. Corroborando que el ingrediente activo BRODIFACOUM es el mas efectivo con un consumo minimo.', 'fuente_normal', $justified);
         $this->addImageSafe($section, public_path('images/informe/Grafica-3.png'), ['width' => 240, 'alignment' => Jc::CENTER]);
 
-        $section->addText('La Grafica 3 muestra el % de consumo quincenal de los ' . $countDesrat . ' seguimientos mensuales en el almacén ' . $almacenNombre . ', a la fecha de evaluación esta merma es debido a causas medioambientales ya que no se tuvo reporte de presencia y/o captura de roedor.', 'fuente_normal', $justified);
+        // $section->addText('La Grafica 3 muestra el % de consumo quincenal de los ' . $countDesrat . ' seguimientos mensuales en el almacén ' . $almacenNombre . ', a la fecha de evaluación esta merma es debido a causas medioambientales ya que no se tuvo reporte de presencia y/o captura de roedor.', 'fuente_normal', $justified);
+        $section->addText('La Grafica  3 muestra el % de consumo del  ' . $countDesrat . ' seguimiento  realizado en los predios del ' . $almacenNombre . '. Si este porcentaje es menor del 10%  sera debido a causas medioambientales y si es mas  sera debido al consumo por roedores.', 'fuente_normal', $justified);
         $section->addTextBreak();
 
         foreach ($request->charts_por_mapa ?? [] as $index => $chartBase64) {
@@ -326,7 +339,7 @@ class InformesController extends Controller
             ->unique();
 
         if ($metodosEnFumigacion->contains('Aspersion')) {
-            $this->agregarPulverizacion($section, $justified, $seguimientosFumigacion);
+            $this->agregarPulverizacion($section, $justified, $seguimientosFumigacion, $almacenNombre);
         }
 
         if ($metodosEnFumigacion->intersect(['Fumigacion', 'Niebla', 'Nebulizacion'])->isNotEmpty()) {
@@ -705,6 +718,33 @@ class InformesController extends Controller
         );
     }
 
+    /**
+     * Pie de página de marca: "Ingeniería en el Control de Plagas · www.bolivianpest.com".
+     * La frase va en rojo y la URL en azul (como enlace), con una línea divisoria superior.
+     */
+    private function agregarPieDePagina($footer): void
+    {
+        $run = $footer->addTextRun([
+            'alignment'      => Jc::CENTER,
+            'spaceBefore'    => 80,
+            'borderTopSize'  => 6,
+            'borderTopColor' => 'D9D9D9',
+        ]);
+        $run->addText(
+            'Ingeniería en el Control de Plagas',
+            ['color' => 'C00000', 'bold' => true, 'name' => 'Calibri', 'size' => 9]
+        );
+        $run->addText(
+            '   ·   ',
+            ['color' => '9AA0A6', 'name' => 'Calibri', 'size' => 9]
+        );
+        $run->addLink(
+            'https://www.bolivianpest.com',
+            'www.bolivianpest.com',
+            ['color' => '0563C1', 'name' => 'Calibri', 'size' => 9, 'underline' => 'single']
+        );
+    }
+
     private function caratula($section, Request $request, string $almacenNombre, string $periodoTexto, string $encargadoNombre, string $encargadoCargo): void
     {
         $header = $section->addHeader('first');
@@ -794,7 +834,7 @@ class InformesController extends Controller
         $section->addText('Dando cumplimiento al CONTROL DE PLAGAS para esta gestión que se realiza a la empresa "' . $empresaNombre . '" pasamos a desglosar las actividades alcanzadas para el período de ' . $periodoTexto . ' en lo que se refiere al almacén ' . $almacenNombre . '.', 'fuente_normal', $justified);
 
         $this->addSectionTitle($section, 'Objetivo');
-        $section->addText('Contribuir a la mejora del almacenamiento de los productos dentro la empresa ' . $empresaNombre . ' por medios de controles integrados de plagas aportando a la conservación de los productos libres de contaminantes.', 'fuente_normal', $justified);
+        $section->addText('Contribuir a la mejora del almacenamiento de los productos dentro la empresa ' . $empresaNombre . ' por medios de controles integrados de plagas aportando a la NO PRESENCIA DE VECTORES CONTAMINANTES.', 'fuente_normal', $justified);
 
         $this->addSectionTitle($section, 'Metodologia');
         $section->addText('Respecto al trabajo realizado se tomará en cuenta tres etapas:', 'fuente_normal', $justified);
@@ -932,7 +972,7 @@ class InformesController extends Controller
     {
         $table = $section->addTable('tablaResumenGlobal');
         $table->addRow(420);
-        foreach (['SEGUIMIENTO' => 2500, 'MAPA' => 3500, 'TRAMPAS' => 1500, 'CAPTURADOS' => 1500] as $h => $w) {
+        foreach (['SEGUIMIENTO' => 2500, 'Ubicación de Unidades de Control' => 3500, 'TRAMPAS' => 1500, 'CAPTURADOS' => 1500] as $h => $w) {
             $table->addCell($w, self::CELDA_ENCABEZADO)->addText($h, 'fuente_encabezado', ['alignment' => Jc::CENTER]);
         }
 
@@ -956,7 +996,18 @@ class InformesController extends Controller
             $this->agregarTablaPorMapa($section, $mapaTitulo, $datos);
         }
 
-        $section->addText('Analizando las tablas de pesos respecto al porcentaje de merma se establece que este no pasa del 5% con relación al Peso Total 100% lo que significa que no ha existido consumo por parte de roedores ni su presencia en las fechas evaluadas. Este porcentaje esta relacionado con perdidas por medio ambiente vale decir condiciones de humedad, temperatura, vientos lluvia, etc. que afectan a los cebos colocados.', [], $justified);
+        // Porcentaje de merma global (merma total / inicial total de todos los mapas)
+        $mermaTotal   = 0;
+        $inicialTotal = 0;
+        foreach ($datosPorMapa as $datos) {
+            $mermaTotal   += $datos['totales']['merma']   ?? 0;
+            $inicialTotal += $datos['totales']['inicial'] ?? 0;
+        }
+        $porcentajeMerma = $inicialTotal > 0
+            ? round(($mermaTotal / $inicialTotal) * 100, 2)
+            : 0;
+
+        $section->addText('Existe un ' . number_format($porcentajeMerma, 2) . '% de merma  este porcentaje si es mayor al 10% se concluye que es por causas de consumo y si es menor al 10% podemos concluir que son causa debido al medio ambiente.', [], $justified);
         $section->addTextBreak();
         $section->addText('La Grafica 1 muestra la DL50 (dosis letal media) de los ingredientes activos de los rodenticidas mostrando que brodifacoum es el ingrediente mas efectivo ya que su porcentaje tanto para rata y raton es el mas bajo por lo tanto mas toxico necesitando menor consumo para ser mas efectivo.', [], $justified);
         $section->addTextBreak();
@@ -1150,7 +1201,7 @@ class InformesController extends Controller
         $section->addTextBreak(2);
     }
 
-    private function agregarPulverizacion($section, $justified, $seguimientos): void
+    private function agregarPulverizacion($section, $justified, $seguimientos, $almacenNombre): void
     {
         $this->addSectionTitle($section, 'Pulverizacion');
         $section->addText('Se procedió a realizar la PULVERIZACION de los almacenes planta principal, Almacen dos y Almacen Eventos el insecticida que se utilizo fue FENDONA es un insecticida del grupo de los piretroides el ingrediente activo es la alfacipermetrina a un porcentaje del 6% de solución concentrada, es un piretroide sintético contiene 600 gramos de ingrediente activo por litro de producción comercial.', 'fuente_normal', $justified);
@@ -1162,7 +1213,7 @@ class InformesController extends Controller
             ['Nro. Registro',     'INSO: BR1212ILSC02',                           'Presentación',      'Concentrado emulsionable'],
         ]);
 
-        $section->addText('Es de clase III Moderadamente Tóxico Banda Azul registrado y autorizado en Bolivia por el I.N.S.O. posee gran residualidad y acción rápida, controla eficazmente insectos voladores y rastreros tiene un buen poder de volteo y controla plagas activas en el momento de su aplicación. Se trabajo en todos los ambientes del Almacén.', 'fuente_normal', $justified);
+        $section->addText('Es de clase III Moderadamente Tóxico Banda Azul registrado y autorizado en Bolivia por el I.N.S.O. posee gran residualidad y acción rápida, controla eficazmente insectos voladores y rastreros tiene un buen poder de volteo y controla plagas activas en el momento de su aplicación. Se trabajo en todos los ambientes del Almacén ' . $almacenNombre . ' .', 'fuente_normal', $justified);
         $section->addText('Se trabajó con una dosificación del 50% (50 ml/10000ml) volumen/volumen del producto mencionado es decir 50ml/10 l de disolvente (H₂O) dosis adecuada para trabajar contra insectos voladores y rastreros.', 'fuente_normal', $justified);
         $section->addText('Después de la realización del proceso de pulverización en el almacén no se ha encontrado insectos vivos en ningún estado de su ciclo de vida (Huevo-Larva-Pupa-Adulto invernante).', 'fuente_normal', $justified);
         $section->addTextBreak(1);

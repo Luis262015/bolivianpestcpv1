@@ -20,6 +20,7 @@ import {
   Factory,
   FileChartColumn,
   Files,
+  Globe,
   HandCoins,
   Handshake,
   Keyboard,
@@ -293,6 +294,12 @@ const mainNavItems4: MainNavItem[] = [
         href: '/roles',
       },
     ],
+  },
+
+  {
+    title: 'Sitio Web',
+    icon: Globe,
+    href: '/sitio',
   },
 
   {
