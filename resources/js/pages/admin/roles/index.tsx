@@ -1,3 +1,4 @@
+import { UsuariosTabs } from '@/components/usuarios-tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -138,6 +139,7 @@ export default function RolesIndex() {
       <Head title="Roles y Permisos" />
 
       <div className="m-4">
+        <UsuariosTabs />
         <div className="mb-4 flex items-center">
           <h1 className="me-5 text-2xl font-bold">
             Gestión de Roles y Permisos

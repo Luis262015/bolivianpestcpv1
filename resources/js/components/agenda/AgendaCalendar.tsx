@@ -16,7 +16,7 @@ import { useAgenda } from '@/hooks/useAgenda';
 import type { Task, TaskStatus } from '@/types/agenda';
 import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MonthlyView } from './MonthlyView';
 import { TaskDialog } from './TaskDialog';
 import { YearlyView } from './YearlyView';
@@ -32,6 +32,7 @@ export default function AgendaCalendar({
 }: AgendaCalendarProps) {
   const {
     currentDate,
+    setCurrentDate,
     viewMode,
     setViewMode,
     tasks,
@@ -75,6 +76,23 @@ export default function AgendaCalendar({
     }
     setIsDialogOpen(true);
   };
+
+  // Enfoque desde una notificación (?focus=ID): salta al mes de esa tarea y
+  // abre su detalle para indicar explícitamente a qué registro se refiere.
+  const focusHandledRef = useRef(false);
+  useEffect(() => {
+    if (focusHandledRef.current) return;
+    const focusId = new URLSearchParams(window.location.search).get('focus');
+    if (!focusId) return;
+
+    const task = tasks.find((t) => String(t.id) === focusId);
+    if (!task) return;
+
+    focusHandledRef.current = true;
+    setCurrentDate(new Date(task.date));
+    openDialog(undefined, task);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks]);
 
   const handleSave = async () => {
     if (!selectedDate || !taskTitle.trim()) return;

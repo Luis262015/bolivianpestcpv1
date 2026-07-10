@@ -8,7 +8,8 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
-import { type MainNavItem, type NavItem } from '@/types';
+import { resolveUrl } from '@/lib/utils';
+import { type MainNavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
   Collapsible,
@@ -17,36 +18,62 @@ import {
 } from '@radix-ui/react-collapsible';
 import { ChevronDown } from 'lucide-react';
 
+export interface NavSectionGroup {
+  label: string;
+  items: MainNavItem[];
+}
+
 interface NavMainProps {
-  items: NavItem[];
-  items2: MainNavItem[];
-  items3: MainNavItem[];
-  items4: MainNavItem[];
+  sections: NavSectionGroup[];
 }
 
-interface Props {
-  caja_estado?: string;
+/**
+ * ¿La ruta actual corresponde a este href?
+ * Coincide de forma exacta o cuando es una sub-ruta (`/empresas` ~ `/empresas/5`),
+ * evitando falsos positivos entre prefijos parecidos (`/gastos` vs `/gastosfin`).
+ */
+function useIsActive() {
+  const current = usePage().url.split('?')[0].replace(/\/$/, '');
+
+  return (href?: MainNavItem['href']): boolean => {
+    if (!href) return false;
+    const target = resolveUrl(href).split('?')[0].replace(/\/$/, '');
+    if (!target) return false;
+    return current === target || current.startsWith(`${target}/`);
+  };
 }
 
-export function NavMain({ items, items2, items3, items4 }: NavMainProps) {
-  const { caja_estado } = usePage().props as Props;
-  const page = usePage();
+function NavSection({ label, items }: { label: string; items: MainNavItem[] }) {
+  const isActive = useIsActive();
+
+  // Los ítems `hidden` no se dibujan en el sidebar (viven en pestañas), pero
+  // siguen buscables desde la paleta ⌘K vía `flattenSections`.
+  const visibleItems = items.filter((item) => !item.hidden);
+
+  if (visibleItems.length === 0) return null;
+
   return (
-    <SidebarGroup className="px-2 py-0">
-      <SidebarGroupLabel>Cliente</SidebarGroupLabel>
+    <nav aria-label={label}>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarMenu>
-        {items2.map((item) => (
-          <div>
-            {item.down ? (
+        {visibleItems.map((item) => {
+          if (item.down) {
+            const groupActive =
+              item.subItems?.some((sub) => isActive(sub.href)) ?? false;
+
+            return (
               <Collapsible
                 key={item.title}
                 asChild
-                defaultOpen={false}
+                defaultOpen={groupActive}
                 className="group/collapsible"
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={item.title}>
+                    <SidebarMenuButton
+                      tooltip={item.title}
+                      isActive={groupActive}
+                    >
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
                       <ChevronDown className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -54,183 +81,64 @@ export function NavMain({ items, items2, items3, items4 }: NavMainProps) {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
-                      {item.subItems?.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild isActive={false}>
-                            <Link href={subItem.href} prefetch>
-                              <span>{subItem.title}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
+                      {item.subItems?.map((subItem) => {
+                        const active = isActive(subItem.href);
+                        return (
+                          <SidebarMenuSubItem key={subItem.title}>
+                            <SidebarMenuSubButton asChild isActive={active}>
+                              <Link
+                                href={subItem.href}
+                                prefetch
+                                aria-current={active ? 'page' : undefined}
+                              >
+                                <span>{subItem.title}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        );
+                      })}
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </SidebarMenuItem>
               </Collapsible>
-            ) : (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  asChild
-                  // isActive={page.url.startsWith(
-                  //   typeof item.href === 'string' ? item.href : item.href.url,
-                  // )}
-                  tooltip={{ children: item.title }}
-                >
-                  <Link href={item.href} prefetch>
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-          </div>
-        ))}
-      </SidebarMenu>
-      <SidebarGroupLabel>Contabilidad</SidebarGroupLabel>
-      <SidebarMenu>
-        {items3.map((item) => (
-          <div>
-            {item.down ? (
-              <Collapsible
-                key={item.title}
+            );
+          }
+
+          const active = isActive(item.href);
+          return (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton
                 asChild
-                defaultOpen={false}
-                className="group/collapsible"
+                isActive={active}
+                tooltip={{ children: item.title }}
               >
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={item.title}>
-                      {item.icon && <item.icon />}
-                      <span>{item.title}</span>
-                      <ChevronDown className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {item.subItems?.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild isActive={false}>
-                            <Link href={subItem.href} prefetch>
-                              <span>{subItem.title}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
-            ) : (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  asChild
-                  // isActive={page.url.startsWith(
-                  //   typeof item.href === 'string' ? item.href : item.href.url,
-                  // )}
-                  tooltip={{ children: item.title }}
+                <Link
+                  href={item.href!}
+                  prefetch
+                  aria-current={active ? 'page' : undefined}
                 >
-                  <Link href={item.href} prefetch>
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-          </div>
-        ))}
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
       </SidebarMenu>
-      <SidebarGroupLabel>Usuario</SidebarGroupLabel>
-      <SidebarMenu>
-        {items4.map((item) => (
-          <div>
-            {item.down ? (
-              <Collapsible
-                key={item.title}
-                asChild
-                defaultOpen={false}
-                className="group/collapsible"
-              >
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={item.title}>
-                      {item.icon && <item.icon />}
-                      <span>{item.title}</span>
-                      <ChevronDown className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {item.subItems?.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild isActive={false}>
-                            <Link href={subItem.href} prefetch>
-                              <span>{subItem.title}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
-            ) : (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  asChild
-                  // isActive={page.url.startsWith(
-                  //   typeof item.href === 'string' ? item.href : item.href.url,
-                  // )}
-                  tooltip={{ children: item.title }}
-                >
-                  <Link href={item.href} prefetch>
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-          </div>
-        ))}
-      </SidebarMenu>
-    </SidebarGroup>
+    </nav>
   );
 }
 
-// -----------------------------------------------------------
-// import {
-//     SidebarGroup,
-//     SidebarGroupLabel,
-//     SidebarMenu,
-//     SidebarMenuButton,
-//     SidebarMenuItem,
-// } from '@/components/ui/sidebar';
-// import { resolveUrl } from '@/lib/utils';
-// import { type NavItem } from '@/types';
-// import { Link, usePage } from '@inertiajs/react';
-
-// export function NavMain({ items = [] }: { items: NavItem[] }) {
-//     const page = usePage();
-//     return (
-//         <SidebarGroup className="px-2 py-0">
-//             <SidebarGroupLabel>Platform</SidebarGroupLabel>
-//             <SidebarMenu>
-//                 {items.map((item) => (
-//                     <SidebarMenuItem key={item.title}>
-//                         <SidebarMenuButton
-//                             asChild
-//                             isActive={page.url.startsWith(
-//                                 resolveUrl(item.href),
-//                             )}
-//                             tooltip={{ children: item.title }}
-//                         >
-//                             <Link href={item.href} prefetch>
-//                                 {item.icon && <item.icon />}
-//                                 <span>{item.title}</span>
-//                             </Link>
-//                         </SidebarMenuButton>
-//                     </SidebarMenuItem>
-//                 ))}
-//             </SidebarMenu>
-//         </SidebarGroup>
-//     );
-// }
+export function NavMain({ sections }: NavMainProps) {
+  return (
+    <SidebarGroup className="px-2 py-0">
+      {sections.map((section) => (
+        <NavSection
+          key={section.label}
+          label={section.label}
+          items={section.items}
+        />
+      ))}
+    </SidebarGroup>
+  );
+}

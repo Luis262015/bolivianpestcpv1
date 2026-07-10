@@ -25,5 +25,6 @@ class DatabaseSeeder extends Seeder
         );
 
         $this->call(SiteSettingSeeder::class);
+        $this->call(EsporadicoSeeder::class);
     }
 }

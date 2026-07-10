@@ -1,5 +1,6 @@
 import CustomPagination from '@/components/CustomPagination';
 import InputError from '@/components/input-error';
+import { UsuariosTabs } from '@/components/usuarios-tabs';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -205,6 +206,7 @@ export default function Index() {
       <Head title={titlePage} />
 
       <div className="m-4">
+        <UsuariosTabs />
         <div className="mb-4 flex items-center">
           <h1 className="me-5 text-2xl font-bold">Gestión de {titlePage}</h1>
 

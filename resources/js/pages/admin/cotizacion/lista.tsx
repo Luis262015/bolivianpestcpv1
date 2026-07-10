@@ -1,3 +1,4 @@
+import { EmpresasTabs } from '@/components/empresas-tabs';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -53,6 +54,7 @@ export default function Lista({ cotizaciones }: Props) {
       <Head title="Cotizaciones" />
 
       <div className="p-6">
+        <EmpresasTabs />
         <div className="flex items-center">
           <div className="me-5 text-2xl font-bold">Gestión de Cotizaciones</div>
           <Link href="/cotizaciones/create">

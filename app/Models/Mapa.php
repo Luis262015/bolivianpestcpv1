@@ -52,39 +52,22 @@ class Mapa extends Model
     }
 
     /**
-     * Accesor para obtener los textos del mapa
+     * Textos del mapa. `data` históricamente guarda solo el tamaño de trampa
+     * (entero), por eso se tolera que no sea array.
      */
     public function getTextsAttribute(): array
     {
-        return $this->data['texts'] ?? [];
+        return is_array($this->data) ? ($this->data['texts'] ?? []) : [];
     }
 
     /**
-     * Accesor para obtener las trampas del mapa
+     * Tamaño de trampa guardado en `data`.
      */
-    public function getTrapsAttribute(): array
+    public function getTrapSizeAttribute(): int
     {
-        return $this->data['traps'] ?? [];
-    }
-
-    /**
-     * Mutador para actualizar los textos (ejemplo de uso: $mapa->texts = [...])
-     */
-    public function setTextsAttribute(array $texts): void
-    {
-        $data = $this->data ?? [];
-        $data['texts'] = $texts;
-        $this->data = $data;
-    }
-
-    /**
-     * Mutador para actualizar las trampas
-     */
-    public function setTrapsAttribute(array $traps): void
-    {
-        $data = $this->data ?? [];
-        $data['traps'] = $traps;
-        $this->data = $data;
+        return is_array($this->data)
+            ? (int) ($this->data['trapSize'] ?? 20)
+            : (int) ($this->data ?? 20);
     }
 
     public function trampas()

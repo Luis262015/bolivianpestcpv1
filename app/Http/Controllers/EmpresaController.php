@@ -5,14 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Almacen;
 use App\Models\Certificado;
 use App\Models\Empresa;
-use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Exception;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Database\QueryException;
 
 class EmpresaController extends Controller
 {
@@ -37,86 +33,75 @@ class EmpresaController extends Controller
   public function index(Request $request)
   {
     $user = $request->user();
-    if ($user->HasRole('cliente')) {
-      $empresaIds = $user->empresas->pluck('id');
-      $empresas = Empresa::with(['certificados'])->whereIn('id', $empresaIds)->paginate(10);
-    } else {
-      $empresas = Empresa::with(['certificados'])->paginate(10);
-    }
-    return inertia('admin/empresas/lista', ['empresas' => $empresas]);
-  }
 
-  public function create()
-  {
-    return inertia('admin/empresas/crear');
+    // El listado solo usa columnas básicas; de los certificados, solo lo que
+    // muestra el modal (evita enviar los campos de texto largos en el JSON).
+    $empresas = Empresa::query()
+      ->select('id', 'nombre', 'direccion', 'telefono', 'email', 'activo')
+      ->with('certificados:id,empresa_id,titulo,actividad,validez,created_at')
+      ->when(
+        $user->hasRole('cliente'),
+        fn($q) => $q->whereIn('id', $user->empresas()->pluck('empresas.id'))
+      )
+      ->orderBy('id')
+      ->paginate(10);
+
+    return inertia('admin/empresas/lista', ['empresas' => $empresas]);
   }
 
   public function certificados(Request $request, string $id)
   {
-    // dd($request);
     $validated = $request->validate($this->toValidatedCert);
+    $empresa = Empresa::select('id')->findOrFail($id);
 
     try {
-      DB::beginTransaction();
-      // Generar QR Code
-
-      // Guardar informacion del certificado
-      $certificado = new Certificado();
-      $certificado->empresa_id = $id;
+      // $validated solo contiene claves whitelisted por las reglas de arriba.
+      $certificado = new Certificado(
+        collect($validated)->except(['logo', 'created_at'])->toArray()
+      );
+      $certificado->empresa_id = $empresa->id;
       $certificado->user_id = Auth::id();
       $certificado->qrcode = '';
       $certificado->firmadigital = '';
-      $certificado->titulo = $validated['titulo'] ?? null;
-      $certificado->establecimiento = $validated['establecimiento'] ?? null;
-      $certificado->actividad = $validated['actividad'] ?? null;
-      $certificado->validez = $validated['validez'] ?? null;
-      $certificado->direccion = $validated['direccion'] ?? null;
-      $certificado->diagnostico = $validated['diagnostico'] ?? null;
-      $certificado->condicion = $validated['condicion'] ?? null;
-      $certificado->trabajo = $validated['trabajo'] ?? null;
-      $certificado->plaguicidas = $validated['plaguicidas'] ?? null;
-      $certificado->registro = $validated['registro'] ?? null;
-      $certificado->area = $validated['area'] ?? null;
-      $certificado->acciones = $validated['acciones'] ?? null;
-      $certificado->ingredientes = $validated['ingredientes'] ?? null;
+      $certificado->logo = '';
 
-      $path = '';
       if ($request->hasFile('logo')) {
-        // GUARDAR IMAGEN A PUBLIC
         $file = $request->file('logo');
-        $filename = uniqid() . '_' . $file->getClientOriginalName();
-        $file->move(
-          public_path('images/certificado'),
-          $filename
-        );
-        $path = 'images/certificado/' . $filename;
+        // Nombre generado por el servidor; extensión deducida del contenido
+        // real (nunca el nombre/extensión que manda el navegador).
+        $filename = uniqid() . '.' . $file->extension();
+        $file->move(public_path('images/certificado'), $filename);
+        $certificado->logo = 'images/certificado/' . $filename;
       }
 
-      $certificado->logo = $path;
+      if (!empty($validated['created_at'])) {
+        $certificado->created_at = $validated['created_at'];
+      }
 
       $certificado->save();
 
-      if (!empty($validated['created_at'])) {
-        DB::table('certificados')
-          ->where('id', $certificado->id)
-          ->update(['created_at' => $validated['created_at']]);
-      }
-
-      DB::commit();
-
       return redirect()->back()->with('success', 'Certificado creado exitosamente');
-    } catch (Exception | \Error | QueryException $e) {
-      DB::rollBack();
-      Log::info("ERROR ******************** " . $e->getMessage());
+    } catch (\Throwable $e) {
+      Log::error('Error al crear certificado', ['empresa_id' => $id, 'error' => $e->getMessage()]);
       return redirect()->back()
         ->withInput()
-        ->withErrors('error', 'Error crítico al crear el certificado. Contacte al administrador.');
+        ->withErrors(['error' => 'Error crítico al crear el certificado. Contacte al administrador.']);
     }
   }
 
   public function certificadopdf(Request $request, string $id)
   {
-    $certificado = Certificado::find($id);
+    $certificado = Certificado::findOrFail($id);
+
+    // Un cliente solo puede generar PDFs de certificados de sus empresas.
+    $user = $request->user();
+    if (
+      $user->hasRole('cliente')
+      && !$user->empresas()->where('empresas.id', $certificado->empresa_id)->exists()
+    ) {
+      abort(403);
+    }
+
     $pdf = Pdf::loadView('pdf.certificado', compact('certificado'));
     $pdf->setPaper('letter', 'landscape');
     return $pdf->stream('certificado-' . now()->format('Y-m-d') . '.pdf');
@@ -124,7 +109,7 @@ class EmpresaController extends Controller
 
   public function certificadoultimo()
   {
-    $certificado = Certificado::latest()->first();
+    $certificado = Certificado::latest()->firstOrFail();
     $pdf = Pdf::loadView('pdf.certificado', compact('certificado'));
     $pdf->setPaper('letter', 'landscape');
     return $pdf->stream('certificado-' . now()->format('Y-m-d') . '.pdf');
@@ -135,29 +120,36 @@ class EmpresaController extends Controller
     try {
       $certificado = Certificado::findOrFail($id);
 
-      if (!empty($certificado->logo) && file_exists(public_path($certificado->logo))) {
+      // Solo borra archivos dentro del directorio de logos de certificados.
+      if (
+        !empty($certificado->logo)
+        && str_starts_with($certificado->logo, 'images/certificado/')
+        && file_exists(public_path($certificado->logo))
+      ) {
         unlink(public_path($certificado->logo));
       }
 
       $certificado->delete();
 
       return redirect()->back()->with('success', 'Certificado eliminado correctamente');
-    } catch (Exception | \Error | QueryException $e) {
-      Log::error('Error al eliminar certificado:', ['error' => $e->getMessage()]);
+    } catch (\Throwable $e) {
+      Log::error('Error al eliminar certificado', ['certificado_id' => $id, 'error' => $e->getMessage()]);
       return redirect()->back()->with('error', 'Error al eliminar el certificado');
     }
   }
 
-  public function getByEmpresa($empresaId)
+  public function getByEmpresa(Request $request, $empresaId)
   {
+    // Un cliente solo puede listar almacenes de sus empresas asignadas.
+    $user = $request->user();
+    if (
+      $user->hasRole('cliente')
+      && !$user->empresas()->where('empresas.id', $empresaId)->exists()
+    ) {
+      abort(403);
+    }
+
     $almacenes = Almacen::where('empresa_id', $empresaId)->get(['id', 'nombre']);
     return response()->json($almacenes);
   }
-
-  /* FUNCIONES NO UTILIZADAS */
-  // public function store(Request $request) {}
-  // public function show(string $id) {}
-  // public function edit(Empresa $empresa) {}
-  // public function update(Request $request, Empresa $empresa) {}
-  // public function destroy(string $id) {}
 }

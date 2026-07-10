@@ -8,4 +8,9 @@ class Gasto extends Model
 {
     //
     protected $guarded = [];
+
+    public function seguimiento()
+    {
+        return $this->belongsTo(Seguimiento::class);
+    }
 }

@@ -1,4 +1,5 @@
 import CustomPagination from '@/components/CustomPagination';
+import { EmpresasTabs } from '@/components/empresas-tabs';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -155,6 +156,7 @@ export default function Lista() {
       <Head title="Empresas" />
 
       <div className="m-4">
+        <EmpresasTabs />
         <div className="mb-2 text-2xl font-bold">Gestión de Empresas</div>
 
         <Table>

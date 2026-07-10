@@ -1,4 +1,5 @@
 import CustomPagination from '@/components/CustomPagination';
+import { GastosTabs } from '@/components/gastos-tabs';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -151,6 +152,7 @@ export default function GastosFin() {
       <Head title="Gastos Financieros" />
 
       <div className="m-4">
+        <GastosTabs />
         {/* Botones principales */}
         <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
           <h1 className="me-5 text-2xl font-bold">

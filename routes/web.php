@@ -82,29 +82,54 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     /// ********** EMPRESAS *****************
-    Route::post('/empresas/{id}/certificados', [EmpresaController::class, 'certificados'])->name('empresas.certificados');
+    // Lectura (PDF y almacenes con scoping por empresa en el controller).
+    Route::get('/empresas/certificadoultimo', [EmpresaController::class, 'certificadoultimo'])
+        ->middleware('role:admin|superadmin')->name('empresas.certificadoultimo');
     Route::get('/empresas/{id}/certificadopdf', [EmpresaController::class, 'certificadopdf'])->name('empresas.certificadopdf');
-    Route::get('/empresas/certificadoultimo', [EmpresaController::class, 'certificadoultimo'])->name('empresas.certificadoultimo');
     Route::get('/empresas/{empresa}/almacenes', [EmpresaController::class, 'getByEmpresa']);
-    Route::delete('/empresas/certificados/{id}', [EmpresaController::class, 'destroyCertificado'])->name('empresas.certificados.destroy');
-    Route::resource('empresas', EmpresaController::class);
+    Route::resource('empresas', EmpresaController::class)->only('index');
     Route::middleware('role:admin|superadmin')->group(function () {
+        // Escritura de certificados: el UI solo la muestra a admin/superadmin
+        // y aquí se hace cumplir en backend.
+        Route::post('/empresas/{id}/certificados', [EmpresaController::class, 'certificados'])->name('empresas.certificados');
+        Route::delete('/empresas/certificados/{id}', [EmpresaController::class, 'destroyCertificado'])->name('empresas.certificados.destroy');
         Route::get('/contratos/{id}/pdf', [ContratoController::class, 'pdf'])->name('contratos.pdf');
         Route::resource('contratos', ContratoController::class);
         Route::get('/cotizaciones/{id}/pdf', [CotizacionController::class, 'pdf'])->name('cotizaciones.pdf');
         Route::resource('cotizaciones', CotizacionController::class);
     });
-    Route::get('/cronogramas/verificar/{numero}', [CronogramaController::class, 'verificar']);
-    Route::resource('cronogramas', CronogramaController::class);
-    Route::resource('mapas', MapaController::class);
-    Route::get('/seguimientos/{id}/pdf', [SeguimientoController::class, 'pdf'])->name('seguimientos.pdf');
-    Route::get('/seguimientos/{id}/trampas', [SeguimientoController::class, 'trampas'])->name('seguimientos.trampas');
+    // Verificación de nro. de tarea (la usan los modales de seguimientos/acciones del staff).
+    Route::get('/cronogramas/verificar/{numero}', [CronogramaController::class, 'verificar'])
+        ->whereNumber('numero')->middleware('role:admin|superadmin|tecnico');
+    // Escritura solo admin/superadmin (el UI del calendario ya lo restringe; esto lo hace cumplir).
+    Route::resource('cronogramas', CronogramaController::class)
+        ->only(['store', 'update', 'destroy'])->middleware('role:admin|superadmin');
+    Route::resource('cronogramas', CronogramaController::class)->only('index');
+    // Escritura de mapas solo admin/superadmin (el UI ya lo restringe; esto lo hace cumplir).
+    Route::resource('mapas', MapaController::class)
+        ->only(['store', 'update', 'destroy'])->middleware('role:admin|superadmin');
+    Route::resource('mapas', MapaController::class)->only('index');
+    Route::get('/seguimientos/{id}/pdf', [SeguimientoController::class, 'pdf'])->whereNumber('id')->name('seguimientos.pdf');
+    Route::get('/seguimientos/{id}/trampas', [SeguimientoController::class, 'trampas'])->whereNumber('id')->name('seguimientos.trampas');
     Route::get('/seguimientos/especies', [SeguimientoController::class, 'especies'])->name('seguimientos.especies');
-    Route::resource('seguimientos', SeguimientoController::class);
-    Route::get('/trampaseguimientos/{id}/trampas', [TrampaSeguimientoController::class, 'trampas'])->name('trampaseguimientos.trampas');
-    Route::get('/trampaseguimientos/{id}/pdf', [TrampaSeguimientoController::class, 'pdf'])->name('trampaseguimientos.pdf');
-    Route::get('/trampaseguimientos/especies', [TrampaSeguimientoController::class, 'especies'])->name('trampaseguimientos.especies');
-    Route::resource('trampaseguimientos', TrampaSeguimientoController::class);
+    Route::get('/seguimientos/trampa-tipos', [SeguimientoController::class, 'trampaTipos'])
+        ->middleware('role:admin|superadmin|tecnico')->name('seguimientos.trampa-tipos');
+    Route::post('/seguimientos/trampa-rapida', [SeguimientoController::class, 'trampaRapida'])
+        ->middleware('role:admin|superadmin|tecnico')->name('seguimientos.trampa-rapida');
+    // Escritura según el UI: crear/editar staff completo, eliminar solo admin/superadmin.
+    Route::resource('seguimientos', SeguimientoController::class)
+        ->only(['store', 'update'])->middleware('role:admin|superadmin|tecnico');
+    Route::resource('seguimientos', SeguimientoController::class)
+        ->only('destroy')->middleware('role:admin|superadmin');
+    Route::resource('seguimientos', SeguimientoController::class)->only(['index', 'show']);
+    // Módulo deshabilitado/incompleto (ver TrampaSeguimientoController): solo staff.
+    Route::middleware('role:admin|superadmin')->group(function () {
+        Route::get('/trampaseguimientos/{id}/trampas', [TrampaSeguimientoController::class, 'trampas'])->whereNumber('id')->name('trampaseguimientos.trampas');
+        Route::get('/trampaseguimientos/{id}/pdf', [TrampaSeguimientoController::class, 'pdf'])->whereNumber('id')->name('trampaseguimientos.pdf');
+        Route::get('/trampaseguimientos/especies', [TrampaSeguimientoController::class, 'especies'])->name('trampaseguimientos.especies');
+        Route::resource('trampaseguimientos', TrampaSeguimientoController::class)
+            ->only(['index', 'store', 'update', 'destroy']);
+    });
     Route::resource('biologicos', BiologicosController::class);
     Route::resource('epps', EppsController::class);
     Route::resource('metodos', MetodosController::class);
@@ -114,7 +139,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('especies', EspeciesController::class);
     Route::resource('unidades', UnidadesController::class);
 
-    Route::resource('acciones', AccionController::class);
+    // Acciones (descuentan stock): solo staff. Eliminar solo admin/superadmin.
+    // parameters() fuerza {accion} para que case con el type-hint Accion $accion.
+    Route::resource('acciones', AccionController::class)
+        ->only(['store', 'update'])->parameters(['acciones' => 'accion'])
+        ->middleware('role:admin|superadmin|tecnico');
+    Route::resource('acciones', AccionController::class)
+        ->only('destroy')->parameters(['acciones' => 'accion'])
+        ->middleware('role:admin|superadmin');
+    Route::resource('acciones', AccionController::class)
+        ->only('index')->middleware('role:admin|superadmin|tecnico');
 
     Route::post('/informe-archivos', [InformeArchivoController::class, 'store'])->name('informe-archivos.store');
     Route::get('/informe-archivos/{informeArchivo}/download', [InformeArchivoController::class, 'download'])->name('informe-archivos.download');
@@ -126,7 +160,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Route::get('/informes/empresas', [InformesController::class, 'getEmpresas'])->name('estados.empresas');
     // Route::get('/informes/almacenes/{empresa}', [InformesController::class, 'getAlmacen'])->name('estados.almacenes');
     // Route::get('/informes/seguimientos/{almacen}', [InformesController::class, 'getSeguimientos'])->name('estados.seguimiento');
-    Route::resource('informes', InformesController::class);
+    Route::resource('informes', InformesController::class)->only('index');
     // Route::get('/certificados/pdf', [CertificadosController::class, 'pdf'])->name('certificados.pdf');
     // Route::resource('certificados', CertificadosController::class);
 

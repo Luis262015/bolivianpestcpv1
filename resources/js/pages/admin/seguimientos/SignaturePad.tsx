@@ -1,5 +1,5 @@
 // resources/js/Components/SignaturePad.tsx
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface Props {
   width?: number;
@@ -14,63 +14,107 @@ export default function SignaturePad({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
+  const lastPoint = useRef<{ x: number; y: number } | null>(null);
+  const hasContent = useRef(false);
 
-  const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
-    drawing.current = true;
-    draw(e);
-  };
-
-  const endDraw = () => {
-    const wasDrawing = drawing.current;
-    drawing.current = false;
-    if (wasDrawing && canvasRef.current && onChange) {
-      const data = canvasRef.current.toDataURL('image/png');
-      onChange(data);
-    }
-  };
-
-  const draw = (e: any) => {
-    if (!drawing.current || !canvasRef.current) return;
-
+  // Configura el canvas para pantallas de alta densidad (DPI) una sola vez.
+  useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d')!;
-    const rect = canvas.getBoundingClientRect();
+    if (!canvas) return;
 
-    const x = (e.clientX || e.touches?.[0]?.clientX) - rect.left;
-    const y = (e.clientY || e.touches?.[0]?.clientY) - rect.top;
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
 
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.scale(ratio, ratio);
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.strokeStyle = '#000';
-    ctx.lineTo(x, y);
-    ctx.stroke();
+  }, [width, height]);
+
+  const getPoint = (e: React.PointerEvent) => {
+    const canvas = canvasRef.current!;
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+  };
+
+  const startDraw = (e: React.PointerEvent) => {
+    e.preventDefault();
+    if (!canvasRef.current) return;
+
+    // Captura el puntero para seguir recibiendo eventos aunque salga del canvas.
+    canvasRef.current.setPointerCapture(e.pointerId);
+
+    drawing.current = true;
+    lastPoint.current = getPoint(e);
+  };
+
+  const draw = (e: React.PointerEvent) => {
+    if (!drawing.current || !canvasRef.current || !lastPoint.current) return;
+    e.preventDefault();
+
+    const ctx = canvasRef.current.getContext('2d');
+    if (!ctx) return;
+
+    const point = getPoint(e);
+
     ctx.beginPath();
-    ctx.moveTo(x, y);
+    ctx.moveTo(lastPoint.current.x, lastPoint.current.y);
+    ctx.lineTo(point.x, point.y);
+    ctx.stroke();
+
+    lastPoint.current = point;
+    hasContent.current = true;
+  };
+
+  const endDraw = (e: React.PointerEvent) => {
+    if (!drawing.current) return;
+    drawing.current = false;
+    lastPoint.current = null;
+
+    if (canvasRef.current?.hasPointerCapture(e.pointerId)) {
+      canvasRef.current.releasePointerCapture(e.pointerId);
+    }
+
+    if (hasContent.current && canvasRef.current && onChange) {
+      onChange(canvasRef.current.toDataURL('image/png'));
+    }
   };
 
   const clear = () => {
-    if (canvasRef.current) {
-      const ctx = canvasRef.current.getContext('2d')!;
-      ctx.clearRect(0, 0, width, height);
-      ctx.beginPath();
-      if (onChange) onChange('');
-    }
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // clearRect en coordenadas del canvas real (afectado por el scale del DPI).
+    const ratio = window.devicePixelRatio || 1;
+    ctx.clearRect(0, 0, canvas.width / ratio, canvas.height / ratio);
+
+    hasContent.current = false;
+    lastPoint.current = null;
+    if (onChange) onChange('');
   };
 
   return (
     <div className="space-y-2">
       <canvas
         ref={canvasRef}
-        width={width}
-        height={height}
-        className="rounded-md border bg-white"
-        onMouseDown={startDraw}
-        onMouseUp={endDraw}
-        onMouseMove={draw}
-        onMouseLeave={endDraw}
-        onTouchStart={startDraw}
-        onTouchEnd={endDraw}
-        onTouchMove={draw}
+        className="touch-none rounded-md border bg-white"
+        onPointerDown={startDraw}
+        onPointerMove={draw}
+        onPointerUp={endDraw}
+        onPointerCancel={endDraw}
+        onPointerLeave={endDraw}
       ></canvas>
 
       <button

@@ -18,10 +18,17 @@ interface TrampaTipo {
   nombre: string;
 }
 
+interface Mapa {
+  id: number;
+  titulo: string;
+}
+
 interface Trampa {
   id: number;
+  numero: number;
   identificador: string;
   trampa_tipo: TrampaTipo;
+  mapa: Mapa;
 }
 
 interface Especie {
@@ -90,7 +97,14 @@ export default function SeguimientoTrampasEdit({
       );
       const especiesRes = await axios.get('/trampaseguimientos/especies');
 
-      setTrampas(trampasRes.data);
+      const trampasOrdenadas = [...trampasRes.data].sort(
+        (a: Trampa, b: Trampa) =>
+          a.identificador.localeCompare(b.identificador, undefined, {
+            numeric: true,
+          }),
+      );
+
+      setTrampas(trampasOrdenadas);
       setEspecies(especiesRes.data);
     };
 
@@ -186,7 +200,19 @@ export default function SeguimientoTrampasEdit({
       const current = prev[id];
 
       const updated = { ...current, [field]: value };
-      updated.merma = updated.inicial - updated.actual;
+
+      // Normalizar numéricos: nunca negativos
+      updated.inicial = Math.max(0, Number(updated.inicial) || 0);
+      updated.cantidad = Math.max(0, Number(updated.cantidad) || 0);
+      updated.actual = Math.max(0, Number(updated.actual) || 0);
+
+      // El "Actual" nunca puede superar al "Inicial" (total)
+      if (updated.actual > updated.inicial) {
+        updated.actual = updated.inicial;
+      }
+
+      // La merma nunca es negativa
+      updated.merma = Math.max(0, updated.inicial - updated.actual);
 
       return { ...prev, [id]: updated };
     });
@@ -254,9 +280,17 @@ export default function SeguimientoTrampasEdit({
               {t.trampa_tipo.nombre !== 'insecto' && (
                 <div key={t.id} className="space-y-4 rounded-lg border p-4">
                   <div>
-                    <h4 className="font-semibold">{t.identificador}</h4>
+                    <h4 className="font-semibold">
+                      Trampa{' '}
+                      <span className="text-[1rem] text-red-500">
+                        {t.identificador}
+                      </span>
+                    </h4>
                     <p className="text-sm text-muted-foreground">
                       Tipo: {t.trampa_tipo.nombre}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Mapa: {t.mapa.titulo}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
@@ -275,6 +309,7 @@ export default function SeguimientoTrampasEdit({
                       <Label className="text-xs">Atrapados</Label>
                       <Input
                         type="number"
+                        min={0}
                         placeholder="Cantidad"
                         value={roedores[t.id]?.cantidad}
                         onChange={(e) =>
@@ -287,6 +322,7 @@ export default function SeguimientoTrampasEdit({
                       <Label className="text-xs">Inicial</Label>
                       <Input
                         type="number"
+                        min={0}
                         placeholder="Inicial"
                         value={roedores[t.id]?.inicial}
                         onChange={(e) =>
@@ -302,6 +338,8 @@ export default function SeguimientoTrampasEdit({
                       <Label className="text-xs">Actual</Label>
                       <Input
                         type="number"
+                        min={0}
+                        max={roedores[t.id]?.inicial}
                         placeholder="Actual"
                         value={roedores[t.id]?.actual}
                         onChange={(e) =>
@@ -331,9 +369,14 @@ export default function SeguimientoTrampasEdit({
               {t.trampa_tipo.nombre === 'insecto' && (
                 <div key={t.id} className="space-y-4 rounded-lg border p-4">
                   <div>
-                    <h4 className="font-semibold">{t.identificador}</h4>
+                    <h4 className="font-semibold">
+                      Trampa{' '}
+                      <span className="text-[1rem] text-red-500">
+                        {t.identificador}
+                      </span>
+                    </h4>
                     <p className="text-sm text-muted-foreground">
-                      {t.trampa_tipo.nombre}
+                      Tipo: {t.trampa_tipo.nombre}
                     </p>
                   </div>
                   <div className="space-y-3">

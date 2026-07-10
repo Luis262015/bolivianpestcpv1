@@ -38,4 +38,18 @@ class Almacen extends Model
     {
         return $this->hasMany(Seguimiento::class);
     }
+
+    /**
+     * Almacén reservado para trabajos ESPORÁDICOS (sin contrato).
+     * Se resuelve por nombre según config('esporadico.almacen').
+     */
+    public static function esporadico(): ?self
+    {
+        return static::where('nombre', config('esporadico.almacen'))->first();
+    }
+
+    public static function esporadicoId(): ?int
+    {
+        return static::where('nombre', config('esporadico.almacen'))->value('id');
+    }
 }

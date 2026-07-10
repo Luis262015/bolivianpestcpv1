@@ -120,4 +120,9 @@ class Seguimiento extends Model
     {
         return $this->hasMany(TrampaRoedorSeguimiento::class);
     }
+
+    public function gastos()
+    {
+        return $this->hasMany(Gasto::class);
+    }
 }

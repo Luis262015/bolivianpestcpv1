@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Check, ChevronsUpDown, InfoIcon, Plus, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -160,6 +160,11 @@ export default function ModalSeguimiento({
 }: ModalSeguimientoProps) {
   const [step, setStep] = useState(1);
 
+  // Id del almacén reservado ESPORADICO (compartido globalmente). Habilita el
+  // alta rápida de trampas sin mapa cuando el seguimiento es de ese almacén.
+  const esporadicoAlmacenId = (usePage().props as any)
+    .esporadicoAlmacenId as number | null;
+
   const [verificando, setVerificando] = useState(false);
   const [cronogramaInfo, setCronogramaInfo] = useState<any>(null);
   const [cronogramaError, setCronogramaError] = useState<string | null>(null);
@@ -258,6 +263,8 @@ export default function ModalSeguimiento({
     /* PASO 9 */
     trampa_especies_seguimientos: [] as TrampaEspecieSeguimientos[],
     trampa_roedores_seguimientos: [] as TrampaRoedoresSeguimiento[],
+    /* PASO 11: Gastos del seguimiento */
+    gastos: [] as { concepto: string; total: string }[],
   });
 
   console.log(errors);
@@ -335,7 +342,7 @@ export default function ModalSeguimiento({
     if (step === 10)
       setData('observaciones_especificas', data.observaciones_especificas);
 
-    setStep((s) => Math.min(s + 1, 13));
+    setStep((s) => Math.min(s + 1, 14));
   };
 
   const handleBack = () => setStep((s) => Math.max(s - 1, 1));
@@ -477,6 +484,34 @@ export default function ModalSeguimiento({
     setProductos(updated);
     setData('productos_usados', updated);
   };
+
+  // Helpers gastos (paso 11)
+  const addGasto = () => {
+    setData('gastos', [...data.gastos, { concepto: '', total: '' }]);
+  };
+
+  const updateGasto = (
+    i: number,
+    field: 'concepto' | 'total',
+    value: string,
+  ) => {
+    const updated = data.gastos.map((g, idx) =>
+      idx === i ? { ...g, [field]: value } : g,
+    );
+    setData('gastos', updated);
+  };
+
+  const removeGasto = (i: number) => {
+    setData(
+      'gastos',
+      data.gastos.filter((_, idx) => idx !== i),
+    );
+  };
+
+  const totalGastos = data.gastos.reduce(
+    (acc, g) => acc + (parseFloat(g.total) || 0),
+    0,
+  );
 
   const [firmaEncargado, setFirmaEncargado] = useState<string>('');
   const [firmaSupervisor, setFirmaSupervisor] = useState<string>('');
@@ -706,12 +741,12 @@ export default function ModalSeguimiento({
       >
         <DialogHeader>
           <DialogTitle className="text-[1rem]">
-            Nuevo Seguimiento - Paso {step} de 13
+            Nuevo Seguimiento - Paso {step} de 14
           </DialogTitle>
           <div className="mt-3 h-2 w-full rounded-full bg-muted">
             <div
               className="h-2 rounded-full bg-primary transition-all"
-              style={{ width: `${(step / 13) * 100}%` }}
+              style={{ width: `${(step / 14) * 100}%` }}
             />
           </div>
         </DialogHeader>
@@ -1376,6 +1411,10 @@ export default function ModalSeguimiento({
               <SeguimientoTrampas
                 almacenId={Number(data.almacen_id)!}
                 tipoSeguimiento={data.tipo_seguimiento_id}
+                permitirAltaRapida={
+                  esporadicoAlmacenId != null &&
+                  Number(data.almacen_id) === esporadicoAlmacenId
+                }
                 value={{
                   trampa_especies_seguimientos:
                     data.trampa_especies_seguimientos,
@@ -1415,8 +1454,78 @@ export default function ModalSeguimiento({
             </div>
           )}
 
-          {/* PASO 13: Encargado y Firmas — siempre montado para que el canvas no se pierda al navegar */}
-          <div className={step !== 13 ? 'hidden' : 'space-y-6'}>
+          {/* PASO 11: Gastos del seguimiento */}
+          {step === 11 && (
+            <div className="space-y-5">
+              <div className="my-3 text-lg font-semibold">
+                Seguimiento {tipoSeguimientoSel}
+              </div>
+              <div className="my-2">Gastos relacionados (opcional)</div>
+
+              <div className="flex justify-between">
+                <Button type="button" size="sm" onClick={addGasto}>
+                  <Plus className="mr-1 h-4 w-4" />
+                  Agregar gasto
+                </Button>
+                {data.gastos.length > 0 && (
+                  <span className="text-sm font-medium">
+                    Total: {totalGastos.toFixed(2)}
+                  </span>
+                )}
+              </div>
+
+              {data.gastos.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  No hay gastos agregados.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {data.gastos.map((g, i) => (
+                    <div
+                      key={i}
+                      className="grid grid-cols-1 items-end gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_auto_auto]"
+                    >
+                      <div className="space-y-1">
+                        <Label className="text-xs">Concepto</Label>
+                        <Input
+                          placeholder="Ej. Transporte, viáticos..."
+                          value={g.concepto}
+                          onChange={(e) =>
+                            updateGasto(i, 'concepto', e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Total</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0.00"
+                          className="w-32"
+                          value={g.total}
+                          onChange={(e) =>
+                            updateGasto(i, 'total', e.target.value)
+                          }
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeGasto(i)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PASO 14: Encargado y Firmas — siempre montado para que el canvas no se pierda al navegar */}
+          <div className={step !== 14 ? 'hidden' : 'space-y-6'}>
             <div className="my-3 text-lg font-semibold">
               Seguimiento {tipoSeguimientoSel}
             </div>
@@ -1476,8 +1585,8 @@ export default function ModalSeguimiento({
             </div>
           </div>
 
-          {/* PASO 11: Imagenes */}
-          {step === 11 && (
+          {/* PASO 12: Imagenes */}
+          {step === 12 && (
             <div className="space-y-4">
               <div className="my-3 text-lg font-semibold">
                 Seguimiento {tipoSeguimientoSel}
@@ -1521,8 +1630,8 @@ export default function ModalSeguimiento({
             </div>
           )}
 
-          {/* PASO 12: Observaciones Generales */}
-          {step === 12 && (
+          {/* PASO 13: Observaciones Generales */}
+          {step === 13 && (
             <div className="space-y-6 py-6 text-center">
               <div className="mx-auto mb-4 size-20 rounded-full bg-green-100 p-5">
                 <svg
@@ -1565,7 +1674,7 @@ export default function ModalSeguimiento({
               Cancelar
             </Button>
 
-            {step < 13 ? (
+            {step < 14 ? (
               <Button asChild>
                 <button type="button" onClick={handleNext}>
                   Siguiente

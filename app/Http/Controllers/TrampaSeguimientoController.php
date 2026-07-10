@@ -5,204 +5,54 @@ namespace App\Http\Controllers;
 use App\Models\Almacen;
 use App\Models\Empresa;
 use App\Models\Especie;
-use App\Models\Seguimiento;
 use App\Models\Trampa;
-use App\Models\TrampaEspecieSeguimiento;
-use App\Models\TrampaRoedorSeguimiento;
 use App\Models\TrampaSeguimiento;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Exception;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
+/**
+ * FEATURE DESHABILITADA / INCOMPLETA.
+ *
+ * Las tablas `trampa_especie_seguimientos` / `trampa_roedor_seguimientos`
+ * solo tienen `seguimiento_id` (no existe `trampa_seguimiento_id`), por lo que
+ * el store/destroy originales referenciaban una columna inexistente y el
+ * update operaba sobre el modelo Seguimiento equivocado, corrompiendo datos
+ * del seguimiento principal. La tabla `trampa_seguimientos` está vacía y el
+ * enlace del menú está comentado.
+ *
+ * Hasta que se defina el esquema (agregar `trampa_seguimiento_id` a las
+ * pivote) las escrituras devuelven error en vez de ejecutar lógica rota.
+ * Rutas restringidas a admin/superadmin.
+ */
 class TrampaSeguimientoController extends Controller
 {
   public function index()
   {
-    $empresas = Empresa::select('id', 'nombre')->get();
-    $almacenes = Almacen::select('id', 'nombre')->get();
-    $seguimientos = TrampaSeguimiento::with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos', 'user', 'almacen'])->paginate(50);
     return inertia('admin/trampas/index', [
-      'empresas' => $empresas,
-      'almacenes' => $almacenes,
-      'seguimientos' => $seguimientos,
-    ]);
-  }
-
-  public function show(string $id)
-  {
-    // Cargar relaciones necesarias
-    // $seguimiento->load([
-    //   'trampaEspeciesSeguimientos',
-    //   'trampaRoedoresSeguimientos',
-    // ]);
-
-    // return response()->json([
-    //   'trampa_especies_seguimientos' =>
-    //   $seguimiento->trampaEspeciesSeguimientos ?? [],
-    //   'trampa_roedores_seguimientos' =>
-    //   $seguimiento->trampaRoedoresSeguimientos ?? [],
-    // ]);
-
-    // $seguimiento = Seguimiento::find($id)->with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->get();
-    $seguimiento = Seguimiento::where('id', $id)->with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->first();
-
-    // dd($seguimiento->trampaRoedoresSeguimientos);
-    Log::info($seguimiento->trampaRoedoresSeguimientos);
-
-    return response()->json([
-      'trampa_especies_seguimientos' =>
-      $seguimiento->trampaEspeciesSeguimientos ?? [],
-      'trampa_roedores_seguimientos' =>
-      $seguimiento->trampaRoedoresSeguimientos ?? [],
+      'empresas' => Empresa::select('id', 'nombre')->get(),
+      'almacenes' => Almacen::select('id', 'nombre', 'empresa_id')->get(),
+      // No se cargan trampaEspecies/RoedoresSeguimientos: esas relaciones usan
+      // `trampa_seguimiento_id`, columna que no existe (ver nota de clase).
+      'seguimientos' => TrampaSeguimiento::with([
+        'user:id,name',
+        'almacen:id,nombre',
+      ])->latest()->paginate(50),
     ]);
   }
 
   public function store(Request $request)
   {
-    $trampa_seguimiento = new TrampaSeguimiento();
-    $trampa_seguimiento->almacen_id = $request->almacen_id;
-    $trampa_seguimiento->mapa_id = $request->mapa_id;
-    $trampa_seguimiento->user_id = Auth::id();
-    $trampa_seguimiento->observaciones = "Guardado";
-    $trampa_seguimiento->save();
-    foreach ($request->trampa_especies_seguimientos as $especie) {
-      TrampaEspecieSeguimiento::create([
-        'trampa_seguimiento_id' => $trampa_seguimiento->id,
-        'trampa_id' => $especie['trampa_id'],
-        'especie_id' => $especie['especie_id'],
-        'cantidad' => $especie['cantidad'],
-      ]);
-    }
-    foreach ($request->trampa_roedores_seguimientos as $roedor) {
-      TrampaRoedorSeguimiento::create([
-        'trampa_seguimiento_id' => $trampa_seguimiento->id,
-        'trampa_id' => $roedor['trampa_id'],
-        'cantidad' => $roedor['cantidad'],
-        'inicial' => $roedor['inicial'],
-        'merma' => $roedor['merma'],
-        'actual' => $roedor['actual'],
-      ]);
-    }
-    return redirect()->back()->with('success', 'Seguimiento guardardo correctamente');
+    return $this->deshabilitada();
   }
 
   public function update(Request $request, string $id)
   {
-    // $trampa_seguimiento = TrampaSeguimiento::findOrFail($id);
-    // // Actualizar datos principales
-    // $trampa_seguimiento->update([
-    //   'almacen_id' => $request->almacen_id,
-    //   'mapa_id' => $request->mapa_id,
-    //   'user_id' => Auth::id(),
-    //   'observaciones' => 'Actualizado',
-    // ]);
-
-    // dd($id);
-
-    // $seguimiento = Seguimiento::where('id', $id)->with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->first();
-
-    // dd($seguimiento->trampaRoedoresSeguimientos);
-
-    // return;
-
-    try {
-
-      DB::beginTransaction();
-
-      // $seguimiento = Seguimiento::find($id)->with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->get();
-      $seguimiento = Seguimiento::where('id', $id)->with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos'])->first();
-
-
-      // Log::info($seguimiento);
-      // dd($seguimiento);
-      // return;
-
-      // Sincronizar seguimientos de especies
-      if ($request->has('trampa_especies_seguimientos') && count($request['trampa_especies_seguimientos']) > 0) {
-        Log::info("AAAAAAAAAAAAAAAAAAAA");
-        // Eliminar los anteriores
-        // $seguimiento[0]->trampaEspeciesSeguimientos->delete();
-        foreach ($seguimiento->trampaEspeciesSeguimientos as $especie) {
-          $delItem = TrampaEspecieSeguimiento::find($especie->id)->delete();
-        }
-
-        Log::info("aaaaaaaaaaaaaaaaaaaaa");
-        // Crear los nuevos
-        foreach ($request->trampa_especies_seguimientos as $especie) {
-          $createItem = new TrampaEspecieSeguimiento([
-            'seguimiento_id' => $id,
-            'trampa_id' => $especie['trampa_id'],
-            'especie_id' => $especie['especie_id'],
-            'cantidad' => $especie['cantidad'],
-          ]);
-          $createItem->save();
-          // $seguimiento[0]->trampaEspeciesSeguimientos->create([
-          //   'trampa_id' => $especie['trampa_id'],
-          //   'especie_id' => $especie['especie_id'],
-          //   'cantidad' => $especie['cantidad'],
-          // ]);
-        }
-        Log::info("bbbbbbbbbbbbbbbbbbbbbbbbbb");
-      }
-      // Sincronizar seguimientos de roedores
-      if ($request->has('trampa_roedores_seguimientos') && count($request['trampa_roedores_seguimientos']) > 0) {
-        Log::info("BBBBBBBBBBBBBBBBBBBBBBBBBBBB");
-        // Eliminar los anteriores
-        // $seguimiento[0]->trampaRoedoresSeguimientos->delete();
-        foreach ($seguimiento->trampaRoedoresSeguimientos as $roedor) {
-          Log::info("DEL ITEM ------ " . $roedor->id);
-          $delItem = TrampaRoedorSeguimiento::find($roedor->id)->delete();
-          Log::info($delItem);
-        }
-        Log::info("1111111111111111111111111");
-        // Crear los nuevos
-        foreach ($request->trampa_roedores_seguimientos as $roedor) {
-          $createItem = new TrampaRoedorSeguimiento([
-            'seguimiento_id' => $id,
-            'trampa_id' => $roedor['trampa_id'],
-            'observacion' => $roedor['observacion'],
-            'cantidad' => $roedor['cantidad'],
-            'inicial' => $roedor['inicial'],
-            'merma' => $roedor['merma'],
-            'actual' => $roedor['actual'],
-          ]);
-          $createItem->save();
-          // $seguimiento[0]->trampaRoedoresSeguimientos->create([
-          //   'trampa_id' => $roedor['trampa_id'],
-          //   'cantidad' => $roedor['cantidad'],
-          //   'inicial' => $roedor['inicial'],
-          //   'merma' => $roedor['merma'],
-          //   'actual' => $roedor['actual'],
-          // ]);
-        }
-        Log::info("222222222222222222222222222222");
-      }
-
-      DB::commit();
-    } catch (Exception | \Error | QueryException $e) {
-
-      DB::rollBack();
-      Log::error('Error:', ['error' => $e->getMessage()]);
-      return redirect()->back()
-        ->withInput()
-        ->with('error', 'Error ' . $e->getMessage());
-    }
-
-
-    return redirect()->back()->with('success', 'Seguimiento actualizado correctamente');
+    return $this->deshabilitada();
   }
 
   public function destroy(string $id)
   {
-    $trampaseguimiento = TrampaSeguimiento::find($id);
-    TrampaEspecieSeguimiento::where('trampa_seguimiento_id', $id)->delete();
-    TrampaRoedorSeguimiento::where('trampa_seguimiento_id', $id)->delete();
-    $trampaseguimiento->delete();
-    return redirect()->back()->with('success', 'Seguimiento eliminado correctamente');
+    return $this->deshabilitada();
   }
 
   public function trampas(Request $request, string $id)
@@ -211,25 +61,32 @@ class TrampaSeguimientoController extends Controller
       ->where('almacen_id', $id)
       ->where('estado', '!=', 'inactivo')
       ->get();
+
     return response()->json($trampas);
   }
 
   public function especies(Request $request)
   {
-    $especies = Especie::all(['id', 'nombre']);
-    return response()->json($especies);
+    return response()->json(Especie::all(['id', 'nombre']));
   }
 
   public function pdf(Request $request, string $id)
   {
-    $seguimiento = TrampaSeguimiento::with(['trampaEspeciesSeguimientos', 'trampaRoedoresSeguimientos', 'user', 'almacen'])->find($id);
+    $seguimiento = TrampaSeguimiento::with([
+      'trampaEspeciesSeguimientos',
+      'trampaRoedoresSeguimientos',
+      'user:id,name',
+      'almacen:id,nombre',
+    ])->findOrFail($id);
+
     $pdf = Pdf::loadView('pdf.trampas', compact('seguimiento'));
     $pdf->setPaper('legal', 'portrait');
+
     return $pdf->stream(filename: 'seguimiento-trampas-' . now()->format('Y-m-d') . '.pdf');
   }
 
-  /** FUNCIONES NO USADAS */
-  // public function create() {}
-  // public function show(string $id) {}
-  // public function edit(string $id) {}
+  private function deshabilitada()
+  {
+    return back()->with('error', 'El módulo de seguimiento de trampas está deshabilitado.');
+  }
 }

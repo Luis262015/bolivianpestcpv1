@@ -69,6 +69,7 @@ interface Insectocutor {
 interface Trampa {
   trampa_tipo_id: number;
   identificador: string;
+  mapa?: { id: number; titulo: string };
 }
 
 interface Roedor {
@@ -158,6 +159,28 @@ interface Props {
     anio?: string;
   };
 }
+
+// Formatea números mostrando como máximo 2 decimales (sin ceros de relleno).
+// Los enteros quedan sin decimales; 12.300001 -> "12.3", 12.005 -> "12.01".
+const n2 = (v: number | string) => {
+  const num = Number(v);
+  return Number.isFinite(num) ? String(Number(num.toFixed(2))) : String(v);
+};
+
+// Degradado vertical reutilizable para las barras de los gráficos del informe:
+// color pleno arriba → más claro (60%) abajo, para un acabado más profesional.
+// Se coloca dentro de un <defs> del propio gráfico y se referencia con url(#id).
+const BarGradient = ({ id, color }: { id: string; color: string }) => (
+  <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stopColor={color} stopOpacity={1} />
+    <stop offset="100%" stopColor={color} stopOpacity={0.6} />
+  </linearGradient>
+);
+
+// Rótulo unificado para tablas y gráficos: barra de acento corporativa +
+// versalitas, en lugar del antiguo font-mono subrayado (aspecto de informe).
+const captionClass =
+  'mb-3 border-l-4 border-[#1B3A6B] pl-3 text-sm font-semibold uppercase tracking-wide text-[#1B3A6B]';
 
 export default function Lista({
   empresas,
@@ -787,6 +810,7 @@ export default function Lista({
       [key: number]: {
         trampa_id: number;
         indent: string;
+        mapa: string;
         inicial: number;
         merma: number;
         actual: number;
@@ -812,6 +836,7 @@ export default function Lista({
               datosPorTrampa[trampaId] = {
                 trampa_id: trampaId,
                 indent: '',
+                mapa: '',
                 inicial: 0,
                 merma: 0,
                 actual: 0,
@@ -820,6 +845,7 @@ export default function Lista({
             }
 
             datosPorTrampa[trampaId].indent = roedor.trampa.identificador;
+            datosPorTrampa[trampaId].mapa = roedor.trampa.mapa?.titulo ?? '';
 
             datosPorTrampa[trampaId].inicial += Number(roedor.inicial);
             datosPorTrampa[trampaId].merma += Number(roedor.merma);
@@ -839,7 +865,18 @@ export default function Lista({
         merma: Math.round(item.merma),
         actual: Math.round(item.actual),
       }))
-      .sort((a, b) => a.trampa_id - b.trampa_id); // orden por nro trampa
+      .sort((a, b) => {
+        // Agrupa por mapa; dentro de cada mapa ordena por identificador (natural).
+        const porMapa = a.mapa.localeCompare(b.mapa, undefined, {
+          numeric: true,
+          sensitivity: 'base',
+        });
+        if (porMapa !== 0) return porMapa;
+        return a.indent.localeCompare(b.indent, undefined, {
+          numeric: true,
+          sensitivity: 'base',
+        });
+      });
   }, [seguimientos]);
 
   const tablaSeguimientoResumenX = (seguimientos: any[]) => {
@@ -1050,18 +1087,15 @@ export default function Lista({
   const chartConfigRoedores: ChartConfig = {
     inicial: {
       label: 'Inicial',
-      // color: 'hsl(var(--chart-1))',
-      color: '#f00',
+      color: '#2563eb', // azul
     },
     merma: {
       label: 'Merma',
-      // color: 'hsl(var(--chart-2))',
-      color: '#0f0',
+      color: '#f59e0b', // ámbar
     },
     actual: {
       label: 'Actual',
-      // color: 'hsl(var(--chart-3))',
-      color: '#00f',
+      color: '#16a34a', // verde
     },
   };
 
@@ -1339,6 +1373,12 @@ export default function Lista({
 
     setExportando(true);
 
+    // Guardamos la posición de scroll: capturar cada gráfico requiere hacerle
+    // scrollIntoView, lo que deja la página desplazada hasta el último gráfico.
+    // Al terminar restauramos la posición para que el scroll no "salte" solo.
+    const scrollXPrevio = window.scrollX;
+    const scrollYPrevio = window.scrollY;
+
     try {
       const seguimientoIds = seguimientos.map((s) => s.id);
 
@@ -1418,6 +1458,8 @@ export default function Lista({
       alert('Error al generar Word');
     } finally {
       setExportando(false);
+      // Restaura la posición de scroll previa al capturado de gráficos.
+      window.scrollTo(scrollXPrevio, scrollYPrevio);
     }
   };
 
@@ -1496,15 +1538,15 @@ export default function Lista({
   const coloresRoedores = {
     inicial: {
       label: 'inicial',
-      color: '#8064a2',
+      color: '#2563eb', // azul — cebo inicial
     },
     merma: {
       label: 'merma',
-      color: '#bb4d4b',
+      color: '#f59e0b', // ámbar — merma / consumo
     },
     actual: {
       label: 'actual',
-      color: '#9bbb59',
+      color: '#16a34a', // verde — cebo actual (lo que queda)
     },
   };
 
@@ -1513,6 +1555,39 @@ export default function Lista({
     mosca: '#33558b',
     polilla: '#4aacc5',
   };
+
+  // Estilo compartido para TODOS los gráficos del informe:
+  // - fondo en degradado (claro/oscuro)
+  // - más ancho (w-full) y más alto para mejor proporción
+  // - ejes, etiquetas y valores más oscuros, gruesos y grandes (más legibles)
+  // Nota: estas clases también se capturan con html-to-image al exportar a Word,
+  // por lo que el degradado y la tipografía mejorada aparecen también en el informe.
+  const chartClass = [
+    'h-[380px] w-full max-w-[800px] rounded-2xl border p-5 shadow-sm',
+    'bg-gradient-to-br from-sky-50 via-white to-violet-50',
+    'border-slate-200/70 dark:border-slate-700',
+    'dark:bg-gradient-to-br dark:from-slate-800 dark:via-slate-900 dark:to-slate-800',
+    // Números de los ejes (ticks): oscuros, semibold y más grandes
+    "[&_.recharts-cartesian-axis-tick_text]:fill-slate-700 [&_.recharts-cartesian-axis-tick_text]:font-semibold [&_.recharts-cartesian-axis-tick_text]:[font-size:13px]",
+    "dark:[&_.recharts-cartesian-axis-tick_text]:fill-slate-200",
+    // Títulos de ejes: oscuros, negrita y grandes
+    "[&_.recharts-label]:fill-slate-800 [&_.recharts-label]:font-bold [&_.recharts-label]:[font-size:14px]",
+    "dark:[&_.recharts-label]:fill-slate-100",
+    // Valores sobre barras/líneas (LabelList): más pequeños para no saturar
+    // (selector más específico que .recharts-label → gana sobre lo de arriba)
+    "[&_.recharts-label-list_.recharts-label]:!font-semibold [&_.recharts-label-list_.recharts-label]:![font-size:10px] [&_.recharts-label-list_.recharts-label]:fill-slate-700",
+    "dark:[&_.recharts-label-list_.recharts-label]:fill-slate-200",
+    // Leyenda más visible
+    "[&_.recharts-legend-item-text]:!text-slate-700 [&_.recharts-legend-item-text]:font-medium",
+    "dark:[&_.recharts-legend-item-text]:!text-slate-200",
+    // Líneas de los ejes más suaves
+    "[&_.recharts-cartesian-axis-line]:stroke-slate-300 [&_.recharts-cartesian-axis-tick-line]:stroke-slate-300",
+  ].join(' ');
+
+  // Margen del área de trazado. El `top` holgado evita que las etiquetas de
+  // valor (position="top") se recorten cuando la barra llega al máximo
+  // (p. ej. 100 con dominio [0,100]); el `right` deja aire a la última barra.
+  const chartMargin = { top: 28, right: 16, bottom: 4, left: 4 };
 
   // Filtra los datos antes del renderizado del gráfico
   const datosFiltrados = datosRoedores.filter((item) => {
@@ -1526,13 +1601,27 @@ export default function Lista({
     );
   });
 
+  // Estrategia anti-solapamiento: las etiquetas de valor sobre las barras/puntos
+  // solo se muestran cuando hay pocos elementos. Con más, se ocultan (el valor
+  // sigue disponible en el tooltip al pasar el cursor). Ajusta MAX_LABELS a gusto.
+  const MAX_LABELS = 8;
+  const showLabelsRoedores = datosFiltrados.length <= MAX_LABELS;
+  const showLabelsResumen = totalesPorcentajesValues.length <= 12;
+  const showLabelsEvolucion =
+    datosInsectocutores.datosPorFecha.length <= MAX_LABELS;
+  const showLabelsSeveridad =
+    datosInsectocutores.datosPorFecha.length <= MAX_LABELS;
+
   return (
     <AppLayout breadcrumbs={[{ title: 'Informes', href: '/informes' }]}>
       <Head title="Informes" />
 
-      <div className="space-y-6 p-6">
+      <div className="mx-auto max-w-[1400px] space-y-6 p-6">
         {/* *********** SECCION BUSQUEDA ************************** */}
-        <div className="space-y-3 p-2">
+        <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-900">
+            Generar informe
+          </h2>
           {/* Empresa */}
           <Label>Seleccione una empresa</Label>
           <Select value={empresaId} onValueChange={onEmpresaChange}>
@@ -1587,7 +1676,7 @@ export default function Lista({
 
           {/* Filtro: Rango de fechas */}
           {modoFiltro === 'fechas' && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <Label>Fecha inicial</Label>
                 <Input
@@ -1609,7 +1698,7 @@ export default function Lista({
 
           {/* Filtro: Rango de meses */}
           {modoFiltro === 'meses' && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <Label>Mes inicio</Label>
                 <div className="flex gap-2">
@@ -1685,11 +1774,11 @@ export default function Lista({
           )}
 
           {/* Botones */}
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-3 pt-2">
             <Button
               onClick={buscar}
               disabled={!puedesBuscar}
-              className="w-[250px]"
+              className="w-full sm:w-auto sm:min-w-[200px]"
             >
               Buscar
             </Button>
@@ -1713,10 +1802,17 @@ export default function Lista({
                 {puedeExportarWord && (
                   <Button
                     onClick={exportarWord}
+                    disabled={exportando}
                     className="bg-blue-800 text-white"
                   >
-                    <Download className="mr-2 h-4 w-4" />
-                    Exportar Word
+                    {exportando ? (
+                      'Exportando...'
+                    ) : (
+                      <>
+                        <Download className="mr-2 h-4 w-4" />
+                        Exportar Word
+                      </>
+                    )}
                   </Button>
                 )}
               </>
@@ -1726,7 +1822,7 @@ export default function Lista({
 
         {/* *********** SECCION ARCHIVOS WORD ************************** */}
         <div className="space-y-4 rounded-lg border border-slate-200 p-4">
-          <h2 className="text-lg font-semibold">Informes Word</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Informes Word</h2>
 
           {/* Formulario de subida — solo admin/superadmin */}
           {esAdminOSuperadmin && (
@@ -1789,8 +1885,16 @@ export default function Lista({
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
                         <div className="flex gap-2">
-                          <a href={`/informe-archivos/${a.id}/download`}>
-                            <Button size="sm" variant="outline">
+                          <a
+                            href={`/informe-archivos/${a.id}/download`}
+                            aria-label={`Descargar ${a.nombre_original}`}
+                          >
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              aria-label="Descargar archivo"
+                              title="Descargar"
+                            >
                               <Download className="h-4 w-4" />
                             </Button>
                           </a>
@@ -1798,6 +1902,8 @@ export default function Lista({
                             <Button
                               size="sm"
                               variant="destructive"
+                              aria-label="Eliminar archivo"
+                              title="Eliminar"
                               onClick={() => eliminarArchivo(a.id)}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -1819,31 +1925,42 @@ export default function Lista({
         <div ref={contenidoRef} data-export className="space-y-6 bg-white">
           {/* --------------------------- DATOS DEL INFORME ----------------------------------------- */}
           {/* Encabezado del informe */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold">Informe de Seguimiento</h1>
-            <div className="mt-2 space-y-3 text-gray-700">
-              <p>
-                <strong>Empresa:</strong>{' '}
-                {empresas.find((e) => e.id === Number(empresaId))?.nombre}
-              </p>
-              <p>
-                <strong>Almacén:</strong>{' '}
-                {almacenes.find((a) => a.id === Number(almacenId))?.nombre}
-              </p>
-              <p>
-                <strong>Período:</strong> {periodoLabel}
-              </p>
-              <p>
-                <strong>Fecha de generación:</strong>{' '}
-                {new Date().toLocaleDateString('es-ES')}
-              </p>
-            </div>
+          <div className="mb-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h1 className="text-2xl font-bold text-slate-900">
+              Informe de Seguimiento
+            </h1>
+            <dl className="mt-4 grid grid-cols-1 gap-x-10 gap-y-2 text-sm sm:grid-cols-2">
+              <div className="flex gap-2">
+                <dt className="font-semibold text-slate-500">Empresa:</dt>
+                <dd className="text-slate-900">
+                  {empresas.find((e) => e.id === Number(empresaId))?.nombre}
+                </dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="font-semibold text-slate-500">Almacén:</dt>
+                <dd className="text-slate-900">
+                  {almacenes.find((a) => a.id === Number(almacenId))?.nombre}
+                </dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="font-semibold text-slate-500">Período:</dt>
+                <dd className="text-slate-900">{periodoLabel}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="font-semibold text-slate-500">
+                  Fecha de generación:
+                </dt>
+                <dd className="text-slate-900">
+                  {new Date().toLocaleDateString('es-ES')}
+                </dd>
+              </div>
+            </dl>
           </div>
 
           {/* --------------------------- LISTA DE SEGUIMIENTOS ----------------------------------------- */}
           {/* Tabla SEGUIMIENTOS */}
           <div>
-            <div className="font-mono text-[1rem] underline">
+            <div className={captionClass}>
               TABLA: LISTA DE SEGUIMIENTOS
             </div>
             <div className="w-full overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
@@ -1900,7 +2017,7 @@ export default function Lista({
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={2} className="text-center">
+                      <TableCell colSpan={6} className="text-center">
                         Sin resultados
                       </TableCell>
                     </TableRow>
@@ -1913,15 +2030,15 @@ export default function Lista({
           {/* --------------------------- CANTIDAD DE TRAMPAS ----------------------------------------- */}
 
           <hr />
-          <div className="bg-amber-300/12 p-5">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold">Desratización</h2>
-              <h2 className="text-[1rem]">Informe de Trampas</h2>
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-6 border-l-4 border-amber-500 pl-4">
+              <h2 className="text-2xl font-bold text-slate-900">Desratización</h2>
+              <p className="text-sm text-slate-500">Informe de Trampas</p>
             </div>
-            <h2 className="font-mono text-[1rem] underline">
+            <h2 className={captionClass}>
               TABLA 1: CANTIDAD TOTAL DE TRAMPAS
             </h2>
-            <div className="rounded-md border">
+            <div className="overflow-x-auto rounded-md border">
               <Table className={tableStyles.table}>
                 <TableHeader>
                   <TableRow className={tableStyles.header.row}>
@@ -1950,10 +2067,10 @@ export default function Lista({
             </div>
             <br />
             {/* ********************* TABLA CANTIDAD DE TRAMPAS x TIPO y CANTIDAD DE ROEDORES CAPTURADOS ***************** ----------------------------------------- */}
-            <h2 className="font-mono text-[1rem] underline">
+            <h2 className={captionClass}>
               TABLA 2: CANTIDAD DE TRAMPAS POR TIPO
             </h2>
-            <div className="rounded-md border">
+            <div className="overflow-x-auto rounded-md border">
               <Table className={tableStyles.table}>
                 <TableHeader>
                   <TableRow className={tableStyles.header.row}>
@@ -2030,10 +2147,10 @@ export default function Lista({
             </div>
             <br />
             {/* ********************* TABLA FECHAS DE SEGUIMIENTOS (DESRATIZACION) ***************** ----------------------------------------- */}
-            <h2 className="font-mono text-[1rem] underline">
+            <h2 className={captionClass}>
               TABLA 3: FECHAS DE SEGUIMIENTOS EN ALMACEN
             </h2>
-            <div className="rounded-md border">
+            <div className="overflow-x-auto rounded-md border">
               <Table className={tableStyles.table}>
                 <TableHeader>
                   <TableRow className={tableStyles.header.row}>
@@ -2090,7 +2207,7 @@ export default function Lista({
             {/* <h2 className="text-[1rem] font-bold">
               TABLA: CAPTURA DE ROEDORES POR TRAMPAS POR ALMACEN
             </h2>
-            <div className="rounded-md border">
+            <div className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -2124,10 +2241,10 @@ export default function Lista({
               </Table>
             </div> */}
             {/* ********************* TABLA RESUMEN X (CADA SEGUIMIENTO Y CADA ALMACEN) ***************** ----------------------------------------- */}
-            <h2 className="font-mono text-[1rem] underline">
+            <h2 className={captionClass}>
               TABLA 4: ANALISIS TOTALES DE ALMACEN
             </h2>
-            <div className="rounded-md border">
+            <div className="overflow-x-auto rounded-md border">
               <Table className={tableStyles.table}>
                 <TableHeader>
                   <TableRow className={tableStyles.header.row}>
@@ -2162,16 +2279,16 @@ export default function Lista({
                         {item.trampas}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {item.ceboInicial}
+                        {n2(item.ceboInicial)}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {item.merma}
+                        {n2(item.merma)}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {item.ceboActual}
+                        {n2(item.ceboActual)}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {item.capturados}
+                        {n2(item.capturados)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -2201,14 +2318,14 @@ export default function Lista({
                     <TableCell className="text-right">{row.tipo}</TableCell>
                     <TableCell className="text-right">{row.trampas}</TableCell>
                     <TableCell className="text-right">
-                      {row.cebo_inicial}
+                      {n2(row.cebo_inicial)}
                     </TableCell>
-                    <TableCell className="text-right">{row.merma}</TableCell>
+                    <TableCell className="text-right">{n2(row.merma)}</TableCell>
                     <TableCell className="text-right">
-                      {row.cebo_actual}
+                      {n2(row.cebo_actual)}
                     </TableCell>
                     <TableCell className="text-right">
-                      {row.capturados}
+                      {n2(row.capturados)}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -2218,22 +2335,22 @@ export default function Lista({
                     {totalesDatosSanitario.trampas}
                   </TableCell>
                   <TableCell className="text-right">
-                    {totalesDatosSanitario.cebo_inicial}
+                    {n2(totalesDatosSanitario.cebo_inicial)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {totalesDatosSanitario.merma}
+                    {n2(totalesDatosSanitario.merma)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {totalesDatosSanitario.cebo_actual}
+                    {n2(totalesDatosSanitario.cebo_actual)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {totalesDatosSanitario.capturados}
+                    {n2(totalesDatosSanitario.capturados)}
                   </TableCell>
                 </TableRow>
               </TableBody>
             </Table> */}
 
-            <h2 className="font-mono text-[1rem] underline">
+            <h2 className={captionClass}>
               TABLA 5: ANALISIS POR FECHA DE SEGUIMIENTO
             </h2>
             <div>
@@ -2274,19 +2391,19 @@ export default function Lista({
                         {row.trampas}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {row.cebo_inicial}
+                        {n2(row.cebo_inicial)}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {row.merma}
+                        {n2(row.merma)}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {row.cebo_actual}
+                        {n2(row.cebo_actual)}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
                         {((row.merma * 100) / row.cebo_inicial).toFixed(1)}%
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {row.capturados}
+                        {n2(row.capturados)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -2300,13 +2417,13 @@ export default function Lista({
                       {totalesResumen.trampas}
                     </TableCell>
                     <TableCell className={tableStyles.totalCell}>
-                      {totalesResumen.cebo_inicial}
+                      {n2(totalesResumen.cebo_inicial)}
                     </TableCell>
                     <TableCell className={tableStyles.totalCell}>
-                      {totalesResumen.merma}
+                      {n2(totalesResumen.merma)}
                     </TableCell>
                     <TableCell className={tableStyles.totalCell}>
-                      {totalesResumen.cebo_actual}
+                      {n2(totalesResumen.cebo_actual)}
                     </TableCell>
                     <TableCell className={tableStyles.totalCell}>
                       {(
@@ -2316,7 +2433,7 @@ export default function Lista({
                       %
                     </TableCell>
                     <TableCell className={tableStyles.totalCell}>
-                      {totalesResumen.capturados}
+                      {n2(totalesResumen.capturados)}
                     </TableCell>
                   </TableRow>
 
@@ -2325,7 +2442,7 @@ export default function Lista({
                       TOTAL
                     </TableCell>
                     <TableCell className={tableStyles.totalNumeric}>
-                      {totalesResumen.cebo_inicial}
+                      {n2(totalesResumen.cebo_inicial)}
                     </TableCell>
                     <TableCell className={tableStyles.totalNumeric}>
                       100%
@@ -2336,7 +2453,7 @@ export default function Lista({
                       MERMA
                     </TableCell>
                     <TableCell className={tableStyles.totalNumeric}>
-                      {totalesResumen.merma}
+                      {n2(totalesResumen.merma)}
                     </TableCell>
                     <TableCell className={tableStyles.totalNumeric}>
                       {(
@@ -2358,10 +2475,10 @@ export default function Lista({
               </Table>
             </div>
             <br />
-            <h2 className="font-mono text-[1rem] underline">
+            <h2 className={captionClass}>
               TABLA 6: ANALISIS POR FECHA DE SEGUIMIENTO Y TIPO DE TRAMPA
             </h2>
-            <div className="rounded-md border">
+            <div className="overflow-x-auto rounded-md border">
               <Table className={tableStyles.table}>
                 <TableHeader>
                   <TableRow className={tableStyles.header.row}>
@@ -2402,16 +2519,16 @@ export default function Lista({
                         {row.trampas}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {row.cebo_inicial}
+                        {n2(row.cebo_inicial)}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {row.merma}
+                        {n2(row.merma)}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {row.cebo_actual}
+                        {n2(row.cebo_actual)}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {row.capturados}
+                        {n2(row.capturados)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -2424,16 +2541,16 @@ export default function Lista({
                       {totalesSeguimiento.trampas}
                     </TableCell>
                     <TableCell className={tableStyles.totalCell}>
-                      {totalesSeguimiento.cebo_inicial}
+                      {n2(totalesSeguimiento.cebo_inicial)}
                     </TableCell>
                     <TableCell className={tableStyles.totalCell}>
-                      {totalesSeguimiento.merma}
+                      {n2(totalesSeguimiento.merma)}
                     </TableCell>
                     <TableCell className={tableStyles.totalCell}>
-                      {totalesSeguimiento.cebo_actual}
+                      {n2(totalesSeguimiento.cebo_actual)}
                     </TableCell>
                     <TableCell className={tableStyles.totalCell}>
-                      {totalesSeguimiento.capturados}
+                      {n2(totalesSeguimiento.capturados)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -2441,7 +2558,7 @@ export default function Lista({
             </div>
             <br />
 
-            <h2 className="font-mono text-[1rem] font-bold underline">
+            <h2 className={captionClass}>
               TABLA 7: ANALISIS POR FECHA DE SEGUIMIENTO Y MAPA
             </h2>
             <div className="rounded-md border bg-amber-100 p-4">
@@ -2488,19 +2605,19 @@ export default function Lista({
                         {row.trampas}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {row.cebo_inicial}
+                        {n2(row.cebo_inicial)}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {row.merma}
+                        {n2(row.merma)}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {row.cebo_actual}
+                        {n2(row.cebo_actual)}
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
                         {((row.merma * 100) / row.cebo_inicial).toFixed(1)}%
                       </TableCell>
                       <TableCell className={tableStyles.cell}>
-                        {row.capturados}
+                        {n2(row.capturados)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -2514,13 +2631,13 @@ export default function Lista({
                       {totalesResumen.trampas}
                     </TableCell>
                     <TableCell className={tableStyles.totalCell}>
-                      {totalesResumen.cebo_inicial}
+                      {n2(totalesResumen.cebo_inicial)}
                     </TableCell>
                     <TableCell className={tableStyles.totalCell}>
-                      {totalesResumen.merma}
+                      {n2(totalesResumen.merma)}
                     </TableCell>
                     <TableCell className={tableStyles.totalCell}>
-                      {totalesResumen.cebo_actual}
+                      {n2(totalesResumen.cebo_actual)}
                     </TableCell>
                     <TableCell className={tableStyles.totalCell}>
                       {(
@@ -2530,7 +2647,7 @@ export default function Lista({
                       %
                     </TableCell>
                     <TableCell className={tableStyles.totalCell}>
-                      {totalesResumen.capturados}
+                      {n2(totalesResumen.capturados)}
                     </TableCell>
                   </TableRow>
                   <TableRow className={tableStyles.totalRow}>
@@ -2538,7 +2655,7 @@ export default function Lista({
                       TOTAL
                     </TableCell>
                     <TableCell className={tableStyles.totalNumeric}>
-                      {totalesResumen.cebo_inicial}
+                      {n2(totalesResumen.cebo_inicial)}
                     </TableCell>
                     <TableCell className={tableStyles.totalNumeric}>
                       100%
@@ -2549,7 +2666,7 @@ export default function Lista({
                       MERMA
                     </TableCell>
                     <TableCell className={tableStyles.totalNumeric}>
-                      {totalesResumen.merma}
+                      {n2(totalesResumen.merma)}
                     </TableCell>
                     <TableCell className={tableStyles.totalNumeric}>
                       {(
@@ -2583,7 +2700,7 @@ export default function Lista({
                     },
                   }}
                   // className="h-[300px] w-full"
-                  className="h-[300px]"
+                  className={chartClass}
                 >
                   <BarChart data={alm.data}>
                     <CartesianGrid vertical={false} />
@@ -2602,7 +2719,7 @@ export default function Lista({
 
             {graficosPorMapa.map((item: any, index: number) => (
               <div key={index} className="mb-10">
-                <h3 className="font-mono">
+                <h3 className={captionClass}>
                   GRAFICO: {item.mapa} - PORCENTAJES
                 </h3>
                 <br />
@@ -2613,12 +2730,26 @@ export default function Lista({
                       label: '% Merma',
                     },
                   }}
-                  className="h-[300px]"
+                  className={chartClass}
                   ref={(el) => {
                     graficosPorMapaRefs.current[index] = el;
                   }}
                 >
-                  <BarChart data={item.data}>
+                  <BarChart data={item.data} margin={chartMargin}>
+                    <defs>
+                      <BarGradient
+                        id="grad-inicial"
+                        color={coloresRoedores.inicial.color}
+                      />
+                      <BarGradient
+                        id="grad-merma"
+                        color={coloresRoedores.merma.color}
+                      />
+                      <BarGradient
+                        id="grad-actual"
+                        color={coloresRoedores.actual.color}
+                      />
+                    </defs>
                     <CartesianGrid vertical={false} />
                     <XAxis
                       dataKey="fecha"
@@ -2630,6 +2761,8 @@ export default function Lista({
                         position: 'insideBottom',
                         offset: 0,
                       }}
+                      height={48}
+                      tickMargin={10}
                     />
                     <YAxis
                       domain={[0, 100]}
@@ -2645,54 +2778,63 @@ export default function Lista({
                     <Tooltip formatter={(value: any) => `${value}%`} />
                     <Bar
                       dataKey="merma_porcentaje"
-                      fill={coloresRoedores.merma.color}
+                      fill="url(#grad-merma)"
                       radius={4}
                     >
-                      <LabelList
-                        dataKey="merma_porcentaje"
-                        position="top"
-                        fontSize={12}
-                        // formatter={(value: number) => value.toFixed(2)}
-                      />
+                      {item.data.length <= MAX_LABELS && (
+                        <LabelList
+                          dataKey="merma_porcentaje"
+                          position="top"
+                          fontSize={10}
+                          formatter={(v: any) => n2(v)}
+                        />
+                      )}
                     </Bar>
                     <Bar
                       dataKey="actual_porcentaje"
-                      fill={coloresRoedores.actual.color}
+                      fill="url(#grad-actual)"
                       radius={4}
                     >
-                      <LabelList
-                        dataKey="actual_porcentaje"
-                        position="top"
-                        fontSize={12}
-                        // formatter={(value: number) => value.toFixed(2)}
-                      />
+                      {item.data.length <= MAX_LABELS && (
+                        <LabelList
+                          dataKey="actual_porcentaje"
+                          position="top"
+                          fontSize={10}
+                          formatter={(v: any) => n2(v)}
+                        />
+                      )}
                     </Bar>
                     <Bar
                       dataKey="total_porcentaje"
-                      fill={coloresRoedores.inicial.color}
+                      fill="url(#grad-inicial)"
                       radius={4}
                     >
-                      <LabelList
-                        dataKey="total_porcentaje"
-                        position="top"
-                        fontSize={12}
-                        // formatter={(value: number) => value.toFixed(2)}
-                      />
+                      {item.data.length <= MAX_LABELS && (
+                        <LabelList
+                          dataKey="total_porcentaje"
+                          position="top"
+                          fontSize={10}
+                          formatter={(v: any) => n2(v)}
+                        />
+                      )}
                     </Bar>
                   </BarChart>
                 </ChartContainer>
               </div>
             ))}
             {/* ************** TABLA DE ROEDORES (CALCULAR POR CADA ALMACEN) ****************************** */}
-            <h2 className="font-mono text-[1rem] underline">
+            <h2 className={captionClass}>
               TABLA 8: SEGUIMIENTO PESO DE TRAMPAS
             </h2>
-            <div className="rounded-md border">
+            <div className="overflow-x-auto rounded-md border">
               <Table className={tableStyles.table}>
                 <TableHeader>
                   <TableRow className={tableStyles.header.row}>
                     <TableHead className={tableStyles.header.cell}>
                       Nro Trampa
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Mapa
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
                       Inicial
@@ -2721,13 +2863,16 @@ export default function Lista({
                             {dato.indent}
                           </TableCell>
                           <TableCell className={tableStyles.cell}>
-                            {dato.inicial}
+                            {dato.mapa}
                           </TableCell>
                           <TableCell className={tableStyles.cell}>
-                            {dato.merma}
+                            {n2(dato.inicial)}
                           </TableCell>
                           <TableCell className={tableStyles.cell}>
-                            {dato.actual}
+                            {n2(dato.merma)}
+                          </TableCell>
+                          <TableCell className={tableStyles.cell}>
+                            {n2(dato.actual)}
                           </TableCell>
                           <TableCell className={tableStyles.datestr}>
                             {dato.inicial > 0
@@ -2747,6 +2892,7 @@ export default function Lista({
                         <TableCell className={tableStyles.totalCell}>
                           TOTAL
                         </TableCell>
+                        <TableCell className={tableStyles.totalCell}></TableCell>
                         <TableCell className={tableStyles.totalCell}>
                           {datosRoedores.reduce(
                             (sum, dato) => sum + dato.inicial,
@@ -2777,6 +2923,7 @@ export default function Lista({
                         <TableCell className={tableStyles.totalCell}>
                           TOTAL
                         </TableCell>
+                        <TableCell className={tableStyles.totalCell}></TableCell>
                         <TableCell className={tableStyles.totalNumeric}>
                           {datosRoedores.reduce(
                             (sum, dato) => sum + dato.inicial,
@@ -2791,6 +2938,7 @@ export default function Lista({
                         <TableCell className={tableStyles.totalCell}>
                           MERMA
                         </TableCell>
+                        <TableCell className={tableStyles.totalCell}></TableCell>
                         <TableCell className={tableStyles.totalNumeric}>
                           {datosRoedores.reduce(
                             (sum, dato) => sum + dato.merma,
@@ -2816,6 +2964,7 @@ export default function Lista({
                         <TableCell className={tableStyles.totalCell}>
                           PESO ACTUAL
                         </TableCell>
+                        <TableCell className={tableStyles.totalCell}></TableCell>
                         <TableCell className={tableStyles.totalNumeric}>
                           {datosRoedores.reduce(
                             (sum, dato) => sum + (dato.inicial - dato.merma),
@@ -2841,6 +2990,7 @@ export default function Lista({
                         <TableCell className={tableStyles.totalCell}>
                           MERMA CONSUMO
                         </TableCell>
+                        <TableCell className={tableStyles.totalCell}></TableCell>
                         <TableCell className={tableStyles.totalNumeric}>
                           {datosRoedores.reduce((sum, dato) => {
                             const inicial = dato.inicial;
@@ -2878,6 +3028,7 @@ export default function Lista({
                         <TableCell className={tableStyles.totalCell}>
                           MERMA M.A.
                         </TableCell>
+                        <TableCell className={tableStyles.totalCell}></TableCell>
                         <TableCell className={tableStyles.totalNumeric}>
                           {datosRoedores.reduce((sum, dato) => {
                             const inicial = dato.inicial;
@@ -2914,7 +3065,7 @@ export default function Lista({
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className={tableStyles.totalRow}>
+                      <TableCell colSpan={7} className={tableStyles.totalRow}>
                         Sin resultados
                       </TableCell>
                     </TableRow>
@@ -2928,16 +3079,16 @@ export default function Lista({
             {/* GRÁFICO 3: Comparación Inicial/Merma/Actual (Líneas) */}
             {datosFiltrados.length > 0 && (
               <div>
-                <div className="font-mono">
+                <div className={captionClass}>
                   GRÁFICO: COMPARACIÓN DE PESOS POR TRAMPA
                 </div>
                 <br />
                 <ChartContainer
                   config={chartConfigRoedores}
-                  className="h-[300px]"
+                  className={chartClass}
                   ref={chartRoedoresLineRef}
                 >
-                  <LineChart data={datosFiltrados}>
+                  <LineChart data={datosFiltrados} margin={chartMargin}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       // dataKey="trampa_id"
@@ -2949,6 +3100,8 @@ export default function Lista({
                         position: 'insideBottom',
                         offset: 0,
                       }}
+                      height={48}
+                      tickMargin={10}
                     />
                     <YAxis
                       className="font-bold"
@@ -2968,12 +3121,14 @@ export default function Lista({
                       strokeWidth={2}
                       name="Inicial"
                     >
-                      <LabelList
-                        dataKey="inicial"
-                        position="top"
-                        fontSize={12}
-                        // formatter={(value: number) => value.toFixed(2)}
-                      />
+                      {showLabelsRoedores && (
+                        <LabelList
+                          dataKey="inicial"
+                          position="top"
+                          fontSize={10}
+                          formatter={(v: any) => n2(v)}
+                        />
+                      )}
                     </Line>
                     <Line
                       type="monotone"
@@ -2982,12 +3137,14 @@ export default function Lista({
                       strokeWidth={2}
                       name="Merma"
                     >
-                      <LabelList
-                        dataKey="merma"
-                        position="top"
-                        fontSize={12}
-                        // formatter={(value: number) => value.toFixed(2)}
-                      />
+                      {showLabelsRoedores && (
+                        <LabelList
+                          dataKey="merma"
+                          position="top"
+                          fontSize={10}
+                          formatter={(v: any) => n2(v)}
+                        />
+                      )}
                     </Line>
                     <Line
                       type="monotone"
@@ -2996,12 +3153,14 @@ export default function Lista({
                       strokeWidth={2}
                       name="Actual"
                     >
-                      <LabelList
-                        dataKey="actual"
-                        position="top"
-                        fontSize={12}
-                        // formatter={(value: number) => value.toFixed(2)}
-                      />
+                      {showLabelsRoedores && (
+                        <LabelList
+                          dataKey="actual"
+                          position="top"
+                          fontSize={10}
+                          formatter={(v: any) => n2(v)}
+                        />
+                      )}
                     </Line>
                   </LineChart>
                 </ChartContainer>
@@ -3012,14 +3171,28 @@ export default function Lista({
             {/* GRÁFICO 4: Barras agrupadas por trampa */}
             {datosFiltrados.length > 0 && (
               <div>
-                <div className="font-mono">GRÁFICO: VALORES POR TRAMPA</div>
+                <div className={captionClass}>GRÁFICO: VALORES POR TRAMPA</div>
                 <br />
                 <ChartContainer
                   config={chartConfigRoedores}
-                  className="h-[300px]"
+                  className={chartClass}
                   ref={chartRoedoresBarRef}
                 >
-                  <BarChart data={datosFiltrados}>
+                  <BarChart data={datosFiltrados} margin={chartMargin}>
+                    <defs>
+                      <BarGradient
+                        id="grad-inicial"
+                        color={coloresRoedores.inicial.color}
+                      />
+                      <BarGradient
+                        id="grad-merma"
+                        color={coloresRoedores.merma.color}
+                      />
+                      <BarGradient
+                        id="grad-actual"
+                        color={coloresRoedores.actual.color}
+                      />
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="indent"
@@ -3030,6 +3203,8 @@ export default function Lista({
                         position: 'insideBottom',
                         offset: 0,
                       }}
+                      height={48}
+                      tickMargin={10}
                     />
                     <YAxis
                       className="font-bold"
@@ -3044,42 +3219,48 @@ export default function Lista({
                     <Legend />
                     <Bar
                       dataKey="inicial"
-                      fill={coloresRoedores.inicial.color}
+                      fill="url(#grad-inicial)"
                       radius={4}
                       name="Inicial"
                     >
-                      <LabelList
-                        dataKey="inicial"
-                        position="top"
-                        fontSize={12}
-                        // formatter={(value: number) => value.toFixed(2)}
-                      />
+                      {showLabelsRoedores && (
+                        <LabelList
+                          dataKey="inicial"
+                          position="top"
+                          fontSize={10}
+                          formatter={(v: any) => n2(v)}
+                        />
+                      )}
                     </Bar>
                     <Bar
                       dataKey="merma"
-                      fill={coloresRoedores.merma.color}
+                      fill="url(#grad-merma)"
                       radius={4}
                       name="Merma"
                     >
-                      <LabelList
-                        dataKey="merma"
-                        position="top"
-                        fontSize={12}
-                        // formatter={(value: number) => value.toFixed(2)}
-                      />
+                      {showLabelsRoedores && (
+                        <LabelList
+                          dataKey="merma"
+                          position="top"
+                          fontSize={10}
+                          formatter={(v: any) => n2(v)}
+                        />
+                      )}
                     </Bar>
                     <Bar
                       dataKey="actual"
-                      fill={coloresRoedores.actual.color}
+                      fill="url(#grad-actual)"
                       radius={4}
                       name="Actual"
                     >
-                      <LabelList
-                        dataKey="actual"
-                        position="top"
-                        fontSize={12}
-                        // formatter={(value: number) => value.toFixed(2)}
-                      />
+                      {showLabelsRoedores && (
+                        <LabelList
+                          dataKey="actual"
+                          position="top"
+                          fontSize={10}
+                          formatter={(v: any) => n2(v)}
+                        />
+                      )}
                     </Bar>
                   </BarChart>
                 </ChartContainer>
@@ -3093,15 +3274,27 @@ export default function Lista({
             {/* GRÁFICO 4: Barras agrupadas por trampa */}
             {totalesPorcentajesValues.length > 0 && (
               <div>
-                <div className="mb-4 text-[1rem] font-bold">
-                  GRÁFICO: RESUMEN
-                </div>
+                <div className={captionClass}>GRÁFICO: RESUMEN</div>
                 <ChartContainer
                   config={chartConfigRoedores}
-                  className="h-[300px]"
+                  className={chartClass}
                   ref={chartResumenTrampasRef}
                 >
-                  <BarChart data={totalesPorcentajesValues}>
+                  <BarChart data={totalesPorcentajesValues} margin={chartMargin}>
+                    <defs>
+                      <BarGradient
+                        id="grad-inicial"
+                        color={coloresRoedores.inicial.color}
+                      />
+                      <BarGradient
+                        id="grad-merma"
+                        color={coloresRoedores.merma.color}
+                      />
+                      <BarGradient
+                        id="grad-actual"
+                        color={coloresRoedores.actual.color}
+                      />
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="mes"
@@ -3112,6 +3305,8 @@ export default function Lista({
                         position: 'insideBottom',
                         offset: 0,
                       }}
+                      height={48}
+                      tickMargin={10}
                     />
                     <YAxis
                       className="font-bold"
@@ -3127,42 +3322,48 @@ export default function Lista({
                     <Legend />
                     <Bar
                       dataKey="inicial_por"
-                      fill={coloresRoedores.inicial.color}
+                      fill="url(#grad-inicial)"
                       radius={4}
                       name="Inicial"
                     >
-                      <LabelList
-                        dataKey="inicial_por"
-                        position="top"
-                        fontSize={12}
-                        // formatter={(value: number) => value.toFixed(2)}
-                      />
+                      {showLabelsResumen && (
+                        <LabelList
+                          dataKey="inicial_por"
+                          position="top"
+                          fontSize={10}
+                          formatter={(v: any) => n2(v)}
+                        />
+                      )}
                     </Bar>
                     <Bar
                       dataKey="merma_por"
-                      fill={coloresRoedores.merma.color}
+                      fill="url(#grad-merma)"
                       radius={4}
                       name="Merma"
                     >
-                      <LabelList
-                        dataKey="merma_por"
-                        position="top"
-                        fontSize={12}
-                        // formatter={(value: number) => value.toFixed(2)}
-                      />
+                      {showLabelsResumen && (
+                        <LabelList
+                          dataKey="merma_por"
+                          position="top"
+                          fontSize={10}
+                          formatter={(v: any) => n2(v)}
+                        />
+                      )}
                     </Bar>
                     <Bar
                       dataKey="actual_por"
-                      fill={coloresRoedores.actual.color}
+                      fill="url(#grad-actual)"
                       radius={4}
                       name="Actual"
                     >
-                      <LabelList
-                        dataKey="actual_por"
-                        position="top"
-                        fontSize={12}
-                        // formatter={(value: number) => value.toFixed(2)}
-                      />
+                      {showLabelsResumen && (
+                        <LabelList
+                          dataKey="actual_por"
+                          position="top"
+                          fontSize={10}
+                          formatter={(v: any) => n2(v)}
+                        />
+                      )}
                     </Bar>
                   </BarChart>
                 </ChartContainer>
@@ -3178,16 +3379,16 @@ export default function Lista({
 
           <hr />
 
-          <div className="bg-red-700/10 p-5">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold">Insectocutores</h2>
-              <h2 className="text-[1rem]">Informe de Insectocutores</h2>
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-6 border-l-4 border-rose-500 pl-4">
+              <h2 className="text-2xl font-bold text-slate-900">Insectocutores</h2>
+              <p className="text-sm text-slate-500">Informe de Insectocutores</p>
             </div>
             {/* **************** INSECTOCUTORES POR ALMACEN ************************ */}
-            <h2 className="font-mono text-[1rem] underline">
+            <h2 className={captionClass}>
               TABLA 9: CANTIDAD TOTAL DE INSECTOCUTORES
             </h2>
-            <div className="rounded-md border">
+            <div className="overflow-x-auto rounded-md border">
               <Table className={tableStyles.table}>
                 <TableHeader>
                   <TableRow className={tableStyles.header.row}>
@@ -3219,25 +3420,35 @@ export default function Lista({
             {/* GRÁFICO 1: CANTIDAD Totales por Especie (Barras) */}
             {datosInsectocutores.especies.length > 0 && (
               <div>
-                <div className="font-mono">
+                <div className={captionClass}>
                   GRAFICO: TOTAL DE INSECTOS POR ESPECIE
                 </div>
                 <br />
                 <ChartContainer
                   config={chartConfigInsectos}
-                  className="h-[300px]"
+                  className={chartClass}
                   ref={chartInsectosRef}
                 >
                   <BarChart
                     data={Object.entries(datosInsectocutores.totales).map(
-                      ([especie, total]) => ({
+                      ([especie, total], i) => ({
                         especie,
                         cantidad: total,
-                        fill: chartConfigInsectos[especie]?.color,
+                        fill: `url(#grad-tot-${i})`,
                       }),
                     )}
                     barCategoryGap="20%"
+                    margin={chartMargin}
                   >
+                    <defs>
+                      {Object.keys(datosInsectocutores.totales).map((esp, i) => (
+                        <BarGradient
+                          key={esp}
+                          id={`grad-tot-${i}`}
+                          color={chartConfigInsectos[esp]?.color ?? '#888'}
+                        />
+                      ))}
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="especie"
@@ -3247,6 +3458,8 @@ export default function Lista({
                         position: 'insideBottom',
                         offset: 0,
                       }}
+                      height={48}
+                      tickMargin={10}
                     />
                     <YAxis
                       className="font-bold"
@@ -3262,7 +3475,8 @@ export default function Lista({
                       <LabelList
                         dataKey="cantidad"
                         position="top"
-                        fontSize={12}
+                        fontSize={10}
+                        formatter={(v: any) => n2(v)}
                       />
                     </Bar>
                   </BarChart>
@@ -3274,10 +3488,10 @@ export default function Lista({
             {/* --------------------------- INCIDENCIA ----------------------------------------- */}
             {/* TABLA DE INSECTOCUTORES "INCIDENCIA" */}
             <div>
-              <div className="font-mono text-[1rem] underline">
+              <div className={captionClass}>
                 TABLA 10: INCIDENCIA DE INSECTOS VOLADORES{' '}
               </div>
-              <div className="rounded-md border">
+              <div className="overflow-x-auto rounded-md border">
                 <Table className={tableStyles.table}>
                   <TableHeader>
                     <TableRow className={tableStyles.header.row}>
@@ -3361,13 +3575,13 @@ export default function Lista({
             {/* GRÁFICO INCIDENCIA */}
             {datosInsectocutores.especies.length > 0 && (
               <div>
-                <div className="font-mono">
+                <div className={captionClass}>
                   GRÁFICO DE INCIDENCIA: EVOLUCIÓN DE INSECTOS POR FECHA
                 </div>
                 <br />
                 <ChartContainer
                   config={chartConfigInsectos}
-                  className="h-[300px]"
+                  className={chartClass}
                   ref={chartEvolucionRef}
                 >
                   <BarChart
@@ -3377,7 +3591,17 @@ export default function Lista({
                     }))}
                     barGap={4}
                     barCategoryGap="20%"
+                    margin={chartMargin}
                   >
+                    <defs>
+                      {datosInsectocutores.especies.map((esp, i) => (
+                        <BarGradient
+                          key={esp}
+                          id={`grad-evo-${i}`}
+                          color={chartConfigInsectos[esp]?.color ?? '#888'}
+                        />
+                      ))}
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="fecha"
@@ -3387,6 +3611,8 @@ export default function Lista({
                         position: 'insideBottom',
                         offset: 0,
                       }}
+                      height={48}
+                      tickMargin={10}
                     />
                     <YAxis
                       domain={[0, 100]}
@@ -3401,18 +3627,21 @@ export default function Lista({
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Legend />
-                    {datosInsectocutores.especies.map((especie) => (
+                    {datosInsectocutores.especies.map((especie, i) => (
                       <Bar
                         key={especie}
                         dataKey={especie}
-                        fill={chartConfigInsectos[especie]?.color}
+                        fill={`url(#grad-evo-${i})`}
                         radius={4}
                       >
-                        <LabelList
-                          dataKey={especie}
-                          position="top"
-                          fontSize={12}
-                        />
+                        {showLabelsEvolucion && (
+                          <LabelList
+                            dataKey={especie}
+                            position="top"
+                            fontSize={10}
+                            formatter={(v: any) => n2(v)}
+                          />
+                        )}
                       </Bar>
                     ))}
                   </BarChart>
@@ -3423,10 +3652,10 @@ export default function Lista({
             {/* --------------------------- SEVERIDAD ----------------------------------------- */}
             {/* TABLA DE INSECTOCUTORES "SEVERIDAD" */}
             <div>
-              <div className="font-mono text-[1rem] underline">
+              <div className={captionClass}>
                 TABLA 11: SEVERIDAD DE INSECTOS VOLADORES{' '}
               </div>
-              <div className="rounded-md border">
+              <div className="overflow-x-auto rounded-md border">
                 <Table className={tableStyles.table}>
                   <TableHeader>
                     <TableRow className={tableStyles.header.row}>
@@ -3512,18 +3741,28 @@ export default function Lista({
             {/* GRÁFICO SEVERIDAD */}
             {datosInsectocutores.especies.length > 0 && (
               <div>
-                <div className="font-mono">GRÁFICO DE SEVERIDAD</div>
+                <div className={captionClass}>GRÁFICO DE SEVERIDAD</div>
                 <br />
                 <ChartContainer
                   config={chartConfigInsectos}
-                  className="h-[300px]"
+                  className={chartClass}
                   ref={chartSeveridadRef}
                 >
                   <BarChart
                     data={dataSeveridadPivot}
                     barGap={4}
                     barCategoryGap="20%"
+                    margin={chartMargin}
                   >
+                    <defs>
+                      {datosInsectocutores.datosPorFecha.map((dato, index) => (
+                        <BarGradient
+                          key={dato.fecha}
+                          id={`grad-sev-${index}`}
+                          color={`hsl(${(index * 160) / datosInsectocutores.especies.length}, 60%, 48%)`}
+                        />
+                      ))}
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" />
 
                     {/* AHORA X ES ESPECIE */}
@@ -3536,6 +3775,8 @@ export default function Lista({
                         position: 'insideBottom',
                         offset: 0,
                       }}
+                      height={48}
+                      tickMargin={10}
                     />
 
                     <YAxis
@@ -3558,16 +3799,18 @@ export default function Lista({
                       <Bar
                         key={dato.fecha}
                         dataKey={dato.fecha}
-                        // fill={`hsl(${(index * 360) / datosInsectocutores.datosPorFecha.length},70%,50%)`}
-                        fill={`hsl(${(index * 160) / datosInsectocutores.especies.length}, 60%, 48%)`}
+                        fill={`url(#grad-sev-${index})`}
                         radius={4}
                         name={dato.fecha}
                       >
-                        <LabelList
-                          dataKey={dato.fecha}
-                          position="top"
-                          fontSize={12}
-                        />
+                        {showLabelsSeveridad && (
+                          <LabelList
+                            dataKey={dato.fecha}
+                            position="top"
+                            fontSize={10}
+                            formatter={(v: any) => n2(v)}
+                          />
+                        )}
                       </Bar>
                     ))}
                   </BarChart>
@@ -3576,11 +3819,11 @@ export default function Lista({
             )}
           </div>
           <div className="mt-10">
-            <div className="text-2xl font-bold underline">
+            <h2 className="mb-4 text-2xl font-bold text-slate-900">
               ACCIONES COMPLEMENTARIAS
-            </div>
-            {acciones.map((dato, index) => (
-              <div className="">
+            </h2>
+            {acciones.map((dato) => (
+              <div key={dato.id} className="mb-6">
                 <div>
                   Fecha:{' '}
                   <span>
@@ -3590,10 +3833,16 @@ export default function Lista({
                 <div>
                   Descripcion: <span>{dato.descripcion}</span>
                 </div>
-                <div>
-                  IMAGENES:
+                <div className="mt-2 flex flex-wrap gap-2">
                   {dato.imagenes.map((img) => (
-                    <img src={img.imagen} alt="" width={300} />
+                    <img
+                      key={img.id}
+                      src={img.imagen}
+                      alt={`Imagen de la acción del ${new Date(dato.created_at).toLocaleDateString('es-ES')}`}
+                      width={300}
+                      loading="lazy"
+                      className="h-auto rounded-md border"
+                    />
                   ))}
                 </div>
               </div>

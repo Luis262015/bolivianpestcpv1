@@ -22,4 +22,9 @@ class Cronograma extends Model
     {
         return $this->belongsTo(TipoSeguimiento::class);
     }
+
+    public function tecnico()
+    {
+        return $this->belongsTo(User::class, 'tecnico_id');
+    }
 }

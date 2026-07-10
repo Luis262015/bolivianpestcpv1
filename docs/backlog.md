@@ -1,36 +1,36 @@
 # BACKLOG
 
 1. Agenda
-   1. Notificaciones por horario de tarea (Notificaciones de reuniones)
+   1. Notificaciones por horario de tarea (Notificaciones de reuniones) -- OK
 2. Contratos
-   1. Funcionalidad de eliminar ALMACEN desde la pantalla de edición
-   2. FEATURE: Al momento de editar, agregar funcionalidad de agregar tambien fechas de visitas
+   1. Funcionalidad de eliminar ALMACEN desde la pantalla de edición -- OK
+   2. FEATURE: Al momento de editar, agregar funcionalidad de agregar tambien fechas de visitas -- OK
    3. Ver la mejor manera de manejar renegociaciones (mas que todo por las fechas)
-   4. Notificación de vencimiento de contrato
+   4. Notificación de vencimiento de contrato -- OK
    5. Ver si se puede copiar fechas
    6. Hacer que sea mas fácil el ingreso de fechas
 3. Seguimientos
-   1. Notificación de vencimiento de contrato
-   2. Agregar EDITAR seguimiento
-   3. Agregar funcionalidad de descuento de STOCK de uso de producto
-   4. En el paso 1, en lugar de poner numero de tarea de cronograma, hacer una lista de las tareas pendientes con los siguinetes datos (id,nombre tipo,fecha)
-   5. BUG: Firmas → No se puede soltar el punto se mantiene
-   6. Solo nombre de producto usado en PDF Seguimiento
-   7. Ajustar las imagenes en PDF
-   8. Agregar descripciones de campos en PASO PRODUCTOS
-   9. Agregar UNIDAD en paso de productos
+   1. Notificación de vencimiento de contrato -- OK
+   2. Agregar EDITAR seguimiento -- OK
+   3. Agregar funcionalidad de descuento de STOCK de uso de producto -- OK
+   4. En el paso 1, en lugar de poner numero de tarea de cronograma, hacer una lista de las tareas pendientes con los siguinetes datos (id,nombre tipo,fecha) -- OK
+   5. BUG: Firmas → No se puede soltar el punto se mantiene -- OK
+   6. Solo nombre de producto usado en PDF Seguimiento -- OK
+   7. Ajustar las imagenes en PDF -- OK
+   8. Agregar descripciones de campos en PASO PRODUCTOS -- OK
+   9. Agregar UNIDAD en paso de productos -- OK
 4. Cronogramas
-   1. Revisar: CRONOGRAMA, cuando se mueve una tarea desaparece
-   2. Se debe poder mover tareas entre meses
+   1. Revisar: CRONOGRAMA, cuando se mueve una tarea desaparece -- OK
+   2. Se debe poder mover tareas entre meses -- OK
 5. Estados Financieros
-   1. Lista de cierres mensuales
+   1. Lista de cierres mensuales -- OK
    2. Botón vista previa de cierre
    3. Botón crear cierre
 6. Productos
-   1. Intentar pasar a MODAL
-   2. Notificaciones con stock bajo
-   3. Notificaciones cerca a vencimiento
-   4. Que quede claro la parte de Stock mínimo y Unidad
+   1. Intentar pasar a MODAL -- OK
+   2. Notificaciones con stock bajo -- OK
+   3. Notificaciones cerca a vencimiento -- OK
+   4. Que quede claro la parte de Stock mínimo y Unidad -- OK
 7. GENERAL
    1. MOSTRAR Fechas en todas las tablas
 8. DASHBOARD
@@ -42,30 +42,61 @@
    1. Agregar QR de control, para verificación de autenticidad
 10. Mapas
     1. FEATURE: Tooltip con los siguientes datos en cada trampa: Fecha de instalación, Tipo Trampa, Resultado de ultima revisión, Estado (activa, vacía, reemplazada), cantidad de capturas
-    2. Agregar PISOS
-    3. Atajo de teclado para activa o desactivar PAN (Se podria usar Ctrl, Otra opción es usar la rueda del ratón)
-    4. Probar LIMPIAR y GUARDAR
-    5. Se debe poder GUARDAR el TAMAÑO de Trampa seleccionado y guardado
+    2. Agregar PISOS -- OK
+    3. Atajo de teclado para activa o desactivar PAN (Se podria usar Ctrl, Otra opción es usar la rueda del ratón) -- OK
+    4. Probar LIMPIAR y GUARDAR -- OK
+    5. Se debe poder GUARDAR el TAMAÑO de Trampa seleccionado y guardado -- OK
 11. Ventas
     1. Despues de guardar venta mostrar mensaje Toast
 12. Compras
     1. Despues de guardar compra, mostrar mensaje Toast y volver formulario crear y limpiar datos
 13. Cuentas por cobrar
-    1. Notificación de cuota por cobrar
+    1. Notificación de cuota por cobrar -- OK
     2. Agregar nombre y descripciones necesarias en lista
 14. Cuentas por pagar
-    1. Notificación de cuota por pagar
+    1. Notificación de cuota por pagar -- OK
     2. Agregar nombre y descripciones necesarias en lista
 15. LANDING
-    1. Revision de datos y colores
-    2. Revision de footer
-    3. Crear correo para pruebas
+    1. Revision de datos y colores -- OK
+    2. Revision de footer -- OK
+    3. Crear correo para pruebas -- OK
 16. Gastos
     1. Agregar que los gastos se puedan ligar a una empresa o almacén
 17. Informes
-    1. Revisar INSIDENCIAS
-    2. Ver Atrapados
-    3. ver TOTALES como informe en hojas
-    4. ver GRAFICOS como informe en hojas
+    1. Revisar INSIDENCIAS -- OK
+    2. Ver Atrapados -- OK
+    3. ver TOTALES como informe en hojas -- OK
+    4. ver GRAFICOS como informe en hojas -- OK
 18. Usuarios
-    1. Agregar generador de PASS
+    1. Agregar generador de PASS -- OK
+
+PENDIENTES (3 JUL 2026):
+
+- SEGUIMIENTOS
+  - En nuevo seguimiento: las cantidades de MERMA no debe ser mayor a TOTAL, y la MERMA nunca debe ser negativa -- OK
+  - Revisar el cambio de trampas, revisar las trampas eliminadas
+  - Los datos de las trampas deben ser mas notorios -- OK
+  - REVISAR: Seguimientos se duplican
+- INFORMES
+  - Valores con muchos decimales -- OK
+  - Al guardar en WORD la pagina se mueve sola -- OK
+  - Arreglar imagen de GRAFICO 3 -- OK
+  - En WORD no salen las imagenes de seguimientos (insect, desrat) -- OK
+  - Imagenes de ASPERCION y FUMIGACION deben estar por separado
+  - Agregar grafico de MAPAS al final del informe -- OK
+  - Mejorar el grafico, darle mas detalle para que sea mas visible y llamativo -- OK
+  - Agregar informacion de los resultados (descripcion de los resultados)
+  - SE PODRIA AGREGAR UNA PLANTILLA PARA CREAR INFORMES
+- CRONOGRAMAS
+  - Revisar que se vea mejor la informacion -- OK
+  - Agregar TAREAS ESPORADICAS -- OK
+- COSTOS DE OPERACION
+  - Tabla de COSTOS
+  - Facturacion
+  - Como cobrar una cuenta por COBRAR
+- PERMISOS
+  - Los permisos deben ser mas granulares
+  - Se podria agregar un Onboarding para los clientes en lugar de crear directamente el usuario -- X
+  - Quitar EDITAR en seguimientos para cuentas de clientes
+  - CLIENTE: SOlo debe ver nombre de productos y no empaque
+  - TECNICOS: No debe poder manejar trampas, no debe poder tocar ninguna informacion sensible

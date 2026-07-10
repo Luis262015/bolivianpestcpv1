@@ -6,6 +6,7 @@ use App\Models\Accion;
 use App\Models\Almacen;
 use App\Models\Empresa;
 use App\Models\InformeArchivo;
+use App\Models\Mapa;
 use App\Models\Seguimiento;
 use App\Models\SeguimientoImage;
 use App\Models\Trampa;
@@ -13,6 +14,7 @@ use App\Models\TrampaRoedorSeguimiento;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
@@ -41,46 +43,43 @@ class InformesController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        $esCliente = $user->hasRole('cliente');
 
-        $empresasDelUsuario = [];
-        if ($user->hasRole('cliente')) {
-            $empresaIds         = $user->empresas->pluck('id');
-            $empresas           = Empresa::select(['id', 'nombre'])->whereIn('id', $empresaIds)->get();
-            $empresasDelUsuario = $empresaIds->all();
-        } else {
-            $empresas = Empresa::select('id', 'nombre')->get();
-        }
+        // Sin hidratar modelos Empresa completos.
+        $empresasDelUsuario = $esCliente ? $user->empresas()->pluck('empresas.id')->all() : [];
+
+        $empresas = $esCliente
+            ? Empresa::select('id', 'nombre')->whereIn('id', $empresasDelUsuario)->get()
+            : Empresa::select('id', 'nombre')->get();
 
         $almacenes = [];
-        if ($request->empresa_id) {
-            $almacenes = Almacen::where('empresa_id', $request->empresa_id)
+        if ($request->filled('empresa_id')) {
+            $almacenes = Almacen::where('empresa_id', $request->integer('empresa_id'))
                 ->select('id', 'nombre')
                 ->get();
         }
 
-        $seguimientos  = [];
+        $seguimientos   = [];
         $trampas_insect = 0;
-        $trampas_rat   = 0;
-        $totales       = [];
-        $acciones      = [];
+        $trampas_rat    = 0;
+        $totales        = [];
+        $acciones       = [];
 
         if ($request->filled('buscar') && $request->almacen_id && $request->fecha_inicio && $request->fecha_fin) {
-            $request->validate([
-                'empresa_id' => 'required|integer|exists:empresas,id',
+            $validated = $request->validate([
+                'empresa_id'   => 'required|integer|exists:empresas,id',
+                'almacen_id'   => 'required|integer|exists:almacenes,id',
+                'fecha_inicio' => 'required|date',
+                'fecha_fin'    => 'required|date|after_or_equal:fecha_inicio',
             ]);
 
-            // Evitar IDOR: el cliente solo puede consultar almacenes de sus empresas.
-            if ($user->hasRole('cliente')) {
-                $almacenValido = Almacen::where('id', $request->almacen_id)
-                    ->whereIn('empresa_id', $empresasDelUsuario)
-                    ->exists();
-                if (! $almacenValido) {
-                    abort(403);
-                }
-            }
+            $almacenId = $validated['almacen_id'];
 
-            $fechaInicio = $request->fecha_inicio . ' 00:00:00';
-            $fechaFin    = $request->fecha_fin . ' 23:59:59';
+            // Evitar IDOR: el cliente solo puede consultar almacenes de sus empresas.
+            $this->autorizarAlmacen($request, $almacenId);
+
+            $fechaInicio = Carbon::parse($validated['fecha_inicio'])->startOfDay();
+            $fechaFin    = Carbon::parse($validated['fecha_fin'])->endOfDay();
 
             $seguimientos = Seguimiento::with([
                 'almacen',
@@ -90,20 +89,20 @@ class InformesController extends Controller
                 'tipoSeguimiento',
                 'user',
             ])
-                ->where('almacen_id', $request->almacen_id)
+                ->where('almacen_id', $almacenId)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                 ->orderBy('created_at')
                 ->get(['id', 'tipo_seguimiento_id', 'user_id', 'created_at', 'encargado_nombre', 'encargado_cargo', 'almacen_id', 'cronograma_id']);
 
             $acciones = Accion::with(['accionTrampas.trampa', 'imagenes'])
-                ->where('almacen_id', $request->almacen_id)
+                ->where('almacen_id', $almacenId)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                 ->orderBy('created_at')
                 ->get();
 
             $totales = TrampaRoedorSeguimiento::query()
                 ->join('seguimientos', 'seguimientos.id', '=', 'trampa_roedor_seguimientos.seguimiento_id')
-                ->where('seguimientos.almacen_id', $request->almacen_id)
+                ->where('seguimientos.almacen_id', $almacenId)
                 ->whereBetween('seguimientos.created_at', [$fechaInicio, $fechaFin])
                 ->selectRaw("
                     DATE_FORMAT(seguimientos.created_at, '%Y-%m') as mes,
@@ -118,14 +117,15 @@ class InformesController extends Controller
                 ->orderBy('mes')
                 ->get();
 
-            $trampas        = Trampa::where('almacen_id', $request->almacen_id)->get();
-            $trampas_insect = $trampas->where('trampa_tipo_id', 2)->count();
-            $trampas_rat    = $trampas->where('trampa_tipo_id', '!=', 2)->count();
+            // Conteo en BD en vez de traer todas las trampas y contarlas en PHP.
+            $trampas_insect = Trampa::where('almacen_id', $almacenId)->where('trampa_tipo_id', 2)->count();
+            $trampas_rat    = Trampa::where('almacen_id', $almacenId)->where('trampa_tipo_id', '!=', 2)->count();
         }
 
-        $archivosQuery = InformeArchivo::with(['empresa', 'user'])->orderBy('created_at', 'desc');
+        $archivosQuery = InformeArchivo::with(['empresa:id,nombre', 'user:id,name'])
+            ->orderByDesc('created_at');
 
-        if ($user->hasRole('cliente') && count($empresasDelUsuario) > 0) {
+        if ($esCliente) {
             $archivosQuery->whereIn('empresa_id', $empresasDelUsuario);
         }
 
@@ -161,6 +161,9 @@ class InformesController extends Controller
             'almacen_id'   => 'required|integer|exists:almacenes,id',
         ]);
 
+        // El cliente solo puede consultar imágenes de sus almacenes.
+        $this->autorizarAlmacen($request, $validated['almacen_id']);
+
         return response()->json([
             'imagenes' => $this->conseguirImagenes(
                 Carbon::parse($validated['fecha_inicio'])->startOfDay(),
@@ -172,7 +175,7 @@ class InformesController extends Controller
 
     public function storeWord(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'almacen_id'        => 'required|integer|exists:almacenes,id',
             'fecha_inicio'      => 'required|date',
             'fecha_fin'         => 'required|date|after_or_equal:fecha_inicio',
@@ -180,15 +183,23 @@ class InformesController extends Controller
             'seguimiento_ids.*' => 'integer|exists:seguimientos,id',
         ]);
 
-        $fechaInicio = $request->fecha_inicio . ' 00:00:00';
-        $fechaFin    = $request->fecha_fin . ' 23:59:59';
+        $almacenId = $validated['almacen_id'];
+
+        // El cliente solo puede generar informes de sus almacenes.
+        $this->autorizarAlmacen($request, $almacenId);
+
+        $fechaInicio = Carbon::parse($validated['fecha_inicio'])->startOfDay();
+        $fechaFin    = Carbon::parse($validated['fecha_fin'])->endOfDay();
 
         $acciones = Accion::with(['accionTrampas.trampa', 'imagenes'])
-            ->where('almacen_id', $request->almacen_id)
+            ->where('almacen_id', $almacenId)
             ->whereBetween('created_at', [$fechaInicio, $fechaFin])
             ->orderBy('created_at')
             ->get();
 
+        // Los seguimientos se acotan al almacén reportado: no basta con que el
+        // id exista, debe pertenecer a este almacén (evita mezclar datos de
+        // otras empresas pasando ids ajenos).
         $seguimientos = Seguimiento::with([
             'almacen',
             'insectocutores.especie',
@@ -198,7 +209,10 @@ class InformesController extends Controller
             'images',
             'tipoSeguimiento',
             'metodos',
-        ])->whereIn('id', $request->seguimiento_ids)->get();
+        ])
+            ->where('almacen_id', $almacenId)
+            ->whereIn('id', $validated['seguimiento_ids'])
+            ->get();
 
         $datosTabla   = $this->procesarDatosTrampas($seguimientos);
         $datosTablaX1 = $this->procesarDatosReporte($seguimientos);
@@ -210,7 +224,7 @@ class InformesController extends Controller
         $chart2 = $this->saveBase64Image($request->chart2, 'chart2');
         $chart5 = $this->saveBase64Image($request->chart5, 'chart5');
 
-        $almacen       = Almacen::with('empresa')->find($request->almacen_id);
+        $almacen       = Almacen::with('empresa:id,nombre')->findOrFail($almacenId);
         $empresaNombre = $almacen->empresa->nombre ?? '';
         $almacenNombre = $almacen->nombre ?? '';
 
@@ -289,6 +303,8 @@ class InformesController extends Controller
         $section->addText('Se cumplió con el seguimiento de las ' . $totalTrampasRoedores . ' unidades de control de roedores procediendo al pesaje de los cebos de las trampas, a continuación se muestran los cuadros resúmenes de estas actividades.', 'fuente_normal', $justified);
         $section->addText('Los cuadros muestran los pesos obtenidos por fechas de seguimiento, se verifica el peso total la merma y peso actual de las ' . $totalTrampasRoedores . ' unidades de control de roedores.', 'fuente_normal', $justified);
 
+        $this->agregaMapasDelInforme($section, $seguimientos);
+
         $this->agregaTabla4($section, $datosPorMapa);
 
         $section->addText('La Grafica 2 muestra la cantidad de cebo que debe ingerir un roedor según los ingredientes activos para que se cumpla la DL50 (dosis letal media) y pueda ser eliminado. Corroborando que el ingrediente activo BRODIFACOUM es el mas efectivo con un consumo minimo.', 'fuente_normal', $justified);
@@ -327,6 +343,10 @@ class InformesController extends Controller
             $this->agregaTablaSeveridad($section, $especies, $datosPorFecha, $chart5);
 
             $section->addText('Los resultados de la severidad para el período ' . $periodoTexto . ' muestran en promedio una concentración muy baja de ' . $textoEspecies . ', porcentajes que para fines de análisis no se tomarán en cuenta ya que no afectan a la producción en el almacén ' . $almacenNombre . '.', 'fuente_normal', $justified);
+
+            // Registro fotográfico de los seguimientos de insectocutores.
+            $this->agregaFotosSeguimientos($section, $seguimientos, 3);
+
             $section->addTextBreak(2);
         }
         // FINALIZA: INSECTOCUTORES
@@ -350,15 +370,23 @@ class InformesController extends Controller
         $this->agregaActividadesExtras($section, $acciones);
         $this->pie($section, $request);
 
-        IOFactory::createWriter($phpWord, 'Word2007')->save(storage_path('app/informe.docx'));
+        // Archivo por usuario: evita que la descarga de un usuario devuelva el
+        // informe recién generado por otro (antes era un único archivo global).
+        IOFactory::createWriter($phpWord, 'Word2007')->save($this->informeTmpPath('informe.docx'));
+
+        // Los PNG temporales de los gráficos ya quedaron embebidos; se limpian.
+        $this->limpiarTemporalesCharts();
 
         return response()->json(['ok' => true]);
     }
 
     public function downloadWord()
     {
-        $nombreArchivo = 'informe_' . now()->format('dmY_His') . '.docx';
-        return response()->download(storage_path('app/informe.docx'), $nombreArchivo);
+        $path = $this->informeTmpPath('informe.docx');
+        if (!file_exists($path)) {
+            abort(404);
+        }
+        return response()->download($path, 'informe_' . now()->format('dmY_His') . '.docx');
     }
 
     // -------------------------------------------------------------------------
@@ -432,14 +460,67 @@ class InformesController extends Controller
         $section->addTextBreak(1);
     }
 
+    /**
+     * Autoriza el acceso de un cliente a un almacén: debe pertenecer a una de
+     * sus empresas. El staff pasa sin restricción.
+     */
+    private function autorizarAlmacen(Request $request, $almacenId): void
+    {
+        $user = $request->user();
+        if (!$user->hasRole('cliente')) {
+            return;
+        }
+
+        $empresaId = Almacen::whereKey($almacenId)->value('empresa_id');
+        if (!$user->empresas()->where('empresas.id', $empresaId)->exists()) {
+            abort(403);
+        }
+    }
+
+    /**
+     * Ruta de un archivo temporal de informe, aislada por usuario para que la
+     * generación/descarga de un usuario no pise ni exponga la de otro.
+     */
+    private function informeTmpPath(string $name): string
+    {
+        $dir = storage_path('app/informes-tmp/' . (Auth::id() ?? 'anon'));
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        return $dir . '/' . $name;
+    }
+
+    /**
+     * Borra los PNG temporales de gráficos del usuario (no el .docx, que la
+     * descarga posterior todavía necesita).
+     */
+    private function limpiarTemporalesCharts(): void
+    {
+        foreach (glob($this->informeTmpPath('chart*.png')) ?: [] as $file) {
+            @unlink($file);
+        }
+        // Mapas renderizados con trampas embebidos en el informe.
+        foreach (glob($this->informeTmpPath('mapa_*.png')) ?: [] as $file) {
+            @unlink($file);
+        }
+    }
+
     private function saveBase64Image(?string $base64, string $name): ?string
     {
         if (!$base64) {
             return null;
         }
 
-        $data = base64_decode(substr($base64, strpos($base64, ',') + 1));
-        $path = storage_path("app/{$name}.png");
+        $comma = strpos($base64, ',');
+        $data  = base64_decode($comma !== false ? substr($base64, $comma + 1) : $base64, true);
+
+        // Solo se acepta contenido que sea realmente una imagen.
+        if ($data === false || @getimagesizefromstring($data) === false) {
+            return null;
+        }
+
+        $path = $this->informeTmpPath($name . '.png');
         file_put_contents($path, $data);
 
         return $path;
@@ -910,10 +991,21 @@ class InformesController extends Controller
         }
     }
 
-    private function agregaFotosSeguimientos($section, $seguimientos): void
+    private function agregaFotosSeguimientos($section, $seguimientos, int $tipo = 1): void
     {
         foreach ($seguimientos as $value) {
-            if ($value->tipo_seguimiento_id != 1) {
+            if ($value->tipo_seguimiento_id != $tipo) {
+                continue;
+            }
+
+            $paths = $value->images
+                ->filter(fn($v) => !empty($v->imagen) && file_exists(public_path($v->imagen)) && is_file(public_path($v->imagen)))
+                ->map(fn($v) => public_path($v->imagen))
+                ->values()
+                ->toArray();
+
+            // Sin imágenes válidas no se imprime el encabezado del seguimiento.
+            if (empty($paths)) {
                 continue;
             }
 
@@ -922,14 +1014,167 @@ class InformesController extends Controller
                 ['bold' => true, 'size' => 11, 'underline' => 'single']
             );
 
-            $paths = $value->images
-                ->filter(fn($v) => !empty($v->imagen) && file_exists(public_path($v->imagen)) && is_file(public_path($v->imagen)))
-                ->map(fn($v) => public_path($v->imagen))
-                ->values()
-                ->toArray();
-
             $this->addImagesGrid($section, $paths);
         }
+    }
+
+    /**
+     * Inserta los mapas relacionados con las trampas del informe (roedores e
+     * insectocutores) con sus trampas dibujadas sobre el plano. Cada mapa se
+     * muestra una sola vez.
+     */
+    private function agregaMapasDelInforme($section, $seguimientos): void
+    {
+        // IDs de mapas involucrados en las trampas del informe.
+        $mapaIds = collect();
+        foreach ($seguimientos as $seg) {
+            foreach ($seg->roedores as $r) {
+                if ($r->trampa && $r->trampa->mapa_id) {
+                    $mapaIds->push($r->trampa->mapa_id);
+                }
+            }
+            foreach ($seg->insectocutores as $i) {
+                if ($i->trampa && $i->trampa->mapa_id) {
+                    $mapaIds->push($i->trampa->mapa_id);
+                }
+            }
+        }
+
+        $mapaIds = $mapaIds->filter()->unique()->values();
+        if ($mapaIds->isEmpty()) {
+            return;
+        }
+
+        // Se cargan los mapas con TODAS sus trampas activas (no solo las del
+        // informe) para dibujar el plano completo, igual que el editor.
+        $mapas = Mapa::with(['trampas' => fn($q) => $q->where('estado', '!=', 'inactivo')])
+            ->whereIn('id', $mapaIds)
+            ->orderBy('titulo')
+            ->get()
+            ->filter(fn($m) => !empty($m->background)
+                && file_exists(public_path($m->background))
+                && is_file(public_path($m->background)));
+
+        if ($mapas->isEmpty()) {
+            return;
+        }
+
+        $this->addSectionTitle($section, 'Mapas de ubicacion de unidades de control');
+
+        foreach ($mapas as $mapa) {
+            $png = $this->renderMapaConTrampas($mapa);
+            if (!$png) {
+                continue;
+            }
+
+            $section->addText(
+                strtoupper($mapa->titulo ?? ''),
+                ['bold' => true, 'size' => 11, 'color' => self::C_BLUE, 'name' => 'Calibri'],
+                ['spaceBefore' => 120, 'spaceAfter' => 60]
+            );
+            $this->addImageSafe($section, $png, $this->getProportionalImageOptions($png, 480, 620));
+            $section->addTextBreak(1);
+        }
+
+        $section->addTextBreak(1);
+    }
+
+    /**
+     * Dibuja el plano de fondo de un mapa (estirado a 1000x700, igual que el
+     * editor) con sus trampas superpuestas: un círculo del color del tipo con
+     * el identificador. Devuelve la ruta del PNG temporal o null si falla.
+     */
+    private function renderMapaConTrampas($mapa): ?string
+    {
+        $bgPath = public_path($mapa->background);
+        $raw    = @file_get_contents($bgPath);
+        if ($raw === false) {
+            return null;
+        }
+
+        $bg = @imagecreatefromstring($raw);
+        if ($bg === false) {
+            return null;
+        }
+
+        // Mismas dimensiones que el lienzo del editor (CanvasEditor.tsx).
+        $W = 1000;
+        $H = 700;
+
+        $canvas = imagecreatetruecolor($W, $H);
+        imagealphablending($canvas, true);
+        imagefilledrectangle($canvas, 0, 0, $W, $H, imagecolorallocate($canvas, 255, 255, 255));
+
+        // El fondo se estira al lienzo, tal como hace el editor con drawImage.
+        imagecopyresampled($canvas, $bg, 0, 0, 0, 0, $W, $H, imagesx($bg), imagesy($bg));
+        imagedestroy($bg);
+
+        $radio = (int) max(9, ((int) $mapa->trap_size) / 2);
+
+        // Colores por tipo de trampa (idénticos a TRAP_TYPE_COLORS del editor).
+        $colores = [
+            1 => [0xef, 0x44, 0x44],
+            2 => [0x3b, 0x82, 0xf6],
+            3 => [0x22, 0xc5, 0x5e],
+            4 => [0xf5, 0x9e, 0x0b],
+            5 => [0xa8, 0x55, 0xf7],
+        ];
+        $porDefecto = [0x6b, 0x72, 0x80];
+
+        $blanco   = imagecolorallocate($canvas, 255, 255, 255);
+        $fontPath = base_path('vendor/dompdf/dompdf/lib/fonts/DejaVuSans-Bold.ttf');
+        $hayFont  = file_exists($fontPath);
+        $fontSize = (float) max(8, round($radio * 0.85));
+
+        foreach ($mapa->trampas as $t) {
+            if ($t->posx === null || $t->posy === null) {
+                continue;
+            }
+
+            $cx = (int) round($t->posx);
+            $cy = (int) round($t->posy);
+
+            [$r, $g, $b] = $colores[$t->trampa_tipo_id] ?? $porDefecto;
+            $color = imagecolorallocate($canvas, $r, $g, $b);
+
+            $texto = (string) ($t->identificador ?? '');
+
+            // Sin identificador: solo el círculo del color del tipo.
+            if ($texto === '') {
+                imagefilledellipse($canvas, $cx, $cy, ($radio + 3) * 2, ($radio + 3) * 2, $blanco);
+                imagefilledellipse($canvas, $cx, $cy, $radio * 2, $radio * 2, $color);
+                continue;
+            }
+
+            if ($hayFont) {
+                $bbox  = imagettfbbox($fontSize, 0, $fontPath, $texto);
+                $ancho = $bbox[2] - $bbox[0];
+                $alto  = $bbox[1] - $bbox[7];
+            } else {
+                $ancho = imagefontwidth(4) * strlen($texto);
+                $alto  = imagefontheight(4);
+            }
+
+            // "Pastilla" que se adapta al largo del identificador para que el
+            // texto siempre quede contenido y legible.
+            $pw = (int) max($radio * 2, $ancho + 16);
+            $ph = (int) max($radio * 2, $alto + 10);
+
+            imagefilledellipse($canvas, $cx, $cy, $pw + 6, $ph + 6, $blanco); // halo
+            imagefilledellipse($canvas, $cx, $cy, $pw, $ph, $color);
+
+            if ($hayFont) {
+                imagettftext($canvas, $fontSize, 0, $cx - (int) round($ancho / 2), $cy + (int) round($alto / 2), $blanco, $fontPath, $texto);
+            } else {
+                imagestring($canvas, 4, $cx - (int) round($ancho / 2), $cy - (int) round($alto / 2), $texto, $blanco);
+            }
+        }
+
+        $path = $this->informeTmpPath('mapa_' . $mapa->id . '.png');
+        imagepng($canvas, $path);
+        imagedestroy($canvas);
+
+        return $path;
     }
 
     private function agregaTabla1($section, array $datosTabla): void

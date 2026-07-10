@@ -48,6 +48,8 @@ import {
   Clock,
   GripVertical,
   Plus,
+  User as UserIcon,
+  Warehouse,
   XCircle,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -67,6 +69,12 @@ interface Task {
   status: TaskStatus;
   user_id: number;
   almacen_id?: number;
+  tipo_seguimiento_id?: number | null;
+}
+
+interface TipoSeguimiento {
+  id: number;
+  nombre: string;
 }
 
 interface Empresa {
@@ -125,6 +133,8 @@ export default function Lista() {
     usuarios,
     tareas: initialTasks,
     filters,
+    esporadicoAlmacenId,
+    tiposSeguimiento = [],
   } = props;
 
   // console.log(empresas);
@@ -140,6 +150,7 @@ export default function Lista() {
   const [taskColor, setTaskColor] = useState(COLORS[0]);
   const [taskStatus, setTaskStatus] = useState<TaskStatus>('pendiente');
   const [taskAlmacenId, setTaskAlmacenId] = useState<number>(0);
+  const [taskTipoId, setTaskTipoId] = useState<number | ''>('');
 
   const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
   const [selectedEmpresaId, setSelectedEmpresaId] = useState<number | null>(
@@ -310,6 +321,7 @@ export default function Lista() {
         setTaskTitle(task.title);
         setTaskColor(task.color);
         setTaskStatus(task.status);
+        setTaskTipoId(task.tipo_seguimiento_id ?? '');
         setTaskAlmacenId(Number(task.almacen_id));
         setSelectedUserId(task.user_id);
         setSelectedDate(new Date(task.date + 'T00:00:00'));
@@ -322,6 +334,7 @@ export default function Lista() {
         setTaskTitle('');
         setTaskColor(COLORS[0]);
         setTaskStatus('pendiente');
+        setTaskTipoId('');
         setTaskAlmacenId(0);
         setSelectedUserId('');
         setSelectedDate(date || null);
@@ -335,12 +348,33 @@ export default function Lista() {
     }
   };
 
+  // Enfoque desde una notificación (?focus=ID): cuando ya están cargadas las
+  // tareas del almacén, salta al mes de esa tarea y —si es admin— abre su
+  // detalle para indicar explícitamente a qué registro se refiere. Una sola vez.
+  const focusHandledRef = useRef(false);
+  useEffect(() => {
+    if (focusHandledRef.current) return;
+    const focusId = new URLSearchParams(window.location.search).get('focus');
+    if (!focusId) return;
+
+    const task = tasks.find((t) => String(t.id) === focusId);
+    if (!task) return; // todavía no llegan las tareas del almacén
+
+    focusHandledRef.current = true;
+    setCurrentDate(new Date(task.date + 'T00:00:00'));
+    if (hasRole('admin') || hasRole('superadmin')) {
+      openTaskDialog(undefined, task);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks]);
+
   const saveTask = () => {
     if (
       !selectedDate ||
       !taskTitle.trim() ||
       !selectedUserId ||
-      !selectedAlmacenId
+      !selectedAlmacenId ||
+      !taskTipoId
     )
       return;
 
@@ -366,6 +400,7 @@ export default function Lista() {
       tecnico_id: selectedUserId,
       almacen_id: selectedAlmacenId,
       empresa_id: selectedEmpresaId,
+      tipo_seguimiento_id: taskTipoId,
       // empresa_id ya no es necesario enviarlo si el backend lo deduce del almacén
     };
 
@@ -523,7 +558,7 @@ export default function Lista() {
               onDragOver={(e) => handleDragOver(e, dateStr)}
               onDrop={(e) => handleDrop(e, dateStr)}
               className={cn(
-                'flex min-h-24 flex-col gap-1 rounded-md border p-1 transition-colors',
+                'flex min-h-28 flex-col gap-1 rounded-md border p-1 transition-colors',
                 isToday && 'ring-2 ring-primary',
                 dragOverRef.current === dateStr && 'bg-muted',
                 puedeCrearTarea
@@ -545,6 +580,10 @@ export default function Lista() {
                   const user = usuarios.find(
                     (u: Usuario) => u.id === task.user_id,
                   );
+                  const almacen = almacenes.find(
+                    (a: Almacen) => a.id === task.almacen_id,
+                  );
+                  const statusInfo = STATUS_CONFIG[task.status];
                   return (
                     <div
                       key={task.id}
@@ -554,40 +593,55 @@ export default function Lista() {
                         e.stopPropagation();
                         openTaskDialog(undefined, task);
                       }}
+                      title={`#${task.id} · ${task.title}`}
                       className={cn(
-                        'group flex cursor-move items-center gap-1.5 rounded p-1.5 text-xs text-white shadow-sm',
+                        'group flex cursor-move flex-col gap-1 rounded-md p-1.5 text-xs text-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md',
                         task.color,
                       )}
                     >
-                      <GripVertical className="h-3.5 w-3.5 opacity-70" />
-                      <span className="flex-1 truncate font-medium">
-                        <span className="me-2 bg-black p-1 text-white">
-                          {task.id}
+                      {/* Encabezado: id + estado */}
+                      <div className="flex items-center gap-1">
+                        <GripVertical className="h-3.5 w-3.5 shrink-0 opacity-60" />
+                        <span className="rounded bg-black/40 px-1 py-0.5 text-[10px] font-semibold leading-none">
+                          #{task.id}
                         </span>
-                        {task.title}
-                      </span>
-                      {/* {user && (
-                        <span className="text-[10px] opacity-90">
-                          {user.nombre.split(' ')[0]}
+                        <span className="ml-auto flex items-center gap-0.5 rounded bg-white/90 px-1 py-0.5 leading-none">
+                          <span className={statusInfo.color}>
+                            {statusInfo.icon}
+                          </span>
+                          <span
+                            className={cn(
+                              'text-[10px] font-medium',
+                              statusInfo.color,
+                            )}
+                          >
+                            {statusInfo.label}
+                          </span>
                         </span>
-                      )} */}
-                      <div
-                        className={cn(
-                          'text-xs',
-                          STATUS_CONFIG[task.status].color,
-                        )}
-                      >
-                        {STATUS_CONFIG[task.status].icon}
                       </div>
-                      {/* <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteTask(task.id);
-                        }}
-                        className="opacity-0 transition-opacity group-hover:opacity-100"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button> */}
+
+                      {/* Título completo (hasta 2 líneas) */}
+                      <p className="line-clamp-2 font-semibold leading-tight">
+                        {task.title}
+                      </p>
+
+                      {/* Metadatos: técnico y almacén */}
+                      {(user || almacen) && (
+                        <div className="space-y-0.5 text-[10px] leading-tight opacity-90">
+                          {user && (
+                            <div className="flex items-center gap-1">
+                              <UserIcon className="h-3 w-3 shrink-0" />
+                              <span className="truncate">{user.nombre}</span>
+                            </div>
+                          )}
+                          {almacen && (
+                            <div className="flex items-center gap-1">
+                              <Warehouse className="h-3 w-3 shrink-0" />
+                              <span className="truncate">{almacen.nombre}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -796,6 +850,33 @@ export default function Lista() {
               Ver todas las tareas
             </Button>
 
+            {esporadicoAlmacenId && hasAnyRole(['admin', 'superadmin']) && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const alm = almacenes.find(
+                    (a: Almacen) => a.id === esporadicoAlmacenId,
+                  );
+                  setSelectedEmpresaId(alm?.empresa_id ?? null);
+                  setSelectedAlmacenId(esporadicoAlmacenId);
+                  router.get(
+                    '/cronogramas',
+                    {
+                      empresa_id: alm?.empresa_id,
+                      almacen_id: esporadicoAlmacenId,
+                    },
+                    {
+                      preserveState: true,
+                      replace: true,
+                      preserveScroll: true,
+                    },
+                  );
+                }}
+              >
+                Tarea esporádica
+              </Button>
+            )}
+
             {selectedAlmacenId && (
               <Button
                 variant="outline"
@@ -949,10 +1030,10 @@ export default function Lista() {
                       </h2>
                     )}
 
-                    <MonthlyView />
+                    {MonthlyView()}
                   </div>
                 ) : (
-                  <YearlyView />
+                  YearlyView()
                 )}
               </div>
             </CardContent>
@@ -1035,6 +1116,35 @@ export default function Lista() {
                 {getAlmacenById(taskAlmacenId)?.nombre ?? '—'}
               </div>
             </div>
+            <div>
+              <Label>Tipo de seguimiento *</Label>
+              <Select
+                value={taskTipoId ? taskTipoId.toString() : ''}
+                onValueChange={(v) => {
+                  const id = parseInt(v);
+                  setTaskTipoId(id);
+                  // Autocompletar el título con el nombre del tipo si está vacío.
+                  const tipo = tiposSeguimiento.find(
+                    (t: TipoSeguimiento) => t.id === id,
+                  );
+                  if (tipo && !taskTitle.trim()) {
+                    setTaskTitle(tipo.nombre);
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona el tipo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {tiposSeguimiento.map((t: TipoSeguimiento) => (
+                    <SelectItem key={t.id} value={t.id.toString()}>
+                      {t.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div>
               <Label htmlFor="title">Título</Label>
               <Input

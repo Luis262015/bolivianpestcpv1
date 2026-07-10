@@ -30,6 +30,12 @@ export interface MainNavItem {
   subItems?: SubItems[];
   down?: boolean | null;
   href?: Nullable<InertiaLinkProps['href']>;
+  /**
+   * Oculta el ítem del sidebar pero lo mantiene buscable en la paleta ⌘K.
+   * Útil cuando una sección migró a pestañas y su hub ya vive en el menú
+   * (p. ej. Contratos/Cotizaciones bajo Empresas).
+   */
+  hidden?: boolean;
 }
 
 export interface SubItems {

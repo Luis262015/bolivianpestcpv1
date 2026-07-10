@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Almacen;
 use App\Models\User;
+use App\Services\Notificaciones;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -59,7 +61,12 @@ class HandleInertiaRequests extends Middleware
                 'permissions' => $user?->getAllPermissions()->pluck('name') ?? [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-
+            // Id del almacén reservado ESPORADICO (para tareas/seguimientos sin contrato).
+            'esporadicoAlmacenId' => $user ? Almacen::esporadicoId() : null,
+            // Alertas para la campana del header (cronograma + agenda). Vacío si es invitado.
+            'notificaciones' => $user
+                ? app(Notificaciones::class)->paraUsuario($user)
+                : [],
         ];
     }
 }

@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 /* =======================
    Interfaces
@@ -34,10 +34,10 @@ interface Trampa {
   id: number;
   numero: number;
   identificador: string;
-  mapa_id: number;
+  mapa_id: number | null;
   trampa_tipo: TrampaTipo;
   almacen: Almacen;
-  mapa: Mapa;
+  mapa: Mapa | null;
 }
 
 interface Especie {
@@ -69,6 +69,8 @@ interface SeguimientoTrampasProps {
     trampa_roedores_seguimientos: TrampaRoedoresSeguimiento[];
   };
   onChange: (value: SeguimientoTrampasProps['value']) => void;
+  // Habilita el alta rápida de trampas (sin mapa). Solo para el almacén ESPORADICO.
+  permitirAltaRapida?: boolean;
 }
 
 /* =======================
@@ -80,6 +82,7 @@ export default function SeguimientoTrampas({
   tipoSeguimiento,
   value,
   onChange,
+  permitirAltaRapida = false,
 }: SeguimientoTrampasProps) {
   const [trampas, setTrampas] = useState<Trampa[]>([]);
   const [especies, setEspecies] = useState<Especie[]>([]);
@@ -93,6 +96,82 @@ export default function SeguimientoTrampas({
   >({});
 
   /* =======================
+     Alta rápida de trampas (esporádicos)
+  ======================= */
+
+  const [tipos, setTipos] = useState<TrampaTipo[]>([]);
+  const [nuevoTipoId, setNuevoTipoId] = useState<string>('');
+  const [nuevoIdentificador, setNuevoIdentificador] = useState('');
+  const [creando, setCreando] = useState(false);
+
+  // Los tipos ofrecidos coinciden con la vista actual: roedores en
+  // DESRATIZACION, insectos en el resto.
+  const tiposFiltrados = useMemo(
+    () =>
+      tipoSeguimiento === '1'
+        ? tipos.filter((t) => t.nombre !== 'insecto')
+        : tipos.filter((t) => t.nombre === 'insecto'),
+    [tipos, tipoSeguimiento],
+  );
+
+  useEffect(() => {
+    if (!permitirAltaRapida) return;
+    axios.get('/seguimientos/trampa-tipos').then((r) => setTipos(r.data));
+  }, [permitirAltaRapida]);
+
+  // Mantener seleccionado un tipo válido dentro de los filtrados.
+  useEffect(() => {
+    if (!tiposFiltrados.some((t) => t.id.toString() === nuevoTipoId)) {
+      setNuevoTipoId(tiposFiltrados[0]?.id?.toString() ?? '');
+    }
+  }, [tiposFiltrados, nuevoTipoId]);
+
+  const agregarTrampaRapida = async () => {
+    if (!nuevoTipoId || !nuevoIdentificador.trim()) return;
+    setCreando(true);
+    try {
+      const { data: t } = await axios.post<Trampa>(
+        '/seguimientos/trampa-rapida',
+        {
+          trampa_tipo_id: Number(nuevoTipoId),
+          identificador: nuevoIdentificador.trim(),
+        },
+      );
+
+      setTrampas((prev) =>
+        [...prev, t].sort((a, b) =>
+          a.identificador.localeCompare(b.identificador, undefined, {
+            numeric: true,
+          }),
+        ),
+      );
+
+      if (t.trampa_tipo.nombre === 'insecto') {
+        setInsectos((prev) => ({ ...prev, [t.id]: [] }));
+      } else {
+        setRoedores((prev) => ({
+          ...prev,
+          [t.id]: {
+            almacen: t.almacen?.nombre ?? '',
+            trampa_id: t.id,
+            observacion: '',
+            cantidad: 0,
+            inicial: 0,
+            actual: 0,
+            merma: 0,
+          },
+        }));
+      }
+
+      setNuevoIdentificador('');
+    } catch {
+      alert('No se pudo crear la trampa. Revisa el tipo y el identificador.');
+    } finally {
+      setCreando(false);
+    }
+  };
+
+  /* =======================
      Cargar trampas
   ======================= */
 
@@ -103,7 +182,14 @@ export default function SeguimientoTrampas({
       const trampasRes = await axios.get(
         `/trampaseguimientos/${almacenId}/trampas`,
       );
-      setTrampas(trampasRes.data);
+
+      const trampasOrdenadas = [...trampasRes.data].sort(
+        (a: Trampa, b: Trampa) =>
+          a.identificador.localeCompare(b.identificador, undefined, {
+            numeric: true,
+          }),
+      );
+      setTrampas(trampasOrdenadas);
 
       const especiesRes = await axios.get('/trampaseguimientos/especies');
       setEspecies(especiesRes.data);
@@ -111,13 +197,13 @@ export default function SeguimientoTrampas({
       const insectosInit: any = {};
       const roedoresInit: any = {};
 
-      trampasRes.data.forEach((t: Trampa) => {
+      trampasOrdenadas.forEach((t: Trampa) => {
         if (t.trampa_tipo.nombre === 'insecto') {
           insectosInit[t.id] = [];
         } else {
           roedoresInit[t.id] = {
-            almacen: t.almacen.nombre,
-            mapa: t.mapa.titulo,
+            almacen: t.almacen?.nombre ?? '',
+            mapa: t.mapa?.titulo ?? '',
             trampa_id: t.id,
             observacion: '',
             cantidad: 0,
@@ -198,7 +284,18 @@ export default function SeguimientoTrampas({
       const current = prev[trampaId];
       const updated = { ...current, [field]: value };
 
-      updated.merma = updated.inicial - updated.actual;
+      // Normalizar numéricos: nunca negativos
+      updated.inicial = Math.max(0, Number(updated.inicial) || 0);
+      updated.cantidad = Math.max(0, Number(updated.cantidad) || 0);
+      updated.actual = Math.max(0, Number(updated.actual) || 0);
+
+      // El "Actual" nunca puede superar al "Inicial" (total)
+      if (updated.actual > updated.inicial) {
+        updated.actual = updated.inicial;
+      }
+
+      // La merma nunca es negativa
+      updated.merma = Math.max(0, updated.inicial - updated.actual);
 
       return { ...prev, [trampaId]: updated };
     });
@@ -208,19 +305,53 @@ export default function SeguimientoTrampas({
      Render
   ======================= */
 
-  if (!trampas.length) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No existen trampas registradas para este almacén {tipoSeguimiento}
-      </p>
-    );
-  }
+  const altaRapida = permitirAltaRapida && (
+    <div className="space-y-3 rounded-lg border border-dashed p-4">
+      <h4 className="text-sm font-semibold">Agregar trampa (sin mapa)</h4>
+      <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-3">
+        <div>
+          <Label className="text-xs">Tipo de trampa</Label>
+          <Select value={nuevoTipoId} onValueChange={setNuevoTipoId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              {tiposFiltrados.map((t) => (
+                <SelectItem key={t.id} value={t.id.toString()}>
+                  {t.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-xs">Identificador</Label>
+          <Input
+            placeholder="Ej. T-01"
+            value={nuevoIdentificador}
+            onChange={(e) => setNuevoIdentificador(e.target.value)}
+          />
+        </div>
+        <Button
+          type="button"
+          onClick={agregarTrampaRapida}
+          disabled={creando || !nuevoTipoId || !nuevoIdentificador.trim()}
+        >
+          {creando ? 'Agregando...' : '+ Agregar trampa'}
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
-      {/* <div>{tipoSeguimiento}</div> */}
+      {altaRapida}
 
-      {tipoSeguimiento === '1' ? (
+      {!trampas.length ? (
+        <p className="text-sm text-muted-foreground">
+          No existen trampas registradas para este almacén {tipoSeguimiento}
+        </p>
+      ) : tipoSeguimiento === '1' ? (
         <>
           {trampas.map((trampa) => (
             <>
@@ -241,7 +372,7 @@ export default function SeguimientoTrampas({
                       Tipo: {trampa.trampa_tipo.nombre}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Mapa: {trampa.mapa.titulo}
+                      Mapa: {trampa.mapa?.titulo ?? 'Sin mapa'}
                     </p>
                   </div>
 
@@ -261,6 +392,7 @@ export default function SeguimientoTrampas({
                       <Label className="text-xs">Atrapados</Label>
                       <Input
                         type="number"
+                        min={0}
                         placeholder="Cantidad"
                         value={roedores[trampa.id]?.cantidad}
                         onChange={(e) =>
@@ -276,6 +408,7 @@ export default function SeguimientoTrampas({
                       <Label className="text-xs">Inicial</Label>
                       <Input
                         type="number"
+                        min={0}
                         placeholder="Inicial"
                         value={roedores[trampa.id]?.inicial}
                         onChange={(e) =>
@@ -296,6 +429,8 @@ export default function SeguimientoTrampas({
                       <Label className="text-xs">Actual</Label>
                       <Input
                         type="number"
+                        min={0}
+                        max={roedores[trampa.id]?.inicial}
                         placeholder="Actual"
                         value={roedores[trampa.id]?.actual}
                         onChange={(e) =>
@@ -325,7 +460,6 @@ export default function SeguimientoTrampas({
         <>
           {trampas.map((trampa) => (
             <>
-              {/* <div key={trampa.id} className="space-y-4 rounded-lg border p-4"> */}
               {/* INSECTOS */}
               {trampa.trampa_tipo.nombre === 'insecto' && (
                 <div
@@ -413,138 +547,10 @@ export default function SeguimientoTrampas({
                   </div>
                 </div>
               )}
-              {/* </div> */}
             </>
           ))}
         </>
       )}
-
-      {/* {trampas.map((trampa) => (
-        <div key={trampa.id} className="space-y-4 rounded-lg border p-4">
-          <div>
-            <h4 className="font-semibold">Trampa #{trampa.numero}</h4>
-            <p className="text-sm text-muted-foreground">
-              Tipo: {trampa.trampa_tipo.nombre}
-            </p>
-          </div>
-          {trampa.trampa_tipo.nombre === 'insecto' && (
-            <div className="space-y-3">
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => addInsecto(trampa.id)}
-              >
-                + Agregar especie
-              </Button>
-
-              {insectos[trampa.id]?.map((i, idx) => (
-                <div key={idx} className="grid grid-cols-3 items-end gap-3">
-                  <div>
-                    <Label className="text-xs">Especie</Label>
-                    <Select
-                      value={i.especie_id.toString()}
-                      onValueChange={(v) =>
-                        updateInsecto(trampa.id, idx, 'especie_id', Number(v))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {especies.map((e) => (
-                          <SelectItem key={e.id} value={e.id.toString()}>
-                            {e.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label className="text-xs">Cantidad</Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={i.cantidad}
-                      onChange={(e) =>
-                        updateInsecto(
-                          trampa.id,
-                          idx,
-                          'cantidad',
-                          Number(e.target.value),
-                        )
-                      }
-                    />
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => removeInsecto(trampa.id, idx)}
-                  >
-                    Eliminar
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {trampa.trampa_tipo.nombre !== 'insecto' && (
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-              <div>
-                <Label className="text-xs">Observacion</Label>
-
-                <Input
-                  placeholder="Obs."
-                  value={roedores[trampa.id]?.observacion || ''}
-                  onChange={(e) =>
-                    updateRoedor(trampa.id, 'observacion', e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Atrapados</Label>
-                <Input
-                  type="number"
-                  placeholder="Cantidad"
-                  value={roedores[trampa.id]?.cantidad}
-                  onChange={(e) =>
-                    updateRoedor(trampa.id, 'cantidad', Number(e.target.value))
-                  }
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Inicial</Label>
-                <Input
-                  type="number"
-                  placeholder="Inicial"
-                  value={roedores[trampa.id]?.inicial}
-                  onChange={(e) =>
-                    updateRoedor(trampa.id, 'inicial', Number(e.target.value))
-                  }
-                />
-              </div>
-
-              <div>
-                <Label className="text-xs">Actual</Label>
-                <Input
-                  type="number"
-                  placeholder="Actual"
-                  value={roedores[trampa.id]?.actual}
-                  onChange={(e) =>
-                    updateRoedor(trampa.id, 'actual', Number(e.target.value))
-                  }
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Merma</Label>
-                <Input disabled value={roedores[trampa.id]?.merma} />
-              </div>
-            </div>
-          )}
-        </div>
-      ))} */}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import CustomPagination from '@/components/CustomPagination';
+import { EmpresasTabs } from '@/components/empresas-tabs';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -67,6 +68,7 @@ export default function Lista() {
       <Head title="Contratos" />
 
       <div className="p-6">
+        <EmpresasTabs />
         <div className="flex items-center">
           <div className="me-5 text-2xl font-bold">Gestión de Contratos</div>
           <Link href="/contratos/create">

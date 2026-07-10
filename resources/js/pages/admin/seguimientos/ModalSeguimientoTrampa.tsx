@@ -59,14 +59,21 @@ export default function ModalSeguimientoTrampa({
       }),
     ),
     trampa_roedores_seguimientos: (data.trampa_roedores_seguimientos ?? []).map(
-      (r: any) => ({
-        trampa_id: Number(r.trampa_id),
-        observacion: r.observacion ?? '',
-        cantidad: Number(r.cantidad),
-        inicial: Number(r.inicial),
-        actual: Number(r.actual),
-        merma: Number(r.merma),
-      }),
+      (r: any) => {
+        const inicial = Math.max(0, Number(r.inicial) || 0);
+        const cantidad = Math.max(0, Number(r.cantidad) || 0);
+        // El "Actual" nunca puede superar al "Inicial" (total)
+        const actual = Math.min(inicial, Math.max(0, Number(r.actual) || 0));
+        return {
+          trampa_id: Number(r.trampa_id),
+          observacion: r.observacion ?? '',
+          cantidad,
+          inicial,
+          actual,
+          // La merma nunca es negativa
+          merma: Math.max(0, inicial - actual),
+        };
+      },
     ),
   });
 
