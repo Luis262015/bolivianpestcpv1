@@ -262,14 +262,16 @@ export default function Lista({
     totales.forEach((tot, index) => {
       // console.log('--');
       // console.log(tot);
+      // Sin cebo inicial el porcentaje no existe: evita NaN/Infinity en la tabla.
+      const inicial = Number(tot.inicial_sum);
       data[index] = {
         mes: tot.mes,
         inicial_sum: tot.inicial_sum,
         inicial_por: (100).toFixed(2),
         merma_sum: tot.merma_sum,
-        merma_por: ((tot.merma_sum * 100) / tot.inicial_sum).toFixed(2),
+        merma_por: inicial > 0 ? ((tot.merma_sum * 100) / inicial).toFixed(2) : '0.00',
         actual_sum: tot.actual_sum,
-        actual_por: ((tot.actual_sum * 100) / tot.inicial_sum).toFixed(2),
+        actual_por: inicial > 0 ? ((tot.actual_sum * 100) / inicial).toFixed(2) : '0.00',
       };
     });
 
@@ -295,8 +297,15 @@ export default function Lista({
 
   const totalSeguimientos = seguimientos.length;
 
+  // Las tablas de roedores solo deben leer seguimientos de DESRATIZACION:
+  // hay seguimientos de otros tipos con filas de roedores en cero (basura
+  // histórica del modal) que inflan trampas/promedios si no se filtran.
+  const seguimientosDesrat = seguimientos.filter(
+    (s: any) => Number(s.tipo_seguimiento_id) === 1,
+  );
+
   const resumen = Object.values(
-    seguimientos
+    seguimientosDesrat
       .flatMap((s) => s.roedores)
       .reduce((acc: any, r: any) => {
         const tipo = r.trampa.trampa_tipo.nombre;
@@ -320,14 +329,14 @@ export default function Lista({
     const capturas = Number(item.capturas);
 
     const incidencia =
-      trampas * totalSeguimientos > 0
-        ? ((capturas / (trampas * totalSeguimientos)) * 100).toFixed(2)
+      trampas * seguimientosDesrat.length > 0
+        ? ((capturas / (trampas * seguimientosDesrat.length)) * 100).toFixed(2)
         : 0;
 
     return {
       tipo: item.tipo,
       trampas,
-      revisiones: totalSeguimientos,
+      revisiones: seguimientosDesrat.length,
       capturas,
       incidencia,
     };
@@ -347,7 +356,7 @@ export default function Lista({
    */
 
   const resumenMeses = Object.values(
-    seguimientos.reduce((acc: any, s: any) => {
+    seguimientosDesrat.reduce((acc: any, s: any) => {
       const fecha = new Date(s.created_at);
 
       const key = `${fecha.getFullYear()}-${fecha.getMonth() + 1}`;
@@ -438,7 +447,7 @@ export default function Lista({
     });
   };
 
-  const tablaAlmacenes = resumenPorAlmacen(seguimientos);
+  const tablaAlmacenes = resumenPorAlmacen(seguimientosDesrat);
 
   const tablaCeboPorAlmacen = (seguimientos: any[]) => {
     const almacenes: any = {};
@@ -480,7 +489,7 @@ export default function Lista({
     }));
   };
 
-  const tablaCebo = tablaCeboPorAlmacen(seguimientos);
+  const tablaCebo = tablaCeboPorAlmacen(seguimientosDesrat);
 
   const tablaSanitariaPorAlmacen = (seguimientos: any[]) => {
     const almacenes: any = {};
@@ -541,7 +550,7 @@ export default function Lista({
     return resultado;
   };
 
-  const datosSanitarios = tablaSanitariaPorAlmacen(seguimientos);
+  const datosSanitarios = tablaSanitariaPorAlmacen(seguimientosDesrat);
 
   const totalesDatosSanitario = datosSanitarios.reduce(
     (acc: any, row: any) => {
@@ -619,7 +628,7 @@ export default function Lista({
     return resultado;
   };
 
-  const datosSeguimiento = tablaSanitariaPorSeguimiento(seguimientos);
+  const datosSeguimiento = tablaSanitariaPorSeguimiento(seguimientosDesrat);
 
   const totalesSeguimiento = datosSeguimiento.reduce(
     (acc: any, row: any) => {
@@ -742,7 +751,8 @@ export default function Lista({
           : 0;
 
       acc[row.almacen].data.push({
-        fecha: new Date(row.seguimiento).toLocaleDateString('es-ES'),
+        // row.seguimiento es el ID numérico; usarlo como Date daba 1/1/1970.
+        fecha: new Date(row.fecha).toLocaleDateString('es-ES'),
         merma_porcentaje: Number(porcentajeMerma.toFixed(2)),
       });
 
@@ -828,8 +838,11 @@ export default function Lista({
           // console.log(roedor);
           // console.log('********************************************');
 
+          // Excluir viva (4) y pegajosa (5): no llevan cebo, sus pesos son
+          // siempre cero y solo diluyen la tabla. Con "||" la condición era
+          // una tautología y nunca excluía nada.
           if (
-            Number(roedor.trampa.trampa_tipo_id) !== 4 ||
+            Number(roedor.trampa.trampa_tipo_id) !== 4 &&
             Number(roedor.trampa.trampa_tipo_id) !== 5
           ) {
             if (!datosPorTrampa[trampaId]) {
@@ -924,7 +937,7 @@ export default function Lista({
     }));
   };
 
-  const datosSeguimientoResumenX = tablaSeguimientoResumenX(seguimientos);
+  const datosSeguimientoResumenX = tablaSeguimientoResumenX(seguimientosDesrat);
 
   const graficosPorMapa = Object.values(
     datosSeguimientoResumenX.reduce((acc: any, row: any) => {
@@ -977,8 +990,10 @@ export default function Lista({
     const especies = Array.from(especiesSet).sort();
 
     const datosPorFecha = seguimientosFiltrados.map((seg) => {
-      // const fecha = new Date(seg.created_at).toLocaleDateString();
+      // "fecha" lleva el id para ser clave única (dos visitas el mismo día);
+      // "fechaLabel" es lo que se muestra en tablas y ejes.
       const fecha = `${new Date(seg.created_at).toLocaleDateString()}-${seg.id}`;
+      const fechaLabel = new Date(seg.created_at).toLocaleDateString('es-ES');
       const cantidadesPorEspecie: { [especie: string]: number } = {};
 
       especies.forEach((esp) => {
@@ -989,7 +1004,7 @@ export default function Lista({
         cantidadesPorEspecie[ins.especie.nombre] += Number(ins.cantidad);
       });
 
-      return { fecha, cantidades: cantidadesPorEspecie };
+      return { fecha, fechaLabel, cantidades: cantidadesPorEspecie };
     });
 
     const totales: { [especie: string]: number } = {};
@@ -1060,10 +1075,11 @@ export default function Lista({
   // }, [seguimientos]);
 
   const incidenciaTotal =
-    total.trampas * totalSeguimientos > 0
-      ? ((total.capturas / (total.trampas * totalSeguimientos)) * 100).toFixed(
-          2,
-        )
+    total.trampas * seguimientosDesrat.length > 0
+      ? (
+          (total.capturas / (total.trampas * seguimientosDesrat.length)) *
+          100
+        ).toFixed(2)
       : 0;
   const colorIncidencia = (valor: number) => {
     if (valor === 0) return 'text-green-600';
@@ -2128,7 +2144,7 @@ export default function Lista({
                     </TableCell>
 
                     <TableCell className={tableStyles.totalCell}>
-                      {totalSeguimientos}
+                      {seguimientosDesrat.length}
                     </TableCell>
 
                     <TableCell className={tableStyles.totalCell}>
@@ -3515,7 +3531,7 @@ export default function Lista({
                           (dato, index) => (
                             <TableRow key={index}>
                               <TableCell className={tableStyles.datestr}>
-                                {dato.fecha}
+                                {dato.fechaLabel}
                               </TableCell>
                               {datosInsectocutores.especies.map((especie) => (
                                 <TableCell
@@ -3586,7 +3602,7 @@ export default function Lista({
                 >
                   <BarChart
                     data={datosInsectocutores.datosPorFecha.map((dato) => ({
-                      fecha: dato.fecha,
+                      fecha: dato.fechaLabel,
                       ...dato.cantidades,
                     }))}
                     barGap={4}
@@ -3679,7 +3695,7 @@ export default function Lista({
                           (dato, index) => (
                             <TableRow key={index}>
                               <TableCell className={tableStyles.datestr}>
-                                {dato.fecha}
+                                {dato.fechaLabel}
                               </TableCell>
                               {datosInsectocutores.especies.map((especie) => (
                                 <TableCell
@@ -3801,7 +3817,7 @@ export default function Lista({
                         dataKey={dato.fecha}
                         fill={`url(#grad-sev-${index})`}
                         radius={4}
-                        name={dato.fecha}
+                        name={dato.fechaLabel}
                       >
                         {showLabelsSeveridad && (
                           <LabelList

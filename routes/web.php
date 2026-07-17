@@ -122,13 +122,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('seguimientos', SeguimientoController::class)
         ->only('destroy')->middleware('role:admin|superadmin');
     Route::resource('seguimientos', SeguimientoController::class)->only(['index', 'show']);
-    // Módulo deshabilitado/incompleto (ver TrampaSeguimientoController): solo staff.
-    Route::middleware('role:admin|superadmin')->group(function () {
+    // Edición rápida de trampas de un seguimiento: mismo staff que seguimientos.update.
+    // OJO: el {id} de show/update es un seguimientos.id (ver TrampaSeguimientoController).
+    // `especies` va antes del resource para que no lo capture /trampaseguimientos/{id}.
+    Route::middleware('role:admin|superadmin|tecnico')->group(function () {
         Route::get('/trampaseguimientos/{id}/trampas', [TrampaSeguimientoController::class, 'trampas'])->whereNumber('id')->name('trampaseguimientos.trampas');
-        Route::get('/trampaseguimientos/{id}/pdf', [TrampaSeguimientoController::class, 'pdf'])->whereNumber('id')->name('trampaseguimientos.pdf');
         Route::get('/trampaseguimientos/especies', [TrampaSeguimientoController::class, 'especies'])->name('trampaseguimientos.especies');
         Route::resource('trampaseguimientos', TrampaSeguimientoController::class)
-            ->only(['index', 'store', 'update', 'destroy']);
+            ->only(['show', 'update'])->where(['trampaseguimiento' => '[0-9]+']);
+    });
+    // Módulo TrampaSeguimiento incompleto (store/destroy deshabilitados): solo staff.
+    Route::middleware('role:admin|superadmin')->group(function () {
+        Route::get('/trampaseguimientos/{id}/pdf', [TrampaSeguimientoController::class, 'pdf'])->whereNumber('id')->name('trampaseguimientos.pdf');
+        Route::resource('trampaseguimientos', TrampaSeguimientoController::class)
+            ->only(['index', 'store', 'destroy']);
     });
     Route::resource('biologicos', BiologicosController::class);
     Route::resource('epps', EppsController::class);

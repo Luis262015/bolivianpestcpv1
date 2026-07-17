@@ -121,6 +121,10 @@ class MapaController extends Controller
     $validated = $request->validate($this->toValidated);
     $empresaId = Almacen::whereKey($validated['almacen_id'])->value('empresa_id');
 
+    // Fuera del try: es un error de validación, no un fallo genérico. Antes de
+    // procesar el background para no dejar un archivo huérfano si falla.
+    $this->validarIdentificadoresUnicos($validated['trampas'] ?? []);
+
     $background = $this->procesarBackground($validated['background'] ?? null, null);
 
     try {
@@ -153,6 +157,9 @@ class MapaController extends Controller
   {
     $validated = $request->validate($this->toValidated);
     $empresaId = Almacen::whereKey($validated['almacen_id'])->value('empresa_id');
+
+    // Fuera del try: es un error de validación, no un fallo genérico.
+    $this->validarIdentificadoresUnicos($validated['trampas'] ?? []);
 
     $backgroundAnterior = $mapa->background;
     $background = $this->procesarBackground($validated['background'] ?? null, $backgroundAnterior);
@@ -249,6 +256,50 @@ class MapaController extends Controller
   }
 
   /* ==================== Helpers ==================== */
+
+  /**
+   * Dos trampas vigentes del MISMO MAPA no pueden compartir identificador: es
+   * la etiqueta que las distingue en el plano y en los informes, que agrupan
+   * por mapa (ver InformesController). Entre mapas distintos sí se repite, y es
+   * lo normal: cada plano numera sus trampas desde 1 (así está toda la base),
+   * por eso el alcance es el mapa y no el almacén.
+   *
+   * Se valida contra el estado POSTERIOR al guardado: las trampas del mapa que
+   * no vengan en el payload van a quedar borradas o inactivas (ver update), así
+   * que las vigentes tras guardar son exactamente las recibidas y alcanza con
+   * revisar el payload. Eso deja pasar el reemplazo de una trampa retirada por
+   * otra con el mismo nombre.
+   */
+  private function validarIdentificadoresUnicos(array $trampas): void
+  {
+    $vigentes = collect($trampas)
+      ->filter(fn($t) => ($t['estado'] ?? 'activo') !== 'inactivo')
+      ->map(fn($t) => trim($t['identificador']))
+      ->filter(fn($identificador) => $identificador !== '');
+
+    // Comparación en minúsculas: MySQL colaciona sin distinguir may/min y la
+    // etiqueta impresa tampoco lo hace, así que "T-01" y "t-01" son la misma.
+    $repetidos = $vigentes
+      ->countBy(fn($identificador) => mb_strtolower($identificador))
+      ->filter(fn($veces) => $veces > 1)
+      ->keys();
+
+    if ($repetidos->isEmpty()) {
+      return;
+    }
+
+    // Reportar con el texto tal cual lo escribió el usuario, no en minúsculas.
+    $etiquetas = $vigentes
+      ->filter(fn($identificador) => $repetidos->contains(mb_strtolower($identificador)))
+      ->unique()
+      ->sort()
+      ->implode(', ');
+
+    throw ValidationException::withMessages([
+      'trampas' => "Hay más de una trampa con el identificador: {$etiquetas}. "
+        . 'Cada trampa del mapa necesita un identificador distinto.',
+    ]);
+  }
 
   private function datosTrampa(array $trampaData, int $index, int|string $almacenId): array
   {

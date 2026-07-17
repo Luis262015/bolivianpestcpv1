@@ -118,8 +118,17 @@ class InformesController extends Controller
                 ->get();
 
             // Conteo en BD en vez de traer todas las trampas y contarlas en PHP.
-            $trampas_insect = Trampa::where('almacen_id', $almacenId)->where('trampa_tipo_id', 2)->count();
-            $trampas_rat    = Trampa::where('almacen_id', $almacenId)->where('trampa_tipo_id', '!=', 2)->count();
+            // Excluye las inactivas: son trampas retiradas del mapa que solo se
+            // conservan por su historial (ver MapaController@update). Contarlas
+            // contradice la imagen del mapa del informe, que sí las filtra.
+            $trampas_insect = Trampa::where('almacen_id', $almacenId)
+                ->where('estado', '!=', 'inactivo')
+                ->where('trampa_tipo_id', 2)
+                ->count();
+            $trampas_rat    = Trampa::where('almacen_id', $almacenId)
+                ->where('estado', '!=', 'inactivo')
+                ->where('trampa_tipo_id', '!=', 2)
+                ->count();
         }
 
         $archivosQuery = InformeArchivo::with(['empresa:id,nombre', 'user:id,name'])
@@ -560,6 +569,12 @@ class InformesController extends Controller
         $agrupado = [];
 
         foreach ($seguimientos as $seguimiento) {
+            // Solo DESRATIZACION: hay seguimientos de otros tipos con filas de
+            // roedores en cero (basura histórica del modal) que inflan la
+            // cantidad de trampas y agregan filas vacías a las tablas.
+            if ($seguimiento->tipo_seguimiento_id != 1) {
+                continue;
+            }
             foreach ($seguimiento->roedores as $rodente) {
                 $trampa = $rodente->trampa;
 
@@ -594,6 +609,10 @@ class InformesController extends Controller
         $agrupado = [];
 
         foreach ($seguimientos as $seguimiento) {
+            // Solo DESRATIZACION (ver nota en procesarDatosTrampas).
+            if ($seguimiento->tipo_seguimiento_id != 1) {
+                continue;
+            }
             foreach ($seguimiento->roedores as $rodente) {
                 $trampa = $rodente->trampa;
 
@@ -640,6 +659,10 @@ class InformesController extends Controller
         $agrupadoPorMapa = [];
 
         foreach ($seguimientos as $seguimiento) {
+            // Solo DESRATIZACION (ver nota en procesarDatosTrampas).
+            if ($seguimiento->tipo_seguimiento_id != 1) {
+                continue;
+            }
             foreach ($seguimiento->roedores as $rodente) {
                 $trampa = $rodente->trampa;
 
@@ -715,6 +738,11 @@ class InformesController extends Controller
         $agrupadoPorMapa = [];
 
         foreach ($seguimientos as $seguimiento) {
+            // Solo INSECTOCUTORES, igual que procesarInsectocutoresPorFecha:
+            // si no, la tabla 5 y la de incidencia podrían divergir.
+            if ($seguimiento->tipo_seguimiento_id != 3) {
+                continue;
+            }
             foreach ($seguimiento->insectocutores as $insectocutor) {
                 $trampa = $insectocutor->trampa;
 
@@ -1025,17 +1053,23 @@ class InformesController extends Controller
      */
     private function agregaMapasDelInforme($section, $seguimientos): void
     {
-        // IDs de mapas involucrados en las trampas del informe.
+        // IDs de mapas involucrados en las trampas del informe. Mismos filtros
+        // por tipo que los procesadores de datos: un mapa solo aparece si sus
+        // trampas aportan filas a alguna tabla.
         $mapaIds = collect();
         foreach ($seguimientos as $seg) {
-            foreach ($seg->roedores as $r) {
-                if ($r->trampa && $r->trampa->mapa_id) {
-                    $mapaIds->push($r->trampa->mapa_id);
+            if ($seg->tipo_seguimiento_id == 1) {
+                foreach ($seg->roedores as $r) {
+                    if ($r->trampa && $r->trampa->mapa_id) {
+                        $mapaIds->push($r->trampa->mapa_id);
+                    }
                 }
             }
-            foreach ($seg->insectocutores as $i) {
-                if ($i->trampa && $i->trampa->mapa_id) {
-                    $mapaIds->push($i->trampa->mapa_id);
+            if ($seg->tipo_seguimiento_id == 3) {
+                foreach ($seg->insectocutores as $i) {
+                    if ($i->trampa && $i->trampa->mapa_id) {
+                        $mapaIds->push($i->trampa->mapa_id);
+                    }
                 }
             }
         }

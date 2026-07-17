@@ -211,8 +211,10 @@ export default function MapaEditor(props: Props) {
           loadMaps(); // 👈 recarga mapas desde BD
           alert('Mapa guardado correctamente');
         },
-        onError: () => {
-          alert('Error al guardar el mapa');
+        onError: (errors) => {
+          // Mostrar el motivo real (ej: identificadores repetidos); el mensaje
+          // genérico deja al usuario sin saber qué corregir.
+          alert(Object.values(errors)[0] ?? 'Error al guardar el mapa');
         },
       },
     );
