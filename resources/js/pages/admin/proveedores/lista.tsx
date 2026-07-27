@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { SquarePen, Trash2 } from 'lucide-react';
+import { confirmar } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -39,8 +40,8 @@ export default function Index() {
   const { processing, delete: destroy } = useForm();
   const { proveedores } = usePage<{ proveedores: ProveedoresPaginate }>().props;
 
-  const handleDelete = (id: number) => {
-    if (confirm('Estas seguro de eliminar el registro')) {
+  const handleDelete = async (id: number) => {
+    if (await confirmar({ titulo: 'Estas seguro de eliminar el registro', destructivo: true })) {
       destroy(`/proveedores/${id}`);
     }
   };

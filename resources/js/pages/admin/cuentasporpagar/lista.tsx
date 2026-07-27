@@ -34,6 +34,7 @@ import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Banknote, ClipboardList, Edit, Plus, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { confirmar, notificarError } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -103,7 +104,6 @@ export default function Index() {
     cuotas: [] as Omit<PagarCuota, 'id' | 'cuenta_pagar_id'>[],
   });
 
-  // console.log(errors);
 
   const {
     data: cuotaData,
@@ -131,18 +131,16 @@ export default function Index() {
     notas: '',
   });
 
-  const handleDelete = (id: number) => {
-    if (confirm('¿Estás seguro de eliminar el registro?')) {
+  const handleDelete = async (id: number) => {
+    if (await confirmar({ titulo: '¿Estás seguro de eliminar el registro?', destructivo: true })) {
       // destroy(`/cuentasporpagar/${id}`);
       destroy(`/cuentasporpagar/${id}`, {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => {
-          console.log('Eliminado sin recargar estado');
           toast.success('Eliminado con exito');
         },
         onError: (errors) => {
-          console.log('Error al eliminar: ' + errors[0] + ' : ' + errors[1]);
           toast.error(errors[1]);
         },
       });
@@ -219,7 +217,7 @@ export default function Index() {
       !cuotaData.fecha_vencimiento ||
       !cuotaData.monto
     ) {
-      alert('Por favor completa todos los campos de la cuota');
+      notificarError('Por favor completa todos los campos de la cuota');
       return;
     }
 
@@ -288,7 +286,6 @@ export default function Index() {
           resetCuota();
         },
         onError: (e) => {
-          console.log(e);
         },
       });
     }
@@ -323,7 +320,7 @@ export default function Index() {
     e.preventDefault();
 
     if (selectedCuotasToPay.length === 0) {
-      alert('Debes seleccionar al menos una cuota para pagar');
+      notificarError('Debes seleccionar al menos una cuota para pagar');
       return;
     }
 

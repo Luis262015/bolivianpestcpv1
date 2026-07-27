@@ -5,6 +5,7 @@ import { createAgendaApi } from '@/lib/agendaApi';
 import type { Task, ViewMode } from '@/types/agenda';
 import { addMonths, addYears, setMonth, subMonths, subYears } from 'date-fns';
 import { useRef, useState } from 'react';
+import { confirmar, notificarError } from '@/lib/alertas';
 
 interface UseAgendaProps {
   initialTasks: Task[];
@@ -69,18 +70,24 @@ export function useAgenda({ initialTasks, apiEndpoint }: UseAgendaProps) {
       }
     } catch (error) {
       console.error('Error al guardar tarea', error);
-      alert('Ocurrió un error al guardar la tarea');
+      notificarError('Ocurrió un error al guardar la tarea');
     }
   };
 
   const deleteTask = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar esta tarea?')) return;
+    if (
+      !(await confirmar({
+        titulo: '¿Estás seguro de eliminar esta tarea?',
+        destructivo: true,
+      }))
+    )
+      return;
     try {
       await api.delete(id);
       setTasks((prev) => prev.filter((t) => t.id !== id));
     } catch (error) {
       console.error('Error al eliminar tarea', error);
-      alert('Error al eliminar la tarea');
+      notificarError('Error al eliminar la tarea');
     }
   };
 

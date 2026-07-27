@@ -241,9 +241,6 @@ export default function ModalSeguimientoTrampa({
 
 //         const dbData = response.data;
 
-//         console.log('***************************************');
-//         console.log(dbData);
-//         console.log('***************************************');
 
 //         const hasDbData =
 //           (dbData.trampa_especies_seguimientos?.length ?? 0) > 0 ||
@@ -411,9 +408,6 @@ export default function ModalSeguimientoTrampa({
 //       initialData.trampa_roedores_seguimientos ?? [],
 //   });
 
-//   // console.log('***** INITIAL ******');
-//   // console.log(initialData);
-//   // console.log('***** INITIAL ******');
 
 //   // Mantener sincronizado si cambian los datos iniciales
 //   useEffect(() => {

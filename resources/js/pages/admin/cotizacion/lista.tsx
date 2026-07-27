@@ -13,6 +13,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Edit, File, Plus, Trash2 } from 'lucide-react';
+import { confirmar } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -34,15 +35,13 @@ interface Props {
   cotizaciones: Cotizacion[];
 }
 
-const handleDelete = (id: number) => {
-  console.log('Eliminar contrato nro ' + id);
-  if (confirm('¿Estás seguro?')) {
+const handleDelete = async (id: number) => {
+  if (await confirmar({ titulo: '¿Estás seguro?' })) {
     router.delete(`/cotizaciones/${id}`);
   }
 };
 
 const handlePDF = (id: number) => {
-  console.log('Imprimir PDF');
   window.open(`/cotizaciones/${id}/pdf`, '_blank');
 };
 

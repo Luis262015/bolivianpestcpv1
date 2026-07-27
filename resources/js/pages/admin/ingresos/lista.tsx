@@ -23,6 +23,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { confirmar } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -93,8 +94,8 @@ export default function Index() {
     );
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm('Estas seguro de eliminar el registro')) {
+  const handleDelete = async (id: number) => {
+    if (await confirmar({ titulo: 'Estas seguro de eliminar el registro', destructivo: true })) {
       destroy(`/ingresos/${id}`);
     }
   };

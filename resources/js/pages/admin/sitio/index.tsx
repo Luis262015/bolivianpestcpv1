@@ -24,6 +24,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { notificarError } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Sitio Web', href: '/sitio' },
@@ -138,7 +139,7 @@ function ImageField({
       });
       onChange(data.url);
     } catch {
-      alert('No se pudo subir la imagen. Verifique el formato (jpg, png, webp, svg) y el tamaño (máx 5MB).');
+      notificarError('No se pudo subir la imagen. Verifique el formato (jpg, png, webp, svg) y el tamaño (máx 5MB).');
     } finally {
       setUploading(false);
     }

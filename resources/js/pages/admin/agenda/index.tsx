@@ -38,8 +38,6 @@ import {
   subYears,
 } from 'date-fns';
 import { es } from 'date-fns/locale';
-import * as htmlToImage from 'html-to-image';
-import jsPDF from 'jspdf';
 import {
   CheckCircle2,
   ChevronLeft,
@@ -51,6 +49,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { confirmar } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Cronogramas', href: '/cronogramas' },
@@ -161,7 +160,6 @@ export default function Lista() {
   };
 
   const openTaskDialog = (date?: Date, task?: Task) => {
-    // console.log(task);
     if (task) {
       const taskDate = new Date(task.date + 'T00:00:00');
 
@@ -226,8 +224,8 @@ export default function Lista() {
     }
   };
 
-  const deleteTask = (id: number) => {
-    if (confirm('¿Seguro que quieres eliminar esta tarea?')) {
+  const deleteTask = async (id: number) => {
+    if (await confirmar({ titulo: '¿Seguro que quieres eliminar esta tarea?', destructivo: true })) {
       router.delete(`/agendas/${id}`);
     }
   };
@@ -260,6 +258,8 @@ export default function Lista() {
     if (!monthlyRef.current) return;
 
     try {
+      const htmlToImage = await import('html-to-image');
+
       const dataUrl = await htmlToImage.toPng(monthlyRef.current, {
         backgroundColor: '#ffffff',
         pixelRatio: 2, // mejor calidad
@@ -278,6 +278,13 @@ export default function Lista() {
     if (!monthlyRef.current) return;
 
     try {
+      // Import dinámico: jspdf + html-to-image pesan ~600 kB y sólo hacen
+      // falta al exportar, no al abrir la agenda.
+      const [htmlToImage, { default: jsPDF }] = await Promise.all([
+        import('html-to-image'),
+        import('jspdf'),
+      ]);
+
       const dataUrl = await htmlToImage.toPng(monthlyRef.current, {
         backgroundColor: '#ffffff',
         pixelRatio: 2,

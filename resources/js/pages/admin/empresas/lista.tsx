@@ -25,6 +25,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Eye, File, FileText, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { confirmar } from '@/lib/alertas';
 import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -116,33 +117,39 @@ export default function Lista() {
       forceFormData: true,
 
       onSuccess: () => {
-        console.log('SUCCESS');
         window.open(`/empresas/certificadoultimo`, '_blank');
         reset();
         setOpenCreate(false);
         toast.success('Certificado creado con éxito');
       },
       onError: (errors) => {
-        console.log('ERROR');
-        console.log(errors);
         toast.error('No se pudo crear el certificado');
       },
     });
   };
 
   const handleDownloadPDF = (id: number) => {
-    console.log('Print PDF id=' + id);
     window.open(`/empresas/${id}/certificadopdf`, '_blank');
   };
 
-  const handleDeleteCertificado = (certId: number) => {
-    if (!window.confirm('¿Eliminar este certificado? Esta acción no se puede deshacer.')) return;
+  const handleDeleteCertificado = async (certId: number) => {
+    if (
+      !(await confirmar({
+        titulo: '¿Eliminar este certificado?',
+        texto: 'Esta acción no se puede deshacer.',
+        destructivo: true,
+      }))
+    )
+      return;
     router.delete(`/empresas/certificados/${certId}`, {
       preserveScroll: true,
       onSuccess: () => {
         setEmpresaSeleccionada((prev) =>
           prev
-            ? { ...prev, certificados: prev.certificados?.filter((c) => c.id !== certId) }
+            ? {
+                ...prev,
+                certificados: prev.certificados?.filter((c) => c.id !== certId),
+              }
             : prev,
         );
         toast.success('Certificado eliminado');

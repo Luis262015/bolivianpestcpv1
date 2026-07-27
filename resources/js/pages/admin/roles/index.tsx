@@ -31,6 +31,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { ChevronDown, ChevronUp, Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { confirmar } from '@/lib/alertas';
 
 interface Permission {
   id: number;
@@ -114,8 +115,8 @@ export default function RolesIndex() {
     );
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm('¿Estás seguro?')) {
+  const handleDelete = async (id: number) => {
+    if (await confirmar({ titulo: '¿Estás seguro?' })) {
       router.delete(`/roles/${id}`);
     }
   };

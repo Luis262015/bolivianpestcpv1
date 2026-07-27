@@ -25,6 +25,7 @@ import { useState } from 'react';
 import ModalEditarSeguimiento from './ModalEditarSeguimiento';
 import ModalSeguimiento from './ModalSeguimiento';
 import ModalSeguimientoTrampa from './ModalSeguimientoTrampa';
+import { confirmar } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -64,11 +65,6 @@ interface Signo {
   nombre: string;
 }
 
-interface Especie {
-  id: number;
-  nombre: string;
-}
-
 interface TipoSeguimiento {
   id: number;
   nombre: string;
@@ -96,15 +92,14 @@ interface Props {
   protecciones: Proteccion[];
   biologicos: Biologico[];
   signos: Signo[];
-  especies: Especie[];
   tipoSeguimiento: TipoSeguimiento[];
   seguimientos: any;
   usuarios: Usuario[];
   filters: ActiveFilters;
 }
 
-const handleDelete = (id: number) => {
-  if (confirm('¿Estás seguro?')) {
+const handleDelete = async (id: number) => {
+  if (await confirmar({ titulo: '¿Estás seguro?' })) {
     router.delete(`/seguimientos/${id}`);
   }
 };
@@ -122,7 +117,6 @@ export default function Lista({
   protecciones,
   biologicos,
   signos,
-  especies,
   tipoSeguimiento,
   usuarios,
   filters: activeFilters,
@@ -447,7 +441,6 @@ export default function Lista({
         protecciones={protecciones}
         biologicos={biologicos}
         signos={signos}
-        especies={especies}
         tipoSeguimiento={tipoSeguimiento}
       />
 
@@ -463,7 +456,6 @@ export default function Lista({
         protecciones={protecciones}
         biologicos={biologicos}
         signos={signos}
-        especies={especies}
         tipoSeguimiento={tipoSeguimiento}
       />
 

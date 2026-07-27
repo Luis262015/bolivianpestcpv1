@@ -16,6 +16,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
 import { FileSpreadsheet, FileText, Upload, X } from 'lucide-react';
 import { FormEvent, useState } from 'react';
+import { notificarError } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -68,11 +69,11 @@ export default function Crear() {
     const ext = '.' + file.name.split('.').pop()?.toLowerCase();
 
     if (!validExtensions.includes(ext)) {
-      alert('Solo se permiten archivos PDF, Word (.docx) o Excel (.xlsx/.xls)');
+      notificarError('Solo se permiten archivos PDF, Word (.docx) o Excel (.xlsx/.xls)');
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      alert('El archivo no puede pesar más de 10 MB');
+      notificarError('El archivo no puede pesar más de 10 MB');
       return;
     }
     setData('archivo', file);

@@ -28,6 +28,7 @@ import { router } from '@inertiajs/react';
 import axios from 'axios';
 import { Check, ChevronsUpDown, Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { notificarError, notificarExito } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Ventas', href: '/ventas' },
@@ -165,7 +166,7 @@ export default function Venta() {
     e.preventDefault();
 
     if (saleItems.length === 0 || !metodoPago) {
-      alert('Agrega productos, selecciona método de pago y un cliente');
+      notificarError('Agrega productos, selecciona método de pago y un cliente');
       return;
     }
 
@@ -190,7 +191,7 @@ export default function Venta() {
 
     router.post('/ventas', payload, {
       onSuccess: () => {
-        alert('Venta guardada exitosamente');
+        notificarExito('Venta guardada exitosamente');
         setSaleItems([]);
         // setAutorizacion('');
         // setControl('');

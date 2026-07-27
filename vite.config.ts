@@ -23,5 +23,10 @@ export default defineConfig({
     ],
     esbuild: {
         jsx: 'automatic',
+        // Red de seguridad: marca console.log/debug como libres de efectos para
+        // que el minificador los elimine del build de producción. No se usa
+        // `drop: ['console']` a propósito, porque eso también borraría los
+        // console.error de los bloques catch, que sí queremos conservar.
+        pure: ['console.log', 'console.debug'],
     },
 });

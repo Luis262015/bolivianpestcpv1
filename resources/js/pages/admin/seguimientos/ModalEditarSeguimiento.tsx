@@ -51,6 +51,7 @@ import SeguimientoTrampasEdit, {
   TrampaRoedoresSeguimiento,
 } from './SeguimientoTrampasEdit';
 import SignaturePad from './SignaturePad';
+import { notificarError } from '@/lib/alertas';
 
 interface Biologico {
   id: number;
@@ -69,10 +70,6 @@ interface Proteccion {
   nombre: string;
 }
 interface Signo {
-  id: number;
-  nombre: string;
-}
-interface Especie {
   id: number;
   nombre: string;
 }
@@ -122,7 +119,6 @@ interface ModalEditarSeguimientoProps {
   epps: EPP[];
   protecciones: Proteccion[];
   signos: Signo[];
-  especies: Especie[];
   tipoSeguimiento: TipoSeguimiento[];
 }
 
@@ -146,7 +142,6 @@ export default function ModalEditarSeguimiento({
   epps,
   protecciones,
   signos,
-  especies,
   tipoSeguimiento,
 }: ModalEditarSeguimientoProps) {
   const [step, setStep] = useState(1);
@@ -223,9 +218,6 @@ export default function ModalEditarSeguimiento({
       .then((res) => {
         const s = res.data;
 
-        console.log('********************************');
-        console.log('seguimiento data:', s);
-        console.log('********************************');
 
         const tipo = tipoSeguimiento.find(
           (t) => Number(t.id) === Number(s.tipo_seguimiento_id),
@@ -380,7 +372,7 @@ export default function ModalEditarSeguimiento({
     if (!selectedProduct || !quantity || parseFloat(quantity) < 0.01) return;
 
     if (productos.some((p) => p.producto_id === selectedProduct.id)) {
-      alert('Este producto ya fue agregado');
+      notificarError('Este producto ya fue agregado');
       return;
     }
 

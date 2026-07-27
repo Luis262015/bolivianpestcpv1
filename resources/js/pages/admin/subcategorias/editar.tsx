@@ -77,7 +77,6 @@ export default function Edit() {
     put(`/subcategorias/${subcategoria.id}`, {
       onSuccess: () => {
         // Puedes agregar lógica de éxito, como un toast de notificación
-        console.log('Subcategoría actualizada');
       },
     });
   };

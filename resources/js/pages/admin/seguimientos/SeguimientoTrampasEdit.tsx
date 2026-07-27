@@ -9,7 +9,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import ResumenTrampas from './ResumenTrampas';
 
 /* ======================= */
 
@@ -28,7 +29,8 @@ interface Trampa {
   numero: number;
   identificador: string;
   trampa_tipo: TrampaTipo;
-  mapa: Mapa;
+  // Las trampas de alta rápida (esporádicos) no pertenecen a ningún mapa.
+  mapa: Mapa | null;
 }
 
 interface Especie {
@@ -97,14 +99,8 @@ export default function SeguimientoTrampasEdit({
       );
       const especiesRes = await axios.get('/trampaseguimientos/especies');
 
-      const trampasOrdenadas = [...trampasRes.data].sort(
-        (a: Trampa, b: Trampa) =>
-          a.identificador.localeCompare(b.identificador, undefined, {
-            numeric: true,
-          }),
-      );
-
-      setTrampas(trampasOrdenadas);
+      // El backend ya las devuelve por orden de mapa y número de trampa.
+      setTrampas(trampasRes.data);
       setEspecies(especiesRes.data);
     };
 
@@ -118,8 +114,6 @@ export default function SeguimientoTrampasEdit({
   useEffect(() => {
     if (!trampas.length) return;
     if (initialized) return;
-
-    console.log('✅ INIT DESDE VALUE:', value);
 
     const insectosMap: Record<number, TrampaEspecieSeguimientos[]> = {};
     const roedoresMap: Record<number, TrampaRoedoresSeguimiento> = {};
@@ -259,6 +253,18 @@ export default function SeguimientoTrampasEdit({
 
   const isRoedores = tipoSeguimiento === '1';
 
+  // Solo se muestran las trampas del tipo que corresponde al seguimiento; la
+  // numeración de fila se calcula sobre esa lista visible.
+  const trampasVisibles = useMemo(
+    () =>
+      trampas.filter((t) =>
+        isRoedores
+          ? t.trampa_tipo.nombre !== 'insecto'
+          : t.trampa_tipo.nombre === 'insecto',
+      ),
+    [trampas, isRoedores],
+  );
+
   /* ======================= */
 
   if (!initialized) {
@@ -267,180 +273,175 @@ export default function SeguimientoTrampasEdit({
 
   return (
     <div className="space-y-6">
-      {/* <div>{tipoSeguimiento}</div>
-      <div>{typeof tipoSeguimiento}</div> */}
+      <ResumenTrampas trampas={trampasVisibles} />
 
-      {trampas.map((t) => (
-        <>
-          {isRoedores && (
-            <>
-              {/* ======================= */}
-              {/* ROEDORES */}
-              {/* ======================= */}
-              {t.trampa_tipo.nombre !== 'insecto' && (
-                <div key={t.id} className="space-y-4 rounded-lg border p-4">
+      {/* ======================= */}
+      {/* ROEDORES */}
+      {/* ======================= */}
+      {isRoedores &&
+        trampasVisibles.map((t, fila) => (
+          <div key={t.id} className="space-y-4 rounded-lg border p-4">
+            <div>
+              <h4 className="flex items-center gap-2 font-semibold">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
+                  {fila + 1}
+                </span>
+                <span>
+                  Trampa{' '}
+                  <span className="text-[1rem] text-red-500">
+                    {t.identificador}
+                  </span>
+                </span>
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Tipo: {t.trampa_tipo.nombre}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Mapa: {t.mapa?.titulo ?? 'Sin mapa'}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+              <div>
+                <Label className="text-xs">Observacion</Label>
+                <Input
+                  placeholder="Obs"
+                  value={roedores[t.id]?.observacion || ''}
+                  onChange={(e) =>
+                    updateRoedor(t.id, 'observacion', e.target.value)
+                  }
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs">Atrapados</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  placeholder="Cantidad"
+                  value={roedores[t.id]?.cantidad}
+                  onChange={(e) =>
+                    updateRoedor(t.id, 'cantidad', Number(e.target.value))
+                  }
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs">Inicial</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  placeholder="Inicial"
+                  value={roedores[t.id]?.inicial}
+                  onChange={(e) =>
+                    updateRoedor(t.id, 'inicial', Number(e.target.value))
+                  }
+                  disabled={t.trampa_tipo.id === 4 || t.trampa_tipo.id === 5}
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs">Actual</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={roedores[t.id]?.inicial}
+                  placeholder="Actual"
+                  value={roedores[t.id]?.actual}
+                  onChange={(e) =>
+                    updateRoedor(t.id, 'actual', Number(e.target.value))
+                  }
+                  disabled={t.trampa_tipo.id === 4 || t.trampa_tipo.id === 5}
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs">Merma</Label>
+                <Input disabled value={roedores[t.id]?.merma} />
+              </div>
+            </div>
+          </div>
+        ))}
+
+      {/* ======================= */}
+      {/* INSECTOS */}
+      {/* ======================= */}
+      {!isRoedores &&
+        trampasVisibles.map((t, fila) => (
+          <div key={t.id} className="space-y-4 rounded-lg border p-4">
+            <div>
+              <h4 className="flex items-center gap-2 font-semibold">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
+                  {fila + 1}
+                </span>
+                <span>
+                  Trampa{' '}
+                  <span className="text-[1rem] text-red-500">
+                    {t.identificador}
+                  </span>
+                </span>
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Tipo: {t.trampa_tipo.nombre}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Mapa: {t.mapa?.titulo ?? 'Sin mapa'}
+              </p>
+            </div>
+            <div className="space-y-3">
+              <Button size="sm" onClick={() => addInsecto(t.id)}>
+                + Agregar especie
+              </Button>
+
+              {insectos[t.id]?.map((i, idx) => (
+                <div key={idx} className="grid grid-cols-3 items-end gap-3">
                   <div>
-                    <h4 className="font-semibold">
-                      Trampa{' '}
-                      <span className="text-[1rem] text-red-500">
-                        {t.identificador}
-                      </span>
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Tipo: {t.trampa_tipo.nombre}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Mapa: {t.mapa.titulo}
-                    </p>
+                    <Label className="text-xs">Especie</Label>
+                    <Select
+                      value={i.especie_id.toString()}
+                      onValueChange={(v) =>
+                        updateInsecto(t.id, idx, 'especie_id', Number(v))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {especies.map((e) => (
+                          <SelectItem key={e.id} value={e.id.toString()}>
+                            {e.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-                    <div>
-                      <Label className="text-xs">Observacion</Label>
-                      <Input
-                        placeholder="Obs"
-                        value={roedores[t.id]?.observacion || ''}
-                        onChange={(e) =>
-                          updateRoedor(t.id, 'observacion', e.target.value)
-                        }
-                      />
-                    </div>
 
-                    <div>
-                      <Label className="text-xs">Atrapados</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        placeholder="Cantidad"
-                        value={roedores[t.id]?.cantidad}
-                        onChange={(e) =>
-                          updateRoedor(t.id, 'cantidad', Number(e.target.value))
-                        }
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-xs">Inicial</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        placeholder="Inicial"
-                        value={roedores[t.id]?.inicial}
-                        onChange={(e) =>
-                          updateRoedor(t.id, 'inicial', Number(e.target.value))
-                        }
-                        disabled={
-                          t.trampa_tipo.id === 4 || t.trampa_tipo.id === 5
-                        }
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-xs">Actual</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={roedores[t.id]?.inicial}
-                        placeholder="Actual"
-                        value={roedores[t.id]?.actual}
-                        onChange={(e) =>
-                          updateRoedor(t.id, 'actual', Number(e.target.value))
-                        }
-                        disabled={
-                          t.trampa_tipo.id === 4 || t.trampa_tipo.id === 5
-                        }
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-xs">Merma</Label>
-                      <Input disabled value={roedores[t.id]?.merma} />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {!isRoedores && (
-            <>
-              {/* ======================= */}
-              {/* INSECTOS */}
-              {/* ======================= */}
-              {t.trampa_tipo.nombre === 'insecto' && (
-                <div key={t.id} className="space-y-4 rounded-lg border p-4">
                   <div>
-                    <h4 className="font-semibold">
-                      Trampa{' '}
-                      <span className="text-[1rem] text-red-500">
-                        {t.identificador}
-                      </span>
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Tipo: {t.trampa_tipo.nombre}
-                    </p>
+                    <Label className="text-xs">Cantidad</Label>
+                    <Input
+                      type="number"
+                      value={i.cantidad}
+                      onChange={(e) =>
+                        updateInsecto(
+                          t.id,
+                          idx,
+                          'cantidad',
+                          Number(e.target.value),
+                        )
+                      }
+                    />
                   </div>
-                  <div className="space-y-3">
-                    <Button size="sm" onClick={() => addInsecto(t.id)}>
-                      + Agregar especie
-                    </Button>
 
-                    {insectos[t.id]?.map((i, idx) => (
-                      <div
-                        key={idx}
-                        className="grid grid-cols-3 items-end gap-3"
-                      >
-                        <div>
-                          <Label className="text-xs">Especie</Label>
-                          <Select
-                            value={i.especie_id.toString()}
-                            onValueChange={(v) =>
-                              updateInsecto(t.id, idx, 'especie_id', Number(v))
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {especies.map((e) => (
-                                <SelectItem key={e.id} value={e.id.toString()}>
-                                  {e.nombre}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label className="text-xs">Cantidad</Label>
-                          <Input
-                            type="number"
-                            value={i.cantidad}
-                            onChange={(e) =>
-                              updateInsecto(
-                                t.id,
-                                idx,
-                                'cantidad',
-                                Number(e.target.value),
-                              )
-                            }
-                          />
-                        </div>
-
-                        <Button
-                          variant="destructive"
-                          onClick={() => removeInsecto(t.id, idx)}
-                        >
-                          Eliminar
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
+                  <Button
+                    variant="destructive"
+                    onClick={() => removeInsecto(t.id, idx)}
+                  >
+                    Eliminar
+                  </Button>
                 </div>
-              )}
-            </>
-          )}
-        </>
-      ))}
+              ))}
+            </div>
+          </div>
+        ))}
     </div>
   );
 }
@@ -534,13 +535,10 @@ export default function SeguimientoTrampasEdit({
 //   const [initialized, setInitialized] = useState(false);
 
 //   useEffect(() => {
-//     console.log('📥 VALUE RECIBIDO EN HIJO:', value);
 //   }, [value]);
 
 //   useEffect(() => {
 //     if (!initialized) return;
-
-//     console.log('📤 Enviando al padre (YA INICIALIZADO)');
 
 //     onChange({
 //       trampa_especies_seguimientos: Object.values(insectos).flat(),
@@ -567,8 +565,6 @@ export default function SeguimientoTrampasEdit({
 //   useEffect(() => {
 //     if (!trampas.length) return;
 //     if (initialized) return;
-
-//     console.log('✅ Inicializando desde value REAL', value);
 
 //     const insectosMap: Record<number, TrampaEspecieSeguimientos[]> = {};
 //     const roedoresMap: Record<number, TrampaRoedoresSeguimiento> = {};
@@ -612,11 +608,8 @@ export default function SeguimientoTrampasEdit({
 
 //   //   // 🛑 evitar reinicializar si ya hay datos
 //   //   if (Object.keys(insectos).length > 0 || Object.keys(roedores).length > 0) {
-//   //     console.log('⛔ Ya inicializado, no sobreescribo');
 //   //     return;
 //   //   }
-
-//   //   console.log('✅ Inicializando desde value');
 
 //   //   const insectosMap: Record<number, TrampaEspecieSeguimientos[]> = {};
 //   //   const roedoresMap: Record<number, TrampaRoedoresSeguimiento> = {};
@@ -662,10 +655,6 @@ export default function SeguimientoTrampasEdit({
 //   //   const insectosMap: Record<number, TrampaEspecieSeguimientos[]> = {};
 //   //   const roedoresMap: Record<number, TrampaRoedoresSeguimiento> = {};
 
-//   //   console.log('🔵 VALUE DESDE PADRE');
-//   //   console.log('Insectos:', value.trampa_especies_seguimientos);
-//   //   console.log('Roedores:', value.trampa_roedores_seguimientos);
-
 //   //   // Inicializar estructuras vacías
 //   //   trampas.forEach((t) => {
 //   //     if (t.trampa_tipo.nombre === 'insecto') {
@@ -684,7 +673,6 @@ export default function SeguimientoTrampasEdit({
 
 //   //   // Cargar insectos existentes
 //   //   value.trampa_especies_seguimientos.forEach((i) => {
-//   //     console.log('🟡 Cargando insecto:', i);
 //   //     if (!insectosMap[i.trampa_id]) {
 //   //       insectosMap[i.trampa_id] = [];
 //   //     }
@@ -693,15 +681,11 @@ export default function SeguimientoTrampasEdit({
 
 //   //   // Cargar roedores existentes
 //   //   value.trampa_roedores_seguimientos.forEach((r) => {
-//   //     console.log('🟠 Cargando roedor:', r);
 //   //     roedoresMap[r.trampa_id] = {
 //   //       ...r,
 //   //       merma: r.inicial - r.actual,
 //   //     };
 //   //   });
-
-//   //   console.log('🟢 Estado inicial insectosMap:', insectosMap);
-//   //   console.log('🔴 Estado inicial roedoresMap:', roedoresMap);
 
 //   //   setInsectos(insectosMap);
 //   //   setRoedores(roedoresMap);

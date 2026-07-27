@@ -33,6 +33,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { confirmar } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Productos', href: '/productos' },
@@ -143,8 +144,8 @@ export default function Index() {
   }, [openHojas, selectedProductoId]);
 
   // ── Producto ────────────────────────────────────────────────────────
-  const handleDeleteProducto = (id: number) => {
-    if (confirm('¿Estás seguro de eliminar este producto?')) {
+  const handleDeleteProducto = async (id: number) => {
+    if (await confirmar({ titulo: '¿Estás seguro de eliminar este producto?', destructivo: true })) {
       destroy(`/productos/${id}`);
     }
   };
@@ -188,8 +189,9 @@ export default function Index() {
     });
   };
 
-  const handleDeleteVencimiento = (id: number) => {
-    if (!confirm('¿Eliminar este vencimiento?')) return;
+  const handleDeleteVencimiento = async (id: number) => {
+    if (!(await confirmar({ titulo: '¿Eliminar este vencimiento?', destructivo: true })))
+      return;
 
     router.delete(`/productos/${selectedProductoId}/vencimientos/${id}`, {
       preserveScroll: true,
@@ -244,8 +246,9 @@ export default function Index() {
     });
   };
 
-  const handleDeleteHoja = (id: number) => {
-    if (!confirm('¿Eliminar esta hoja técnica?')) return;
+  const handleDeleteHoja = async (id: number) => {
+    if (!(await confirmar({ titulo: '¿Eliminar esta hoja técnica?', destructivo: true })))
+      return;
 
     router.delete(`/productos/${selectedProductoId}/hojas-tecnicas/${id}`, {
       preserveScroll: true,
@@ -1128,7 +1131,6 @@ export default function Index() {
 //       },
 //       onError: (errors) => {
 //         toast.error('Error al guardar vencimiento');
-//         console.log(errors);
 //       },
 //     });
 //   };

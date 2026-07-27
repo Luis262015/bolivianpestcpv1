@@ -26,6 +26,7 @@ class ProductosController extends Controller
     'unidad_id' => 'required|exists:unidades,id',
     'marca_id' => 'nullable|exists:marcas,id',
     'categoria_id' => 'nullable|exists:categorias,id',
+    'subcategoria_id' => 'nullable|exists:subcategorias,id',
     'etiqueta_ids' => 'nullable|array',
     'etiqueta_ids.*' => 'exists:etiquetas,id',
   ];
@@ -64,6 +65,7 @@ class ProductosController extends Controller
 
     $producto = new Producto();
     $producto->categoria_id = $validated['categoria_id'];
+    $producto->subcategoria_id = $validated['subcategoria_id'] ?? null;
     $producto->marca_id = $validated['marca_id'];
     $producto->unidad_id = $validated['unidad_id'];
     $producto->nombre = $validated['nombre'];
@@ -99,6 +101,7 @@ class ProductosController extends Controller
 
     $producto = Producto::find($id);
     $producto->categoria_id = $validated['categoria_id'];
+    $producto->subcategoria_id = $validated['subcategoria_id'] ?? null;
     $producto->marca_id = $validated['marca_id'];
     $producto->unidad_id = $validated['unidad_id'];
     $producto->nombre = $validated['nombre'];
@@ -137,12 +140,14 @@ class ProductosController extends Controller
       'unidad_id'      => 'required|exists:unidades,id',
       'marca_id'       => 'nullable|exists:marcas,id',
       'categoria_id'   => 'nullable|exists:categorias,id',
+      'subcategoria_id' => 'nullable|exists:subcategorias,id',
       'etiqueta_ids'   => 'nullable|array',
       'etiqueta_ids.*' => 'exists:etiquetas,id',
     ]);
 
     $producto = new Producto();
     $producto->categoria_id = $validated['categoria_id'] ?? null;
+    $producto->subcategoria_id = $validated['subcategoria_id'] ?? null;
     $producto->marca_id     = $validated['marca_id'] ?? null;
     $producto->unidad_id    = $validated['unidad_id'];
     $producto->nombre       = $validated['nombre'];

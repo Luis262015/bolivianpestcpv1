@@ -16,6 +16,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, FileSpreadsheet, FileText, Upload, X } from 'lucide-react';
 import { FormEvent, useRef, useState } from 'react';
+import { notificarError } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -62,11 +63,11 @@ export default function Editar() {
       const validExtensions = ['.pdf', '.docx', '.xlsx', '.xls'];
       const ext = '.' + file.name.split('.').pop()?.toLowerCase();
       if (!validExtensions.includes(ext)) {
-        alert('Solo PDF, Word o Excel');
+        notificarError('Solo PDF, Word o Excel');
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
-        alert('Máx 10 MB');
+        notificarError('Máx 10 MB');
         return;
       }
       setArchivo(file);
@@ -111,20 +112,12 @@ export default function Editar() {
     // SPOOFING: Envía POST pero Laravel lo trata como PUT
     formData.append('_method', 'PUT');
 
-    // Debug: Ver qué se envía
-    console.log('Enviando FormData:');
-    for (const [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-
     router.post(`/documentos/${doc.id}`, formData, {
       forceFormData: true,
       onSuccess: () => {
-        console.log('¡Éxito! Documento actualizado');
         removeFile();
       },
       onError: (serverErrors) => {
-        console.log('Errores del servidor:', serverErrors);
         setErrors(serverErrors);
       },
     });

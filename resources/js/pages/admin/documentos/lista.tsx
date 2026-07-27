@@ -6,6 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
+import { confirmar } from '@/lib/alertas';
 import {
   Download,
   Edit,
@@ -143,11 +144,13 @@ export default function Lista() {
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() => {
+                          onClick={async () => {
                             if (
-                              confirm(
-                                '¿Seguro que quieres eliminar este documento?',
-                              )
+                              await confirmar({
+                                titulo:
+                                  '¿Seguro que quieres eliminar este documento?',
+                                destructivo: true,
+                              })
                             ) {
                               destroy(`/documentos/${doc.id}`, {
                                 preserveState: false,

@@ -14,6 +14,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Edit, File, Plus, Trash2 } from 'lucide-react';
+import { confirmar } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -44,16 +45,14 @@ interface ContratosPaginate {
   links: { url: string | null; label: string; active: boolean }[];
 }
 
-const handleDelete = (id: number) => {
-  console.log('Eliminar contrato nro ' + id);
+const handleDelete = async (id: number) => {
 
-  if (confirm('¿Estás seguro?')) {
+  if (await confirmar({ titulo: '¿Estás seguro?' })) {
     router.delete(`/contratos/${id}`);
   }
 };
 
 const handlePDF = (id: number) => {
-  console.log('Imprimir PDF');
   window.open(`/contratos/${id}/pdf`, '_blank');
 };
 
@@ -61,7 +60,6 @@ export default function Lista() {
   const { processing, delete: destroy } = useForm();
   const { contratos } = usePage<{ contratos: ContratosPaginate }>().props;
 
-  console.log(contratos);
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>

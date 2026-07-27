@@ -127,7 +127,6 @@ export default function Lista({ estados }: Props) {
     try {
       const response = await fetch(`/estados/obtenercierre`);
 
-      console.log(response);
 
       if (!response.ok) {
         throw new Error('Error al cargar los datos');
@@ -232,7 +231,6 @@ export default function Lista({ estados }: Props) {
   };
 
   const handlePDF = (id: number) => {
-    console.log('Imprimir PDF');
     window.open(`/estados/${id}/pdf`, '_blank');
   };
 

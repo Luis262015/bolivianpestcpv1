@@ -49,6 +49,7 @@ import SeguimientoTrampas, {
   TrampaRoedoresSeguimiento,
 } from './SeguimientoTrampas';
 import SignaturePad from './SignaturePad';
+import { notificarError } from '@/lib/alertas';
 
 interface Empresa {
   id: number;
@@ -101,17 +102,6 @@ interface ProductoUsado {
   cantidad: string;
 }
 
-interface Especie {
-  id: number;
-  nombre: string;
-}
-
-interface EspecieCantidad {
-  especie_id: number;
-  nombre: string;
-  cantidad: number;
-}
-
 interface TipoSeguimiento {
   id: number;
   nombre: string;
@@ -141,7 +131,6 @@ interface ModalSeguimientoProps {
   epps: EPP[];
   protecciones: Proteccion[];
   signos: Signo[];
-  especies: Especie[];
   tipoSeguimiento: TipoSeguimiento[];
 }
 
@@ -155,7 +144,6 @@ export default function ModalSeguimiento({
   epps,
   protecciones,
   signos,
-  especies,
   tipoSeguimiento,
 }: ModalSeguimientoProps) {
   const [step, setStep] = useState(1);
@@ -179,34 +167,6 @@ export default function ModalSeguimiento({
   const [almacenesFiltrados, setAlmacenesFiltrados] =
     useState<Almacen[]>(almacenes);
 
-  // const [especiesSel, setEspeciesSel] = useState<number[]>([]);
-  // const [especiesCantidad, setEspeciesCantidad] = useState<EspecieCantidad[]>(
-  //   especies.map((e) => ({
-  //     especie_id: e.id,
-  //     nombre: e.nombre,
-  //     cantidad: 0,
-  //   })),
-  // );
-  const buildInitialEspecies = () =>
-    especies.map((e) => ({
-      especie_id: e.id,
-      nombre: e.nombre,
-      cantidad: 0,
-    }));
-
-  const [especiesCantidad, setEspeciesCantidad] = useState<EspecieCantidad[]>(
-    buildInitialEspecies(),
-  );
-
-  console.log(tipoSeguimiento);
-
-  const updateEspecieCantidad = (id: number, value: string) => {
-    const cantidad = value === '' ? 0 : Number(value);
-
-    setEspeciesCantidad((prev) =>
-      prev.map((e) => (e.especie_id === id ? { ...e, cantidad } : e)),
-    );
-  };
 
   const emptyAplicacion: Aplicacion = {
     // Fumigacion
@@ -245,11 +205,6 @@ export default function ModalSeguimiento({
     epps_ids: [] as number[],
     protecciones_ids: [] as number[],
     signos_ids: [] as number[],
-    // especies_ids: [] as number[],
-    especies_ids: [] as {
-      especie_id: number;
-      cantidad: number;
-    }[],
     productos_usados: [] as ProductoUsado[],
     observaciones_especificas: '',
     encargado_nombre: '',
@@ -267,7 +222,6 @@ export default function ModalSeguimiento({
     gastos: [] as { concepto: string; total: string }[],
   });
 
-  console.log(errors);
 
   const updateAplicacion = (field: keyof Aplicacion, value: string) => {
     const numericValue = value === '' ? 0 : Number(value);
@@ -289,7 +243,6 @@ export default function ModalSeguimiento({
       setLoading(true);
       try {
         const { data } = await axios.get(`/productos/search?q=${query}`);
-        console.log(data);
         setSearchResults(data);
       } catch (error) {
         console.error('Error al buscar productos:', error);
@@ -327,18 +280,6 @@ export default function ModalSeguimiento({
     if (step === 6) setData('protecciones_ids', proteccionesSel);
     if (step === 7) setData('biologicos_ids', biologicosSel);
     if (step === 8) setData('signos_ids', signosSel);
-    // if (step === 9) setData('especies_ids', especiesSel);
-    if (step === 9) {
-      setData(
-        'especies_ids',
-        especiesCantidad
-          .filter((e) => e.cantidad > 0)
-          .map((e) => ({
-            especie_id: e.especie_id,
-            cantidad: e.cantidad,
-          })),
-      );
-    }
     if (step === 10)
       setData('observaciones_especificas', data.observaciones_especificas);
 
@@ -350,7 +291,6 @@ export default function ModalSeguimiento({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // console.log('tareaNumero: ' + tareaNumero);
 
     // Actualizar todos los datos antes de enviar
     const finalData = {
@@ -360,13 +300,6 @@ export default function ModalSeguimiento({
       epps_ids: eppsSel,
       protecciones_ids: proteccionesSel,
       signos_ids: signosSel,
-      // especies_ids: especiesSel,
-      especies_ids: especiesCantidad
-        .filter((e) => e.cantidad > 0)
-        .map((e) => ({
-          especie_id: e.especie_id,
-          cantidad: e.cantidad,
-        })),
       productos_usados: productos,
       firma_encargado: firmaEncargado, // base64
       firma_supervisor: firmaSupervisor, // base64
@@ -417,8 +350,6 @@ export default function ModalSeguimiento({
     setProteccionesSel([]);
     setSignosSel([]);
 
-    setEspeciesCantidad(buildInitialEspecies());
-
     setAplicacion(emptyAplicacion);
     setProductos([]);
 
@@ -441,7 +372,7 @@ export default function ModalSeguimiento({
 
     const existe = productos.some((p) => p.producto_id === selectedProduct.id);
     if (existe) {
-      alert('Este producto ya fue agregado');
+      notificarError('Este producto ya fue agregado');
       return;
     }
 
@@ -554,7 +485,6 @@ export default function ModalSeguimiento({
         return;
       }
 
-      console.log(res.data.data);
       if (res.data.data.status !== 'pendiente') {
         setCronogramaError('La tarea tiene un estado distinto a pendiente');
         return;

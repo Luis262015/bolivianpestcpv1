@@ -25,6 +25,7 @@ import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Edit, Filter, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { confirmar } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Gastos', href: '/gastos' }];
 
@@ -96,8 +97,8 @@ export default function Gastos() {
     return () => clearTimeout(timer);
   }, [localFilters]);
 
-  const handleDelete = (id: number) => {
-    if (confirm('¿Estás seguro de eliminar el registro?')) {
+  const handleDelete = async (id: number) => {
+    if (await confirmar({ titulo: '¿Estás seguro de eliminar el registro?', destructivo: true })) {
       destroy(`/gastos/${id}`, {
         onSuccess: () => {
           const payload = Object.fromEntries(

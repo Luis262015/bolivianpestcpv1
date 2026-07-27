@@ -196,7 +196,6 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
         : [emptyAlmacen()],
   });
 
-  console.log(almacenes);
 
   // ─── Actualizar campos de trampas ─────────────────────────────────────────
   const updateTrampaField = (
@@ -1271,8 +1270,6 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
 //    Componente
 // ============================================================ */
 // export default function CotizacionForm({ contrato, almacenes }: Props) {
-//   console.log(contrato);
-//   console.log(almacenes);
 
 //   const { data, setData, post, put, processing, errors } = useForm<FormData>({
 //     expiracion: contrato?.expiracion ?? '',
@@ -1319,7 +1316,6 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
 //           ],
 //   });
 
-//   console.log(errors);
 
 //   /* ============================================================
 //      Cálculos
@@ -2041,11 +2037,6 @@ export default function EditarContrato({ contrato, almacenes }: Props) {
 // // }
 
 // // export default function CotizacionForm({ contrato, almacenes }: Props) {
-// //   console.log('-----------------');
-// //   console.log(contrato);
-// //   console.log('-----------------');
-// //   console.log(almacenes);
-// //   console.log('-----------------');
 
 // //   const { data, setData, post, put, processing, errors } = useForm<
 // //     [Contrato, Almacen[]]

@@ -19,7 +19,6 @@ use App\Models\Proteccion;
 use App\Models\Seguimiento;
 use App\Models\SeguimientoBiologico;
 use App\Models\SeguimientoEpp;
-use App\Models\SeguimientoEspecie;
 use App\Models\SeguimientoImage;
 use App\Models\SeguimientoMetodo;
 use App\Models\SeguimientoProteccion;
@@ -72,7 +71,6 @@ class SeguimientoController extends Controller
     'aplicacion_data.internas' => 'required',
     'aplicacion_data.externas' => 'required',
     'aplicacion_data.roedores' => 'required',
-    'especies_ids' => 'nullable|array',
     'trampa_especies_seguimientos' => 'nullable|array',
     'trampa_especies_seguimientos.*.trampa_id' => 'required|integer|exists:trampas,id',
     'trampa_especies_seguimientos.*.especie_id' => 'required|integer|exists:especies,id',
@@ -88,7 +86,7 @@ class SeguimientoController extends Controller
     'firma_encargado' => 'nullable|string',
     'firma_supervisor' => 'nullable|string',
     'imagenes' => 'nullable|array',
-    'imagenes.*' => 'image|max:4096',
+    'imagenes.*' => 'image|mimes:jpeg,jpg,png,webp,gif|max:8192',
     // Gastos asociados al seguimiento (usado sobre todo en trabajos esporádicos).
     'gastos' => 'nullable|array',
     'gastos.*.concepto' => 'required|string|max:255',
@@ -126,7 +124,6 @@ class SeguimientoController extends Controller
     $protecciones = Proteccion::select('id', 'nombre')->orderBy('nombre')->get();
     $signos = Signo::select('id', 'nombre')->orderBy('nombre')->get();
     $tiposSeguimiento = TipoSeguimiento::select('id', 'nombre')->orderBy('nombre')->get();
-    $especies = Especie::select('id', 'nombre')->orderBy('nombre')->get();
 
     // El cliente no filtra por usuario; no le exponemos la lista completa.
     $usuarios = $esCliente
@@ -176,7 +173,6 @@ class SeguimientoController extends Controller
       'protecciones' => $protecciones,
       'signos' => $signos,
       'tipoSeguimiento' => $tiposSeguimiento,
-      'especies' => $especies,
       'seguimientos' => $query->paginate(20)->withQueryString(),
       'usuarios' => $usuarios,
       'filters' => $filters,
@@ -188,6 +184,10 @@ class SeguimientoController extends Controller
     // Validar FUERA del try: los errores de validación deben llegar al
     // formulario como tales, no convertirse en un error genérico.
     $validated = $request->validate($this->toValidated);
+
+    // La tarea debe cuadrar con el almacén/tipo enviados y estar libre.
+    // El modal ya lo verifica, pero el backend no puede confiar en eso.
+    $this->validarTarea($validated);
 
     $empresaId = Almacen::whereKey($validated['almacen_id'])->value('empresa_id');
 
@@ -222,8 +222,19 @@ class SeguimientoController extends Controller
 
       $seguimiento->save();
 
-      // Marcar la tarea del cronograma como completada.
-      Cronograma::whereKey($validated['numero_tarea'])->update(['status' => 'completado']);
+      // Marcar la tarea como completada RECLAMÁNDOLA: el WHERE status
+      // 'pendiente' hace que solo el primer envío afecte una fila. Sin esto,
+      // dos envíos simultáneos (doble clic) pasan ambos por validarTarea y
+      // duplican el seguimiento y el descuento de stock.
+      $reclamada = Cronograma::whereKey($validated['numero_tarea'])
+        ->where('status', 'pendiente')
+        ->update(['status' => 'completado']);
+
+      if ($reclamada === 0) {
+        throw ValidationException::withMessages([
+          'numero_tarea' => 'La tarea ya fue registrada por otro envío.',
+        ]);
+      }
 
       // Aplicacion
       $aplicacion = new Aplicacion();
@@ -315,7 +326,7 @@ class SeguimientoController extends Controller
       'observaciones_generales' => 'nullable|string',
       'created_at' => 'nullable|date',
       'imagenes' => 'nullable|array',
-      'imagenes.*' => 'image|max:4096',
+      'imagenes.*' => 'image|mimes:jpeg,jpg,png,webp,gif|max:8192',
     ]);
 
     // El modal de edición envía multipart: los arrays llegan como JSON string.
@@ -540,7 +551,6 @@ class SeguimientoController extends Controller
       // Eliminar trampas y relaciones
       TrampaEspecieSeguimiento::where('seguimiento_id', $seguimiento->id)->delete();
       TrampaRoedorSeguimiento::where('seguimiento_id', $seguimiento->id)->delete();
-      SeguimientoEspecie::where('seguimiento_id', $seguimiento->id)->delete();
       $this->limpiarPivotes($seguimiento->id);
       Aplicacion::where('seguimiento_id', $seguimiento->id)->delete();
 
@@ -580,7 +590,7 @@ class SeguimientoController extends Controller
 
   public function pdf(Request $request, string $id)
   {
-    $seguimiento = Seguimiento::with(['empresa', 'almacen', 'user', 'tipoSeguimiento', 'aplicacion', 'metodos', 'epps', 'proteccions', 'biologicos', 'signos', 'images', 'especies', 'productoUsos.unidad', 'productoUsos.producto', 'roedores.trampa.mapa', 'insectocutores.especie', 'insectocutores.trampa.mapa'])
+    $seguimiento = Seguimiento::with(['empresa', 'almacen', 'user', 'tipoSeguimiento', 'aplicacion', 'metodos', 'epps', 'proteccions', 'biologicos', 'signos', 'images', 'productoUsos.unidad', 'productoUsos.producto', 'roedores.trampa.mapa', 'insectocutores.especie', 'insectocutores.trampa.mapa'])
       ->findOrFail($id);
 
     $this->autorizarAccesoEmpresa($request, $seguimiento->empresa_id);
@@ -700,6 +710,41 @@ class SeguimientoController extends Controller
   /* ==================== Helpers ==================== */
 
   /**
+   * La tarea del cronograma tiene que corresponder al almacén y al tipo de
+   * seguimiento enviados, seguir pendiente y no tener ya un seguimiento.
+   * Sin esto se puede completar la tarea de otra empresa o duplicar la carga.
+   */
+  private function validarTarea(array $validated): void
+  {
+    // `numero_tarea` ya pasó por exists:cronogramas,id.
+    $cronograma = Cronograma::whereKey($validated['numero_tarea'])
+      ->select('id', 'almacen_id', 'tipo_seguimiento_id', 'status')
+      ->first();
+
+    $errores = [];
+
+    if ((int) $cronograma->almacen_id !== (int) $validated['almacen_id']) {
+      $errores[] = 'La tarea no pertenece al almacén seleccionado.';
+    }
+
+    if ((int) $cronograma->tipo_seguimiento_id !== (int) $validated['tipo_seguimiento_id']) {
+      $errores[] = 'La tarea no corresponde al tipo de seguimiento seleccionado.';
+    }
+
+    if ($cronograma->status !== 'pendiente') {
+      $errores[] = 'La tarea ya no está pendiente.';
+    }
+
+    if (Seguimiento::where('cronograma_id', $cronograma->id)->exists()) {
+      $errores[] = 'La tarea ya tiene un seguimiento registrado.';
+    }
+
+    if ($errores) {
+      throw ValidationException::withMessages(['numero_tarea' => $errores]);
+    }
+  }
+
+  /**
    * Un cliente solo puede acceder a datos de sus empresas asignadas.
    */
   private function autorizarAccesoEmpresa(Request $request, ?int $empresaId): void
@@ -757,14 +802,160 @@ class SeguimientoController extends Controller
     }
 
     foreach ($request->file('imagenes') as $imagen) {
-      // Extensión deducida del contenido real, nunca del nombre del navegador.
-      $filename = uniqid() . '.' . $imagen->extension();
-      $imagen->move($directory, $filename);
+      $filename = $this->optimizarYGuardarImagen($imagen, $directory);
+
       SeguimientoImage::create([
         'seguimiento_id' => $seguimientoId,
         'imagen' => 'images/seguimientos/' . $filename,
       ]);
     }
+  }
+
+  /** Lado mayor máximo. El informe las coloca a 220-480 px; de más no sirve. */
+  private const IMAGEN_LADO_MAX = 1600;
+
+  /** Umbral para no reprocesar lo que ya viene ligero (evita perder calidad). */
+  private const IMAGEN_PESO_MAX = 500 * 1024;
+
+  private const IMAGEN_CALIDAD = 82;
+
+  /**
+   * Normaliza la foto a JPEG y la reduce si hace falta.
+   *
+   * Se convierte SIEMPRE a JPEG (no WebP) porque el destino final de estas
+   * fotos es el informe Word, y PhpWord no sabe embeber WebP. Un PNG de cámara
+   * de 1 MB pasa a ~100 KB sin diferencia visible a los tamaños en que se
+   * imprime.
+   *
+   * Si GD no puede procesarla se guarda el original tal cual: es preferible
+   * conservar la evidencia aunque no esté optimizada a perderla.
+   *
+   * @return string Nombre del archivo guardado.
+   */
+  private function optimizarYGuardarImagen($imagen, string $directorio): string
+  {
+    $rutaTemporal = $imagen->getRealPath();
+    $info = @getimagesize($rutaTemporal);
+
+    // Formatos que GD no sabe leer (p. ej. HEIC): se conservan sin tocar.
+    $lector = $info ? $this->lectorGd($info[2]) : null;
+
+    if (!$lector) {
+      $filename = uniqid() . '.' . $imagen->extension();
+      $imagen->move($directorio, $filename);
+
+      return $filename;
+    }
+
+    [$ancho, $alto] = $info;
+    $ladoMayor = max($ancho, $alto);
+
+    // Ya es un JPEG pequeño y ligero: reprocesarlo sólo degradaría la imagen.
+    $yaOptimizada = $info[2] === IMAGETYPE_JPEG
+      && $ladoMayor <= self::IMAGEN_LADO_MAX
+      && $imagen->getSize() <= self::IMAGEN_PESO_MAX;
+
+    if ($yaOptimizada) {
+      $filename = uniqid() . '.jpg';
+      $imagen->move($directorio, $filename);
+
+      return $filename;
+    }
+
+    $origen = @$lector($rutaTemporal);
+
+    if (!$origen) {
+      $filename = uniqid() . '.' . $imagen->extension();
+      $imagen->move($directorio, $filename);
+
+      return $filename;
+    }
+
+    // GD descarta el EXIF, así que la rotación hay que aplicarla a los píxeles;
+    // si no, las fotos de móvil se guardan tumbadas.
+    $origen = $this->corregirOrientacion($origen, $rutaTemporal, $info[2]);
+    $ancho  = imagesx($origen);
+    $alto   = imagesy($origen);
+
+    $escala = $ladoMayor > self::IMAGEN_LADO_MAX
+      ? self::IMAGEN_LADO_MAX / max($ancho, $alto)
+      : 1.0;
+
+    $nuevoAncho = max(1, (int) round($ancho * $escala));
+    $nuevoAlto  = max(1, (int) round($alto * $escala));
+
+    $destino = imagecreatetruecolor($nuevoAncho, $nuevoAlto);
+
+    // JPEG no tiene canal alfa: sin este fondo, las zonas transparentes de un
+    // PNG se volverían negras.
+    $blanco = imagecolorallocate($destino, 255, 255, 255);
+    imagefilledrectangle($destino, 0, 0, $nuevoAncho, $nuevoAlto, $blanco);
+
+    imagecopyresampled($destino, $origen, 0, 0, 0, 0, $nuevoAncho, $nuevoAlto, $ancho, $alto);
+
+    $filename = uniqid() . '.jpg';
+    imagejpeg($destino, $directorio . DIRECTORY_SEPARATOR . $filename, self::IMAGEN_CALIDAD);
+
+    imagedestroy($origen);
+    imagedestroy($destino);
+
+    return $filename;
+  }
+
+  /** Función de GD capaz de leer ese tipo, o null si no hay soporte. */
+  private function lectorGd(int $tipo): ?callable
+  {
+    $lectores = [
+      IMAGETYPE_JPEG => 'imagecreatefromjpeg',
+      IMAGETYPE_PNG  => 'imagecreatefrompng',
+      IMAGETYPE_GIF  => 'imagecreatefromgif',
+      IMAGETYPE_WEBP => 'imagecreatefromwebp',
+      IMAGETYPE_BMP  => 'imagecreatefrombmp',
+    ];
+
+    $lector = $lectores[$tipo] ?? null;
+
+    return $lector && function_exists($lector) ? $lector : null;
+  }
+
+  /** Aplica a los píxeles la rotación que venía declarada en el EXIF. */
+  private function corregirOrientacion($imagen, string $ruta, int $tipo)
+  {
+    if ($tipo !== IMAGETYPE_JPEG || !function_exists('exif_read_data')) {
+      return $imagen;
+    }
+
+    // Un EXIF malformado hace que exif_read_data emita un warning que Laravel
+    // convierte en excepción. Sin este try, una sola foto con la cabecera rota
+    // abortaría el guardado completo del seguimiento.
+    try {
+      $exif = @exif_read_data($ruta);
+    } catch (\Throwable $e) {
+      return $imagen;
+    }
+
+    $orientacion = (int) ($exif['Orientation'] ?? 0);
+
+    $grados = match ($orientacion) {
+      3 => 180,
+      6 => -90,
+      8 => 90,
+      default => 0,
+    };
+
+    if ($grados === 0) {
+      return $imagen;
+    }
+
+    $rotada = @imagerotate($imagen, $grados, 0);
+
+    if (!$rotada) {
+      return $imagen;
+    }
+
+    imagedestroy($imagen);
+
+    return $rotada;
   }
 
   private function guardarPivotes(int $seguimientoId, array $datos): void

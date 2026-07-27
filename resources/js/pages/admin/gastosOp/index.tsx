@@ -35,6 +35,7 @@ import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { confirmar } from '@/lib/alertas';
 
 const titlePage = 'Gastos Operativos';
 const urlPage = '/gastosop';
@@ -79,7 +80,6 @@ export default function GastosFin() {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('handleCreate');
     if (!itemConcept) return;
 
     router.post(
@@ -99,7 +99,6 @@ export default function GastosFin() {
 
   const handleEdit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('handleEdit');
     if (!editItem || !itemConcept) return;
 
     router.put(
@@ -125,8 +124,8 @@ export default function GastosFin() {
     setIsOpen(false);
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm('¿Estás seguro?')) {
+  const handleDelete = async (id: number) => {
+    if (await confirmar({ titulo: '¿Estás seguro?' })) {
       router.delete(`${urlPage}/${id}`);
     }
   };

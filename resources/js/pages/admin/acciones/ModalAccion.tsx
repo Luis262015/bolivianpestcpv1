@@ -41,6 +41,7 @@ import { useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { Check, ChevronsUpDown, InfoIcon, Plus, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { notificarError } from '@/lib/alertas';
 
 interface Empresa {
   id: number;
@@ -140,7 +141,6 @@ export default function ModalAccion({
     buildInitialEspecies(),
   );
 
-  console.log(tipoSeguimiento);
 
   const updateEspecieCantidad = (id: number, value: string) => {
     const cantidad = value === '' ? 0 : Number(value);
@@ -205,7 +205,6 @@ export default function ModalAccion({
     trampa_roedores_seguimientos: [] as TrampaRoedoresSeguimiento[],
   });
 
-  console.log(errors);
 
   const updateAplicacion = (field: keyof Aplicacion, value: string) => {
     const numericValue = value === '' ? 0 : Number(value);
@@ -227,7 +226,6 @@ export default function ModalAccion({
       setLoading(true);
       try {
         const { data } = await axios.get(`/productos/search?q=${query}`);
-        console.log(data);
         setSearchResults(data);
       } catch (error) {
         console.error('Error al buscar productos:', error);
@@ -293,7 +291,6 @@ export default function ModalAccion({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // console.log('tareaNumero: ' + tareaNumero);
 
     // Actualizar todos los datos antes de enviar
     const finalData = {
@@ -382,7 +379,7 @@ export default function ModalAccion({
 
     const existe = productos.some((p) => p.producto_id === selectedProduct.id);
     if (existe) {
-      alert('Este producto ya fue agregado');
+      notificarError('Este producto ya fue agregado');
       return;
     }
 
@@ -458,7 +455,6 @@ export default function ModalAccion({
         return;
       }
 
-      console.log(res.data.data);
       if (res.data.data.status !== 'pendiente') {
         setCronogramaError('La tarea tiene un estado distinto a pendiente');
         return;

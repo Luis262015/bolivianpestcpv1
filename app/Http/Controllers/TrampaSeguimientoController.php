@@ -160,9 +160,16 @@ class TrampaSeguimientoController extends Controller
 
   public function trampas(Request $request, string $id)
   {
+    // Mismo orden que el editor de mapas: los mapas en el orden en que fueron
+    // guardados (id) y, dentro de cada mapa, las trampas por su número.
+    // Las trampas sin mapa (altas rápidas de esporádicos) van al final.
     $trampas = Trampa::with(['trampa_tipo', 'almacen', 'mapa'])
       ->where('almacen_id', $id)
       ->where('estado', '!=', 'inactivo')
+      ->orderByRaw('mapa_id IS NULL')
+      ->orderBy('mapa_id')
+      ->orderBy('numero')
+      ->orderBy('id')
       ->get();
 
     return response()->json($trampas);

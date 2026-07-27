@@ -39,8 +39,6 @@ import {
   subYears,
 } from 'date-fns';
 import { es } from 'date-fns/locale';
-import * as htmlToImage from 'html-to-image';
-import jsPDF from 'jspdf';
 import {
   CheckCircle2,
   ChevronLeft,
@@ -53,6 +51,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { notificarError } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Cronogramas', href: '/cronogramas' },
@@ -137,8 +136,6 @@ export default function Lista() {
     tiposSeguimiento = [],
   } = props;
 
-  // console.log(empresas);
-  // console.log(almacenes);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('month');
@@ -224,17 +221,9 @@ export default function Lista() {
 
   // 4. Resetear almacén si ya no pertenece a la empresa seleccionada
   useEffect(() => {
-    // console.log('***************************** INI');
-    // console.log(' @@ EMPRESA ID: ' + selectedEmpresaId);
 
-    // console.log(almacenesFiltrados);
     // almacenes.forEach((element: Almacen) => {
-    //   console.log(element);
-    //   console.log(' @@@ ID DE ALMACEN ' + element.id);
-    //   console.log(' @@@ ID DE EMPRESA ' + element.empresa_id);
-    //   console.log(' @@@ IGUALES ' + (selectedEmpresaId === element.empresa_id));
     // });
-    // console.log('***************************** END');
     // if (
     //   selectedAlmacenId &&
     //   !almacenesFiltrados.some((a: Almacen) => a.id === selectedAlmacenId)
@@ -308,11 +297,10 @@ export default function Lista() {
   const openTaskDialog = (date?: Date, task?: Task) => {
     if (hasRole('admin') || hasRole('superadmin')) {
       if (!task && !puedeCrearTarea) {
-        alert('Selecciona un almacén para poder crear tareas.');
+        notificarError('Selecciona un almacén para poder crear tareas.');
         return;
       }
 
-      console.log(task);
 
       if (task) {
         const taskDate = new Date(task.date + 'T00:00:00');
@@ -479,6 +467,8 @@ export default function Lista() {
     if (!monthlyRef.current) return;
 
     try {
+      const htmlToImage = await import('html-to-image');
+
       const dataUrl = await htmlToImage.toPng(monthlyRef.current, {
         backgroundColor: '#ffffff',
         pixelRatio: 2, // mejor calidad
@@ -497,6 +487,13 @@ export default function Lista() {
     if (!monthlyRef.current) return;
 
     try {
+      // Import dinámico: jspdf + html-to-image pesan ~600 kB y sólo hacen
+      // falta al exportar, no al abrir el cronograma.
+      const [htmlToImage, { default: jsPDF }] = await Promise.all([
+        import('html-to-image'),
+        import('jspdf'),
+      ]);
+
       const dataUrl = await htmlToImage.toPng(monthlyRef.current, {
         backgroundColor: '#ffffff',
         pixelRatio: 2,
@@ -578,10 +575,10 @@ export default function Lista() {
               <div className="flex-1 space-y-1 overflow-y-auto">
                 {dayTasks.map((task) => {
                   const user = usuarios.find(
-                    (u: Usuario) => u.id === task.user_id,
+                    (u: Usuario) => Number(u.id) === Number(task.user_id),
                   );
                   const almacen = almacenes.find(
-                    (a: Almacen) => a.id === task.almacen_id,
+                    (a: Almacen) => Number(a.id) === Number(task.almacen_id),
                   );
                   const statusInfo = STATUS_CONFIG[task.status];
                   return (

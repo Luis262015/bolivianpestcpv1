@@ -43,6 +43,7 @@ import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
 import { Check, ChevronsUpDown, Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { notificarError, notificarExito } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Compras', href: 'compras/create' },
@@ -111,7 +112,7 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
   });
   const guardarProveedor = async () => {
     if (!proveedorForm.nombre) {
-      alert('El nombre del proveedor es obligatorio');
+      notificarError('El nombre del proveedor es obligatorio');
       return;
     }
 
@@ -143,7 +144,7 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
       setModalOpen(false);
     } catch (error) {
       console.error(error);
-      alert('Error al guardar proveedor');
+      notificarError('Error al guardar proveedor');
     } finally {
       setSavingProveedor(false);
     }
@@ -157,7 +158,6 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
 
   // Callback cuando se crea el proveedor
   // const handleProveedorCreado = (nuevo: { id: number; nombre: string }) => {
-  //   console.log('************************ CREADO ********************');
   //   setProveedores((prev) => [...prev, nuevo]);
   //   setProveedorId(String(nuevo.id)); // lo selecciona automáticamente
   // };
@@ -205,7 +205,7 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
 
     const existe = items.some((i) => i.producto_id === selectedProduct.id);
     if (existe) {
-      alert('Este producto ya fue agregado');
+      notificarError('Este producto ya fue agregado');
       return;
     }
 
@@ -253,7 +253,7 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
     e.preventDefault();
 
     if (items.length === 0) {
-      alert('Selecciona un proveedor y al menos un producto');
+      notificarError('Selecciona un proveedor y al menos un producto');
       return;
     }
 
@@ -270,7 +270,7 @@ export default function Compra({ proveedores: proveedoresIniciales }: Props) {
 
     router.post('/compras', payload, {
       onSuccess: () => {
-        alert('Compra guardada exitosamente');
+        notificarExito('Compra guardada exitosamente');
       },
       onError: (errors) => {
         console.error('Errores:', errors);

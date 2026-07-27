@@ -164,7 +164,6 @@ export default function Edit() {
     put(`/productos/${producto.id}`, {
       onSuccess: () => {
         // Puedes agregar lógica de éxito, como un toast de notificación
-        console.log('Producto actualizado');
       },
     });
   };

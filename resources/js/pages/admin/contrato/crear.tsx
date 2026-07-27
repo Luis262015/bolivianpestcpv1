@@ -163,7 +163,6 @@ export default function CotizacionForm({ contrato }: Props) {
           ],
   });
 
-  console.log(errors);
 
   // === CÁLCULO AUTOMÁTICO DE TOTALES ===
   const calcularTotalTrampas = (

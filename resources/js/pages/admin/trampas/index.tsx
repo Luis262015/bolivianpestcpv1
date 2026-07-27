@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { Edit, FileChartColumn, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import ModalTrampas from './ModalTrampas';
+import { confirmar } from '@/lib/alertas';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -71,14 +72,13 @@ interface TrampaSeguimiento {
   trampa_roedores_seguimientos?: TrampaRoedoresSeguimiento[];
 }
 
-const handleDelete = (id: number) => {
-  if (confirm('¿Estás seguro?')) {
+const handleDelete = async (id: number) => {
+  if (await confirmar({ titulo: '¿Estás seguro?' })) {
     router.delete(`/trampaseguimientos/${id}`);
   }
 };
 
 const handlePDF = (id: number) => {
-  console.log('Imprimir PDF');
   window.open(`/trampaseguimientos/${id}/pdf`, '_blank');
 };
 
@@ -98,7 +98,6 @@ export default function Lista({
 
   // Para CREAR un nuevo seguimiento
   const handleNuevoSeguimiento = () => {
-    console.log('vlnsldvnlsd');
     setSeguimientoSeleccionado(null);
     setModalOpen(true);
   };

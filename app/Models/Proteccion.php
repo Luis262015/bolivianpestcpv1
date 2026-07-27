@@ -14,7 +14,7 @@ class Proteccion extends Model
     {
         return $this->belongsToMany(
             Seguimiento::class,
-            'seguimiento_proteccions',
+            'seguimiento_protecciones',
             'proteccion_id',
             'seguimiento_id'
         );

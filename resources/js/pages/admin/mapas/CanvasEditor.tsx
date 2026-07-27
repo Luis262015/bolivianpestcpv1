@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { confirmar, notificarError } from '@/lib/alertas';
 
 /* =======================
    Tipos
@@ -354,7 +355,7 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
       const trap = findTrapAt(pos.x, pos.y);
       if (trap) {
         if (trap.id && trap.puede_eliminar === false) {
-          alert(
+          notificarError(
             `La trampa "${trap.identificador}" tiene registros asociados y no puede eliminarse.\nSe ocultará del mapa al guardar.`,
           );
         }
@@ -567,8 +568,9 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
     link.click();
   };
 
-  const clearMap = () => {
-    if (!confirm('¿Limpiar este mapa?')) return;
+  const clearMap = async () => {
+    if (!(await confirmar({ titulo: '¿Limpiar este mapa?', destructivo: true })))
+      return;
     onChange({ ...mapa, traps: [] });
   };
 
@@ -610,6 +612,9 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
   /* =======================
      Render
   ======================= */
+
+  // Sólo los tipos con al menos una trampa; el total sale de mapa.traps.
+  const resumenTrampas = getTrapSummary();
 
   return (
     <div className="space-y-4">
@@ -716,6 +721,46 @@ export default function CanvasEditor({ mapa, trampaTipos, onChange }: Props) {
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       />
+
+      {/* Contadores de trampas. Se alimenta de getTrapSummary(), la misma
+          fuente que el overlay del PNG exportado, para que lo que se ve en
+          pantalla y lo que sale en la imagen no puedan discrepar. */}
+      <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+            Trampas en el mapa
+          </span>
+          <span className="text-2xl leading-none font-semibold tabular-nums text-slate-900 dark:text-slate-100">
+            {mapa.traps.length}
+          </span>
+        </div>
+
+        {resumenTrampas.length > 0 ? (
+          <ul className="mt-3 flex flex-wrap gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+            {resumenTrampas.map((tipo) => (
+              <li
+                key={tipo.id}
+                className="flex items-center gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5 dark:bg-slate-800"
+              >
+                <span
+                  className="size-2.5 shrink-0 rounded-[2px]"
+                  style={{ backgroundColor: tipo.color }}
+                />
+                <span className="text-xs text-slate-600 dark:text-slate-300">
+                  {tipo.nombre}
+                </span>
+                <span className="text-xs font-semibold tabular-nums text-slate-900 dark:text-slate-100">
+                  {tipo.count}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+            Aún no hay trampas en este mapa.
+          </p>
+        )}
+      </div>
 
       {/* <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>

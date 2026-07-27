@@ -32,6 +32,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { confirmar } from '@/lib/alertas';
 
 // ----- INTERFACES
 
@@ -77,7 +78,6 @@ export default function Index() {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('handleCreate');
     if (!itemName) return;
 
     router.post(
@@ -96,7 +96,6 @@ export default function Index() {
 
   const handleEdit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('handleEdit');
     if (!editItem || !itemName) return;
 
     router.put(
@@ -119,8 +118,8 @@ export default function Index() {
     setIsOpen(false);
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm('¿Estás seguro?')) {
+  const handleDelete = async (id: number) => {
+    if (await confirmar({ titulo: '¿Estás seguro?' })) {
       router.delete(`${urlPage}/${id}`);
     }
   };

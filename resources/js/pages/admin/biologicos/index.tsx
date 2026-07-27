@@ -14,6 +14,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import ItemDialog from './ItemDialog';
+import { confirmar } from '@/lib/alertas';
 
 // ----- INTERFACES
 
@@ -82,8 +83,8 @@ export default function Index() {
     );
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm('¿Estás seguro?')) {
+  const handleDelete = async (id: number) => {
+    if (await confirmar({ titulo: '¿Estás seguro?' })) {
       router.delete(`${urlPage}/${id}`);
     }
   };

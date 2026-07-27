@@ -21,6 +21,7 @@ import {
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import CanvasEditor, { MapEditorState } from './CanvasEditor';
+import { confirmar, notificarError, notificarExito } from '@/lib/alertas';
 
 /* =======================
    Tipos
@@ -209,21 +210,27 @@ export default function MapaEditor(props: Props) {
         preserveScroll: true,
         onSuccess: () => {
           loadMaps(); // 👈 recarga mapas desde BD
-          alert('Mapa guardado correctamente');
+          notificarExito('Mapa guardado correctamente');
         },
         onError: (errors) => {
           // Mostrar el motivo real (ej: identificadores repetidos); el mensaje
           // genérico deja al usuario sin saber qué corregir.
-          alert(Object.values(errors)[0] ?? 'Error al guardar el mapa');
+          notificarError(Object.values(errors)[0] ?? 'Error al guardar el mapa');
         },
       },
     );
   };
 
-  const deleteMap = (mapaId?: number) => {
+  const deleteMap = async (mapaId?: number) => {
     if (!mapaId) return;
 
-    if (!confirm('¿Estás seguro de eliminar este mapa?')) return;
+    if (
+      !(await confirmar({
+        titulo: '¿Estás seguro de eliminar este mapa?',
+        destructivo: true,
+      }))
+    )
+      return;
 
     router.delete(`/mapas/${mapaId}`, {
       data: {
@@ -232,10 +239,10 @@ export default function MapaEditor(props: Props) {
       preserveScroll: true,
       onSuccess: () => {
         loadMaps(); // recargar mapas
-        alert('Mapa eliminado correctamente');
+        notificarExito('Mapa eliminado correctamente');
       },
       onError: () => {
-        alert('Error al eliminar el mapa');
+        notificarError('Error al eliminar el mapa');
       },
     });
   };
@@ -252,11 +259,6 @@ export default function MapaEditor(props: Props) {
         only: ['mapas'], // 👈 clave para que solo refresque mapas
         onSuccess: (page) => {
           const mapas = page.props.mapas as Props['mapas'];
-
-          // console.log('----------------------------------------------------');
-          // console.log('Respuesta del servidor:', page.props); // 🔥 DEBUG
-          // console.log('Mapas cargados:', mapas); // 🔥 DEBUG
-          // console.log('----------------------------------------------------');
 
           if (!mapas || mapas.length === 0) {
             setMapEditors([]);

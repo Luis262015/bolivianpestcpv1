@@ -23,12 +23,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
+import { confirmar, notificarError } from '@/lib/alertas';
 import { tableStyles } from '@/lib/table-styles';
 import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
-// import html2canvas from 'html2canvas';
-import * as htmlToImage from 'html-to-image';
-import jsPDF from 'jspdf';
 import { Download, Trash2, Upload } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -67,8 +65,12 @@ interface Insectocutor {
 }
 
 interface Trampa {
+  id: number;
   trampa_tipo_id: number;
   identificador: string;
+  // 'inactivo' = retirada del mapa. Sus pesajes del periodo siguen siendo
+  // válidos, pero ya no figura entre las trampas instaladas hoy.
+  estado?: string;
   mapa?: { id: number; titulo: string };
 }
 
@@ -144,6 +146,11 @@ interface Props {
   acciones: Accion[];
   trampasinsect?: number;
   trampasrat?: number;
+  // Trampas que salieron del mapa DENTRO del período, separadas por motivo:
+  // `cambio_tipo` = el punto sigue ahí con otro tipo de trampa; `retirada` = el
+  // punto desapareció. Lo calcula el backend porque la vista solo recibe los
+  // seguimientos del rango y no puede saber qué pasó después.
+  trampasRetiradas?: { cambio_tipo: number[]; retirada: number[] };
   totales: TotalData[];
   archivos: InformeArchivo[];
   filters: {
@@ -182,6 +189,46 @@ const BarGradient = ({ id, color }: { id: string; color: string }) => (
 const captionClass =
   'mb-3 border-l-4 border-[#1B3A6B] pl-3 text-sm font-semibold uppercase tracking-wide text-[#1B3A6B]';
 
+// Nota bajo el título de una tabla, para explicar qué representa o cómo se
+// calcula. Va en el contenedor exportado, así que también sale en el PDF.
+const descClass = 'mb-3 max-w-3xl text-xs leading-relaxed text-slate-600';
+
+// Clases completas, no interpoladas: Tailwind sólo conserva las que aparecen
+// literalmente en el código, así que `border-${color}-500` no funcionaría.
+const ACENTOS = {
+  amber: 'border-amber-500 bg-amber-50',
+  rose: 'border-rose-500 bg-rose-50',
+  sky: 'border-sky-500 bg-sky-50',
+} as const;
+
+/**
+ * Cabecera de sección del informe. Separa los bloques temáticos
+ * (desratización, insectocutores, acciones) apoyándose en tres señales a la
+ * vez —franja de color, fondo tintado y regla superior— para que el corte se
+ * siga leyendo en el PDF impreso, donde el color puede perderse.
+ */
+const SeccionInforme = ({
+  titulo,
+  subtitulo,
+  acento,
+}: {
+  titulo: string;
+  subtitulo?: string;
+  acento: keyof typeof ACENTOS;
+}) => (
+  <div className={`mb-6 rounded-lg border-l-8 px-5 py-4 ${ACENTOS[acento]}`}>
+    <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+      {titulo}
+    </h2>
+    {subtitulo && <p className="text-sm text-slate-600">{subtitulo}</p>}
+  </div>
+);
+
+/** Corte entre secciones. Va ENTRE las tarjetas, no dentro de ninguna. */
+const SeparadorSeccion = () => (
+  <div className="my-12 border-t-4 border-double border-slate-300" />
+);
+
 export default function Lista({
   empresas,
   almacenes,
@@ -189,16 +236,20 @@ export default function Lista({
   acciones,
   trampasinsect,
   trampasrat,
+  trampasRetiradas: idsRetiradas,
   totales,
   archivos,
   filters,
 }: Props) {
   const { auth } = usePage().props;
-  const esAdminOSuperadmin = auth.roles.includes('admin') || auth.roles.includes('superadmin');
+  const esAdminOSuperadmin =
+    auth.roles.includes('admin') || auth.roles.includes('superadmin');
   const puedeExportarWord = esAdminOSuperadmin;
 
   const [subiendoArchivo, setSubiendoArchivo] = useState(false);
-  const [archivoSeleccionado, setArchivoSeleccionado] = useState<File | null>(null);
+  const [archivoSeleccionado, setArchivoSeleccionado] = useState<File | null>(
+    null,
+  );
   const [empresaArchivoId, setEmpresaArchivoId] = useState('');
 
   const subirArchivo = async () => {
@@ -217,8 +268,14 @@ export default function Lista({
     });
   };
 
-  const eliminarArchivo = (id: number) => {
-    if (!confirm('¿Eliminar este archivo?')) return;
+  const eliminarArchivo = async (id: number) => {
+    if (
+      !(await confirmar({
+        titulo: '¿Eliminar este archivo?',
+        destructivo: true,
+      }))
+    )
+      return;
     router.delete(`/informe-archivos/${id}`);
   };
 
@@ -229,15 +286,38 @@ export default function Lista({
 
   type ModoFiltro = 'fechas' | 'meses' | 'anio';
   const anioActual = new Date().getFullYear();
-  const aniosDisponibles = Array.from({ length: anioActual - 2019 }, (_, i) => (anioActual - i).toString());
-  const mesesNombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const aniosDisponibles = Array.from({ length: anioActual - 2019 }, (_, i) =>
+    (anioActual - i).toString(),
+  );
+  const mesesNombres = [
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre',
+  ];
 
-  const [modoFiltro, setModoFiltro] = useState<ModoFiltro>((filters.tipo_filtro as ModoFiltro) ?? 'fechas');
+  const [modoFiltro, setModoFiltro] = useState<ModoFiltro>(
+    (filters.tipo_filtro as ModoFiltro) ?? 'fechas',
+  );
   const [mesInicio, setMesInicio] = useState(filters.mes_inicio ?? '1');
-  const [anioInicio, setAnioInicio] = useState(filters.anio_inicio ?? anioActual.toString());
+  const [anioInicio, setAnioInicio] = useState(
+    filters.anio_inicio ?? anioActual.toString(),
+  );
   const [mesFin, setMesFin] = useState(filters.mes_fin ?? '12');
-  const [anioFin, setAnioFin] = useState(filters.anio_fin ?? anioActual.toString());
-  const [anioSeleccionado, setAnioSeleccionado] = useState(filters.anio ?? anioActual.toString());
+  const [anioFin, setAnioFin] = useState(
+    filters.anio_fin ?? anioActual.toString(),
+  );
+  const [anioSeleccionado, setAnioSeleccionado] = useState(
+    filters.anio ?? anioActual.toString(),
+  );
 
   const [exportando, setExportando] = useState(false);
 
@@ -253,15 +333,9 @@ export default function Lista({
 
   const graficosPorMapaRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // console.log('@@@@');
-  // console.log(acciones);
-  // console.log('@@@@');
-
   const totalesPorcentajes = (totales: TotalData[]) => {
     const data: any = {};
     totales.forEach((tot, index) => {
-      // console.log('--');
-      // console.log(tot);
       // Sin cebo inicial el porcentaje no existe: evita NaN/Infinity en la tabla.
       const inicial = Number(tot.inicial_sum);
       data[index] = {
@@ -269,9 +343,11 @@ export default function Lista({
         inicial_sum: tot.inicial_sum,
         inicial_por: (100).toFixed(2),
         merma_sum: tot.merma_sum,
-        merma_por: inicial > 0 ? ((tot.merma_sum * 100) / inicial).toFixed(2) : '0.00',
+        merma_por:
+          inicial > 0 ? ((tot.merma_sum * 100) / inicial).toFixed(2) : '0.00',
         actual_sum: tot.actual_sum,
-        actual_por: inicial > 0 ? ((tot.actual_sum * 100) / inicial).toFixed(2) : '0.00',
+        actual_por:
+          inicial > 0 ? ((tot.actual_sum * 100) / inicial).toFixed(2) : '0.00',
       };
     });
 
@@ -287,9 +363,6 @@ export default function Lista({
   };
 
   const totalesPorcentajesValues = totalesPorcentajes(totales);
-  // console.log('***************');
-  // console.log(totalesPorcentajesValues);
-  // console.log('***************');
 
   /**
    * SEGUIMIENTOS
@@ -651,22 +724,12 @@ export default function Lista({
   const tablaSeguimientoResumen = (seguimientos: any[]) => {
     const data: any = {};
 
-    console.log('++++++++++++++++++++++++');
-    console.log(seguimientos);
-    console.log('++++++++++++++++++++++++');
-
     const seguimientosFiltrados = seguimientos.filter(
       (seg) => Number(seg.tipo_seguimiento_id) === 1, // ← solo DESRATIZACION
     );
 
-    console.log('++++++++++++++++++++++++');
-    console.log(seguimientosFiltrados);
-    console.log('++++++++++++++++++++++++');
-
     seguimientosFiltrados.forEach((seg) => {
       const seguimientoId = Number(seg.id);
-
-      console.log(seg.created_at);
 
       if (!data[seguimientoId]) {
         data[seguimientoId] = {
@@ -694,10 +757,6 @@ export default function Lista({
         d.capturados += Number(r.cantidad) ?? 0;
       });
     });
-
-    console.log('++++++++++++++++++++++++');
-    console.log(data);
-    console.log('++++++++++++++++++++++++');
 
     return Object.values(data).map((d: any) => ({
       seguimiento: d.seguimiento,
@@ -825,6 +884,7 @@ export default function Lista({
         merma: number;
         actual: number;
         observaciones: string[];
+        retirada: boolean;
       };
     } = {};
 
@@ -833,10 +893,6 @@ export default function Lista({
       .forEach((seg) => {
         seg.roedores.forEach((roedor) => {
           const trampaId = Number(roedor.trampa_id);
-          // console.log('**** TRAMPA_TIPO_ID: ' + roedor.trampa.trampa_tipo_id);
-          // console.log('********************************************');
-          // console.log(roedor);
-          // console.log('********************************************');
 
           // Excluir viva (4) y pegajosa (5): no llevan cebo, sus pesos son
           // siempre cero y solo diluyen la tabla. Con "||" la condición era
@@ -854,11 +910,16 @@ export default function Lista({
                 merma: 0,
                 actual: 0,
                 observaciones: [],
+                retirada: false,
               };
             }
 
             datosPorTrampa[trampaId].indent = roedor.trampa.identificador;
             datosPorTrampa[trampaId].mapa = roedor.trampa.mapa?.titulo ?? '';
+            // Misma fuente que el aviso: sólo lo ocurrido dentro del período.
+            datosPorTrampa[trampaId].retirada =
+              (idsRetiradas?.cambio_tipo ?? []).includes(trampaId) ||
+              (idsRetiradas?.retirada ?? []).includes(trampaId);
 
             datosPorTrampa[trampaId].inicial += Number(roedor.inicial);
             datosPorTrampa[trampaId].merma += Number(roedor.merma);
@@ -890,7 +951,68 @@ export default function Lista({
           sensitivity: 'base',
         });
       });
-  }, [seguimientos]);
+  }, [seguimientos, idsRetiradas]);
+
+  /**
+   * Trampas del informe que salieron del mapa DENTRO del período, separadas en
+   * cambios de tipo y retiros reales. Qué IDs entran en cada grupo lo decide el
+   * backend (InformesController@trampasRetiradasEnPeriodo); aquí sólo se les
+   * pone identificador y mapa para mostrarlos.
+   *
+   * Sus pesajes son válidos y se conservan en las tablas: el aviso existe para
+   * explicar por qué el detalle no cuadra con el mapa actual, no para ocultarlo.
+   */
+  const trampasRetiradas = useMemo(() => {
+    const setCambio = new Set(idsRetiradas?.cambio_tipo ?? []);
+    const setRetiro = new Set(idsRetiradas?.retirada ?? []);
+    const vistas = new Map<number, { identificador: string; mapa: string }>();
+    const cambios = new Map<number, { identificador: string; mapa: string }>();
+    const retiradas = new Map<
+      number,
+      { identificador: string; mapa: string }
+    >();
+
+    seguimientos
+      .filter((seg) => Number(seg.tipo_seguimiento_id) === 1)
+      .forEach((seg) => {
+        seg.roedores.forEach((roedor) => {
+          const t = roedor.trampa;
+          if (!t) return;
+
+          const info = {
+            identificador: t.identificador,
+            mapa: t.mapa?.titulo ?? '',
+          };
+
+          vistas.set(t.id, info);
+          if (setCambio.has(t.id)) cambios.set(t.id, info);
+          if (setRetiro.has(t.id)) retiradas.set(t.id, info);
+        });
+      });
+
+    const ordenar = (
+      m: Map<number, { identificador: string; mapa: string }>,
+    ) =>
+      [...m.values()].sort((a, b) => {
+        const porMapa = a.mapa.localeCompare(b.mapa, undefined, {
+          numeric: true,
+          sensitivity: 'base',
+        });
+        if (porMapa !== 0) return porMapa;
+        return a.identificador.localeCompare(b.identificador, undefined, {
+          numeric: true,
+          sensitivity: 'base',
+        });
+      });
+
+    return {
+      total: vistas.size,
+      cambios: ordenar(cambios),
+      retiradas: ordenar(retiradas),
+      // Filas del detalle que ya no corresponden a una trampa del mapa actual.
+      afectadas: cambios.size + retiradas.size,
+    };
+  }, [seguimientos, idsRetiradas]);
 
   const tablaSeguimientoResumenX = (seguimientos: any[]) => {
     const data: any = {};
@@ -1034,7 +1156,14 @@ export default function Lista({
       promediosSev[esp] = totalesSev[esp] / totalSeguimientos;
     });
 
-    return { especies, datosPorFecha, totales, promedios, totalesSev, promediosSev };
+    return {
+      especies,
+      datosPorFecha,
+      totales,
+      promedios,
+      totalesSev,
+      promediosSev,
+    };
   }, [seguimientos]);
 
   const totalFechas = datosInsectocutores.datosPorFecha.length || 1;
@@ -1165,7 +1294,8 @@ export default function Lista({
   const puedesBuscar = (() => {
     if (!empresaId || !almacenId) return false;
     if (modoFiltro === 'fechas') return !!(fechaInicio && fechaFin);
-    if (modoFiltro === 'meses') return !!(mesInicio && anioInicio && mesFin && anioFin);
+    if (modoFiltro === 'meses')
+      return !!(mesInicio && anioInicio && mesFin && anioFin);
     if (modoFiltro === 'anio') return !!anioSeleccionado;
     return false;
   })();
@@ -1177,7 +1307,13 @@ export default function Lista({
   };
 
   const periodoLabel = (() => {
-    if (modoFiltro === 'meses' && filters.mes_inicio && filters.anio_inicio && filters.mes_fin && filters.anio_fin) {
+    if (
+      modoFiltro === 'meses' &&
+      filters.mes_inicio &&
+      filters.anio_inicio &&
+      filters.mes_fin &&
+      filters.anio_fin
+    ) {
       const mi = parseInt(filters.mes_inicio) - 1;
       const mf = parseInt(filters.mes_fin) - 1;
       return `${mesesNombres[mi]} ${filters.anio_inicio} - ${mesesNombres[mf]} ${filters.anio_fin}`;
@@ -1322,6 +1458,13 @@ export default function Lista({
 
       document.body.appendChild(clone);
 
+      // Import dinámico: jspdf + html-to-image pesan ~600 kB y sólo hacen
+      // falta al exportar, no al abrir la pantalla de informes.
+      const [htmlToImage, { default: jsPDF }] = await Promise.all([
+        import('html-to-image'),
+        import('jspdf'),
+      ]);
+
       // 🔹 Aquí reemplazamos html2canvas por html-to-image
       const imgData = await htmlToImage.toPng(clone, {
         pixelRatio: 2,
@@ -1378,7 +1521,7 @@ export default function Lista({
       pdf.save(nombreArchivo);
     } catch (error) {
       console.error('Error al exportar PDF:', error);
-      alert('Error al generar el PDF. Por favor, intente nuevamente.');
+      notificarError('Error al generar el PDF. Por favor, intente nuevamente.');
     } finally {
       setExportando(false);
     }
@@ -1396,6 +1539,9 @@ export default function Lista({
     const scrollYPrevio = window.scrollY;
 
     try {
+      // Se carga una sola vez aquí, no en cada captura de gráfico.
+      const htmlToImage = await import('html-to-image');
+
       const seguimientoIds = seguimientos.map((s) => s.id);
 
       const capturarGrafico = async (ref: HTMLDivElement | null) => {
@@ -1447,9 +1593,6 @@ export default function Lista({
       //   fecha_fin: fechaFin,
       // });
 
-      console.log('EMPRESA ID: ' + empresaId);
-      console.log('ALMACEN ID: ' + almacenId);
-
       await axios.post('/informes/exportar-word', {
         chart1,
         chart2,
@@ -1471,7 +1614,7 @@ export default function Lista({
       window.open('/informes/exportar-word-download');
     } catch (error) {
       console.error(error);
-      alert('Error al generar Word');
+      notificarError('Error al generar Word');
     } finally {
       setExportando(false);
       // Restaura la posición de scroll previa al capturado de gráficos.
@@ -1584,20 +1727,20 @@ export default function Lista({
     'border-slate-200/70 dark:border-slate-700',
     'dark:bg-gradient-to-br dark:from-slate-800 dark:via-slate-900 dark:to-slate-800',
     // Números de los ejes (ticks): oscuros, semibold y más grandes
-    "[&_.recharts-cartesian-axis-tick_text]:fill-slate-700 [&_.recharts-cartesian-axis-tick_text]:font-semibold [&_.recharts-cartesian-axis-tick_text]:[font-size:13px]",
-    "dark:[&_.recharts-cartesian-axis-tick_text]:fill-slate-200",
+    '[&_.recharts-cartesian-axis-tick_text]:fill-slate-700 [&_.recharts-cartesian-axis-tick_text]:font-semibold [&_.recharts-cartesian-axis-tick_text]:[font-size:13px]',
+    'dark:[&_.recharts-cartesian-axis-tick_text]:fill-slate-200',
     // Títulos de ejes: oscuros, negrita y grandes
-    "[&_.recharts-label]:fill-slate-800 [&_.recharts-label]:font-bold [&_.recharts-label]:[font-size:14px]",
-    "dark:[&_.recharts-label]:fill-slate-100",
+    '[&_.recharts-label]:fill-slate-800 [&_.recharts-label]:font-bold [&_.recharts-label]:[font-size:14px]',
+    'dark:[&_.recharts-label]:fill-slate-100',
     // Valores sobre barras/líneas (LabelList): más pequeños para no saturar
     // (selector más específico que .recharts-label → gana sobre lo de arriba)
-    "[&_.recharts-label-list_.recharts-label]:!font-semibold [&_.recharts-label-list_.recharts-label]:![font-size:10px] [&_.recharts-label-list_.recharts-label]:fill-slate-700",
-    "dark:[&_.recharts-label-list_.recharts-label]:fill-slate-200",
+    '[&_.recharts-label-list_.recharts-label]:!font-semibold [&_.recharts-label-list_.recharts-label]:![font-size:10px] [&_.recharts-label-list_.recharts-label]:fill-slate-700',
+    'dark:[&_.recharts-label-list_.recharts-label]:fill-slate-200',
     // Leyenda más visible
-    "[&_.recharts-legend-item-text]:!text-slate-700 [&_.recharts-legend-item-text]:font-medium",
-    "dark:[&_.recharts-legend-item-text]:!text-slate-200",
+    '[&_.recharts-legend-item-text]:!text-slate-700 [&_.recharts-legend-item-text]:font-medium',
+    'dark:[&_.recharts-legend-item-text]:!text-slate-200',
     // Líneas de los ejes más suaves
-    "[&_.recharts-cartesian-axis-line]:stroke-slate-300 [&_.recharts-cartesian-axis-tick-line]:stroke-slate-300",
+    '[&_.recharts-cartesian-axis-line]:stroke-slate-300 [&_.recharts-cartesian-axis-tick-line]:stroke-slate-300',
   ].join(' ');
 
   // Margen del área de trazado. El `top` holgado evita que las etiquetas de
@@ -1676,7 +1819,10 @@ export default function Lista({
             <Label>Tipo de período</Label>
             <div className="mt-2 flex gap-6">
               {(['fechas', 'meses', 'anio'] as const).map((modo) => (
-                <label key={modo} className="flex cursor-pointer items-center gap-2 text-sm">
+                <label
+                  key={modo}
+                  className="flex cursor-pointer items-center gap-2 text-sm"
+                >
                   <input
                     type="radio"
                     value={modo}
@@ -1684,7 +1830,11 @@ export default function Lista({
                     onChange={() => setModoFiltro(modo)}
                     className="accent-primary"
                   />
-                  {modo === 'fechas' ? 'Rango de fechas' : modo === 'meses' ? 'Rango de meses' : 'Por año'}
+                  {modo === 'fechas'
+                    ? 'Rango de fechas'
+                    : modo === 'meses'
+                      ? 'Rango de meses'
+                      : 'Por año'}
                 </label>
               ))}
             </div>
@@ -1736,7 +1886,9 @@ export default function Lista({
                     </SelectTrigger>
                     <SelectContent>
                       {aniosDisponibles.map((a) => (
-                        <SelectItem key={a} value={a}>{a}</SelectItem>
+                        <SelectItem key={a} value={a}>
+                          {a}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -1763,7 +1915,9 @@ export default function Lista({
                     </SelectTrigger>
                     <SelectContent>
                       {aniosDisponibles.map((a) => (
-                        <SelectItem key={a} value={a}>{a}</SelectItem>
+                        <SelectItem key={a} value={a}>
+                          {a}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -1776,13 +1930,18 @@ export default function Lista({
           {modoFiltro === 'anio' && (
             <div className="w-[200px]">
               <Label>Año</Label>
-              <Select value={anioSeleccionado} onValueChange={setAnioSeleccionado}>
+              <Select
+                value={anioSeleccionado}
+                onValueChange={setAnioSeleccionado}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccione año" />
                 </SelectTrigger>
                 <SelectContent>
                   {aniosDisponibles.map((a) => (
-                    <SelectItem key={a} value={a}>{a}</SelectItem>
+                    <SelectItem key={a} value={a}>
+                      {a}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -1838,14 +1997,19 @@ export default function Lista({
 
         {/* *********** SECCION ARCHIVOS WORD ************************** */}
         <div className="space-y-4 rounded-lg border border-slate-200 p-4">
-          <h2 className="text-lg font-semibold text-slate-900">Informes Word</h2>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Informes Word
+          </h2>
 
           {/* Formulario de subida — solo admin/superadmin */}
           {esAdminOSuperadmin && (
             <div className="flex flex-wrap items-end gap-3 rounded-md bg-slate-50 p-3">
-              <div className="flex-1 min-w-[180px]">
+              <div className="min-w-[180px] flex-1">
                 <Label>Empresa</Label>
-                <Select value={empresaArchivoId} onValueChange={setEmpresaArchivoId}>
+                <Select
+                  value={empresaArchivoId}
+                  onValueChange={setEmpresaArchivoId}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccione empresa" />
                   </SelectTrigger>
@@ -1858,17 +2022,21 @@ export default function Lista({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex-1 min-w-[220px]">
+              <div className="min-w-[220px] flex-1">
                 <Label>Archivo Word (.docx)</Label>
                 <Input
                   type="file"
                   accept=".docx,.doc"
-                  onChange={(e) => setArchivoSeleccionado(e.target.files?.[0] ?? null)}
+                  onChange={(e) =>
+                    setArchivoSeleccionado(e.target.files?.[0] ?? null)
+                  }
                 />
               </div>
               <Button
                 onClick={subirArchivo}
-                disabled={subiendoArchivo || !archivoSeleccionado || !empresaArchivoId}
+                disabled={
+                  subiendoArchivo || !archivoSeleccionado || !empresaArchivoId
+                }
                 className="bg-blue-700 text-white"
               >
                 <Upload className="mr-2 h-4 w-4" />
@@ -1883,19 +2051,38 @@ export default function Lista({
               <Table className={tableStyles.table}>
                 <TableHeader>
                   <TableRow className={tableStyles.header.row}>
-                    <TableHead className={tableStyles.header.cell}>Empresa</TableHead>
-                    <TableHead className={tableStyles.header.cell}>Archivo</TableHead>
-                    <TableHead className={tableStyles.header.cell}>Subido por</TableHead>
-                    <TableHead className={tableStyles.header.cell}>Fecha</TableHead>
-                    <TableHead className={tableStyles.header.cell}>Acciones</TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Empresa
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Archivo
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Subido por
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Fecha
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      Acciones
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {archivos.map((a, idx) => (
-                    <TableRow key={a.id} className={tableStyles.row(idx % 2 === 0)}>
-                      <TableCell className={tableStyles.cell}>{a.empresa.nombre}</TableCell>
-                      <TableCell className={tableStyles.cell}>{a.nombre_original}</TableCell>
-                      <TableCell className={tableStyles.cell}>{a.user.name}</TableCell>
+                    <TableRow
+                      key={a.id}
+                      className={tableStyles.row(idx % 2 === 0)}
+                    >
+                      <TableCell className={tableStyles.cell}>
+                        {a.empresa.nombre}
+                      </TableCell>
+                      <TableCell className={tableStyles.cell}>
+                        {a.nombre_original}
+                      </TableCell>
+                      <TableCell className={tableStyles.cell}>
+                        {a.user.name}
+                      </TableCell>
                       <TableCell className={tableStyles.datestr}>
                         {new Date(a.created_at).toLocaleString('es-ES')}
                       </TableCell>
@@ -1933,12 +2120,77 @@ export default function Lista({
               </Table>
             </div>
           ) : (
-            <p className="text-sm text-slate-500">No hay archivos subidos aún.</p>
+            <p className="text-sm text-slate-500">
+              No hay archivos subidos aún.
+            </p>
           )}
         </div>
 
         {/* Contenido a exportar */}
         <div ref={contenidoRef} data-export className="space-y-6 bg-white">
+          {/* Nota de coherencia: sin esto, el total de trampas del informe no
+              cuadra con las del mapa actual y parece un error de datos. */}
+          {trampasRetiradas.afectadas > 0 && (
+            <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4">
+              <p className="text-sm font-semibold text-amber-900">
+                Durante el período hubo cambios en las trampas del mapa
+              </p>
+              <p className="mt-1 text-sm text-amber-800">
+                Las tablas de detalle muestran una fila por cada trampa
+                instalada, por lo que un mismo punto de control aparece más de
+                una vez si se le cambió el tipo de trampa. El total de unidades
+                sí cuenta cada punto una sola vez, y por eso no coincide con la
+                suma de las filas.
+              </p>
+
+              {trampasRetiradas.cambios.length > 0 && (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-xs font-medium text-amber-900">
+                    {trampasRetiradas.cambios.length}{' '}
+                    {trampasRetiradas.cambios.length === 1
+                      ? 'punto cambió de tipo de trampa'
+                      : 'puntos cambiaron de tipo de trampa'}{' '}
+                    (siguen instalados)
+                  </summary>
+                  <ul className="mt-2 flex flex-wrap gap-1.5">
+                    {trampasRetiradas.cambios.map((t) => (
+                      <li
+                        key={`c-${t.mapa}-${t.identificador}`}
+                        className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-900"
+                      >
+                        {t.mapa ? `${t.mapa} · ` : ''}
+                        {t.identificador}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+
+              {trampasRetiradas.retiradas.length > 0 && (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-xs font-medium text-amber-900">
+                    {trampasRetiradas.retiradas.length}{' '}
+                    {trampasRetiradas.retiradas.length === 1
+                      ? 'punto fue retirado'
+                      : 'puntos fueron retirados'}{' '}
+                    del mapa
+                  </summary>
+                  <ul className="mt-2 flex flex-wrap gap-1.5">
+                    {trampasRetiradas.retiradas.map((t) => (
+                      <li
+                        key={`r-${t.mapa}-${t.identificador}`}
+                        className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-900"
+                      >
+                        {t.mapa ? `${t.mapa} · ` : ''}
+                        {t.identificador}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </div>
+          )}
+
           {/* --------------------------- DATOS DEL INFORME ----------------------------------------- */}
           {/* Encabezado del informe */}
           <div className="mb-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -1976,9 +2228,7 @@ export default function Lista({
           {/* --------------------------- LISTA DE SEGUIMIENTOS ----------------------------------------- */}
           {/* Tabla SEGUIMIENTOS */}
           <div>
-            <div className={captionClass}>
-              TABLA: LISTA DE SEGUIMIENTOS
-            </div>
+            <div className={captionClass}>TABLA: LISTA DE SEGUIMIENTOS</div>
             <div className="w-full overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
               <Table className={tableStyles.table}>
                 <TableHeader>
@@ -2045,15 +2295,19 @@ export default function Lista({
 
           {/* --------------------------- CANTIDAD DE TRAMPAS ----------------------------------------- */}
 
-          <hr />
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-6 border-l-4 border-amber-500 pl-4">
-              <h2 className="text-2xl font-bold text-slate-900">Desratización</h2>
-              <p className="text-sm text-slate-500">Informe de Trampas</p>
-            </div>
-            <h2 className={captionClass}>
-              TABLA 1: CANTIDAD TOTAL DE TRAMPAS
-            </h2>
+            <SeccionInforme
+              titulo="Desratización"
+              subtitulo="Informe de Trampas"
+              acento="amber"
+            />
+            <h2 className={captionClass}>TABLA 1: CANTIDAD TOTAL DE TRAMPAS</h2>
+            <p className={descClass}>
+              Trampas de control de roedores instaladas actualmente en el
+              almacén. No incluye las retiradas del mapa, por lo que puede
+              diferir del número de trampas monitoreadas durante el período que
+              aparece en las tablas siguientes.
+            </p>
             <div className="overflow-x-auto rounded-md border">
               <Table className={tableStyles.table}>
                 <TableHeader>
@@ -2086,6 +2340,15 @@ export default function Lista({
             <h2 className={captionClass}>
               TABLA 2: CANTIDAD DE TRAMPAS POR TIPO
             </h2>
+            <p className={descClass}>
+              Desglose por tipo de trampa. «Capturas» es el total de roedores
+              registrados en el período y la «incidencia» expresa esas capturas
+              por trampa y por visita, de modo que los tipos con distinto número
+              de unidades puedan compararse entre sí. Si a un punto de control se
+              le cambió el tipo de trampa durante el período, aparece en las dos
+              filas correspondientes, así que las filas pueden sumar más que el
+              total de unidades: ese total cuenta cada punto una sola vez.
+            </p>
             <div className="overflow-x-auto rounded-md border">
               <Table className={tableStyles.table}>
                 <TableHeader>
@@ -2166,6 +2429,12 @@ export default function Lista({
             <h2 className={captionClass}>
               TABLA 3: FECHAS DE SEGUIMIENTOS EN ALMACEN
             </h2>
+            <p className={descClass}>
+              Actividad agrupada por mes: cuántas visitas se realizaron, cuántas
+              trampas se revisaron y cuántos roedores se capturaron. Permite ver
+              la evolución del período y detectar meses con mayor presión de
+              plaga.
+            </p>
             <div className="overflow-x-auto rounded-md border">
               <Table className={tableStyles.table}>
                 <TableHeader>
@@ -2260,6 +2529,13 @@ export default function Lista({
             <h2 className={captionClass}>
               TABLA 4: ANALISIS TOTALES DE ALMACEN
             </h2>
+            <p className={descClass}>
+              Balance de cebo acumulado del período. El «cebo inicial» es el peso
+              colocado, la «merma» lo que se perdió respecto de ese peso y el
+              «cebo actual» lo que quedó al final. La merma no equivale
+              necesariamente a consumo por roedores: la humedad y la temperatura
+              también reducen el peso.
+            </p>
             <div className="overflow-x-auto rounded-md border">
               <Table className={tableStyles.table}>
                 <TableHeader>
@@ -2369,6 +2645,12 @@ export default function Lista({
             <h2 className={captionClass}>
               TABLA 5: ANALISIS POR FECHA DE SEGUIMIENTO
             </h2>
+            <p className={descClass}>
+              El mismo balance de la tabla anterior, pero visita a visita. El «%
+              merma» es la proporción de cebo perdida sobre el peso inicial de
+              esa fecha, y sirve para comparar visitas con distinta cantidad de
+              cebo colocado.
+            </p>
             <div>
               <Table className={tableStyles.table}>
                 <TableHeader>
@@ -2494,6 +2776,10 @@ export default function Lista({
             <h2 className={captionClass}>
               TABLA 6: ANALISIS POR FECHA DE SEGUIMIENTO Y TIPO DE TRAMPA
             </h2>
+            <p className={descClass}>
+              Desglosa cada visita según el tipo de trampa, para identificar qué
+              tipo concentra el consumo y las capturas en cada fecha.
+            </p>
             <div className="overflow-x-auto rounded-md border">
               <Table className={tableStyles.table}>
                 <TableHeader>
@@ -2577,6 +2863,10 @@ export default function Lista({
             <h2 className={captionClass}>
               TABLA 7: ANALISIS POR FECHA DE SEGUIMIENTO Y MAPA
             </h2>
+            <p className={descClass}>
+              Desglosa cada visita por mapa o sector del almacén, para localizar
+              en qué zonas se concentra la actividad de roedores.
+            </p>
             <div className="rounded-md border bg-amber-100 p-4">
               <Table className={tableStyles.table}>
                 <TableHeader>
@@ -2842,12 +3132,24 @@ export default function Lista({
             <h2 className={captionClass}>
               TABLA 8: SEGUIMIENTO PESO DE TRAMPAS
             </h2>
+            <p className={descClass}>
+              Detalle por trampa de los pesos acumulados en el período. Solo
+              incluye trampas con cebo, por lo que las de captura viva y las
+              pegajosas no aparecen aquí. La columna «RESULTADO» interpreta el %
+              de merma: hasta el 10 % se atribuye a{' '}
+              <strong>Medio Ambiente</strong> (pérdida de peso por humedad y
+              temperatura) y por encima de ese umbral a{' '}
+              <strong>Consumo</strong> por roedores.
+            </p>
             <div className="overflow-x-auto rounded-md border">
               <Table className={tableStyles.table}>
                 <TableHeader>
                   <TableRow className={tableStyles.header.row}>
                     <TableHead className={tableStyles.header.cell}>
-                      Nro Trampa
+                      Numero
+                    </TableHead>
+                    <TableHead className={tableStyles.header.cell}>
+                      ID Trampa
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
                       Mapa
@@ -2875,8 +3177,18 @@ export default function Lista({
                       {datosRoedores.map((dato, index) => (
                         <TableRow key={index}>
                           <TableCell className={tableStyles.cell}>
-                            {/* {dato.trampa_id} */}
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className={tableStyles.cell}>
                             {dato.indent}
+                            {dato.retirada && (
+                              <span
+                                title="Esta trampa dejó de estar en el mapa durante el período: el punto se reequipó con otro tipo o se retiró"
+                                className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-900"
+                              >
+                                fuera del mapa
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell className={tableStyles.cell}>
                             {dato.mapa}
@@ -2905,10 +3217,15 @@ export default function Lista({
                         </TableRow>
                       ))}
                       <TableRow className={tableStyles.totalRow}>
-                        <TableCell className={tableStyles.totalCell}>
+                        <TableCell
+                          colSpan={2}
+                          className={tableStyles.totalCell}
+                        >
                           TOTAL
                         </TableCell>
-                        <TableCell className={tableStyles.totalCell}></TableCell>
+                        <TableCell
+                          className={tableStyles.totalCell}
+                        ></TableCell>
                         <TableCell className={tableStyles.totalCell}>
                           {datosRoedores.reduce(
                             (sum, dato) => sum + dato.inicial,
@@ -2936,10 +3253,15 @@ export default function Lista({
                         </TableCell>
                       </TableRow>
                       <TableRow className={tableStyles.totalRow}>
-                        <TableCell className={tableStyles.totalCell}>
+                        <TableCell
+                          colSpan={2}
+                          className={tableStyles.totalCell}
+                        >
                           TOTAL
                         </TableCell>
-                        <TableCell className={tableStyles.totalCell}></TableCell>
+                        <TableCell
+                          className={tableStyles.totalCell}
+                        ></TableCell>
                         <TableCell className={tableStyles.totalNumeric}>
                           {datosRoedores.reduce(
                             (sum, dato) => sum + dato.inicial,
@@ -2951,10 +3273,15 @@ export default function Lista({
                         </TableCell>
                       </TableRow>
                       <TableRow className={tableStyles.totalRow}>
-                        <TableCell className={tableStyles.totalCell}>
+                        <TableCell
+                          colSpan={2}
+                          className={tableStyles.totalCell}
+                        >
                           MERMA
                         </TableCell>
-                        <TableCell className={tableStyles.totalCell}></TableCell>
+                        <TableCell
+                          className={tableStyles.totalCell}
+                        ></TableCell>
                         <TableCell className={tableStyles.totalNumeric}>
                           {datosRoedores.reduce(
                             (sum, dato) => sum + dato.merma,
@@ -2977,10 +3304,15 @@ export default function Lista({
                         </TableCell>
                       </TableRow>
                       <TableRow className={tableStyles.totalRow}>
-                        <TableCell className={tableStyles.totalCell}>
+                        <TableCell
+                          colSpan={2}
+                          className={tableStyles.totalCell}
+                        >
                           PESO ACTUAL
                         </TableCell>
-                        <TableCell className={tableStyles.totalCell}></TableCell>
+                        <TableCell
+                          className={tableStyles.totalCell}
+                        ></TableCell>
                         <TableCell className={tableStyles.totalNumeric}>
                           {datosRoedores.reduce(
                             (sum, dato) => sum + (dato.inicial - dato.merma),
@@ -3003,10 +3335,15 @@ export default function Lista({
                         </TableCell>
                       </TableRow>
                       <TableRow className={tableStyles.totalRow}>
-                        <TableCell className={tableStyles.totalCell}>
+                        <TableCell
+                          colSpan={2}
+                          className={tableStyles.totalCell}
+                        >
                           MERMA CONSUMO
                         </TableCell>
-                        <TableCell className={tableStyles.totalCell}></TableCell>
+                        <TableCell
+                          className={tableStyles.totalCell}
+                        ></TableCell>
                         <TableCell className={tableStyles.totalNumeric}>
                           {datosRoedores.reduce((sum, dato) => {
                             const inicial = dato.inicial;
@@ -3041,10 +3378,15 @@ export default function Lista({
                         </TableCell>
                       </TableRow>
                       <TableRow className={tableStyles.totalRow}>
-                        <TableCell className={tableStyles.totalCell}>
+                        <TableCell
+                          colSpan={2}
+                          className={tableStyles.totalCell}
+                        >
                           MERMA M.A.
                         </TableCell>
-                        <TableCell className={tableStyles.totalCell}></TableCell>
+                        <TableCell
+                          className={tableStyles.totalCell}
+                        ></TableCell>
                         <TableCell className={tableStyles.totalNumeric}>
                           {datosRoedores.reduce((sum, dato) => {
                             const inicial = dato.inicial;
@@ -3081,7 +3423,7 @@ export default function Lista({
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className={tableStyles.totalRow}>
+                      <TableCell colSpan={8} className={tableStyles.totalRow}>
                         Sin resultados
                       </TableCell>
                     </TableRow>
@@ -3296,7 +3638,10 @@ export default function Lista({
                   className={chartClass}
                   ref={chartResumenTrampasRef}
                 >
-                  <BarChart data={totalesPorcentajesValues} margin={chartMargin}>
+                  <BarChart
+                    data={totalesPorcentajesValues}
+                    margin={chartMargin}
+                  >
                     <defs>
                       <BarGradient
                         id="grad-inicial"
@@ -3393,17 +3738,22 @@ export default function Lista({
           {/* --------------------------- CANTIDAD DE INSECTOCUTORES ----------------------------------------- */}
           {/* ************************************************************************************************************************** */}
 
-          <hr />
+          <SeparadorSeccion />
 
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-6 border-l-4 border-rose-500 pl-4">
-              <h2 className="text-2xl font-bold text-slate-900">Insectocutores</h2>
-              <p className="text-sm text-slate-500">Informe de Insectocutores</p>
-            </div>
+            <SeccionInforme
+              titulo="Insectocutores"
+              subtitulo="Informe de Insectocutores"
+              acento="rose"
+            />
             {/* **************** INSECTOCUTORES POR ALMACEN ************************ */}
             <h2 className={captionClass}>
               TABLA 9: CANTIDAD TOTAL DE INSECTOCUTORES
             </h2>
+            <p className={descClass}>
+              Equipos de control de insectos voladores instalados actualmente en
+              el almacén. Al igual que en la tabla 1, no incluye los retirados.
+            </p>
             <div className="overflow-x-auto rounded-md border">
               <Table className={tableStyles.table}>
                 <TableHeader>
@@ -3457,13 +3807,15 @@ export default function Lista({
                     margin={chartMargin}
                   >
                     <defs>
-                      {Object.keys(datosInsectocutores.totales).map((esp, i) => (
-                        <BarGradient
-                          key={esp}
-                          id={`grad-tot-${i}`}
-                          color={chartConfigInsectos[esp]?.color ?? '#888'}
-                        />
-                      ))}
+                      {Object.keys(datosInsectocutores.totales).map(
+                        (esp, i) => (
+                          <BarGradient
+                            key={esp}
+                            id={`grad-tot-${i}`}
+                            color={chartConfigInsectos[esp]?.color ?? '#888'}
+                          />
+                        ),
+                      )}
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
@@ -3507,6 +3859,11 @@ export default function Lista({
               <div className={captionClass}>
                 TABLA 10: INCIDENCIA DE INSECTOS VOLADORES{' '}
               </div>
+              <p className={descClass}>
+                Insectos capturados por especie en cada fecha de seguimiento.
+                Refleja cuántos ejemplares se registraron, es decir la magnitud
+                absoluta de la presencia de cada especie a lo largo del período.
+              </p>
               <div className="overflow-x-auto rounded-md border">
                 <Table className={tableStyles.table}>
                   <TableHeader>
@@ -3671,6 +4028,12 @@ export default function Lista({
               <div className={captionClass}>
                 TABLA 11: SEVERIDAD DE INSECTOS VOLADORES{' '}
               </div>
+              <p className={descClass}>
+                Pondera las capturas de la tabla anterior para estimar el grado
+                de afectación por especie en cada fecha. Mientras la incidencia
+                indica cuántos insectos hubo, la severidad valora la gravedad de
+                esa presencia.
+              </p>
               <div className="overflow-x-auto rounded-md border">
                 <Table className={tableStyles.table}>
                   <TableHeader>
@@ -3734,7 +4097,9 @@ export default function Lista({
                               className={tableStyles.totalCell}
                               key={especie}
                             >
-                              {datosInsectocutores.promediosSev[especie].toFixed(1)}
+                              {datosInsectocutores.promediosSev[
+                                especie
+                              ].toFixed(1)}
                             </TableCell>
                           ))}
                         </TableRow>
@@ -3834,10 +4199,14 @@ export default function Lista({
               </div>
             )}
           </div>
-          <div className="mt-10">
-            <h2 className="mb-4 text-2xl font-bold text-slate-900">
-              ACCIONES COMPLEMENTARIAS
-            </h2>
+          <SeparadorSeccion />
+
+          <div>
+            <SeccionInforme
+              titulo="Acciones complementarias"
+              subtitulo="Trabajos adicionales realizados en el período"
+              acento="sky"
+            />
             {acciones.map((dato) => (
               <div key={dato.id} className="mb-6">
                 <div>

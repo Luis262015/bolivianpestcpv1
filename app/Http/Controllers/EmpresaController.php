@@ -44,7 +44,7 @@ class EmpresaController extends Controller
         fn($q) => $q->whereIn('id', $user->empresas()->pluck('empresas.id'))
       )
       ->orderBy('id')
-      ->paginate(10);
+      ->paginate(20);
 
     return inertia('admin/empresas/lista', ['empresas' => $empresas]);
   }

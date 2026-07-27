@@ -59,11 +59,12 @@ class InformesController extends Controller
                 ->get();
         }
 
-        $seguimientos   = [];
-        $trampas_insect = 0;
-        $trampas_rat    = 0;
-        $totales        = [];
-        $acciones       = [];
+        $seguimientos     = [];
+        $trampas_insect   = 0;
+        $trampas_rat      = 0;
+        $totales          = [];
+        $acciones         = [];
+        $trampasRetiradas = ['cambio_tipo' => [], 'retirada' => []];
 
         if ($request->filled('buscar') && $request->almacen_id && $request->fecha_inicio && $request->fecha_fin) {
             $validated = $request->validate([
@@ -129,6 +130,8 @@ class InformesController extends Controller
                 ->where('estado', '!=', 'inactivo')
                 ->where('trampa_tipo_id', '!=', 2)
                 ->count();
+
+            $trampasRetiradas = $this->trampasRetiradasEnPeriodo($seguimientos, $fechaFin);
         }
 
         $archivosQuery = InformeArchivo::with(['empresa:id,nombre', 'user:id,name'])
@@ -145,6 +148,8 @@ class InformesController extends Controller
             'acciones'      => $acciones,
             'trampasinsect' => $trampas_insect,
             'trampasrat'    => $trampas_rat,
+            // IDs de trampas retiradas DENTRO del período (ver método).
+            'trampasRetiradas' => $trampasRetiradas,
             'totales'       => $totales,
             'archivos'      => $archivosQuery->get(),
             'filters'       => $request->only(
@@ -247,7 +252,8 @@ class InformesController extends Controller
         $encargadoCargo       = $seguimientos->first()?->encargado_cargo ?? '';
         $countDesrat          = $seguimientos->where('tipo_seguimiento_id', 1)->count();
         $countInsect          = $seguimientos->where('tipo_seguimiento_id', 3)->count();
-        $totalTrampasRoedores = array_sum(array_column($datosTabla, 'cantidad_trampas'));
+        // Puntos distintos, no suma de filas por tipo (ver contarPuntosControl).
+        $totalTrampasRoedores = $this->contarPuntosControl($seguimientos);
         $totalInsectocutores  = array_sum(array_column($datosTablaX2, 'cantidad_trampa_id'));
 
         $sumasEsp = array_fill_keys($especies, 0);
@@ -299,7 +305,7 @@ class InformesController extends Controller
         $this->addSectionTitle($section, '1) Desratizacion');
 
         $this->agregaFotosSeguimientos($section, $seguimientos);
-        $this->agregaTabla1($section, $datosTabla);
+        $this->agregaTabla1($section, $datosTabla, $totalTrampasRoedores);
         $this->agregaTablasRodenticidas($section);
 
         $this->addSectionTitle($section, '2) Seguimiento de las unidades de control');
@@ -515,6 +521,135 @@ class InformesController extends Controller
         }
     }
 
+    /**
+     * Trampas del informe que dejaron de estar en el mapa DENTRO del período,
+     * separadas según lo que realmente ocurrió:
+     *
+     *  - `cambio_tipo`: el punto de control sigue existiendo, pero con otro tipo
+     *    de trampa. Cambiar el tipo se hace dando de baja la fila y creando
+     *    otra, así que el punto no desapareció: se reequipó.
+     *  - `retirada`: el punto ya no tiene ninguna trampa activa. Ese sí es un
+     *    retiro de verdad.
+     *
+     * No existe fecha de baja en `trampas` (sólo `estado`), así que el "cuándo"
+     * se infiere del historial: si el último pesaje conocido cae dentro del
+     * período, el cambio ocurrió entonces. Si hay pesajes posteriores al cierre,
+     * la trampa seguía en servicio durante el período y no debe señalarse —
+     * marcarla sería un anacronismo en informes de meses anteriores.
+     *
+     * El cálculo vive aquí y no en el frontend porque la vista sólo recibe los
+     * seguimientos del rango: por definición no puede saber qué pasó después.
+     *
+     * @param  \Illuminate\Support\Collection<int, Seguimiento>  $seguimientos
+     * @return array{cambio_tipo: list<int>, retirada: list<int>}
+     */
+    private function trampasRetiradasEnPeriodo($seguimientos, Carbon $fechaFin): array
+    {
+        // Trampas que aparecen en el informe y hoy están inactivas.
+        $candidatas = [];
+
+        foreach ($seguimientos as $seguimiento) {
+            if ((int) $seguimiento->tipo_seguimiento_id !== 1) {
+                continue;
+            }
+
+            foreach ($seguimiento->roedores as $roedor) {
+                $trampa = $roedor->trampa;
+
+                if ($trampa && $trampa->estado === 'inactivo') {
+                    $candidatas[$trampa->id] = $trampa;
+                }
+            }
+        }
+
+        if (! $candidatas) {
+            return ['cambio_tipo' => [], 'retirada' => []];
+        }
+
+        // Último pesaje de cada candidata, mirando TODO su historial.
+        // El alias es necesario: pluck() no sabe leer una expresión cruda como
+        // nombre de columna y devolvería un stdClass sin la propiedad.
+        $ultimoPesaje = TrampaRoedorSeguimiento::query()
+            ->join('seguimientos', 'seguimientos.id', '=', 'trampa_roedor_seguimientos.seguimiento_id')
+            ->where('seguimientos.tipo_seguimiento_id', 1)
+            ->whereIn('trampa_roedor_seguimientos.trampa_id', array_keys($candidatas))
+            ->groupBy('trampa_roedor_seguimientos.trampa_id')
+            ->selectRaw('trampa_roedor_seguimientos.trampa_id as trampa_id, MAX(seguimientos.created_at) as ultimo')
+            ->pluck('ultimo', 'trampa_id');
+
+        // Puntos que hoy siguen teniendo una trampa activa: los que "cambiaron
+        // de tipo" en vez de desaparecer. Una sola consulta para todos.
+        $mapaIds = collect($candidatas)->pluck('mapa_id')->unique()->all();
+
+        $puntosVivos = Trampa::whereIn('mapa_id', $mapaIds)
+            ->where('estado', '!=', 'inactivo')
+            ->get(['mapa_id', 'identificador'])
+            ->mapWithKeys(fn($t) => [$this->clavePunto($t) => true]);
+
+        $resultado = ['cambio_tipo' => [], 'retirada' => []];
+
+        foreach ($ultimoPesaje as $trampaId => $ultimo) {
+            // Con registros posteriores al cierre seguía activa en el período.
+            if (Carbon::parse($ultimo)->greaterThan($fechaFin)) {
+                continue;
+            }
+
+            $trampa = $candidatas[$trampaId];
+            $grupo  = $puntosVivos->has($this->clavePunto($trampa)) ? 'cambio_tipo' : 'retirada';
+
+            $resultado[$grupo][] = (int) $trampaId;
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Identidad estable de un punto de control: el mapa más el identificador.
+     *
+     * Una misma posición puede tener varias filas en `trampas` a lo largo del
+     * tiempo, porque cambiar el TIPO de trampa se hace dando de baja la fila
+     * anterior y creando otra (así el histórico de pesajes conserva con qué
+     * tipo se midió cada vez). Contar filas inflaría el total: un punto que pasó
+     * de caja a pegajosa contaría como dos unidades. Para CONTAR unidades se usa
+     * esta clave; para MEDIR (pesos, mermas) se sigue usando la fila, que es la
+     * que sabe de qué tipo era.
+     */
+    private function clavePunto($trampa): string
+    {
+        return $trampa->mapa_id . '-' . mb_strtolower(trim((string) $trampa->identificador));
+    }
+
+    /**
+     * Unidades de control distintas monitoreadas en el período.
+     *
+     * No se puede sumar la columna `cantidad_trampas` de procesarDatosTrampas:
+     * esa tabla agrupa por mapa Y tipo, así que un punto que cambió de caja a
+     * pegajosa aparece en ambas filas y sumarlas lo contaría dos veces. Aquí se
+     * cuentan los puntos una sola vez, sin importar cuántos tipos tuvo.
+     *
+     * @param  \Illuminate\Support\Collection<int, Seguimiento>  $seguimientos
+     */
+    private function contarPuntosControl($seguimientos): int
+    {
+        $puntos = [];
+
+        foreach ($seguimientos as $seguimiento) {
+            if ((int) $seguimiento->tipo_seguimiento_id !== 1) {
+                continue;
+            }
+
+            foreach ($seguimiento->roedores as $rodente) {
+                $trampa = $rodente->trampa;
+
+                if ($trampa && $trampa->mapa && $trampa->trampa_tipo) {
+                    $puntos[$this->clavePunto($trampa)] = true;
+                }
+            }
+        }
+
+        return count($puntos);
+    }
+
     private function saveBase64Image(?string $base64, string $name): ?string
     {
         if (!$base64) {
@@ -591,7 +726,7 @@ class InformesController extends Controller
                     'cantidad_total' => 0,
                 ];
 
-                $agrupado[$key]['trampa_ids'][]  = $trampa->id;
+                $agrupado[$key]['trampa_ids'][]  = $this->clavePunto($trampa);
                 $agrupado[$key]['cantidad_total'] += (int) $rodente->cantidad;
             }
         }
@@ -632,7 +767,7 @@ class InformesController extends Controller
                     'actual_total'      => 0,
                 ];
 
-                $agrupado[$key]['trampa_ids'][]    = $trampa->id;
+                $agrupado[$key]['trampa_ids'][]    = $this->clavePunto($trampa);
                 $agrupado[$key]['cantidad_total']  += (int) $rodente->cantidad;
                 $agrupado[$key]['inicial_total']   += (int) $rodente->inicial;
                 $agrupado[$key]['merma_total']     += (int) $rodente->merma;
@@ -683,7 +818,7 @@ class InformesController extends Controller
                     'actual_total'      => 0,
                 ];
 
-                $agrupadoPorMapa[$mapaTitulo][$key]['trampa_ids'][]    = $trampa->id;
+                $agrupadoPorMapa[$mapaTitulo][$key]['trampa_ids'][]    = $this->clavePunto($trampa);
                 $agrupadoPorMapa[$mapaTitulo][$key]['cantidad_total']  += (int) $rodente->cantidad;
                 $agrupadoPorMapa[$mapaTitulo][$key]['inicial_total']   += (int) $rodente->inicial;
                 $agrupadoPorMapa[$mapaTitulo][$key]['merma_total']     += (int) $rodente->merma;
@@ -758,7 +893,7 @@ class InformesController extends Controller
                     'cantidad_total' => 0,
                 ];
 
-                $agrupadoPorMapa[$mapaId]['trampa_ids'][]    = $trampa->id;
+                $agrupadoPorMapa[$mapaId]['trampa_ids'][]    = $this->clavePunto($trampa);
                 $agrupadoPorMapa[$mapaId]['cantidad_total']  += (int) $insectocutor->cantidad;
             }
         }
@@ -1211,7 +1346,13 @@ class InformesController extends Controller
         return $path;
     }
 
-    private function agregaTabla1($section, array $datosTabla): void
+    /**
+     * @param  int  $totalPuntos  Unidades de control distintas del período. Se
+     *                            recibe para poder detectar el único caso en
+     *                            que esta tabla necesita explicación: cuando la
+     *                            suma de sus filas lo supera.
+     */
+    private function agregaTabla1($section, array $datosTabla, int $totalPuntos = 0): void
     {
         $table = $section->addTable('tablaCantidadDeTrampasPorTipo');
         $table->addRow(420);
@@ -1227,6 +1368,23 @@ class InformesController extends Controller
             $table->addCell(1500, $celda)->addText($dato['cantidad'],        'fuente_normal', ['alignment' => Jc::CENTER]);
             $table->addCell(3000, $celda)->addText($dato['mapa_titulo'],     'fuente_normal');
         }
+
+        // Sólo si las filas suman más que el total: eso ocurre cuando a algún
+        // punto se le cambió el tipo de trampa durante el período y aparece en
+        // dos filas. Sin esta nota, la tabla parece contradecir al texto.
+        $sumaFilas = array_sum(array_column($datosTabla, 'cantidad_trampas'));
+
+        if ($totalPuntos > 0 && $sumaFilas > $totalPuntos) {
+            $section->addText(
+                'Nota: la suma de esta tabla (' . $sumaFilas . ') supera las '
+                    . $totalPuntos . ' unidades de control del período porque a '
+                    . ($sumaFilas - $totalPuntos) . ' punto(s) se les cambió el tipo '
+                    . 'de trampa, y cada tipo se contabiliza en su propia fila.',
+                'fuente_normal',
+                ['alignment' => Jc::BOTH, 'spaceBefore' => 40, 'spaceAfter' => 40]
+            );
+        }
+
         $section->addTextBreak(1);
     }
 

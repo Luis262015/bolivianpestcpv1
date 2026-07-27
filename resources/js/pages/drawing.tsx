@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/select';
 // import { Inertia } from '@inertiajs/inertia';
 import { JSX, MouseEvent, useEffect, useRef, useState } from 'react';
+import { pedirTexto } from '@/lib/alertas';
 import { v4 as uuidv4 } from 'uuid';
 
 type Shape =
@@ -256,7 +257,7 @@ export default function DrawingBoard(): JSX.Element {
         return null;
     };
 
-    const handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
+    const handleMouseDown = async (e: MouseEvent<HTMLCanvasElement>) => {
         const pos = getMousePos(e);
 
         const clickedText = texts.find(
@@ -284,7 +285,7 @@ export default function DrawingBoard(): JSX.Element {
         }
 
         if (mode === 'text' || mode === 'textListed') {
-            const text = prompt('Ingrese texto:');
+            const text = await pedirTexto({ titulo: 'Ingrese texto:' });
             if (!text) return;
             saveHistory();
             setTexts((prev) => [

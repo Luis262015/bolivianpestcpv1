@@ -90,7 +90,6 @@ interface Props {
 }
 
 export default function CotizacionForm({ cotizacion }: Props) {
-  console.log(cotizacion);
 
   const { data, setData, post, put, processing, errors } = useForm<Cotizacion>({
     nombre: cotizacion?.nombre ?? '',
