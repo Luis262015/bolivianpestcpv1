@@ -51,7 +51,8 @@ import SeguimientoTrampasEdit, {
   TrampaRoedoresSeguimiento,
 } from './SeguimientoTrampasEdit';
 import SignaturePad from './SignaturePad';
-import { notificarError } from '@/lib/alertas';
+import { avisar, notificarError } from '@/lib/alertas';
+import ErroresDelPaso, { describirCampo } from './ErroresDelPaso';
 
 interface Biologico {
   id: number;
@@ -133,6 +134,35 @@ const emptyAplicacion: Aplicacion = {
   roedores: 0,
 };
 
+/**
+ * En qué paso se corrige cada campo. Al fallar la validación el usuario está
+ * en el paso 14, y sin esto el modal se queda quieto: el error puede estar
+ * trece pasos atrás y no hay forma de saber cuál.
+ */
+const PASO_POR_CAMPO: Record<string, number> = {
+  empresa_id: 1,
+  almacen_id: 1,
+  tipo_seguimiento_id: 1,
+  aplicacion_data: 2,
+  metodos_ids: 3,
+  productos_usados: 4,
+  epps_ids: 5,
+  protecciones_ids: 6,
+  biologicos_ids: 7,
+  signos_ids: 8,
+  trampa_especies_seguimientos: 9,
+  trampa_roedores_seguimientos: 9,
+  observaciones_especificas: 10,
+  gastos: 11,
+  imagenes: 12,
+  observaciones_generales: 13,
+  encargado_nombre: 14,
+  encargado_cargo: 14,
+  firma_encargado: 14,
+  firma_supervisor: 14,
+  created_at: 14,
+};
+
 export default function ModalEditarSeguimiento({
   open,
   onClose,
@@ -205,8 +235,42 @@ export default function ModalEditarSeguimiento({
       created_at: '',
       imagenes: [] as File[],
       imagenes_eliminar: [] as number[],
+      gastos: [] as { concepto: string; total: string }[],
     },
   );
+
+  // Helpers gastos (paso 11)
+  const addGasto = () => {
+    setData('gastos', [...data.gastos, { concepto: '', total: '' }]);
+  };
+
+  const updateGasto = (
+    i: number,
+    field: 'concepto' | 'total',
+    value: string,
+  ) => {
+    setData(
+      'gastos',
+      data.gastos.map((g, idx) => (idx === i ? { ...g, [field]: value } : g)),
+    );
+  };
+
+  const removeGasto = (i: number) => {
+    setData(
+      'gastos',
+      data.gastos.filter((_, idx) => idx !== i),
+    );
+  };
+
+  const totalGastos = data.gastos.reduce(
+    (acc, g) => acc + (parseFloat(g.total) || 0),
+    0,
+  );
+
+  // Los errores de gastos llegan con clave anidada ("gastos.0.concepto"), que
+  // queda fuera del tipado de useForm.
+  const errorGasto = (i: number, campo: 'concepto' | 'total') =>
+    (errors as Record<string, string | undefined>)[`gastos.${i}.${campo}`];
 
   // Carga datos al abrir el modal
   useEffect(() => {
@@ -286,6 +350,10 @@ export default function ModalEditarSeguimiento({
           created_at: s.created_at ? s.created_at.split('T')[0] : '',
           imagenes: [],
           imagenes_eliminar: [],
+          gastos: (s.gastos ?? []).map((g: any) => ({
+            concepto: g.concepto ?? '',
+            total: String(g.total ?? ''),
+          })),
         });
       })
       .catch((err) => console.error('Error al cargar seguimiento:', err))
@@ -413,7 +481,7 @@ export default function ModalEditarSeguimiento({
     if (step === 6) setData('protecciones_ids', proteccionesSel);
     if (step === 7) setData('biologicos_ids', biologicosSel);
     if (step === 8) setData('signos_ids', signosSel);
-    setStep((s) => Math.min(s + 1, 13));
+    setStep((s) => Math.min(s + 1, 14));
   };
 
   const handleBack = () => setStep((s) => Math.max(s - 1, 1));
@@ -436,6 +504,13 @@ export default function ModalEditarSeguimiento({
       imagenes_eliminar: JSON.stringify(imagenesEliminar),
       trampa_especies_seguimientos: JSON.stringify(d.trampa_especies_seguimientos),
       trampa_roedores_seguimientos: JSON.stringify(d.trampa_roedores_seguimientos),
+      // Filas que quedaron en blanco tras pulsar "Agregar gasto": no son un
+      // gasto, y enviarlas solo sirve para que el backend rechace todo.
+      gastos: JSON.stringify(
+        d.gastos.filter(
+          (g) => g.concepto.trim() !== '' || g.total.trim() !== '',
+        ),
+      ),
     }));
 
     post(`/seguimientos/${seguimientoId}`, {
@@ -444,8 +519,31 @@ export default function ModalEditarSeguimiento({
         toast.success('Seguimiento actualizado correctamente');
         handleClose();
       },
-      onError: () => {
-        toast.error('Error al guardar el seguimiento');
+      onError: (errs) => {
+        // El log del navegador conserva el detalle crudo aunque se cierre el aviso.
+        console.error('Edición rechazada por validación:', errs);
+
+        const pasos = Object.keys(errs)
+          .map((campo) => PASO_POR_CAMPO[campo.split('.')[0]])
+          .filter((p): p is number => p !== undefined);
+
+        if (pasos.length > 0) {
+          setStep(Math.min(...pasos));
+        }
+
+        const detalle = Object.entries(errs)
+          .map(([campo, mensaje]) => {
+            const paso = PASO_POR_CAMPO[campo.split('.')[0]];
+            const ubicacion = paso !== undefined ? `Paso ${paso} · ` : '';
+            return `• ${ubicacion}${describirCampo(campo)}: ${mensaje}`;
+          })
+          .join('\n');
+
+        void avisar({
+          titulo: 'No se pudo guardar el seguimiento',
+          texto: detalle,
+          icono: 'error',
+        });
       },
     });
   };
@@ -468,12 +566,12 @@ export default function ModalEditarSeguimiento({
       >
         <DialogHeader>
           <DialogTitle className="text-[1rem]">
-            Editar Seguimiento – Paso {step} de 13
+            Editar Seguimiento – Paso {step} de 14
           </DialogTitle>
           <div className="mt-3 h-2 w-full rounded-full bg-muted">
             <div
               className="h-2 rounded-full bg-primary transition-all"
-              style={{ width: `${(step / 13) * 100}%` }}
+              style={{ width: `${(step / 14) * 100}%` }}
             />
           </div>
         </DialogHeader>
@@ -484,6 +582,12 @@ export default function ModalEditarSeguimiento({
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
+            <ErroresDelPaso
+              errors={errors as Record<string, string>}
+              paso={step}
+              pasoPorCampo={PASO_POR_CAMPO}
+            />
+
             {/* PASO 1: Datos del seguimiento + fecha */}
             {step === 1 && (
               <div className="space-y-6 py-6">
@@ -975,7 +1079,7 @@ export default function ModalEditarSeguimiento({
             )}
 
             {/* PASO 13: Encargado y Firmas */}
-            {step === 13 && (
+            {step === 14 && (
               <div className="space-y-6">
                 <div className="my-3 text-lg font-semibold">
                   Seguimiento {tipoSeguimientoSel}
@@ -1129,8 +1233,80 @@ export default function ModalEditarSeguimiento({
               </div>
             )}
 
-            {/* PASO 11: Imágenes */}
+            {/* PASO 11: Gastos del seguimiento */}
             {step === 11 && (
+              <div className="space-y-5">
+                <div className="my-3 text-lg font-semibold">
+                  Seguimiento {tipoSeguimientoSel}
+                </div>
+                <div className="my-2">Gastos relacionados (opcional)</div>
+
+                <div className="flex justify-between">
+                  <Button type="button" size="sm" onClick={addGasto}>
+                    <Plus className="mr-1 h-4 w-4" />
+                    Agregar gasto
+                  </Button>
+                  {data.gastos.length > 0 && (
+                    <span className="text-sm font-medium">
+                      Total: {totalGastos.toFixed(2)}
+                    </span>
+                  )}
+                </div>
+
+                {data.gastos.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">
+                    No hay gastos agregados.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {data.gastos.map((g, i) => (
+                      <div
+                        key={i}
+                        className="grid grid-cols-1 items-end gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_auto_auto]"
+                      >
+                        <div className="space-y-1">
+                          <Label className="text-xs">Concepto</Label>
+                          <Input
+                            placeholder="Ej. Transporte, viáticos..."
+                            value={g.concepto}
+                            onChange={(e) =>
+                              updateGasto(i, 'concepto', e.target.value)
+                            }
+                          />
+                          <InputError message={errorGasto(i, 'concepto')} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Total</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                            className="w-32"
+                            value={g.total}
+                            onChange={(e) =>
+                              updateGasto(i, 'total', e.target.value)
+                            }
+                          />
+                          <InputError message={errorGasto(i, 'total')} />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeGasto(i)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* PASO 12: Imágenes */}
+            {step === 12 && (
               <div className="space-y-6">
                 <div className="my-3 text-lg font-semibold">
                   Seguimiento {tipoSeguimientoSel}
@@ -1231,7 +1407,7 @@ export default function ModalEditarSeguimiento({
             )}
 
             {/* PASO 12: Observaciones Generales */}
-            {step === 12 && (
+            {step === 13 && (
               <div className="space-y-6 py-6 text-center">
                 <div className="mx-auto mb-4 size-20 rounded-full bg-green-100 p-5">
                   <svg
@@ -1274,7 +1450,7 @@ export default function ModalEditarSeguimiento({
                 Cancelar
               </Button>
 
-              {step < 13 ? (
+              {step < 14 ? (
                 <Button asChild>
                   <button type="button" onClick={handleNext}>
                     Siguiente

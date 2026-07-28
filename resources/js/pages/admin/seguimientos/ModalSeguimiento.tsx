@@ -49,7 +49,8 @@ import SeguimientoTrampas, {
   TrampaRoedoresSeguimiento,
 } from './SeguimientoTrampas';
 import SignaturePad from './SignaturePad';
-import { notificarError } from '@/lib/alertas';
+import { avisar, notificarError } from '@/lib/alertas';
+import ErroresDelPaso, { describirCampo } from './ErroresDelPaso';
 
 interface Empresa {
   id: number;
@@ -134,6 +135,36 @@ interface ModalSeguimientoProps {
   tipoSeguimiento: TipoSeguimiento[];
 }
 
+/**
+ * En qué paso se corrige cada campo. Al fallar la validación el técnico está
+ * en el paso 14, y sin esto el modal se queda quieto: el error puede estar
+ * trece pasos atrás y no hay forma de saber cuál.
+ */
+const PASO_POR_CAMPO: Record<string, number> = {
+  empresa_id: 1,
+  almacen_id: 1,
+  tipo_seguimiento_id: 1,
+  numero_tarea: 1,
+  aplicacion_data: 2,
+  metodos_ids: 3,
+  productos_usados: 4,
+  epps_ids: 5,
+  protecciones_ids: 6,
+  biologicos_ids: 7,
+  signos_ids: 8,
+  trampa_especies_seguimientos: 9,
+  trampa_roedores_seguimientos: 9,
+  observaciones_especificas: 10,
+  gastos: 11,
+  imagenes: 12,
+  observaciones_generales: 13,
+  encargado_nombre: 14,
+  encargado_cargo: 14,
+  firma_encargado: 14,
+  firma_supervisor: 14,
+  fecha: 14,
+};
+
 export default function ModalSeguimiento({
   open,
   onClose,
@@ -193,6 +224,35 @@ export default function ModalSeguimiento({
   const [loading, setLoading] = useState(false);
   const [quantity, setQuantity] = useState('1');
   const [openCrearProducto, setOpenCrearProducto] = useState(false);
+
+  const irAlPrimerError = (errs: Record<string, string>) => {
+    // El log del navegador conserva el detalle crudo aunque el aviso se cierre.
+    console.error('Seguimiento rechazado por validación:', errs);
+
+    const pasos = Object.keys(errs)
+      .map((campo) => PASO_POR_CAMPO[campo.split('.')[0]])
+      .filter((p): p is number => p !== undefined);
+
+    if (pasos.length > 0) {
+      setStep(Math.min(...pasos));
+    }
+
+    // Listar los mensajes reales: un "revisa los campos marcados" no sirve
+    // cuando el paso no tiene dónde marcarlos.
+    const detalle = Object.entries(errs)
+      .map(([campo, mensaje]) => {
+        const paso = PASO_POR_CAMPO[campo.split('.')[0]];
+        const ubicacion = paso !== undefined ? `Paso ${paso} · ` : '';
+        return `• ${ubicacion}${describirCampo(campo)}: ${mensaje}`;
+      })
+      .join('\n');
+
+    void avisar({
+      titulo: 'No se pudo guardar el seguimiento',
+      texto: detalle,
+      icono: 'error',
+    });
+  };
 
   const { data, setData, post, processing, errors, reset, transform } = useForm({
     empresa_id: '',
@@ -295,21 +355,40 @@ export default function ModalSeguimiento({
     // el `data` capturado en el render anterior. Hay que usar transform(), que
     // escribe en una ref y sí se aplica de inmediato. Si no, todo lo que se
     // sincronice solo aquí (p. ej. una firma borrada) se envía desactualizado.
+    // Los arrays van serializados: en multipart cada elemento anidado cuenta
+    // como una variable de entrada y PHP corta el POST en silencio al pasar
+    // max_input_vars (1000). Un almacén con 142 trampas manda ~1136 variables
+    // solo en trampas, y las últimas filas llegaban truncadas. Serializado,
+    // cada array ocupa una sola variable. El backend los decodifica.
     transform(() => ({
       ...data,
-      biologicos_ids: biologicosSel,
-      metodos_ids: metodosSel,
-      epps_ids: eppsSel,
-      protecciones_ids: proteccionesSel,
-      signos_ids: signosSel,
-      productos_usados: productos,
+      // Filas que quedaron en blanco tras pulsar "Agregar gasto": no son un
+      // gasto, y enviarlas solo sirve para que el backend rechace todo.
+      gastos: JSON.stringify(
+        data.gastos.filter(
+          (g) => g.concepto.trim() !== '' || g.total.trim() !== '',
+        ),
+      ),
+      biologicos_ids: JSON.stringify(biologicosSel),
+      metodos_ids: JSON.stringify(metodosSel),
+      epps_ids: JSON.stringify(eppsSel),
+      protecciones_ids: JSON.stringify(proteccionesSel),
+      signos_ids: JSON.stringify(signosSel),
+      productos_usados: JSON.stringify(productos),
+      trampa_especies_seguimientos: JSON.stringify(
+        data.trampa_especies_seguimientos,
+      ),
+      trampa_roedores_seguimientos: JSON.stringify(
+        data.trampa_roedores_seguimientos,
+      ),
       firma_encargado: firmaEncargado, // base64 ('' si se limpió el canvas)
       firma_supervisor: firmaSupervisor, // base64 ('' si se limpió el canvas)
-      aplicacion_data: aplicacion,
+      aplicacion_data: JSON.stringify(aplicacion),
     }));
 
     post('/seguimientos', {
       onSuccess: handleClose,
+      onError: irAlPrimerError,
     });
   };
 
@@ -440,6 +519,11 @@ export default function ModalSeguimiento({
     (acc, g) => acc + (parseFloat(g.total) || 0),
     0,
   );
+
+  // Los errores de gastos llegan con clave anidada ("gastos.0.concepto"), que
+  // queda fuera del tipado de useForm.
+  const errorGasto = (i: number, campo: 'concepto' | 'total') =>
+    (errors as Record<string, string | undefined>)[`gastos.${i}.${campo}`];
 
   const [firmaEncargado, setFirmaEncargado] = useState<string>('');
   const [firmaSupervisor, setFirmaSupervisor] = useState<string>('');
@@ -671,6 +755,12 @@ export default function ModalSeguimiento({
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
+          <ErroresDelPaso
+            errors={errors as Record<string, string>}
+            paso={step}
+            pasoPorCampo={PASO_POR_CAMPO}
+          />
+
           {/* PASO 1: Empresa, Almacén y Tipo de Seguimiento */}
           {step === 1 && (
             <div className="space-y-6 py-6">
@@ -1413,6 +1503,7 @@ export default function ModalSeguimiento({
                             updateGasto(i, 'concepto', e.target.value)
                           }
                         />
+                        <InputError message={errorGasto(i, 'concepto')} />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Total</Label>
@@ -1427,6 +1518,7 @@ export default function ModalSeguimiento({
                             updateGasto(i, 'total', e.target.value)
                           }
                         />
+                        <InputError message={errorGasto(i, 'total')} />
                       </div>
                       <Button
                         type="button"

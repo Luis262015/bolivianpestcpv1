@@ -32,6 +32,7 @@ use App\Models\TrampaRoedorSeguimiento;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -187,9 +188,32 @@ class SeguimientoController extends Controller
 
   public function store(Request $request)
   {
+    $this->decodificarArrays($request, [
+      'biologicos_ids',
+      'metodos_ids',
+      'epps_ids',
+      'protecciones_ids',
+      'signos_ids',
+      'productos_usados',
+      'aplicacion_data',
+      'trampa_especies_seguimientos',
+      'trampa_roedores_seguimientos',
+      'gastos',
+    ]);
+
+    // "Agregar gasto" inserta una fila en blanco en el paso 11. Si el técnico
+    // no la llena, esa fila no puede tumbar el seguimiento entero: se descarta
+    // antes de validar. Las filas a medio llenar sí se validan y se marcan.
+    if (is_array($request->input('gastos'))) {
+      $request->merge(['gastos' => $this->descartarGastosVacios($request->input('gastos'))]);
+    }
+
     // Validar FUERA del try: los errores de validación deben llegar al
     // formulario como tales, no convertirse en un error genérico.
-    $validated = $request->validate($this->toValidated);
+    $validated = $this->validarConLog($request, $this->toValidated, 'store', [
+      'numero_tarea' => $request->input('numero_tarea'),
+      'almacen_id' => $request->input('almacen_id'),
+    ]);
 
     // La tarea debe cuadrar con el almacén/tipo enviados y estar libre.
     // El modal ya lo verifica, pero el backend no puede confiar en eso.
@@ -226,9 +250,13 @@ class SeguimientoController extends Controller
       $seguimiento->firma_supervisor = $this->guardarFirma($request->input('firma_supervisor'), 'firma_supervisor', $archivosCreados);
 
       // Fecha retroactiva asignada al modelo: evita el UPDATE extra posterior.
+      // El día lo elige el técnico, pero la hora es la del registro real: el
+      // formulario solo manda "YYYY-MM-DD" y sin esto todos los seguimientos
+      // caerían en 00:00:00, sin rastro de cuándo se hizo el trabajo.
       if (!empty($validated['fecha'])) {
-        $seguimiento->created_at = $validated['fecha'];
-        $seguimiento->updated_at = $validated['fecha'];
+        $marca = $this->fechaConHora($validated['fecha'], Carbon::now());
+        $seguimiento->created_at = $marca;
+        $seguimiento->updated_at = $marca;
       }
 
       $seguimiento->save();
@@ -330,7 +358,17 @@ class SeguimientoController extends Controller
 
   public function update(Request $request, string $id)
   {
-    $validated = $request->validate([
+    // Los gastos llegan como JSON string (multipart) igual que el resto de
+    // arrays, pero se decodifican antes de validar para que apliquen las
+    // mismas reglas que en el alta y los errores lleguen con la clave que el
+    // modal usa para marcar la fila ("gastos.0.concepto").
+    $request->merge([
+      'gastos' => $this->descartarGastosVacios(
+        json_decode($request->input('gastos', '[]'), true),
+      ),
+    ]);
+
+    $validated = $this->validarConLog($request, [
       'almacen_id' => 'required|exists:almacenes,id',
       'tipo_seguimiento_id' => 'required|integer',
       'observaciones_especificas' => 'nullable|string',
@@ -340,7 +378,10 @@ class SeguimientoController extends Controller
       'created_at' => 'nullable|date',
       'imagenes' => 'nullable|array',
       'imagenes.*' => 'image|mimes:jpeg,jpg,png,webp,gif|max:8192',
-    ]);
+      'gastos' => 'nullable|array',
+      'gastos.*.concepto' => 'required|string|max:255',
+      'gastos.*.total' => 'required|numeric|min:0',
+    ], 'update', ['seguimiento_id' => $id]);
 
     // El modal de edición envía multipart: los arrays llegan como JSON string.
     $biologicosIds = json_decode($request->input('biologicos_ids', '[]'), true) ?? [];
@@ -383,8 +424,13 @@ class SeguimientoController extends Controller
         }
       }
 
+      // Al editar solo se corrige el día: la hora que se conserva es la que ya
+      // tenía el seguimiento (cuándo se registró), no la de esta edición.
       if (!empty($validated['created_at'])) {
-        $seguimiento->created_at = $validated['created_at'];
+        $seguimiento->created_at = $this->fechaConHora(
+          $validated['created_at'],
+          $seguimiento->created_at ?? Carbon::now(),
+        );
       }
 
       $seguimiento->save();
@@ -455,6 +501,19 @@ class SeguimientoController extends Controller
             'merma' => $tramp['merma'],
           ]);
         }
+      }
+
+      // Sincronizar gastos (borrar y recrear, como el resto de relaciones).
+      // El autor que se guarda es el del seguimiento, no quien edita: el gasto
+      // lo hizo el técnico que fue a campo, aunque después lo corrija un admin.
+      Gasto::where('seguimiento_id', $seguimiento->id)->delete();
+      foreach ($validated['gastos'] ?? [] as $gasto) {
+        Gasto::create([
+          'user_id' => $seguimiento->user_id,
+          'seguimiento_id' => $seguimiento->id,
+          'concepto' => $gasto['concepto'],
+          'total' => $gasto['total'],
+        ]);
       }
 
       // Eliminar imágenes marcadas (solo las que pertenecen a este seguimiento).
@@ -705,6 +764,7 @@ class SeguimientoController extends Controller
       'images',
       'trampaEspeciesSeguimientos',
       'trampaRoedoresSeguimientos',
+      'gastos',
     ])->findOrFail($id);
 
     $this->autorizarAccesoEmpresa($request, $seguimiento->empresa_id);
@@ -758,6 +818,17 @@ class SeguimientoController extends Controller
     }
 
     if ($errores) {
+      Log::warning('SeguimientoController@store tarea inválida', [
+        'user_id' => Auth::id(),
+        'numero_tarea' => $cronograma->id,
+        'almacen_id_tarea' => $cronograma->almacen_id,
+        'almacen_id_enviado' => $validated['almacen_id'],
+        'tipo_tarea' => $cronograma->tipo_seguimiento_id,
+        'tipo_enviado' => $validated['tipo_seguimiento_id'],
+        'status' => $cronograma->status,
+        'errores' => $errores,
+      ]);
+
       throw ValidationException::withMessages(['numero_tarea' => $errores]);
     }
   }
@@ -774,6 +845,94 @@ class SeguimientoController extends Controller
     ) {
       abort(403);
     }
+  }
+
+  /**
+   * Decodifica los arrays que el modal manda serializados.
+   *
+   * En multipart cada elemento anidado cuenta como una variable de entrada y
+   * PHP corta el POST en silencio al pasar `max_input_vars` (1000 por defecto).
+   * Un almacén con 142 trampas manda ~1136 variables solo en trampas: las
+   * últimas filas llegaban truncadas y reventaban contra `required` sin que
+   * nada explicara por qué. Serializado, cada array ocupa una sola variable.
+   *
+   * Solo se toca lo que viene como string: un array real (petición JSON, o los
+   * tests) se deja intacto.
+   */
+  private function decodificarArrays(Request $request, array $campos): void
+  {
+    $decodificados = [];
+
+    foreach ($campos as $campo) {
+      $valor = $request->input($campo);
+
+      if (is_string($valor)) {
+        $decodificados[$campo] = json_decode($valor, true) ?? [];
+      }
+    }
+
+    if ($decodificados) {
+      $request->merge($decodificados);
+    }
+  }
+
+  /**
+   * Valida dejando rastro en el log de lo que falló.
+   *
+   * Una ValidationException no pasa por el catch(\Throwable) que loguea los
+   * errores, así que un rechazo de validación no dejaba ninguna huella en el
+   * servidor: el técnico veía "revisa los campos" y desde el log no había forma
+   * de saber qué campo lo causó.
+   */
+  private function validarConLog(Request $request, array $reglas, string $accion, array $contexto = []): array
+  {
+    try {
+      return $request->validate($reglas);
+    } catch (ValidationException $e) {
+      Log::warning("SeguimientoController@{$accion} validación fallida", [
+        'user_id' => Auth::id(),
+        'errores' => $e->errors(),
+        ...$contexto,
+      ]);
+      throw $e;
+    }
+  }
+
+  /**
+   * Descarta las filas de gasto que llegan completamente en blanco.
+   *
+   * Una fila sin concepto ni total es ruido del formulario, no un gasto que el
+   * técnico quiso registrar. Las filas a medio llenar se conservan a propósito
+   * para que la validación las señale en vez de tragárselas en silencio.
+   */
+  private function descartarGastosVacios(mixed $gastos): array
+  {
+    if (!is_array($gastos)) {
+      return [];
+    }
+
+    $vacio = static fn ($valor): bool => trim((string) ($valor ?? '')) === '';
+
+    return array_values(array_filter(
+      $gastos,
+      static fn ($gasto): bool => is_array($gasto)
+        && !($vacio($gasto['concepto'] ?? null) && $vacio($gasto['total'] ?? null)),
+    ));
+  }
+
+  /**
+   * Combina la fecha elegida en el formulario con una hora de referencia.
+   *
+   * Los inputs type="date" mandan solo "YYYY-MM-DD", que Carbon interpreta como
+   * medianoche. Si el valor ya trae hora se respeta tal cual y no se toca.
+   */
+  private function fechaConHora(string $fecha, CarbonInterface $hora): Carbon
+  {
+    $parsed = Carbon::parse($fecha);
+
+    return preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($fecha)) === 1
+      ? $parsed->setTimeFrom($hora)
+      : $parsed;
   }
 
   /**
