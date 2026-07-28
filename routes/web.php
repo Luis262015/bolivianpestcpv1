@@ -127,6 +127,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // `especies` va antes del resource para que no lo capture /trampaseguimientos/{id}.
     Route::middleware('role:admin|superadmin|tecnico')->group(function () {
         Route::get('/trampaseguimientos/{id}/trampas', [TrampaSeguimientoController::class, 'trampas'])->whereNumber('id')->name('trampaseguimientos.trampas');
+        // {id} = almacenes.id, igual que `trampas`: lo usa el aviso de "almacén sin mapas".
+        Route::get('/trampaseguimientos/{id}/mapas', [TrampaSeguimientoController::class, 'mapas'])->whereNumber('id')->name('trampaseguimientos.mapas');
         Route::get('/trampaseguimientos/especies', [TrampaSeguimientoController::class, 'especies'])->name('trampaseguimientos.especies');
         Route::resource('trampaseguimientos', TrampaSeguimientoController::class)
             ->only(['show', 'update'])->where(['trampaseguimiento' => '[0-9]+']);

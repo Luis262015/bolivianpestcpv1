@@ -11,6 +11,7 @@ import {
 import { notificarError } from '@/lib/alertas';
 import axios from 'axios';
 import { useEffect, useMemo, useState } from 'react';
+import AvisoSinMapas from './AvisoSinMapas';
 import ResumenTrampas from './ResumenTrampas';
 
 /* =======================
@@ -352,6 +353,8 @@ export default function SeguimientoTrampas({
 
   return (
     <div className="space-y-6">
+      <AvisoSinMapas almacenId={almacenId} />
+
       {altaRapida}
 
       <ResumenTrampas trampas={trampasVisibles} />

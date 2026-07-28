@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Almacen;
 use App\Models\Empresa;
 use App\Models\Especie;
+use App\Models\Mapa;
 use App\Models\Seguimiento;
 use App\Models\Trampa;
 use App\Models\TrampaEspecieSeguimiento;
@@ -173,6 +174,20 @@ class TrampaSeguimientoController extends Controller
       ->get();
 
     return response()->json($trampas);
+  }
+
+  /**
+   * Mapas del almacén ({id} = almacenes.id). El formulario de seguimiento los
+   * consulta solo para saber si hay alguno: sin mapa no hay trampas que
+   * registrar, y conviene avisarlo antes de llegar al paso de trampas.
+   */
+  public function mapas(Request $request, string $id)
+  {
+    $mapas = Mapa::where('almacen_id', $id)
+      ->orderBy('id')
+      ->get(['id', 'titulo']);
+
+    return response()->json($mapas);
   }
 
   public function especies(Request $request)

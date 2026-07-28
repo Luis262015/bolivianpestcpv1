@@ -43,6 +43,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import AvisoSinMapas from './AvisoSinMapas';
 import ModalCrearProducto, {
   type ProductoCreado,
 } from './ModalCrearProducto';
@@ -601,6 +602,12 @@ export default function ModalEditarSeguimiento({
                     <Input value={almacenNombre} disabled />
                   </div>
                 </div>
+
+                {/* Avisar aquí y no recién en el paso 9: si el almacén no tiene
+                    mapas conviene saberlo antes de recorrer todo el formulario. */}
+                {tipoSeguimientoSel !== 'FUMIGACION' && (
+                  <AvisoSinMapas almacenId={Number(data.almacen_id)} />
+                )}
                 <div className="space-y-2">
                   <Label>Tipo de Seguimiento</Label>
                   <Input value={tipoSeguimientoSel} disabled />

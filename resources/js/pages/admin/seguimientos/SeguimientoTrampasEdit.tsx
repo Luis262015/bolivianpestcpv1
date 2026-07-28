@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/select';
 import axios from 'axios';
 import { useEffect, useMemo, useState } from 'react';
+import AvisoSinMapas from './AvisoSinMapas';
 import ResumenTrampas from './ResumenTrampas';
 
 /* ======================= */
@@ -85,6 +86,7 @@ export default function SeguimientoTrampasEdit({
   >({});
 
   const [initialized, setInitialized] = useState(false);
+  const [cargado, setCargado] = useState(false);
 
   /* ======================= */
   /* CARGA INICIAL */
@@ -102,6 +104,7 @@ export default function SeguimientoTrampasEdit({
       // El backend ya las devuelve por orden de mapa y número de trampa.
       setTrampas(trampasRes.data);
       setEspecies(especiesRes.data);
+      setCargado(true);
     };
 
     load();
@@ -112,7 +115,10 @@ export default function SeguimientoTrampasEdit({
   /* ======================= */
 
   useEffect(() => {
-    if (!trampas.length) return;
+    // Se espera a que termine la carga, no a que haya trampas: un almacén sin
+    // mapas no tiene ninguna, y con `!trampas.length` el paso se quedaba
+    // colgado en "Cargando datos..." para siempre.
+    if (!cargado) return;
     if (initialized) return;
 
     const insectosMap: Record<number, TrampaEspecieSeguimientos[]> = {};
@@ -166,7 +172,7 @@ export default function SeguimientoTrampasEdit({
     setInsectos(insectosMap);
     setRoedores(roedoresMap);
     setInitialized(true);
-  }, [trampas, value, initialized]);
+  }, [cargado, trampas, value, initialized]);
 
   /* ======================= */
   /* SYNC AL PADRE */
@@ -273,7 +279,15 @@ export default function SeguimientoTrampasEdit({
 
   return (
     <div className="space-y-6">
+      <AvisoSinMapas almacenId={almacenId} />
+
       <ResumenTrampas trampas={trampasVisibles} />
+
+      {!trampasVisibles.length && (
+        <p className="text-sm text-muted-foreground">
+          No existen trampas registradas para este almacén
+        </p>
+      )}
 
       {/* ======================= */}
       {/* ROEDORES */}

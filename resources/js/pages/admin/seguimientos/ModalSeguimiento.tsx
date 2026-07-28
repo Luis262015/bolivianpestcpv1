@@ -41,6 +41,7 @@ import { useForm, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Check, ChevronsUpDown, InfoIcon, Plus, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import AvisoSinMapas from './AvisoSinMapas';
 import ModalCrearProducto, {
   type ProductoCreado,
 } from './ModalCrearProducto';
@@ -857,6 +858,12 @@ export default function ModalSeguimiento({
                   </Select>
                 </div>
               </div>
+
+              {/* Avisar aquí y no recién en el paso 9: si el almacén no tiene
+                  mapas conviene saberlo antes de llenar todo el formulario. */}
+              {tipoSeguimientoSel !== 'FUMIGACION' && (
+                <AvisoSinMapas almacenId={Number(data.almacen_id)} />
+              )}
               <div className="space-y-2">
                 <Label>Tipo de Seguimiento *</Label>
                 <Select
