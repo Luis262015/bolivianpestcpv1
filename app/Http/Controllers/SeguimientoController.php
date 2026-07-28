@@ -103,6 +103,7 @@ class SeguimientoController extends Controller
       'almacen_id' => 'nullable|integer',
       'usuario_id' => 'nullable|integer',
       'tipo_seguimiento_id' => 'nullable|integer',
+      'cronograma_id' => 'nullable|integer',
       'fecha_desde' => 'nullable|date',
       'fecha_hasta' => 'nullable|date',
     ]);
@@ -156,6 +157,11 @@ class SeguimientoController extends Controller
     if (!empty($filters['tipo_seguimiento_id'])) {
       $query->where('tipo_seguimiento_id', $filters['tipo_seguimiento_id']);
     }
+    // Número de tarea del cronograma; el cliente también puede usarlo porque
+    // el scoping por empresa ya se aplicó arriba.
+    if (!empty($filters['cronograma_id'])) {
+      $query->where('cronograma_id', $filters['cronograma_id']);
+    }
     // Rangos directos sobre created_at (aprovechan el índice, whereDate no).
     if (!empty($filters['fecha_desde'])) {
       $query->where('created_at', '>=', $filters['fecha_desde']);
@@ -198,6 +204,11 @@ class SeguimientoController extends Controller
       'productos_count' => count($validated['productos_usados'] ?? []),
     ]);
 
+    // Archivos escritos en disco dentro de la transacción (firmas e imágenes):
+    // si hay rollback hay que borrarlos a mano, el rollback solo deshace la
+    // base de datos.
+    $archivosCreados = [];
+
     try {
       DB::beginTransaction();
 
@@ -211,8 +222,8 @@ class SeguimientoController extends Controller
       $seguimiento->observacionesp = $validated['observaciones_especificas'] ?? null;
       $seguimiento->encargado_nombre = $validated['encargado_nombre'];
       $seguimiento->encargado_cargo = $validated['encargado_cargo'];
-      $seguimiento->firma_encargado = $this->guardarFirma($request->input('firma_encargado'), 'firma_encargado');
-      $seguimiento->firma_supervisor = $this->guardarFirma($request->input('firma_supervisor'), 'firma_supervisor');
+      $seguimiento->firma_encargado = $this->guardarFirma($request->input('firma_encargado'), 'firma_encargado', $archivosCreados);
+      $seguimiento->firma_supervisor = $this->guardarFirma($request->input('firma_supervisor'), 'firma_supervisor', $archivosCreados);
 
       // Fecha retroactiva asignada al modelo: evita el UPDATE extra posterior.
       if (!empty($validated['fecha'])) {
@@ -289,7 +300,7 @@ class SeguimientoController extends Controller
         ]);
       }
 
-      $this->guardarImagenes($request, $seguimiento->id);
+      $this->guardarImagenes($request, $seguimiento->id, $archivosCreados);
 
       DB::commit();
 
@@ -301,9 +312,11 @@ class SeguimientoController extends Controller
       return redirect()->route('seguimientos.index');
     } catch (ValidationException $e) {
       DB::rollBack();
+      $this->eliminarArchivos($archivosCreados);
       throw $e;
     } catch (\Throwable $e) {
       DB::rollBack();
+      $this->eliminarArchivos($archivosCreados);
       Log::error('SeguimientoController@store ERROR', [
         'user_id' => Auth::id(),
         'error' => $e->getMessage(),
@@ -348,7 +361,10 @@ class SeguimientoController extends Controller
       'user_id' => $request->user()?->id,
     ]);
 
-    $firmasAnteriores = [];
+    // Archivos que solo se borran si el cambio se confirma, y archivos nuevos
+    // que solo sobreviven si se confirma. Ninguno se toca antes del commit.
+    $archivosAEliminar = [];
+    $archivosCreados = [];
 
     try {
       DB::beginTransaction();
@@ -362,8 +378,8 @@ class SeguimientoController extends Controller
       foreach (['firma_encargado', 'firma_supervisor'] as $campo) {
         $input = $request->input($campo);
         if ($input && str_starts_with($input, 'data:image')) {
-          $firmasAnteriores[] = $seguimiento->{$campo};
-          $seguimiento->{$campo} = $this->guardarFirma($input, $campo);
+          $archivosAEliminar[] = [$seguimiento->{$campo}, 'images/firmas/'];
+          $seguimiento->{$campo} = $this->guardarFirma($input, $campo, $archivosCreados);
         }
       }
 
@@ -442,22 +458,24 @@ class SeguimientoController extends Controller
       }
 
       // Eliminar imágenes marcadas (solo las que pertenecen a este seguimiento).
+      // El registro se borra ahora, el archivo recién tras el commit: borrarlo
+      // aquí sería irreversible y un rollback dejaría la fila apuntando a un
+      // archivo que ya no existe.
       $imagenes = SeguimientoImage::whereIn('id', $imagenesEliminar)
         ->where('seguimiento_id', $seguimiento->id)
         ->get();
       foreach ($imagenes as $imagen) {
-        $this->eliminarArchivo($imagen->imagen, 'images/seguimientos/');
+        $archivosAEliminar[] = [$imagen->imagen, 'images/seguimientos/'];
         $imagen->delete();
       }
 
-      $this->guardarImagenes($request, $seguimiento->id);
+      $this->guardarImagenes($request, $seguimiento->id, $archivosCreados);
 
       DB::commit();
 
-      // Las firmas reemplazadas se borran recién con el cambio confirmado.
-      foreach ($firmasAnteriores as $firma) {
-        $this->eliminarArchivo($firma, 'images/firmas/');
-      }
+      // Firmas reemplazadas e imágenes quitadas: se borran del disco recién
+      // con el cambio ya confirmado.
+      $this->eliminarArchivos($archivosAEliminar);
 
       Log::info('SeguimientoController@update exitoso', [
         'seguimiento_id' => $id,
@@ -467,9 +485,11 @@ class SeguimientoController extends Controller
       return redirect()->route('seguimientos.index');
     } catch (ValidationException $e) {
       DB::rollBack();
+      $this->eliminarArchivos($archivosCreados);
       throw $e;
     } catch (\Throwable $e) {
       DB::rollBack();
+      $this->eliminarArchivos($archivosCreados);
       Log::error('SeguimientoController@update ERROR', [
         'seguimiento_id' => $id,
         'user_id' => $request->user()?->id,
@@ -564,9 +584,7 @@ class SeguimientoController extends Controller
 
       DB::commit();
 
-      foreach ($archivosEliminar as [$ruta, $prefijo]) {
-        $this->eliminarArchivo($ruta, $prefijo);
-      }
+      $this->eliminarArchivos($archivosEliminar);
 
       Log::info('SeguimientoController@destroy exitoso', [
         'seguimiento_id' => $id,
@@ -760,8 +778,13 @@ class SeguimientoController extends Controller
 
   /**
    * Guarda una firma en base64 como PNG con nombre generado por el servidor.
+   *
+   * Las rutas escritas se acumulan en $creados para que quien abre la
+   * transacción pueda borrarlas si termina haciendo rollback: el archivo se
+   * escribe antes del commit y, sin esa limpieza, un fallo posterior deja el
+   * PNG huérfano en disco para siempre.
    */
-  private function guardarFirma(?string $base64, string $prefijo): ?string
+  private function guardarFirma(?string $base64, string $prefijo, ?array &$creados = null): ?string
   {
     if (!$base64) {
       return null;
@@ -776,37 +799,60 @@ class SeguimientoController extends Controller
     }
 
     $directory = public_path('images/firmas');
-    if (!is_dir($directory)) {
-      mkdir($directory, 0755, true);
+    // La doble comprobación cubre la carrera entre dos peticiones simultáneas:
+    // el mkdir del segundo falla porque el primero ya creó el directorio.
+    if (!is_dir($directory) && !@mkdir($directory, 0755, true) && !is_dir($directory)) {
+      throw new \RuntimeException("No se pudo crear el directorio de firmas: {$directory}");
     }
 
     $filename = $prefijo . '_' . uniqid() . '.png';
-    file_put_contents($directory . '/' . $filename, $data);
 
-    return 'images/firmas/' . $filename;
+    // Sin esta comprobación una escritura fallida (permisos, disco lleno)
+    // devolvería la ruta igualmente y el seguimiento quedaría en la base de
+    // datos apuntando a un archivo que no existe.
+    if (file_put_contents($directory . '/' . $filename, $data) === false) {
+      throw new \RuntimeException("No se pudo escribir la firma: {$filename}");
+    }
+
+    $ruta = 'images/firmas/' . $filename;
+
+    if ($creados !== null) {
+      $creados[] = [$ruta, 'images/firmas/'];
+    }
+
+    return $ruta;
   }
 
   /**
    * Guarda las imágenes adjuntas (ya validadas como imagen) con nombre y
    * extensión generados por el servidor.
+   *
+   * Igual que guardarFirma(), acumula en $creados las rutas escritas para que
+   * el llamador pueda borrarlas si la transacción acaba en rollback.
    */
-  private function guardarImagenes(Request $request, int $seguimientoId): void
+  private function guardarImagenes(Request $request, int $seguimientoId, ?array &$creados = null): void
   {
     if (!$request->hasFile('imagenes')) {
       return;
     }
 
     $directory = public_path('images/seguimientos');
-    if (!is_dir($directory)) {
-      mkdir($directory, 0755, true);
+    // Doble comprobación: entre el is_dir y el mkdir puede colarse otra petición.
+    if (!is_dir($directory) && !@mkdir($directory, 0755, true) && !is_dir($directory)) {
+      throw new \RuntimeException("No se pudo crear el directorio de imágenes: {$directory}");
     }
 
     foreach ($request->file('imagenes') as $imagen) {
       $filename = $this->optimizarYGuardarImagen($imagen, $directory);
+      $ruta = 'images/seguimientos/' . $filename;
+
+      if ($creados !== null) {
+        $creados[] = [$ruta, 'images/seguimientos/'];
+      }
 
       SeguimientoImage::create([
         'seguimiento_id' => $seguimientoId,
-        'imagen' => 'images/seguimientos/' . $filename,
+        'imagen' => $ruta,
       ]);
     }
   }
@@ -1041,6 +1087,20 @@ class SeguimientoController extends Controller
         $nuevoBuf->cantidad = $parte_decimal;
         $nuevoBuf->save();
       }
+    }
+  }
+
+  /**
+   * Borra un lote de archivos. Se usa siempre FUERA de la transacción: tras el
+   * commit para lo que quedó obsoleto, y tras el rollback para lo que se
+   * escribió y ya no corresponde. El rollback solo deshace la base de datos.
+   *
+   * @param array<int, array{0: ?string, 1: string}> $archivos Pares [ruta, prefijo].
+   */
+  private function eliminarArchivos(array $archivos): void
+  {
+    foreach ($archivos as [$ruta, $prefijo]) {
+      $this->eliminarArchivo($ruta, $prefijo);
     }
   }
 

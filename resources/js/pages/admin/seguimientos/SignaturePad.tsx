@@ -54,7 +54,20 @@ export default function SignaturePad({
     canvasRef.current.setPointerCapture(e.pointerId);
 
     drawing.current = true;
-    lastPoint.current = getPoint(e);
+    const point = getPoint(e);
+    lastPoint.current = point;
+
+    // Un toque sin arrastrar también es un trazo: se pinta el punto (lineCap
+    // 'round' lo redondea) y se marca contenido. Antes, tocar sin mover no
+    // dejaba marca ni disparaba onChange, así que la firma se perdía.
+    const ctx = canvasRef.current.getContext('2d');
+    if (ctx) {
+      ctx.beginPath();
+      ctx.moveTo(point.x, point.y);
+      ctx.lineTo(point.x, point.y);
+      ctx.stroke();
+    }
+    hasContent.current = true;
   };
 
   const draw = (e: React.PointerEvent) => {
@@ -114,7 +127,6 @@ export default function SignaturePad({
         onPointerMove={draw}
         onPointerUp={endDraw}
         onPointerCancel={endDraw}
-        onPointerLeave={endDraw}
       ></canvas>
 
       <button

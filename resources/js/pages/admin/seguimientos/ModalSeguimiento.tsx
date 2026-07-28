@@ -194,7 +194,7 @@ export default function ModalSeguimiento({
   const [quantity, setQuantity] = useState('1');
   const [openCrearProducto, setOpenCrearProducto] = useState(false);
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, errors, reset, transform } = useForm({
     empresa_id: '',
     almacen_id: '',
     tipo_seguimiento_id: '',
@@ -291,9 +291,11 @@ export default function ModalSeguimiento({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-
-    // Actualizar todos los datos antes de enviar
-    const finalData = {
+    // OJO: setData() NO afecta al post() de este mismo handler — Inertia envía
+    // el `data` capturado en el render anterior. Hay que usar transform(), que
+    // escribe en una ref y sí se aplica de inmediato. Si no, todo lo que se
+    // sincronice solo aquí (p. ej. una firma borrada) se envía desactualizado.
+    transform(() => ({
       ...data,
       biologicos_ids: biologicosSel,
       metodos_ids: metodosSel,
@@ -301,16 +303,11 @@ export default function ModalSeguimiento({
       protecciones_ids: proteccionesSel,
       signos_ids: signosSel,
       productos_usados: productos,
-      firma_encargado: firmaEncargado, // base64
-      firma_supervisor: firmaSupervisor, // base64
+      firma_encargado: firmaEncargado, // base64 ('' si se limpió el canvas)
+      firma_supervisor: firmaSupervisor, // base64 ('' si se limpió el canvas)
       aplicacion_data: aplicacion,
-      fecha: data.fecha,
-    };
+    }));
 
-    // Primero actualizar el estado
-    setData(finalData);
-
-    // Luego enviar (Inertia enviará el estado actual de 'data')
     post('/seguimientos', {
       onSuccess: handleClose,
     });
@@ -449,18 +446,10 @@ export default function ModalSeguimiento({
   // Incrementar este key en reset fuerza el remount de SignaturePad (limpia el canvas)
   const [signatureResetKey, setSignatureResetKey] = useState(0);
 
-  // En el paso 13, actualiza el useEffect o maneja las firmas así:
-  useEffect(() => {
-    if (firmaEncargado) {
-      setData('firma_encargado', firmaEncargado);
-    }
-  }, [firmaEncargado]);
-
-  useEffect(() => {
-    if (firmaSupervisor) {
-      setData('firma_supervisor', firmaSupervisor);
-    }
-  }, [firmaSupervisor]);
+  // Las firmas NO se copian a `data` con un useEffect: el estado de arriba es
+  // la única fuente de verdad y handleSubmit las inyecta con transform(). Con
+  // el useEffect anterior, limpiar el canvas dejaba la firma vieja en `data`
+  // (el guard de truthy ignoraba el '') y se guardaba una firma ya borrada.
 
   const [tipoSeguimientoSel, setTipoSeguimientoSel] = useState<string>('TIPO');
 

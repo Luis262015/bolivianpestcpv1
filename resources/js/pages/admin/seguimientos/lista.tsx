@@ -80,6 +80,7 @@ interface ActiveFilters {
   almacen_id?: string;
   usuario_id?: string;
   tipo_seguimiento_id?: string;
+  cronograma_id?: string;
   fecha_desde?: string;
   fecha_hasta?: string;
 }
@@ -136,6 +137,7 @@ export default function Lista({
     almacen_id: activeFilters?.almacen_id ?? '',
     usuario_id: activeFilters?.usuario_id ?? '',
     tipo_seguimiento_id: activeFilters?.tipo_seguimiento_id ?? '',
+    cronograma_id: activeFilters?.cronograma_id ?? '',
     fecha_desde: activeFilters?.fecha_desde ?? '',
     fecha_hasta: activeFilters?.fecha_hasta ?? '',
   });
@@ -154,6 +156,7 @@ export default function Lista({
       almacen_id: '',
       usuario_id: '',
       tipo_seguimiento_id: '',
+      cronograma_id: '',
       fecha_desde: '',
       fecha_hasta: '',
     });
@@ -167,16 +170,18 @@ export default function Lista({
       <div className="">
         <div className="mx-auto max-w-7xl">
           <div className="overflow-hidden sm:rounded-lg">
-            <div className="p-6">
-              <div className="mb-6 flex items-center">
-                <h2 className="me-5 text-2xl font-semibold">
+            <div className="p-4 sm:p-6">
+              {/* flex-wrap: sin él, en móvil los botones se salen del contenedor
+                  y el ancestro con overflow-x-hidden los recorta sin scroll. */}
+              <div className="mb-6 flex flex-wrap items-center gap-3">
+                <h2 className="text-xl font-semibold sm:text-2xl">
                   Gestión de Seguimientos
                 </h2>
                 {(hasRole('tecnico') ||
                   hasRole('superadmin') ||
                   hasRole('admin')) && (
                   <>
-                    <Button onClick={() => setModalOpen(true)} className="me-3">
+                    <Button onClick={() => setModalOpen(true)}>
                       <Plus className="h-4 w-4" />
                       Nuevo
                     </Button>
@@ -190,9 +195,12 @@ export default function Lista({
               </div>
 
               {/* Filtros */}
-              <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+              {/* 7 filtros. A 7 columnas dentro de max-w-7xl quedan ~160px por
+                  campo: los nombres de empresa se truncan y los input[type=date]
+                  no caben. A 4 columnas (4+3) se leen y siguen entrando en dos filas. */}
+              <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-foreground">
                     Empresa
                   </label>
                   <Select
@@ -216,7 +224,7 @@ export default function Lista({
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-foreground">
                     Almacén
                   </label>
                   <Select
@@ -240,7 +248,7 @@ export default function Lista({
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-foreground">
                     Usuario
                   </label>
                   <Select
@@ -264,7 +272,7 @@ export default function Lista({
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-foreground">
                     Tipo
                   </label>
                   <Select
@@ -291,7 +299,26 @@ export default function Lista({
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-foreground">
+                    Cronograma
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    placeholder="N° de tarea"
+                    value={filters.cronograma_id}
+                    onChange={(e) =>
+                      setFilters((f) => ({ ...f, cronograma_id: e.target.value }))
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') applyFilters();
+                    }}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-foreground">
                     Desde
                   </label>
                   <input
@@ -300,12 +327,12 @@ export default function Lista({
                     onChange={(e) =>
                       setFilters((f) => ({ ...f, fecha_desde: e.target.value }))
                     }
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-foreground">
                     Hasta
                   </label>
                   <input
@@ -314,12 +341,12 @@ export default function Lista({
                     onChange={(e) =>
                       setFilters((f) => ({ ...f, fecha_hasta: e.target.value }))
                     }
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 </div>
               </div>
 
-              <div className="mb-4 flex gap-2">
+              <div className="mb-4 flex flex-wrap gap-2">
                 <Button onClick={applyFilters}>Filtrar</Button>
                 <Button variant="outline" onClick={resetFilters}>
                   Limpiar
@@ -330,38 +357,59 @@ export default function Lista({
                 {seguimientos?.data && seguimientos.data.length > 0 ? (
                   <Table>
                     <TableHeader>
+                      {/* En pantallas chicas se ocultan las columnas de menor
+                          valor (id interno, almacén, usuario) en vez de forzar
+                          un scroll horizontal de 8 columnas. */}
                       <TableRow>
-                        <TableHead className="w-12"></TableHead>
+                        <TableHead className="hidden w-12 sm:table-cell"></TableHead>
+                        <TableHead className="text-center">Cronograma</TableHead>
                         <TableHead>Empresa</TableHead>
-                        <TableHead>Almacen</TableHead>
-                        <TableHead>Usuario</TableHead>
+                        <TableHead className="hidden lg:table-cell">Almacen</TableHead>
+                        <TableHead className="hidden lg:table-cell">Usuario</TableHead>
                         <TableHead className="text-center">Tipo</TableHead>
                         <TableHead className="text-center">Fecha</TableHead>
-                        <TableHead>Acciones</TableHead>
+                        <TableHead className="text-right">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {seguimientos.data.map((seguimiento: any) => (
                         <TableRow key={seguimiento.id}>
-                          <TableCell className="font-medium">
+                          <TableCell className="hidden font-medium sm:table-cell">
                             {seguimiento.id}
                           </TableCell>
-                          <TableCell className="font-medium">
+                          <TableCell className="text-center font-medium">
+                            {seguimiento.cronograma_id ?? '—'}
+                          </TableCell>
+                          {/* whitespace-normal: TableCell trae whitespace-nowrap,
+                              y un nombre de empresa largo estiraba la tabla entera. */}
+                          <TableCell className="min-w-[10rem] font-medium whitespace-normal">
                             {seguimiento.empresa?.nombre}
                           </TableCell>
-                          <TableCell className="font-medium">
+                          <TableCell className="hidden min-w-[10rem] font-medium whitespace-normal lg:table-cell">
                             {seguimiento.almacen?.nombre}
                           </TableCell>
-                          <TableCell className="font-medium">
+                          <TableCell className="hidden font-medium whitespace-normal lg:table-cell">
                             {seguimiento.user?.name}
                           </TableCell>
                           <TableCell className="text-center font-medium">
                             {seguimiento.tipo_seguimiento?.nombre}
                           </TableCell>
                           <TableCell className="text-center font-mono text-xs text-muted-foreground sm:text-sm">
-                            {format(seguimiento.created_at, 'dd/MM/yyyy HH:mm:ss')}
+                            {/* En móvil solo la fecha: la hora ensancha la
+                                columna ~60px y suele ser la de la fecha
+                                retroactiva, no la de captura real. */}
+                            <span className="sm:hidden">
+                              {format(seguimiento.created_at, 'dd/MM/yy')}
+                            </span>
+                            <span className="hidden sm:inline">
+                              {format(seguimiento.created_at, 'dd/MM/yyyy HH:mm:ss')}
+                            </span>
                           </TableCell>
-                          <TableCell className="flex gap-2">
+                          {/* El flex va en un div interno: aplicarlo al <td>
+                              anula su display:table-cell y rompe el align-middle
+                              respecto al resto de la fila. */}
+                          <TableCell>
+                            <div className="flex justify-end gap-2">
                             {(hasRole('superadmin') ||
                               hasRole('admin') ||
                               hasRole('tecnico')) && (
@@ -407,6 +455,7 @@ export default function Lista({
                                 <Edit2 className="h-4 w-4" />
                               </Button>
                             )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -421,7 +470,7 @@ export default function Lista({
                 )}
 
                 {(!seguimientos?.data || seguimientos.data.length === 0) && (
-                  <p className="py-8 text-center text-gray-500">
+                  <p className="py-8 text-center text-muted-foreground">
                     No hay seguimientos registrados
                   </p>
                 )}
