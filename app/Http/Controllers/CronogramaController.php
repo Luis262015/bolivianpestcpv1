@@ -7,23 +7,45 @@ use App\Models\Cronograma;
 use App\Models\Empresa;
 use App\Models\TipoSeguimiento;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\In;
 
 class CronogramaController extends Controller
 {
+  // Los ids se consultan una sola vez por request: la regla se arma dos veces
+  // (user_id y tecnico_id) y el catálogo no cambia a mitad de validación.
+  private ?In $reglaResponsable = null;
+
   // Reglas para update: cada campo es opcional (el drag & drop manda solo la
   // fecha), pero si viene, debe ser válido. empresa_id no se acepta del
   // cliente: se deduce siempre del almacén.
-  private $toValidated = [
-    'title' => 'sometimes|required|string|max:255',
-    'date' => 'sometimes|required|date',
-    'color' => 'sometimes|required|string|max:100',
-    'status' => 'sometimes|required|in:pendiente,postergado,completado',
-    'user_id' => 'sometimes|required|exists:users,id',
-    'tecnico_id' => 'sometimes|required|exists:users,id',
-    'almacen_id' => 'sometimes|required|exists:almacenes,id',
-    'tipo_seguimiento_id' => 'sometimes|nullable|exists:tipo_seguimientos,id',
-  ];
+  private function reglasActualizacion(): array
+  {
+    return [
+      'title' => 'sometimes|required|string|max:255',
+      'date' => 'sometimes|required|date',
+      'color' => 'sometimes|required|string|max:100',
+      'status' => 'sometimes|required|in:pendiente,postergado,completado',
+      'user_id' => ['sometimes', 'required', $this->reglaResponsable()],
+      'tecnico_id' => ['sometimes', 'required', $this->reglaResponsable()],
+      'almacen_id' => 'sometimes|required|exists:almacenes,id',
+      'tipo_seguimiento_id' => 'sometimes|nullable|exists:tipo_seguimientos,id',
+    ];
+  }
+
+  // El responsable de una tarea siempre es personal interno (superadmin,
+  // admin o técnico); un cliente nunca puede quedar asignado.
+  private function usuariosResponsables(): Builder
+  {
+    return User::whereDoesntHave('roles', fn(Builder $q) => $q->where('name', 'cliente'));
+  }
+
+  private function reglaResponsable(): In
+  {
+    return $this->reglaResponsable ??= Rule::in($this->usuariosResponsables()->pluck('id')->all());
+  }
 
   public function index(Request $request)
   {
@@ -52,10 +74,11 @@ class CronogramaController extends Controller
     }
 
     // El dropdown "Usuario responsable" solo existe para staff; no exponer
-    // la lista de usuarios a clientes.
+    // la lista de usuarios a clientes. Y los propios clientes tampoco son
+    // asignables como responsables, así que quedan fuera del catálogo.
     $usuarios = $esCliente
       ? collect()
-      : User::orderBy('name')->get(['id', 'name as nombre']);
+      : $this->usuariosResponsables()->orderBy('name')->get(['id', 'name as nombre']);
 
     // Catálogo de tipos de seguimiento (para elegir el tipo al crear la tarea).
     $tiposSeguimiento = TipoSeguimiento::select('id', 'nombre')->orderBy('id')->get();
@@ -98,8 +121,8 @@ class CronogramaController extends Controller
       'date' => 'required|date',
       'color' => 'required|string|max:100',
       'status' => 'required|in:pendiente,postergado,completado',
-      'user_id' => 'required|exists:users,id',
-      'tecnico_id' => 'required|exists:users,id',
+      'user_id' => ['required', $this->reglaResponsable()],
+      'tecnico_id' => ['required', $this->reglaResponsable()],
       'almacen_id' => 'required|exists:almacenes,id',
       'tipo_seguimiento_id' => 'nullable|exists:tipo_seguimientos,id',
     ]);
@@ -115,7 +138,7 @@ class CronogramaController extends Controller
 
   public function update(Request $request, Cronograma $cronograma)
   {
-    $validated = $request->validate($this->toValidated);
+    $validated = $request->validate($this->reglasActualizacion());
 
     if (isset($validated['almacen_id'])) {
       $validated['empresa_id'] = Almacen::whereKey($validated['almacen_id'])->value('empresa_id');
