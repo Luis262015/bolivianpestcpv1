@@ -24,6 +24,34 @@ const clasesBase = {
   actions: 'gap-2',
 } as const;
 
+/**
+ * Radix (Dialog, Sheet, Popover…) pone `pointer-events: none` en <body>
+ * mientras hay un modal abierto y devuelve el foco a su contenido en cuanto
+ * se escapa. SweetAlert2 se monta en <body>, fuera de ese contenido: dentro
+ * de un modal el popup se ve pero sus botones quedan inertes y no se puede
+ * confirmar. Estos hooks lo compensan sólo mientras el popup está abierto.
+ */
+function evitarRoboDeFoco(evento: FocusEvent): void {
+  const destino = evento.target as HTMLElement | null;
+  if (destino?.closest?.('.swal2-container')) {
+    evento.stopImmediatePropagation();
+  }
+}
+
+/** Hooks que hacen usable el popup por encima de un modal de Radix. */
+const sobreModales = {
+  didOpen: (popup: HTMLElement) => {
+    popup.style.pointerEvents = 'auto';
+    if (popup.parentElement) {
+      popup.parentElement.style.pointerEvents = 'auto';
+    }
+    document.addEventListener('focusin', evitarRoboDeFoco, true);
+  },
+  didClose: () => {
+    document.removeEventListener('focusin', evitarRoboDeFoco, true);
+  },
+} as const;
+
 type OpcionesConfirmar = {
   titulo?: string;
   texto?: string;
@@ -51,6 +79,7 @@ export async function confirmar({
   destructivo = false,
 }: OpcionesConfirmar = {}): Promise<boolean> {
   const resultado = await Swal.fire({
+    ...sobreModales,
     title: titulo,
     text: texto,
     icon: destructivo ? 'warning' : 'question',
@@ -84,6 +113,7 @@ export async function avisar({
   icono?: 'info' | 'success' | 'error' | 'warning';
 } = {}): Promise<void> {
   await Swal.fire({
+    ...sobreModales,
     title: titulo,
     text: texto,
     icon: icono,
@@ -130,6 +160,7 @@ export async function pedirTexto({
   marcador?: string;
 } = {}): Promise<string | null> {
   const resultado = await Swal.fire({
+    ...sobreModales,
     title: titulo,
     input: 'text',
     inputValue: valorInicial,

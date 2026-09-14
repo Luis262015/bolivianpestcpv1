@@ -56,6 +56,8 @@ interface CertificadoListado {
   actividad: string;
   validez: string;
   created_at: string;
+  /** Emisión ya formateada por el servidor: 'dd/mm/aaaa HH:MM'. */
+  fecha_hora: string | null;
 }
 
 interface Empresa {
@@ -423,6 +425,7 @@ export default function Lista() {
                 <TableRow>
                   <TableHead>ID</TableHead>
                   <TableHead>Título</TableHead>
+                  <TableHead>Fecha y hora</TableHead>
                   {/* <TableHead>Validez</TableHead> */}
                   <TableHead>Acción</TableHead>
                 </TableRow>
@@ -432,6 +435,9 @@ export default function Lista() {
                   <TableRow key={c.id}>
                     <TableCell>{c.id}</TableCell>
                     <TableCell>{c.titulo}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {c.fecha_hora ?? '—'}
+                    </TableCell>
                     {/* <TableCell>{c.validez}</TableCell> */}
                     <TableCell className="space-x-2">
                       <Button
