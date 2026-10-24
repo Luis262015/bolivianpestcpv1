@@ -672,6 +672,14 @@ class SeguimientoController extends Controller
 
     $this->autorizarAccesoEmpresa($request, $seguimiento->empresa_id);
 
+    // Mismo orden que en Informes: por mapa y, dentro de cada mapa, por
+    // identificador (orden natural, sin distinguir mayúsculas: T2 antes que T10).
+    $ordenarPorMapaEIdentificador = fn($a, $b) => strnatcasecmp($a->trampa?->mapa?->titulo ?? '', $b->trampa?->mapa?->titulo ?? '')
+      ?: strnatcasecmp((string) ($a->trampa?->identificador ?? ''), (string) ($b->trampa?->identificador ?? ''));
+
+    $seguimiento->setRelation('roedores', $seguimiento->roedores->sort($ordenarPorMapaEIdentificador)->values());
+    $seguimiento->setRelation('insectocutores', $seguimiento->insectocutores->sort($ordenarPorMapaEIdentificador)->values());
+
     // Siguiente tarea del cronograma del mismo almacén y tipo.
     $cronograma = Cronograma::query()
       ->where('almacen_id', $seguimiento->almacen_id)
