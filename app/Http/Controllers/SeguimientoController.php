@@ -667,7 +667,7 @@ class SeguimientoController extends Controller
 
   public function pdf(Request $request, string $id)
   {
-    $seguimiento = Seguimiento::with(['empresa', 'almacen', 'user', 'tipoSeguimiento', 'aplicacion', 'metodos', 'epps', 'proteccions', 'biologicos', 'signos', 'images', 'productoUsos.unidad', 'productoUsos.producto', 'roedores.trampa.mapa', 'insectocutores.especie', 'insectocutores.trampa.mapa'])
+    $seguimiento = Seguimiento::with(['empresa', 'almacen', 'user', 'tipoSeguimiento', 'aplicacion', 'metodos', 'epps', 'proteccions', 'biologicos', 'signos', 'images', 'productoUsos.unidad', 'productoUsos.producto', 'roedores.trampa.mapa', 'roedores.trampa.trampa_tipo', 'insectocutores.especie', 'insectocutores.trampa.mapa'])
       ->findOrFail($id);
 
     $this->autorizarAccesoEmpresa($request, $seguimiento->empresa_id);

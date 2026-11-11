@@ -1507,9 +1507,9 @@ class InformesController extends Controller
             'Fecha Seguimiento' => 2000,
             '# Trampas'         => 1000,
             'Cantidad'          => 1000,
-            'Inicial'           => 1000,
-            'Merma'             => 1000,
-            'Actual'            => 1000,
+            'Inicial (gr)'      => 1000,
+            'Merma (gr)'        => 1000,
+            'Actual (gr)'       => 1000,
             '% Merma'           => 1000,
         ];
         foreach ($headers as $header => $width) {

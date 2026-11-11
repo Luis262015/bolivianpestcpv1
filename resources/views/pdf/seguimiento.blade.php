@@ -320,15 +320,16 @@
       <table>
         <thead>
           <tr>
-            <td colspan="7" class="titulo">TRAMPAS ROEDORES</td>
+            <td colspan="8" class="titulo">TRAMPAS ROEDORES</td>
           </tr>
           <tr>
             <td>#</td>
             <td>MAPA</td>
             <td>IDENT.</td>
-            <td>Inicial</td>
-            <td>Actual</td>
-            <td>Merma</td>
+            <td>TIPO</td>
+            <td>Inicial (gr)</td>
+            <td>Actual (gr)</td>
+            <td>Merma (gr)</td>
             <td>Observación</td>
           </tr>
         </thead>
@@ -340,6 +341,7 @@
               {{-- <td>{{ $roedor->trampa_id }}</td> --}}
               <td>{{ $roedor->trampa->mapa->titulo }}</td>
               <td>{{ $roedor->trampa->identificador }}</td>
+              <td>{{ $roedor->trampa->trampa_tipo?->nombre ?? '-' }}</td>
               <td>{{ $roedor->inicial }}</td>
               <td>{{ $roedor->actual }}</td>
               <td>{{ $roedor->merma }}</td>

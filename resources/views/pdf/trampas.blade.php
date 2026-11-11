@@ -234,9 +234,9 @@
               <td>#</td>
               <td>Trampa ID:</td>
               <td>Cantidad</td>
-              <td>Inicial</td>
-              <td>Merma</td>
-              <td>Actual</td>
+              <td>Inicial (gr)</td>
+              <td>Merma (gr)</td>
+              <td>Actual (gr)</td>
             </tr>
             @foreach ($seguimiento->trampaRoedoresSeguimientos as $metodo)
               <tr>

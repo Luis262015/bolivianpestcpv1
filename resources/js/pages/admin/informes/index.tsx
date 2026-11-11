@@ -2547,13 +2547,13 @@ export default function Lista({
                       TRAMPAS
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      CEBO INICIAL
+                      CEBO INICIAL (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      MERMA
+                      MERMA (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      CEBO ACTUAL
+                      CEBO ACTUAL (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
                       ROEDORES CAPTURADOS
@@ -2594,9 +2594,9 @@ export default function Lista({
                   <TableHead>ALMACÉN</TableHead>
                   <TableHead className="text-right">TIPO TRAMPA</TableHead>
                   <TableHead className="text-right">TRAMPAS</TableHead>
-                  <TableHead className="text-right">CEBO INICIAL</TableHead>
-                  <TableHead className="text-right">MERMA</TableHead>
-                  <TableHead className="text-right">CEBO ACTUAL</TableHead>
+                  <TableHead className="text-right">CEBO INICIAL (gr)</TableHead>
+                  <TableHead className="text-right">MERMA (gr)</TableHead>
+                  <TableHead className="text-right">CEBO ACTUAL (gr)</TableHead>
                   <TableHead className="text-right">
                     ROEDORES CAPTURADOS
                   </TableHead>
@@ -2662,13 +2662,13 @@ export default function Lista({
                       TRAMPAS
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      CEBO INICIAL
+                      CEBO INICIAL (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      MERMA
+                      MERMA (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      CEBO ACTUAL
+                      CEBO ACTUAL (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
                       % MERMA
@@ -2794,13 +2794,13 @@ export default function Lista({
                       TRAMPAS
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      CEBO INICIAL
+                      CEBO INICIAL (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      MERMA
+                      MERMA (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      CEBO ACTUAL
+                      CEBO ACTUAL (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
                       ROEDORES CAPTURADOS
@@ -2881,13 +2881,13 @@ export default function Lista({
                       TRAMPAS
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      CEBO INICIAL
+                      CEBO INICIAL (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      MERMA
+                      MERMA (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      CEBO ACTUAL
+                      CEBO ACTUAL (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
                       % MERMA
@@ -3155,13 +3155,13 @@ export default function Lista({
                       Mapa
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      Inicial
+                      Inicial (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      Merma
+                      Merma (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
-                      Actual
+                      Actual (gr)
                     </TableHead>
                     <TableHead className={tableStyles.header.cell}>
                       % merma
